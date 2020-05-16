@@ -58,14 +58,21 @@ namespace VT.Server {
                 app.UseDeveloperExceptionPage();
             }
           
-            var options = new QueryMiddlewareOptions() {
-            
-            };
+            app.UseRouting();
+
             app.UseGraphQL("/api");
             PlaygroundOptions opt = new PlaygroundOptions();
             opt.Path = "/playground";
             opt.QueryPath = "/api";
             app.UsePlayground(opt);
+
+
+            app.UseEndpoints(endpoints => {
+                endpoints.MapGet("/hello", async context => {
+                    await context.Response.WriteAsync("Hello from endpoints");
+                });
+            });
+
         }
     }
 }
