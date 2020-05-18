@@ -8,7 +8,7 @@ using System.Linq;
 using Microsoft.CSharp.RuntimeBinder;
 
 namespace VT.Seed {
-    public class SeedData {
+    internal class SeedData {
 
         public ICollection<Vehicle_Seed_DTO> Vehicle_SeedData;
         public ICollection<Component_Seed_DTO> Component_SeedData;

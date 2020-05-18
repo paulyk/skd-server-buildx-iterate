@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using VT.Model;
+using VT.Seed;
 
 namespace VT.Server {
     public class Startup {
@@ -87,6 +88,20 @@ namespace VT.Server {
                 endpoints.MapGet("/test", async context => {
                     await context.Response.WriteAsync("Hello from test endpoint");
                 });
+
+                endpoints.MapGet("/reseed", async context => {
+                    if (!_env.IsDevelopment()) {
+                        throw new Exception("Database seeding in Development mode only");
+                    }
+                    var ctx = context.RequestServices.GetService<AppDbContext>();
+                    if (ctx != null) {
+                        var dataSeeder = new DataSeeder();
+                        await dataSeeder.GenerateSeedData(ctx);
+                    } else {
+                        throw new Exception("RequestServices.GetService returned null AppDbContext ");
+                    }
+                });
+
             });
 
         }

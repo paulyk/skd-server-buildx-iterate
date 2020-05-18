@@ -3,48 +3,63 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Transactions;
 
 namespace VT.Seed {
-    public class Seeding {
+    internal class Generator {
         private AppDbContext ctx;
 
-        public Seeding(AppDbContext ctx) {
+        public Generator(AppDbContext ctx) {
             this.ctx = ctx;
         }
 
-        public void DroCreateDb() {
-            ctx.Database.EnsureDeleted();
+        public async Task DroCreateDb() {
+            await ctx.Database.EnsureDeletedAsync();
             Console.WriteLine("Dropped database");
-            ctx.Database.EnsureCreated();
+            await ctx.Database.EnsureCreatedAsync();
             Console.WriteLine("Created database");
-        }        
-
-        public void Seed_VehicleModelComponents(ICollection<VehicleModelComponent_Seed_DTO> vehicleModelComponentData) {
-
-            // vehicle model components
-            var vehicleModelComponents = vehicleModelComponentData.ToList().Select(x => new VehicleModelComponent() {
-                Component = ctx.Components.First(c => c.Code == x.componentCode),
-                VehicleModel = ctx.VehicleModels.First(m => m.Code == x.modelCode),
-                Sequence = x.sequence
-            }).ToList();
-
-            vehicleModelComponents.ForEach(vmc => {
-                var existing = ctx.VehicleModelComponents
-                    .Where(x => x.VehicleModel.Code == vmc.VehicleModel.Code && x.Component.Code == vmc.Component.Code)
-                    .FirstOrDefault();
-
-                if (existing != null) {
-                    existing.Quantity += 1;
-                    ctx.SaveChanges();
-                } else {
-                    ctx.VehicleModelComponents.Add(vmc);
-                    ctx.SaveChanges();
-                }
-            });
-            Console.WriteLine($"Added {ctx.VehicleModelComponents.Count()} vehicle model components ");
         }
 
-        public void Seed_Vehicles(ICollection<Vehicle_Seed_DTO> vehicleData) {
+        public async Task Seed_VehicleModelComponents(ICollection<VehicleModelComponent_Seed_DTO> vehicleModelComponentData) {
+
+            // vehicle model components
+            var components = vehicleModelComponentData.ToList();
+            var vehicleModelComponents = new List<VehicleModelComponent>();
+
+            foreach (var item in vehicleModelComponentData) {
+                var component = await ctx.Components.FirstOrDefaultAsync(c => c.Code == item.componentCode);
+                var model = await ctx.VehicleModels.FirstOrDefaultAsync(m => m.Code == item.modelCode);
+
+                vehicleModelComponents.Add(new VehicleModelComponent() {
+                    Component = component,
+                    VehicleModel = model,
+                    Sequence = item.sequence
+                });
+            }
+
+            foreach (var vmc in vehicleModelComponents) {
+                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled)) {
+                    var existing = await ctx.VehicleModelComponents
+                        .Where(x => x.VehicleModel.Code == vmc.VehicleModel.Code && x.Component.Code == vmc.Component.Code)
+                        .FirstOrDefaultAsync();
+
+                    if (existing != null) {
+                        existing.Quantity += 1;
+                        await ctx.SaveChangesAsync();
+                    } else {
+                        ctx.VehicleModelComponents.Add(vmc);
+                        await ctx.SaveChangesAsync();
+                    }
+                    scope.Complete();
+                }
+            }
+
+            var count = await ctx.VehicleModelComponents.CountAsync();
+            Console.WriteLine($"Added {count} vehicle model components ");
+        }
+
+        public async Task Seed_Vehicles(ICollection<Vehicle_Seed_DTO> vehicleData) {
             // vehicles
             var vehicles = vehicleData.ToList().Select(x => new Vehicle() {
                 VIN = x.vin,
@@ -54,30 +69,30 @@ namespace VT.Seed {
             });
 
             ctx.Vehicles.AddRange(vehicles);
-            ctx.SaveChanges();
+            await ctx.SaveChangesAsync();
             Console.WriteLine($"Added {vehicles.Count()} vehicles");
         }
 
-        public void Seed_Components(ICollection<Component_Seed_DTO> componentData) {
+        public async Task Seed_Components(ICollection<Component_Seed_DTO> componentData) {
             var components = componentData.ToList().Select(x => new Component() {
-                Code = x.code,                
+                Code = x.code,
                 Name = x.name,
                 Type = x.type
             });
 
             ctx.Components.AddRange(components);
-            ctx.SaveChanges();
+            await ctx.SaveChangesAsync();
             Console.WriteLine($"Added {ctx.Components.Count()} components");
         }
 
-        public void Seed_VehicleModels(ICollection<VehicleModel_Seed_DTO> vehicleModelData) {
+        public async Task Seed_VehicleModels(ICollection<VehicleModel_Seed_DTO> vehicleModelData) {
             var vehicleModels = vehicleModelData.ToList().Select(x => new VehicleModel() {
                 Code = x.code,
                 Name = x.name,
             });
 
             ctx.VehicleModels.AddRange(vehicleModels);
-            ctx.SaveChanges();
+            await ctx.SaveChangesAsync();
             Console.WriteLine($"Added {ctx.VehicleModels.Count()} vehicle models");
         }
 
