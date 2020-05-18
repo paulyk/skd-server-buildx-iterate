@@ -24,7 +24,6 @@ namespace VT.Server {
 
         public IConfiguration Configuration { get; }
 
-
         public void ConfigureServices(IServiceCollection services) {
             Console.WriteLine("configure services");
             services.AddDbContext<AppDbContext>(options => {
@@ -61,15 +60,24 @@ namespace VT.Server {
             app.UseRouting();
 
             app.UseGraphQL("/api");
-            PlaygroundOptions opt = new PlaygroundOptions();
+
+            app.Use(next => context =>  {
+                Console.WriteLine("Hey " + context.Request.HttpContext.Request.Path);
+                return next(context);
+            });
+
+            // find a more concise way of doing this.
+            PlaygroundOptions opt = new PlaygroundOptions(
+
+            );
             opt.Path = "/playground";
             opt.QueryPath = "/api";
             app.UsePlayground(opt);
 
 
             app.UseEndpoints(endpoints => {
-                endpoints.MapGet("/hello", async context => {
-                    await context.Response.WriteAsync("Hello from endpoints");
+                endpoints.MapGet("/test", async context => {
+                    await context.Response.WriteAsync("Hello from test endpoint");
                 });
             });
 
