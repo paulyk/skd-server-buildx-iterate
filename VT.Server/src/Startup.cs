@@ -28,13 +28,13 @@ namespace VT.Server {
         public IWebHostEnvironment _env { get; }
 
         public void ConfigureServices(IServiceCollection services) {
-            
-            services.AddDbContext<AppDbContext>(options => {            
+
+            services.AddDbContext<AppDbContext>(options => {
                 var databaseProviderName = Configuration["DatabaseProviderName"];
 
-                var aspnet_env = _env.EnvironmentName != null 
+                var aspnet_env = _env.EnvironmentName != null
                     ? _env.EnvironmentName : "Production";
-                            
+
                 var connectionString = Configuration.GetConnectionString(aspnet_env);
 
                 if (connectionString == null) {
@@ -44,9 +44,9 @@ namespace VT.Server {
                 switch (databaseProviderName) {
                     case "sqlite": options.UseSqlite(connectionString); break;
                     case "sqlserver": options.UseSqlServer(connectionString); break;
-                    case "postgres":options.UseNpgsql(connectionString); break;
+                    case "postgres": options.UseNpgsql(connectionString); break;
                     default: throw new Exception($"supported providers are sqlite, sqlserver, postgres");
-                }                           
+                }
             });
 
             services
@@ -66,12 +66,12 @@ namespace VT.Server {
             if (env.IsDevelopment()) {
                 app.UseDeveloperExceptionPage();
             }
-          
+
             app.UseRouting();
 
             app.UseGraphQL("/api");
 
-            app.Use(next => context =>  {
+            app.Use(next => context => {
                 Console.WriteLine("Hey " + context.Request.HttpContext.Request.Path);
                 return next(context);
             });
@@ -85,23 +85,32 @@ namespace VT.Server {
             app.UsePlayground(opt);
 
             app.UseEndpoints(endpoints => {
-                endpoints.MapGet("/test", async context => {
-                    await context.Response.WriteAsync("Hello from test endpoint");
-                });
+             
 
-                endpoints.MapGet("/reseed", async context => {
-                    if (!_env.IsDevelopment()) {
-                        throw new Exception("Database seeding in Development mode only");
-                    }
-                    var ctx = context.RequestServices.GetService<AppDbContext>();
-                    if (ctx != null) {
-                        var dataSeeder = new DataSeeder();
-                        await dataSeeder.GenerateSeedData(ctx);
-                    } else {
-                        throw new Exception("RequestServices.GetService returned null AppDbContext ");
-                    }
-                });
+                // endpoints.MapGet("/reseed", async context => {
+                //     if (!_env.IsDevelopment()) {
+                //         throw new Exception("Database seeding in Development mode only");
+                //     }
+                //     var ctx = context.RequestServices.GetService<AppDbContext>();
+                //     if (ctx != null) {
+                //         var dataSeeder = new DataSeeder();
+                //         await dataSeeder.GenerateSeedData(ctx);
+                //     } else {
+                //         throw new Exception("RequestServices.GetService returned null AppDbContext ");
+                //     }
+                // });
 
+                if (_env.IsDevelopment()) {
+                    endpoints.Map("/reset_db", endpoints.CreateApplicationBuilder()
+                        .UseMiddleware<SeedDbMiddleware>()
+                        .Build())
+                        .WithDisplayName("reset db");
+                }
+
+                endpoints.Map("/test", endpoints.CreateApplicationBuilder()
+                     .UseMiddleware<TestMiddleware>()
+                     .Build())
+                     .WithDisplayName("test number");
             });
 
         }
