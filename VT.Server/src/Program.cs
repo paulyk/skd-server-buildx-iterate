@@ -26,7 +26,5 @@ namespace VT.Server {
                     webBuilder.UseStartup<Startup>();
                 });
         }
-
-
     }
 }

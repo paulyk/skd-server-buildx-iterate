@@ -18,20 +18,29 @@ using VT.Model;
 namespace VT.Server {
     public class Startup {
 
-        public Startup(IConfiguration configuration) {
+        public Startup(IConfiguration configuration, IWebHostEnvironment env) {
             Configuration = configuration;
+            _env = env;
         }
 
         public IConfiguration Configuration { get; }
+        public IWebHostEnvironment _env { get; }
 
         public void ConfigureServices(IServiceCollection services) {
-            Console.WriteLine("configure services");
-            services.AddDbContext<AppDbContext>(options => {
+            
+            services.AddDbContext<AppDbContext>(options => {            
+                var databaseProviderName = Configuration["DatabaseProviderName"];
 
-                var providerName = Configuration["provider"];
-                var connectionString = Configuration["connectionString"];
+                var aspnet_env = _env.EnvironmentName != null 
+                    ? _env.EnvironmentName : "Production";
+                            
+                var connectionString = Configuration.GetConnectionString(aspnet_env);
 
-                switch (providerName) {
+                if (connectionString == null) {
+                    throw new Exception($"Connection string not found for ASPNETCORE_ENVIRONMENT: {aspnet_env} ");
+                }
+
+                switch (databaseProviderName) {
                     case "sqlite": options.UseSqlite(connectionString); break;
                     case "sqlserver": options.UseSqlServer(connectionString); break;
                     case "postgres":options.UseNpgsql(connectionString); break;
@@ -73,7 +82,6 @@ namespace VT.Server {
             opt.Path = "/playground";
             opt.QueryPath = "/api";
             app.UsePlayground(opt);
-
 
             app.UseEndpoints(endpoints => {
                 endpoints.MapGet("/test", async context => {
