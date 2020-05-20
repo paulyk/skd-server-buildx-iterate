@@ -10,10 +10,9 @@ namespace VT.Model {
             builder.ToTable("vehicle");
                 
             builder.HasKey(t => t.Id);
+            builder.Property(t => t.Id).HasMaxLength(EntityMaxLen.Id).ValueGeneratedOnAdd();
 
             builder.HasIndex(t => t.VIN).IsUnique();
-                            
-            builder.Property(t => t.Id).HasMaxLength(EntityMaxLen.Id).ValueGeneratedOnAdd();
 
             builder.Property(t => t.VIN)
                 .IsRequired()

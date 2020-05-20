@@ -18,8 +18,8 @@ namespace VT.Seed {
 
             await generator.Seed_Components(seedData.Component_SeedData);
             await  generator.Seed_VehicleModels(seedData.VehicleModel_SeedData);
-            await  generator.Seed_Vehicles(seedData.Vehicle_SeedData);
             await generator.Seed_VehicleModelComponents(seedData.VehicleModelComponent_SeedData); 
+            await  generator.Seed_Vehicles(seedData.Vehicle_SeedData);
         }
     }
 }

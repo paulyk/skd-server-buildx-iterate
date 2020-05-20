@@ -55,6 +55,8 @@ dotnet tool install --global dotnet-ef
 cd VT.Model
 dotnet ef migrations add InitialCreate -o src/Migrations  --project VT.Model 
 dotnet ef migrations add VehicleComponent_Completed --project VT.Model
+dotnet ef migrations add VehicleComponent_Serial_Nullable --project VT.Model
+
 dotnet ef migrations remove --project VT.Model
 ```
 ### Update database

@@ -45,7 +45,7 @@ namespace VT.Seed {
                         .FirstOrDefaultAsync();
 
                     if (existing != null) {
-                        Console.WriteLine($"Duplicate entry: {existing.VehicleModel.Name}  {existing.Component.Code}");
+                        Console.WriteLine($"Duplicate model component entry: {existing.VehicleModel.Name}  {existing.Component.Code}");
                         
                     } else {
                         ctx.VehicleModelComponents.Add(vmc);
@@ -60,17 +60,38 @@ namespace VT.Seed {
         }
 
         public async Task Seed_Vehicles(ICollection<Vehicle_Seed_DTO> vehicleData) {
-            // vehicles
-            var vehicles = vehicleData.ToList().Select(x => new Vehicle() {
-                VIN = x.vin,
-                KitNo = x.kitNo,
-                LotNo = x.lotNo,
-                Model = ctx.VehicleModels.First(m => m.Code == x.modelId)
-            });
 
-            ctx.Vehicles.AddRange(vehicles);
-            await ctx.SaveChangesAsync();
-            Console.WriteLine($"Added {vehicles.Count()} vehicles");
+            if (await ctx.VehicleModels.CountAsync() == 0) {
+                throw new Exception("Vehicle models must be seeded before vheicles");
+            }
+
+            foreach (var entry in vehicleData.ToList()) {
+                var vehicle = new Vehicle(){
+                    VIN = entry.vin,
+                    KitNo = entry.kitNo,
+                    LotNo = entry.lotNo,
+                    Model = ctx.VehicleModels.First(m => m.Code == entry.modelId)
+                };
+
+                ctx.Vehicles.Add(vehicle);
+
+                var modelComponents = ctx.VehicleModelComponents.Where(t => t.VehicleModelId == vehicle.ModelId).ToList();
+                Console.WriteLine($"{vehicle.Model.Name} has {modelComponents.Count} components");
+
+                foreach(var modelComponent in modelComponents) {
+                    vehicle.VehicleComponents.Add(new VehicleComponent() {
+                        Component = modelComponent.Component,
+                        ComponentId = modelComponent.ComponentId
+                    });
+                }
+
+                Console.WriteLine($"  Added  {vehicle.VehicleComponents.Count} children");   
+                Console.WriteLine("--------");
+                Console.WriteLine(" ");
+                await ctx.SaveChangesAsync();     
+            }
+            // vehicles        
+            Console.WriteLine($"Added {await ctx.Vehicles.CountAsync()} vehicles");
         }
 
         public async Task Seed_Components(ICollection<Component_Seed_DTO> componentData) {
@@ -82,6 +103,7 @@ namespace VT.Seed {
 
             ctx.Components.AddRange(components);
             await ctx.SaveChangesAsync();
+            
             Console.WriteLine($"Added {ctx.Components.Count()} components");
         }
 

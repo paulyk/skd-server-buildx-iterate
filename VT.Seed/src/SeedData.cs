@@ -20,8 +20,7 @@ namespace VT.Seed {
             Vehicle_SeedData = JsonSerializer.Deserialize<List<Vehicle_Seed_DTO>>(Vehicles_JSON.Replace("'", "\""));
             Component_SeedData = JsonSerializer.Deserialize<List<Component_Seed_DTO>>(Components_JSON.Replace("'", "\""));
             VehicleModel_SeedData = JsonSerializer.Deserialize<List<VehicleModel_Seed_DTO>>(VehicleModels_JSON.Replace("'", "\""));
-            VehicleModelComponent_SeedData = JsonSerializer.Deserialize<List<VehicleModelComponent_Seed_DTO>>(VehicleModelComponents_JSON.Replace("'", "\""));
-
+            VehicleModelComponent_SeedData = JsonSerializer.Deserialize<List<VehicleModelComponent_Seed_DTO>>(VehicleModelComponents_JSON.Replace("'", "\""));            
         }
 
         private string Vehicles_JSON = @"

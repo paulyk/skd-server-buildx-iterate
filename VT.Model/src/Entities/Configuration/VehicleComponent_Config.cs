@@ -10,11 +10,11 @@ namespace VT.Model {
             builder.ToTable("vehicle_component");
 
             builder.HasKey(t => t.Id);
+            builder.Property(t => t.Id).HasMaxLength(EntityMaxLen.Id).ValueGeneratedOnAdd();
 
             builder.HasIndex(t => new { t.VehicleId, t.ComponentId }).IsUnique();
 
-            builder.Property(t => t.Id).HasMaxLength(EntityMaxLen.Id).ValueGeneratedOnAdd();
-            builder.Property(t => t.SerialNumber).IsRequired().HasMaxLength(EntityMaxLen.VehicleComponent_SerialNumber);
+            builder.Property(t => t.SerialNumber).HasMaxLength(EntityMaxLen.VehicleComponent_SerialNumber);
 
             builder.HasOne(t => t.Component)
                 .WithMany(t => t.VehicleComponents)

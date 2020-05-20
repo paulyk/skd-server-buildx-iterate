@@ -9,11 +9,10 @@ namespace VT.Model {
             builder.ToTable("vehicle_model");
 
             builder.HasKey(t => t.Id);
+            builder.Property(t => t.Id).HasMaxLength(EntityMaxLen.Id).ValueGeneratedOnAdd();
 
             builder.HasIndex(t => t.Code).IsUnique();
             builder.HasIndex(t => t.Name).IsUnique();
-
-            builder.Property(t => t.Id).HasMaxLength(EntityMaxLen.Id).ValueGeneratedOnAdd();
 
             builder.Ignore(t => t.ActiveComponentMappings);
 

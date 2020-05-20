@@ -85,20 +85,7 @@ namespace VT.Server {
             app.UsePlayground(opt);
 
             app.UseEndpoints(endpoints => {
-             
-
-                // endpoints.MapGet("/reseed", async context => {
-                //     if (!_env.IsDevelopment()) {
-                //         throw new Exception("Database seeding in Development mode only");
-                //     }
-                //     var ctx = context.RequestServices.GetService<AppDbContext>();
-                //     if (ctx != null) {
-                //         var dataSeeder = new DataSeeder();
-                //         await dataSeeder.GenerateSeedData(ctx);
-                //     } else {
-                //         throw new Exception("RequestServices.GetService returned null AppDbContext ");
-                //     }
-                // });
+                          
 
                 if (_env.IsDevelopment()) {
                     endpoints.Map("/reset_db", endpoints.CreateApplicationBuilder()
