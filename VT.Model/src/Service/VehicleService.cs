@@ -87,29 +87,7 @@ namespace VT.Model {
             return payload;
         }
 
-        public async Task<IReadOnlyList<Vehicle>> SearchVehicles(string query) {
-            query = query.Trim();
-            if (query.Length == 0) {
-                return new List<Vehicle>();
-            }
-
-            // try find exact match
-            var exactMatch = await context.Vehicles.FirstOrDefaultAsync(t => t.VIN == query);
-            if (exactMatch != null) {
-                return new List<Vehicle>() { exactMatch };
-            }
-
-            // find where query matches part of vin
-            var byVIN = await context.Vehicles.AsNoTracking().Where(t => t.VIN.Contains(query)).ToListAsync();
-
-            // find where matches
-            var byModel = await context.Vehicles
-                .AsNoTracking()
-                .Where(t => t.Model.Code.Contains(query) || t.Model.Name.Contains(query))
-                .ToListAsync();
-
-            return byVIN.Union(byModel).ToList();
-        }
+   
 
         private bool IsNumeric(string str) {
             Int32 n;

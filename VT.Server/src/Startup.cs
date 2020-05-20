@@ -51,7 +51,8 @@ namespace VT.Server {
 
             services
                 .AddTransient<VehicleService>()
-                .AddTransient<ComponentService>();
+                .AddTransient<ComponentService>()
+                .AddTransient<SearchService>();
 
             services.AddGraphQL(sp => SchemaBuilder.New()
                 .AddQueryType<QueryType>()

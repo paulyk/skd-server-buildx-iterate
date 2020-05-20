@@ -41,12 +41,16 @@ namespace VT.Server {
             return await ctx.Vehicles.AsNoTracking().FirstOrDefaultAsync(t => t.VIN == vin);
         }
 
-        public async Task<IReadOnlyList<Component>> SearcComponents([Service] ComponentService service, string query) {
+        public async Task<IReadOnlyList<Component>> SearcComponents([Service] SearchService service, string query) {
             return await service.SearchComponents(query);
         }
 
-        public async Task<IReadOnlyList<Vehicle>> SearchVehicles([Service] VehicleService service, string query) {
+        public async Task<IReadOnlyList<Vehicle>> SearchVehicles([Service] SearchService service, string query) {
             return await service.SearchVehicles(query);
+        }
+
+          public async Task<IReadOnlyList<VehicleModel>> SearchVehicleModels([Service] SearchService service, string query) {
+            return await service.SearchVehicleModels(query);
         }
 
     }
