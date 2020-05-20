@@ -17,6 +17,8 @@ namespace VT.Model {
         public ComponentService(AppDbContext ctx) {
             this.context = ctx;
         }
+
+        
         public async Task<IReadOnlyList<Component>> SearchComponents(string query) {
             query = query.Trim();
             if (query.Length == 0) {

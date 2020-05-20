@@ -12,6 +12,8 @@ namespace VT.Model {
 
         public string SerialNumber { get; set; }
 
+        public DateTime? CompletedAt { get; set; }
+
         public VehicleComponent() {
 
         }

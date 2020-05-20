@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 namespace VT.Model {
-    public class VehicleModel : EntityBase {
+    public partial class VehicleModel : EntityBase {
         public string Code { get; set; }
         public string Name { get; set; }
         public string Type { get; set; }

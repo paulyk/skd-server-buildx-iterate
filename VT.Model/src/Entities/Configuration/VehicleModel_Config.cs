@@ -15,6 +15,8 @@ namespace VT.Model {
 
             builder.Property(t => t.Id).HasMaxLength(EntityMaxLen.Id).ValueGeneratedOnAdd();
 
+            builder.Ignore(t => t.ActiveComponentMappings);
+
             builder.Property(t => t.Code)
                 .IsRequired()
                 .HasMaxLength(EntityMaxLen.VehicleModel_Code);

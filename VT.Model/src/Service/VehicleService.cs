@@ -22,12 +22,21 @@ namespace VT.Model {
             if (vehicle.ModelId != null && vehicle.ModelId != Guid.Empty) {
                 vehicle.Model = await context.VehicleModels.FirstOrDefaultAsync(t => t.Id == vehicle.ModelId);
             }
-            
+
             var payload = await ValidateCreateVehicle(vehicle);
 
             if (payload.Errors.Any()) {
                 return payload;
             }
+
+            // add components
+            vehicle.Model.ActiveComponentMappings.ToList().ForEach(mapping => {
+                if (!vehicle.VehicleComponents.Any(t => t.Component.Id == mapping.ComponentId)) {
+                    vehicle.VehicleComponents.Add(new VehicleComponent() {
+                        Component = mapping.Component
+                    });
+                }
+            });
 
             // save
             context.Vehicles.Add(vehicle);
@@ -65,14 +74,14 @@ namespace VT.Model {
             if (vehicle.LotNo.Trim().Length < EntityMaxLen.Vehicle_LotNo) {
                 payload.AddError("kitNo", $"LotNo must be {EntityMaxLen.Vehicle_LotNo} characters");
             } else if (!IsNumeric(vehicle.KitNo)) {
-                 payload.AddError("kitNo", $"KitNo must be numeric");
+                payload.AddError("kitNo", $"KitNo must be numeric");
             }
 
             // Kit No
             if (vehicle.KitNo.Trim().Length < EntityMaxLen.Vehicle_KitNo) {
                 payload.AddError("kitNo", $"KitNo must be {EntityMaxLen.Vehicle_KitNo} characters");
             } else if (!IsNumeric(vehicle.LotNo)) {
-                 payload.AddError("LotNo", $"KitNo must be numeric");
+                payload.AddError("LotNo", $"KitNo must be numeric");
             }
 
             return payload;

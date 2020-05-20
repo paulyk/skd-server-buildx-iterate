@@ -27,6 +27,9 @@ namespace VT.Server {
                         .Where(t => t.Id == ctx.Parent<Vehicle>().ModelId)
                         .FirstOrDefault());
 
+            descriptor.Field(t => t.VehicleComponents)
+                .Resolver(ctx => ctx.Service<AppDbContext>().VehicleComponents.ToListAsync());
+
         }
 
         // public async Task<VehicleModel> ResolveVehicleModel([Parent] Vehicle vehicle, [Service] AppDbContext ctx) {
