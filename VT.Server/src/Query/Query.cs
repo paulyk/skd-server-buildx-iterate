@@ -26,7 +26,7 @@ namespace VT.Server {
         }
         public IReadOnlyList<Vehicle> GetVehicles([Service] AppDbContext ctx, int first = Int32.MaxValue) {
             return ctx.Vehicles
-                .AsNoTracking().OrderBy(t => t.Model.Code).ToList();
+                .AsNoTracking().OrderBy(t => t.Model.Code).Take(first).ToList();
         }
         public async Task<IReadOnlyList<Component>> SearcComponents([Service] ComponentService service, string query) {
             return await service.SearchComponents(query);

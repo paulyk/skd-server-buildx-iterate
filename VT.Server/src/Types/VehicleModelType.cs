@@ -23,7 +23,9 @@ namespace VT.Server {
                      .Select(t => new ComponentSequence {
                          Code = t.Component.Code,
                          Name = t.Component.Name,
-                         Sequence = t.Sequence
+                         Sequence = t.Sequence,
+                         CreatedAt = t.CreatedAt,
+                         RemovedAt = t.RemovedAt
                      })
                      .ToList()
                 );
@@ -43,6 +45,9 @@ namespace VT.Server {
         public string Name { get; set; } = "";
 
         public int Sequence { get; set; } = 0;
+
+        public DateTime CreatedAt { get; set; }
+        public DateTime? RemovedAt { get; set; }
     }
 
 }
