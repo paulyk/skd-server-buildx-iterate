@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using VT.Model;
+using Microsoft.EntityFrameworkCore;
 
 namespace VT.Server {
 
@@ -15,20 +16,16 @@ namespace VT.Server {
         protected override void Configure(IObjectTypeDescriptor<VehicleModel> descriptor) {
 
             descriptor.Field(t => t.Id).Type<NonNullType<IdType>>();
-            descriptor.Field(t => t.ComponentMappings).Ignore();
-
-            descriptor.Field("components")
+            // descriptor.Field(t => t.ComponentMappings).Ignore();
+            descriptor.Field(t => t.ActiveComponentMappings).Ignore();
+       
+            descriptor.Field(t => t.ComponentMappings)
                 .Resolver(ctx => ctx.Service<AppDbContext>().VehicleModelComponents
-                     .Where(t => t.VehicleModelId == ctx.Parent<VehicleModel>().Id)
-                     .Select(t => new ComponentSequence {
-                         Code = t.Component.Code,
-                         Name = t.Component.Name,
-                         Sequence = t.Sequence,
-                         CreatedAt = t.CreatedAt,
-                         RemovedAt = t.RemovedAt
-                     })
+                     .AsNoTracking()
+                     .Include(t => t.Component)
+                     .Where(t => t.VehicleModelId == ctx.Parent<VehicleModel>().Id)                     
                      .ToList()
-                );
+                );                
 
             descriptor.Field(t => t.Vehicles)
                 .Resolver(ctx => ctx.Service<AppDbContext>().Vehicles

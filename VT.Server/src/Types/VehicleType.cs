@@ -36,22 +36,13 @@ namespace VT.Server {
               });
 
             descriptor.Field("components")
-                  .Resolver(ctx => {
-                      Console.WriteLine($"select components {ctx.Parent<Vehicle>().VIN}");
-                      var results1 = ctx.Service<AppDbContext>().VehicleComponents
+                .Resolver(ctx => {
+                    return ctx.Service<AppDbContext>().VehicleComponents
                         .Where(t => t.VehicleId == ctx.Parent<Vehicle>().Id)
                         .Include(t => t.Component)
                         .ToList();
-
-                      Console.WriteLine($"found  {results1.Count}");
-                      var results = results1.Select(t => new VehicleComponent_DTO() {
-                          Code = t.Component.Code,
-                          Name = t.Component.Name,
-                          SerialNumber = t.SerialNumber
-                      }).ToList();
-
-                      return results;
-                  });
+                });
+         
 
         }
 

@@ -20,14 +20,27 @@ namespace VT.Server {
             return await ctx.Components
                 .AsNoTracking().OrderBy(t => t.Code).Take(first).ToListAsync();
         }
+
+        public async Task<Component> GetComponentByCode([Service] AppDbContext ctx, string code) {
+            return await ctx.Components.AsNoTracking().FirstOrDefaultAsync(t => t.Code == code);
+        }
+
         public async Task<IReadOnlyList<VehicleModel>> GetVehicleModels([Service] AppDbContext ctx, int first = Int32.MaxValue) {
             return await ctx.VehicleModels
                 .AsNoTracking().OrderBy(t => t.Code).Take(first).ToListAsync();
         }
-        public IReadOnlyList<Vehicle> GetVehicles([Service] AppDbContext ctx, int first = Int32.MaxValue) {
-            return ctx.Vehicles
-                .AsNoTracking().OrderBy(t => t.Model.Code).Take(first).ToList();
+
+        public async Task<VehicleModel> GetVehicleModelByCode([Service] AppDbContext ctx, string code) {
+            return await ctx.VehicleModels.AsNoTracking().FirstOrDefaultAsync(t => t.Code == code);
         }
+        public async Task<IReadOnlyList<Vehicle>> GetVehicles([Service] AppDbContext ctx, int first = Int32.MaxValue) {
+            return await ctx.Vehicles
+                .AsNoTracking().OrderBy(t => t.Model.Code).Take(first).ToListAsync();
+        }
+        public async Task<Vehicle> GetVehicleByVIN([Service] AppDbContext ctx, string vin) {
+            return await ctx.Vehicles.AsNoTracking().FirstOrDefaultAsync(t => t.VIN == vin);
+        }
+
         public async Task<IReadOnlyList<Component>> SearcComponents([Service] ComponentService service, string query) {
             return await service.SearchComponents(query);
         }

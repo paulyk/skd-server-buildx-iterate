@@ -56,6 +56,7 @@ namespace VT.Server {
             services.AddGraphQL(sp => SchemaBuilder.New()
                 .AddQueryType<QueryType>()
                 .AddType<VehicleType>()
+                .AddType<VehicleComponentType>()
                 .AddType<VehicleModelType>()
                 .AddMutationType<Mutation>()
                 .AddServices(sp)
@@ -72,7 +73,7 @@ namespace VT.Server {
             app.UseGraphQL("/api");
 
             app.Use(next => context => {
-                Console.WriteLine("Hey " + context.Request.HttpContext.Request.Path);
+                Console.WriteLine("Request log: " + context.Request.HttpContext.Request.Path);
                 return next(context);
             });
 
