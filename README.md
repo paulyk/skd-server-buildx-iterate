@@ -53,10 +53,10 @@ dotnet tool install --global dotnet-ef
 
 ```bash
 cd VT.Model
-dotnet ef migrations add MigraionName -o src/Migrations      
+dotnet ef migrations add InitialCreate -o src/Migrations  --project VT.Model    
 ```
 ### Update database
 
 ```bash
-dotnet ef database update
+dotnet ef database update --project VT.Model
 ```

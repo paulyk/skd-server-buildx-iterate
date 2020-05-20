@@ -45,8 +45,8 @@ namespace VT.Seed {
                         .FirstOrDefaultAsync();
 
                     if (existing != null) {
-                        existing.Quantity += 1;
-                        await ctx.SaveChangesAsync();
+                        Console.WriteLine($"Duplicate entry: {existing.VehicleModel.Name}  {existing.Component.Code}");
+                        
                     } else {
                         ctx.VehicleModelComponents.Add(vmc);
                         await ctx.SaveChangesAsync();

@@ -6,23 +6,34 @@ using Microsoft.Extensions.Configuration;
 namespace VT.Model {
     public class DbContextFactory : IDesignTimeDbContextFactory<AppDbContext> {
         public AppDbContext CreateDbContext(string[] args) {
-            var config = new ConfigurationBuilder()
+          
+            Console.WriteLine("create context");
+            var Configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: false)
+                .AddEnvironmentVariables()
                 .Build();
 
-            var connectionString = config["connectionString"];
 
-            var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+            var databaseProviderName = Configuration["DatabaseProviderName"];
+            var connectionString = Configuration.GetConnectionString("Development");
 
-            var provider = config["provider"];
-            if (provider.ToLower() == "sqlite") {
-                optionsBuilder.UseSqlite(connectionString);
-            } else if (provider.ToLower() == "sqlserver") {
-                optionsBuilder.UseSqlServer(connectionString);
-            } else {
-                throw new Exception("appsettings provider sqlite, sqlserver not specified");
+            Console.WriteLine("db provider: " + databaseProviderName);
+            Console.WriteLine("connectio string : " + connectionString);
+
+            if (databaseProviderName == null) {
+                throw new Exception($"databaseProviderName not found");
+            }
+            if (connectionString == null) {
+                throw new Exception($"Connection string not found for Development");
             }
 
+            var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+            switch (databaseProviderName) {
+                case "sqlite": optionsBuilder.UseSqlite(connectionString); break;
+                case "sqlserver": optionsBuilder.UseSqlServer(connectionString); break;
+                case "postgres": optionsBuilder.UseNpgsql(connectionString); break;
+                default: throw new Exception($"supported providers are sqlite, sqlserver, postgres");
+            }
 
             return new AppDbContext(optionsBuilder.Options);
         }

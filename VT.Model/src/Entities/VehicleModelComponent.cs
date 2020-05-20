@@ -9,8 +9,6 @@ namespace VT.Model {
         public Guid ComponentId { get; set; }
         public Component Component { get; set; }
 
-        public int Quantity { get; set; } = 1;
-
         public int Sequence { get; set; }
         
         public VehicleModelComponent() : base() {

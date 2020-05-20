@@ -1,9 +1,9 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace VT.Model.Migrations
+namespace VT.Model.src.Migrations
 {
-    public partial class Initial : Migration
+    public partial class InitialCreate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -11,7 +11,7 @@ namespace VT.Model.Migrations
                 name: "component",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(nullable: false),
+                    Id = table.Column<Guid>(maxLength: 36, nullable: false),
                     CreatedAt = table.Column<DateTime>(nullable: false),
                     RemovedAt = table.Column<DateTime>(nullable: true),
                     Code = table.Column<string>(maxLength: 20, nullable: false),
@@ -27,7 +27,7 @@ namespace VT.Model.Migrations
                 name: "user",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(nullable: false),
+                    Id = table.Column<Guid>(maxLength: 36, nullable: false),
                     CreatedAt = table.Column<DateTime>(nullable: false),
                     RemovedAt = table.Column<DateTime>(nullable: true),
                     Email = table.Column<string>(maxLength: 320, nullable: false)
@@ -41,7 +41,7 @@ namespace VT.Model.Migrations
                 name: "vehicle_model",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(nullable: false),
+                    Id = table.Column<Guid>(maxLength: 36, nullable: false),
                     CreatedAt = table.Column<DateTime>(nullable: false),
                     RemovedAt = table.Column<DateTime>(nullable: true),
                     Code = table.Column<string>(maxLength: 11, nullable: false),
@@ -57,10 +57,12 @@ namespace VT.Model.Migrations
                 name: "vehicle",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(nullable: false),
+                    Id = table.Column<Guid>(maxLength: 36, nullable: false),
                     CreatedAt = table.Column<DateTime>(nullable: false),
                     RemovedAt = table.Column<DateTime>(nullable: true),
                     VIN = table.Column<string>(maxLength: 17, nullable: false),
+                    KitNo = table.Column<string>(nullable: true),
+                    LotNo = table.Column<string>(nullable: true),
                     ModelId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
@@ -78,12 +80,11 @@ namespace VT.Model.Migrations
                 name: "vehicle_model_component",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(nullable: false),
+                    Id = table.Column<Guid>(maxLength: 36, nullable: false),
                     CreatedAt = table.Column<DateTime>(nullable: false),
                     RemovedAt = table.Column<DateTime>(nullable: true),
                     VehicleModelId = table.Column<Guid>(nullable: false),
                     ComponentId = table.Column<Guid>(nullable: false),
-                    Quantity = table.Column<int>(nullable: false),
                     Sequence = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
@@ -107,7 +108,7 @@ namespace VT.Model.Migrations
                 name: "vehicle_component",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(nullable: false),
+                    Id = table.Column<Guid>(maxLength: 36, nullable: false),
                     CreatedAt = table.Column<DateTime>(nullable: false),
                     RemovedAt = table.Column<DateTime>(nullable: true),
                     VehicleId = table.Column<Guid>(nullable: false),
