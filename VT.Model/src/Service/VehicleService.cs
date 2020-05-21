@@ -88,7 +88,6 @@ namespace VT.Model {
         }
 
    
-
         private bool IsNumeric(string str) {
             Int32 n;
             return Int32.TryParse(str, out n);

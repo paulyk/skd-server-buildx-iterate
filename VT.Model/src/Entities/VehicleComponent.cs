@@ -10,6 +10,8 @@ namespace VT.Model {
         public Guid ComponentId { get; set; }
         public Component Component { get; set; }
 
+
+        public int Sequence { get; set; }
         public string SerialNumber { get; set; }
 
         public DateTime? CompletedAt { get; set; }

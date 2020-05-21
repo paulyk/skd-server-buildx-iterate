@@ -15,6 +15,7 @@ namespace VT.Model {
             builder.HasIndex(t => new { t.VehicleId, t.ComponentId }).IsUnique();
 
             builder.Property(t => t.SerialNumber).HasMaxLength(EntityMaxLen.VehicleComponent_SerialNumber);
+            builder.Property(t => t.Sequence).IsRequired();
 
             builder.HasOne(t => t.Component)
                 .WithMany(t => t.VehicleComponents)

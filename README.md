@@ -47,6 +47,8 @@ Install the `dotnet-ef` tooling globally
 
 ```bash
 dotnet tool install --global dotnet-ef
+dotnet tool update --global dotnet-ef
+
 ```
 
 ### Add migrations
@@ -56,11 +58,20 @@ cd VT.Model
 dotnet ef migrations add InitialCreate -o src/Migrations  --project VT.Model 
 dotnet ef migrations add VehicleComponent_Completed --project VT.Model
 dotnet ef migrations add VehicleComponent_Serial_Nullable --project VT.Model
+dotnet ef migrations add VehicleComponent_Sequence --project VT.Model
+```
 
+### Remove migratins
+```
 dotnet ef migrations remove --project VT.Model
 ```
 ### Update database
 
 ```bash
 dotnet ef database update --project VT.Model
+```
+
+### Revert to specific migration 
+```
+dotnet ef database update Migration_Name  --project VT.Model
 ```

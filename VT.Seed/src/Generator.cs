@@ -81,7 +81,8 @@ namespace VT.Seed {
                 foreach(var modelComponent in modelComponents) {
                     vehicle.VehicleComponents.Add(new VehicleComponent() {
                         Component = modelComponent.Component,
-                        ComponentId = modelComponent.ComponentId
+                        ComponentId = modelComponent.ComponentId,
+                        Sequence = modelComponent.Sequence
                     });
                 }
 
