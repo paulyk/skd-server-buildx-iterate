@@ -25,15 +25,17 @@ namespace VT.Model {
                 vehicle.Model = await context.VehicleModels.FirstOrDefaultAsync(t => t.Id == vehicle.ModelId);
             }
 
-            // add components
-            vehicle.Model.ActiveComponentMappings.ToList().ForEach(mapping => {
-                if (!vehicle.VehicleComponents.Any(t => t.Component.Id == mapping.ComponentId)) {
-                    vehicle.VehicleComponents.Add(new VehicleComponent() {
-                        Component = mapping.Component,
-                        Sequence = mapping.Sequence
-                    });
-                }
-            });
+            if (vehicle.Model != null) {
+                // add components
+                vehicle.Model.ActiveComponentMappings.ToList().ForEach(mapping => {
+                    if (!vehicle.VehicleComponents.Any(t => t.Component.Id == mapping.ComponentId)) {
+                        vehicle.VehicleComponents.Add(new VehicleComponent() {
+                            Component = mapping.Component,
+                            Sequence = mapping.Sequence
+                        });
+                    }
+                });
+            }
 
             // validate
             var payload = await ValidateCreateVehicle(vehicle);
@@ -60,46 +62,44 @@ namespace VT.Model {
             }
 
             // vehicle mode ID empty / not found
-            if (vehicle.ModelId == Guid.Empty) {
-                payload.AddError("modelId", "Vehicle mode not found. Check Model ID");
-            } else if (vehicle.Model == null) {
-                payload.AddError("modelId", $"Vehicle Model not found for: model ID: {vehicle.ModelId}");
+            if (vehicle.Model == null) {
+                payload.AddError("model", $"Vehicle model not specified");
             }
 
             // vehicle mode deactivated
             if (vehicle.Model != null && vehicle.Model.RemovedAt != null) {
-                payload.AddError("modelId", $"Cannot use a deactivated vehicle model, model CODE: {vehicle.Model.Code}");
+                payload.AddError("model", $"Vehicle model removed / deactivated: {vehicle.Model.Code}");
             }
 
             // vehicle components
             if (vehicle.Model != null) {
-                if (vehicle.Model.ComponentMappings.Count != vehicle.VehicleComponents.Count) {
-                    payload.AddError("", $"Vehicle components don't match model component count");
-                }
-                // vehicle components sequence must match model component sequence
-                var vehicleComponents = vehicle.VehicleComponents.OrderBy(t => t.Sequence).ToList();
-                var modelComponents = vehicle.Model.ComponentMappings.OrderBy(t => t.Sequence).ToList();
 
                 if (vehicle.VehicleComponents.Count == 0) {
                     payload.AddError("", "Vehicle components required, but none found");
-                } else if (vehicleComponents.Count != modelComponents.Count) {
-                    payload.AddError("", "Vehicle component count differs from Model component count");
+                } else if (vehicle.Model.ComponentMappings.Count != vehicle.VehicleComponents.Count) {
+                    payload.AddError("", $"Vehicle components don't match model component count");
                 } else {
-                    var matchingErrors = new List<string>();
-                    for (var i = 0; i < vehicleComponents.Count; i++) {
-                        if (vehicleComponents[i].Sequence != modelComponents[i].Sequence) {
-                            matchingErrors.Add("Vehicle component sequence doesn't match model component sequence");
-                        }
-                        if (vehicleComponents[i].Component.Id != modelComponents[i].Component.Id) {
-                            matchingErrors.Add("Vehicle component ID doesn't match model component ID");
-                        }
+                    // vehicle components sequence must match model component sequence
+                    var vehicleComponents = vehicle.VehicleComponents.OrderBy(t => t.Sequence).ToList();
+                    var modelComponents = vehicle.Model.ComponentMappings.OrderBy(t => t.Sequence).ToList();
+
+                    var zipped = vehicleComponents.Zip(modelComponents, (v, m) => new {
+                        vehicle_Seq = v.Sequence,
+                        model_Seq = m.Sequence,
+                        vehicle_ComponentId = v.Component.Id,
+                        model_ComponentId = m.Component.Id
+                    }).ToList();
+
+                    // any sequence mismatch
+                    if (zipped.Any(item => item.vehicle_Seq != item.model_Seq)) {
+                        payload.AddError("", "Vehicle compopnent sequence doesn't match model component sequeunce");
                     }
-                    if (matchingErrors.Count > 0) {
-                        payload.AddError("", matchingErrors.Aggregate((a,b) => a + ", " + b));
+                    // any component mismatch
+                    if (zipped.Any(item => item.vehicle_ComponentId != item.model_ComponentId)) {
+                        payload.AddError("", "Vehicle component ID doesn't match model component ID");
                     }
                 }
             }
-
 
             // Lot No
             if (vehicle.LotNo.Trim().Length < EntityMaxLen.Vehicle_LotNo) {
