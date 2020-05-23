@@ -7,7 +7,6 @@ namespace VT.Model {
     public class DbContextFactory : IDesignTimeDbContextFactory<AppDbContext> {
         public AppDbContext CreateDbContext(string[] args) {
           
-            Console.WriteLine("create context");
             var Configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: false)
                 .AddEnvironmentVariables()
@@ -16,9 +15,6 @@ namespace VT.Model {
 
             var databaseProviderName = Configuration["DatabaseProviderName"];
             var connectionString = Configuration.GetConnectionString("Development");
-
-            Console.WriteLine("db provider: " + databaseProviderName);
-            Console.WriteLine("connectio string : " + connectionString);
 
             if (databaseProviderName == null) {
                 throw new Exception($"databaseProviderName not found");

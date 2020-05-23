@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -28,21 +29,21 @@ namespace VT.Model {
             vehicle.Model.ActiveComponentMappings.ToList().ForEach(mapping => {
                 if (!vehicle.VehicleComponents.Any(t => t.Component.Id == mapping.ComponentId)) {
                     vehicle.VehicleComponents.Add(new VehicleComponent() {
-                        Component = mapping.Component
+                        Component = mapping.Component,
+                        Sequence = mapping.Sequence
                     });
                 }
             });
 
             // validate
             var payload = await ValidateCreateVehicle(vehicle);
-            
             if (payload.Errors.Any()) {
                 return payload;
             }
 
             // save
             await context.SaveChangesAsync();
-            
+
             payload.Vehicle = vehicle;
             return payload;
         }
@@ -70,6 +71,36 @@ namespace VT.Model {
                 payload.AddError("modelId", $"Cannot use a deactivated vehicle model, model CODE: {vehicle.Model.Code}");
             }
 
+            // vehicle components
+            if (vehicle.Model != null) {
+                if (vehicle.Model.ComponentMappings.Count != vehicle.VehicleComponents.Count) {
+                    payload.AddError("", $"Vehicle components don't match model component count");
+                }
+                // vehicle components sequence must match model component sequence
+                var vehicleComponents = vehicle.VehicleComponents.OrderBy(t => t.Sequence).ToList();
+                var modelComponents = vehicle.Model.ComponentMappings.OrderBy(t => t.Sequence).ToList();
+
+                if (vehicle.VehicleComponents.Count == 0) {
+                    payload.AddError("", "Vehicle components required, but none found");
+                } else if (vehicleComponents.Count != modelComponents.Count) {
+                    payload.AddError("", "Vehicle component count differs from Model component count");
+                } else {
+                    var matchingErrors = new List<string>();
+                    for (var i = 0; i < vehicleComponents.Count; i++) {
+                        if (vehicleComponents[i].Sequence != modelComponents[i].Sequence) {
+                            matchingErrors.Add("Vehicle component sequence doesn't match model component sequence");
+                        }
+                        if (vehicleComponents[i].Component.Id != modelComponents[i].Component.Id) {
+                            matchingErrors.Add("Vehicle component ID doesn't match model component ID");
+                        }
+                    }
+                    if (matchingErrors.Count > 0) {
+                        payload.AddError("", matchingErrors.Aggregate((a,b) => a + ", " + b));
+                    }
+                }
+            }
+
+
             // Lot No
             if (vehicle.LotNo.Trim().Length < EntityMaxLen.Vehicle_LotNo) {
                 payload.AddError("kitNo", $"LotNo must be {EntityMaxLen.Vehicle_LotNo} characters");
@@ -87,7 +118,7 @@ namespace VT.Model {
             return payload;
         }
 
-   
+
         private bool IsNumeric(string str) {
             Int32 n;
             return Int32.TryParse(str, out n);

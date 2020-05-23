@@ -11,7 +11,6 @@ namespace VT.Test {
 
         private AppDbContext ctx;
         public VehicleServiceTest() {
-            Console.WriteLine("** VehicleServiceTest constructor **");
             ctx = GetAppDbContext();
 
             GenerateSeedData();
@@ -29,10 +28,11 @@ namespace VT.Test {
                 KitNo = "001"
             };
 
-            var result = await service.CreateVehicle(vehicle);
-
+            var result = await service.CreateVehicle(vehicle);            
             Assert.NotNull(result.Vehicle);
-            Assert.Equal(1, await ctx.Vehicles.CountAsync());
+
+            var vehicleCount =  await ctx.Vehicles.CountAsync();
+            Assert.Equal(1, vehicleCount);
         }
 
 
@@ -48,8 +48,9 @@ namespace VT.Test {
             var vehicleModels = new VehicleModel() {
                 Code = "FRNG20",
                 Name = "Ford Ranger 2.0",
-                ComponentMappings = components.Select(component => new VehicleModelComponent() {
+                ComponentMappings = components.Select((component, i) => new VehicleModelComponent() {
                     Component = component,
+                    Sequence = i + 1
                 }).ToList()
             };
 
