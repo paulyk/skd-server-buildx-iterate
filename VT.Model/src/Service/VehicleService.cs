@@ -17,16 +17,11 @@ namespace VT.Model {
             this.context = ctx;
         }
         public async Task<UpdateVehiclePayload> CreateVehicle(Vehicle vehicle) {
+            context.Vehicles.Add(vehicle);
 
-            // ensure vehicle model is same as ID
+            // ensure vehicle model is same as ID            
             if (vehicle.ModelId != null && vehicle.ModelId != Guid.Empty) {
                 vehicle.Model = await context.VehicleModels.FirstOrDefaultAsync(t => t.Id == vehicle.ModelId);
-            }
-
-            var payload = await ValidateCreateVehicle(vehicle);
-
-            if (payload.Errors.Any()) {
-                return payload;
             }
 
             // add components
@@ -38,12 +33,17 @@ namespace VT.Model {
                 }
             });
 
+            // validate
+            var payload = await ValidateCreateVehicle(vehicle);
+            
+            if (payload.Errors.Any()) {
+                return payload;
+            }
+
             // save
-            context.Vehicles.Add(vehicle);
             await context.SaveChangesAsync();
-
+            
             payload.Vehicle = vehicle;
-
             return payload;
         }
 
@@ -54,7 +54,7 @@ namespace VT.Model {
             if (vehicle.VIN.Trim().Length != EntityMaxLen.Vehicle_VIN) {
                 payload.AddError("vin", $"VIN must be exactly {EntityMaxLen.Vehicle_VIN} characters");
             }
-            if (await context.Vehicles.AnyAsync(t => t.VIN == vehicle.VIN)) {
+            if (await context.Vehicles.AnyAsync(t => t.Id != vehicle.Id && t.VIN == vehicle.VIN)) {
                 payload.AddError("vin", "Duplicate VIN found");
             }
 
@@ -73,14 +73,14 @@ namespace VT.Model {
             // Lot No
             if (vehicle.LotNo.Trim().Length < EntityMaxLen.Vehicle_LotNo) {
                 payload.AddError("kitNo", $"LotNo must be {EntityMaxLen.Vehicle_LotNo} characters");
-            } else if (!IsNumeric(vehicle.KitNo)) {
+            } else if (!IsNumeric(vehicle.LotNo)) {
                 payload.AddError("kitNo", $"KitNo must be numeric");
             }
 
             // Kit No
             if (vehicle.KitNo.Trim().Length < EntityMaxLen.Vehicle_KitNo) {
                 payload.AddError("kitNo", $"KitNo must be {EntityMaxLen.Vehicle_KitNo} characters");
-            } else if (!IsNumeric(vehicle.LotNo)) {
+            } else if (!IsNumeric(vehicle.KitNo)) {
                 payload.AddError("LotNo", $"KitNo must be numeric");
             }
 
