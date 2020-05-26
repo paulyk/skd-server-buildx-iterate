@@ -13,7 +13,7 @@ namespace VT.Model {
             builder.Property(t => t.Id).HasMaxLength(EntityMaxLen.Id).ValueGeneratedOnAdd();
 
             builder.HasIndex(t => t.Code).IsUnique();
-            builder.HasIndex(t => t.Name);
+            builder.HasIndex(t => t.Name).IsUnique();
                             
             builder.Property(t => t.Code)
                 .IsRequired()

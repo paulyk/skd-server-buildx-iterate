@@ -59,6 +59,7 @@ dotnet ef migrations add InitialCreate -o src/Migrations  --project VT.Model
 dotnet ef migrations add VehicleComponent_Completed --project VT.Model
 dotnet ef migrations add VehicleComponent_Serial_Nullable --project VT.Model
 dotnet ef migrations add VehicleComponent_Sequence --project VT.Model
+dotnet ef migrations add Component_Unique_Name --project VT.Model
 ```
 
 ### Remove migratins
