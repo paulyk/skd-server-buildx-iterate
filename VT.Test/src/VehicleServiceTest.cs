@@ -45,8 +45,9 @@ namespace VT.Test {
             };
 
             var result = await service.CreateVehicle(vehicle);
-            Assert.Equal(1, result.Errors.Count);
 
+            var errorCount = result.Errors.Count;
+            Assert.Equal(1, errorCount);
             Assert.Equal("Vehicle model not specified", result.Errors.First().Message);
         }
 
