@@ -47,7 +47,7 @@ namespace VT.Server {
                     case "postgres": options.UseNpgsql(connectionString); break;
                     default: throw new Exception($"supported providers are sqlite, sqlserver, postgres");
                 }
-            });
+            }, ServiceLifetime.Transient);
 
             services
                 .AddTransient<VehicleService>()
