@@ -51,14 +51,5 @@ namespace VT.Server {
         // }
     }
 
-    public class VehicleComponent_DTO {
 
-
-        public string Code { get; set; } = "";
-
-        public string Name { get; set; } = "";
-
-        public string SerialNumber { get; set; } = "";
-
-    }
 }
