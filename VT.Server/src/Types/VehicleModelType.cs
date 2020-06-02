@@ -18,7 +18,6 @@ namespace VT.Server {
         protected override void Configure(IObjectTypeDescriptor<VehicleModel> descriptor) {
 
             descriptor.Field(t => t.Id).Type<NonNullType<IdType>>();
-            // descriptor.Field(t => t.ComponentMappings).Ignore();
             descriptor.Field(t => t.ActiveComponentMappings).Ignore();
             descriptor.Field(t => t.ComponentMappings).Resolver(GetVheicleModel_Components);
             descriptor.Field(t => t.Vehicles).Resolver(GetVehicleModel_Vehicles);

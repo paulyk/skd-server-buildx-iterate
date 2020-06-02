@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace VT.Server {
     public class Mutation {
 
-        public async Task<UpdateVehiclePayload> CreateVehicle(
+        public async Task<MutationPayload<Vehicle>> CreateVehicle(
             [Service] VehicleService service,
             [Service] AppDbContext ctx,
             VehicleInput input

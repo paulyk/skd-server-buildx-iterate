@@ -29,7 +29,7 @@ namespace VT.Test {
             };
 
             var result = await service.CreateVehicle(vehicle);
-            Assert.NotNull(result.Vehicle);
+            Assert.NotNull(result.Entity);
 
             var vehicleCount = await ctx.Vehicles.CountAsync();
             Assert.Equal(1, vehicleCount);
@@ -50,8 +50,6 @@ namespace VT.Test {
             Assert.Equal(1, errorCount);
             Assert.Equal("Vehicle model not specified", result.Errors.First().Message);
         }
-
-       
 
         private void GenerateSeedData() {
 

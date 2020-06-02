@@ -17,7 +17,7 @@ namespace VT.Model {
         public VehicleService(AppDbContext ctx) {
             this.context = ctx;
         }
-        public async Task<UpdateVehiclePayload> CreateVehicle(Vehicle vehicle) {
+        public async Task<MutationPayload<Vehicle>> CreateVehicle(Vehicle vehicle) {
             context.Vehicles.Add(vehicle);
 
             // ensure vehicle model is same as ID            
@@ -46,17 +46,17 @@ namespace VT.Model {
             // save
             await context.SaveChangesAsync();
 
-            payload.Vehicle = vehicle;
+            payload.Entity = vehicle;
             return payload;
         }
 
-        public async Task<UpdateVehiclePayload> ValidateCreateVehicle(Vehicle vehicle) {
-            var payload = new UpdateVehiclePayload();
-            payload.Vehicle = vehicle;
+        public async Task<MutationPayload<Vehicle>> ValidateCreateVehicle(Vehicle vehicle) {
+            var payload = new MutationPayload<Vehicle>();
+            payload.Entity = vehicle;
 
             if (vehicle.VIN.Trim().Length != EntityMaxLen.Vehicle_VIN) {
                 payload.AddError("vin", $"VIN must be exactly {EntityMaxLen.Vehicle_VIN} characters");
-            }
+            }   
             if (await context.Vehicles.AnyAsync(t => t.Id != vehicle.Id && t.VIN == vehicle.VIN)) {
                 payload.AddError("vin", "Duplicate VIN found");
             }

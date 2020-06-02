@@ -49,9 +49,8 @@ namespace VT.Server {
             return await service.SearchVehicles(query);
         }
 
-          public async Task<IReadOnlyList<VehicleModel>> SearchVehicleModels([Service] SearchService service, string query) {
+        public async Task<IReadOnlyList<VehicleModel>> SearchVehicleModels([Service] SearchService service, string query) {
             return await service.SearchVehicleModels(query);
         }
-
     }
 }
