@@ -14,7 +14,7 @@ namespace SKD.Test {
                 var component = new Component() {
                     Code = new String('X', EntityMaxLen.Component_Code),
                     Name = new String('X', EntityMaxLen.Component_Name),
-                    Type = new String('X', EntityMaxLen.Component_Type),
+                    FordComponentType = new String('X', EntityMaxLen.Component_FordComponentType),
                 };
 
                 ctx.Components.Add(component);
@@ -31,13 +31,13 @@ namespace SKD.Test {
                 var component_1 = new Component() {
                     Code = "Same_Code",
                     Name = "Name1",
-                    Type = "Type1"
+                    FordComponentType = "Type1"
                 };
 
                 var component_2 = new Component() {
                     Code = "Same_Code",
                     Name = "Name1",
-                    Type = "Type1"
+                    FordComponentType = "Type1"
                 };
 
                 ctx.Components.Add(component_1);
@@ -55,13 +55,13 @@ namespace SKD.Test {
                 var component_1 = new Component() {
                     Code = "Code1",
                     Name = componentName,
-                    Type = "Type1"
+                    FordComponentType = "Type1"
                 };
 
                 var component_2 = new Component() {
                     Code = "Code2",
                     Name = componentName,
-                    Type = "Type1"
+                    FordComponentType = "Type1"
                 };
 
                 ctx.Components.Add(component_1);

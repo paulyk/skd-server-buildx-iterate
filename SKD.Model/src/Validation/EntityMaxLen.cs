@@ -5,7 +5,7 @@ namespace SKD.Model {
 		public static int Email = 320;	
 		public static int Component_Code = 20;	
 		public static int Component_Name = 50;	
-		public static int Component_Type = 5;	
+		public static int Component_FordComponentType = 5;	
 
 		public static int Vehicle_VIN = 17;	
 		public static int Vehicle_KitNo = 3;

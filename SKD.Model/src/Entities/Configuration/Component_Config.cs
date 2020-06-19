@@ -23,9 +23,9 @@ namespace SKD.Model {
                 .IsRequired()
                 .HasMaxLength(EntityMaxLen.Component_Name);
 
-            builder.Property(t => t.Type)
+            builder.Property(t => t.FordComponentType)
                 .IsRequired()
-                .HasMaxLength(EntityMaxLen.Component_Type);
+                .HasMaxLength(EntityMaxLen.Component_FordComponentType);
 
             //
             builder.HasMany(t => t.VehicleModelComponents)

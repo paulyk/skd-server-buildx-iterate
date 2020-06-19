@@ -17,7 +17,7 @@ namespace SKD.Seed {
         public async Task DroCreateDb() {
             await ctx.Database.EnsureDeletedAsync();
             Console.WriteLine("Dropped database");
-            await ctx.Database.EnsureCreatedAsync();
+            await ctx.Database.MigrateAsync();
             Console.WriteLine("Created database");
         }
 
@@ -99,7 +99,7 @@ namespace SKD.Seed {
             var components = componentData.ToList().Select(x => new Component() {
                 Code = x.code,
                 Name = x.name,
-                Type = x.type
+                FordComponentType = x.type
             });
 
             ctx.Components.AddRange(components);
