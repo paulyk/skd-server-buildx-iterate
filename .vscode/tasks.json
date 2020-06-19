@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/VT.Seed/VT.Seed.csproj",
+                "${workspaceFolder}/SKD.Seed/SKD.Seed.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/VT.Seed/VT.Seed.csproj",
+                "${workspaceFolder}/SKD.Seed/SKD.Seed.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -32,7 +32,7 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/VT.Seed/VT.Seed.csproj",
+                "${workspaceFolder}/SKD.Seed/SKD.Seed.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],

@@ -4,7 +4,7 @@ Scan and record specific vehicle components for which vehicle management softwar
 
 ## Appsettings
 
-Create at `VT.Model/appsettings.json` with the following structure.
+Create at `SKD.Model/appsettings.json` with the following structure.
 
 This will be used for migrations.
 
@@ -54,25 +54,25 @@ dotnet tool update --global dotnet-ef
 ### Add migrations
 
 ```bash
-cd VT.Model
-dotnet ef migrations add InitialCreate -o src/Migrations  --project VT.Model 
-dotnet ef migrations add VehicleComponent_Completed --project VT.Model
-dotnet ef migrations add VehicleComponent_Serial_Nullable --project VT.Model
-dotnet ef migrations add VehicleComponent_Sequence --project VT.Model
-dotnet ef migrations add Component_Unique_Name --project VT.Model
+cd SKD.Model
+dotnet ef migrations add InitialCreate -o src/Migrations  --project SKD.Model 
+dotnet ef migrations add VehicleComponent_Completed --project SKD.Model
+dotnet ef migrations add VehicleComponent_Serial_Nullable --project SKD.Model
+dotnet ef migrations add VehicleComponent_Sequence --project SKD.Model
+dotnet ef migrations add Component_Unique_Name --project SKD.Model
 ```
 
 ### Remove migratins
 ```
-dotnet ef migrations remove --project VT.Model
+dotnet ef migrations remove --project SKD.Model
 ```
 ### Update database
 
 ```bash
-dotnet ef database update --project VT.Model
+dotnet ef database update --project SKD.Model
 ```
 
 ### Revert to specific migration 
 ```
-dotnet ef database update Migration_Name  --project VT.Model
+dotnet ef database update Migration_Name  --project SKD.Model
 ```

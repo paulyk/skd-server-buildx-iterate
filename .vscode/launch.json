@@ -5,27 +5,27 @@
    "version": "0.2.0",
    "configurations": [
         {
-            "name": "VT.Seed",
+            "name": "SKD.Seed",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/VT.Seed/bin/Debug/netcoreapp3.1/VT.Seed.dll",
+            "program": "${workspaceFolder}/SKD.Seed/bin/Debug/netcoreapp3.1/SKD.Seed.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/VT.Seed",
+            "cwd": "${workspaceFolder}/SKD.Seed",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
             "stopAtEntry": false
         },
         {
-            "name": "VT.Server",
+            "name": "SKD.Server",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/VT.Server/bin/Debug/netcoreapp3.1/VT.Server.dll",
+            "program": "${workspaceFolder}/SKD.Server/bin/Debug/netcoreapp3.1/SKD.Server.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/VT.Server",
+            "cwd": "${workspaceFolder}/SKD.Server",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
             "stopAtEntry": false
