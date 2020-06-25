@@ -12,9 +12,7 @@ namespace SKD.Test {
         private AppDbContext ctx;
         public VehicleServiceTest() {
             ctx = GetAppDbContext();
-
             GenerateSeedData();
-
         }
 
         [Fact]
@@ -28,9 +26,15 @@ namespace SKD.Test {
                 KitNo = "001"
             };
 
-            var result = await service.CreateVehicle(vehicle);
-            Assert.NotNull(result.Entity);
+            var payload = await service.CreateVehicle(vehicle);
+            if (payload.Entity == null) {
+                Console.WriteLine("Entity is null!!!!!!!!!");
+            } else {
+                Console.WriteLine(("Vehicle VIN: " + payload.Entity.VIN));
+            }
 
+            Assert.NotNull(payload.Entity);
+            
             var vehicleCount = await ctx.Vehicles.CountAsync();
             Assert.Equal(1, vehicleCount);
         }
@@ -44,11 +48,11 @@ namespace SKD.Test {
                 KitNo = "001"
             };
 
-            var result = await service.CreateVehicle(vehicle);
+            var payload = await service.CreateVehicle(vehicle);
 
-            var errorCount = result.Errors.Count;
+            var errorCount = payload.Errors.Count();
             Assert.Equal(1, errorCount);
-            Assert.Equal("Vehicle model not specified", result.Errors.First().Message);
+            Assert.Equal("Vehicle model not specified", payload.Errors.First().Message);
         }
 
         private void GenerateSeedData() {

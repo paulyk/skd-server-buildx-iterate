@@ -27,17 +27,17 @@ namespace SKD.Test {
               EntityMaxLen.Component_Code), FordComponentType = "xx"
             };
 
-            var paylaod = await service.ValidateCreateComponent(component);
+            var errors = await service.ValidateCreateComponent<Component>(component);
 
-            paylaod.Errors.ForEach(error => {
+            errors.ForEach(error => {
                 Console.WriteLine($"{error.Path},  {error.Message}");
             });
 
-            var errorCount = paylaod.Errors.Count;
+            var errorCount = errors.Count;
             Assert.Equal(1, errorCount);
 
-            if (paylaod.Errors.Count > 0) {
-                Assert.Equal("Duplicate component code", paylaod.Errors.First().Message);
+            if (errors.Count > 0) {
+                Assert.Equal("duplicate code", errors.First().Message);
             }
         }
 
@@ -52,17 +52,17 @@ namespace SKD.Test {
                 Name = existingComponent.Name
             };
 
-            var paylaod = await service.ValidateCreateComponent(component);
+            var errors = await service.ValidateCreateComponent<Component>(component);
 
-            paylaod.Errors.ForEach(error => {
+            errors.ForEach(error => {
                 Console.WriteLine($"{error.Path},  {error.Message}");
             });
 
-            var errorCount = paylaod.Errors.Count;
+            var errorCount = errors.Count;
             Assert.Equal(1, errorCount);
 
-            if (paylaod.Errors.Count > 0) {
-                Assert.Equal("Duplicate component name", paylaod.Errors.First().Message);
+            if (errors.Count > 0) {
+                Assert.Equal("duplicate name", errors.First().Message);
             }
         }
 

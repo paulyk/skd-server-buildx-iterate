@@ -20,10 +20,11 @@ namespace SKD.Model {
         }
 
         public async Task<MutationPayload<Component>> CreateComponent(Component component) {
+            var payload = new MutationPayload<Component>(component);
             context.Components.Add(component);
 
             // validate
-            var payload = await ValidateCreateComponent(component);
+            payload.Errors = await ValidateCreateComponent<Component>(component);
             if (payload.Errors.Any()) {
                 return payload;
             }
@@ -35,25 +36,24 @@ namespace SKD.Model {
             return payload;                        
         }
 
-        public async Task<MutationPayload<Component>> ValidateCreateComponent(Component component) {
-            var payload = new MutationPayload<Component>();
-            payload.Entity = component;
+        public async Task<List<Error>> ValidateCreateComponent<T>(Component component) where T : Component {
+            var errors = new List<Error>();
 
             if (component.Code.Trim().Length == 0) {
-                payload.AddError("code", $"component code required");
+                errors.Add(ErrorHelper.Create<T>(t => t.Code, "code requred"));
             }
             if (component.Name.Trim().Length == 0) {
-                payload.AddError("name", $"component name required");
+                errors.Add(ErrorHelper.Create<T>(t => t.Name, "name required"));
             }
 
             if (await context.Components.AnyAsync(t => t.Id != component.Id && t.Code == component.Code)) {
-                payload.AddError("code", "Duplicate component code");
+                errors.Add(ErrorHelper.Create<T>(t => t.Code, "duplicate code"));
             }
             if (await context.Components.AnyAsync(t => t.Id != component.Id && t.Name == component.Name)) {
-                payload.AddError("name", "Duplicate component name");
+                errors.Add(ErrorHelper.Create<T>(t => t.Name, "duplicate name"));
             }
 
-            return payload;
+            return errors;
         }
 
 
