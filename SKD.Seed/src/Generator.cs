@@ -34,7 +34,8 @@ namespace SKD.Seed {
                 vehicleModelComponents.Add(new VehicleModelComponent() {
                     Component = component,
                     VehicleModel = model,
-                    Sequence = item.sequence
+                    Sequence = item.sequence,
+                    PrerequisiteSequences = item.prerequisite
                 });
             }
 
@@ -98,8 +99,7 @@ namespace SKD.Seed {
         public async Task Seed_Components(ICollection<Component_Seed_DTO> componentData) {
             var components = componentData.ToList().Select(x => new Component() {
                 Code = x.code,
-                Name = x.name,
-                FordComponentType = x.type
+                Name = x.name
             });
 
             ctx.Components.AddRange(components);

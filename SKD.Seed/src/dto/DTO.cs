@@ -22,5 +22,6 @@ namespace SKD.Seed {
         public string modelCode { get; set; }
         public string componentCode { get; set; }
         public int sequence { get; set; }
+        public string prerequisite { get; set; }
     }
 }

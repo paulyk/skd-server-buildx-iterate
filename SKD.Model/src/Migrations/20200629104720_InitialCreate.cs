@@ -14,9 +14,8 @@ namespace SKD.Model.src.Migrations
                     Id = table.Column<Guid>(maxLength: 36, nullable: false),
                     CreatedAt = table.Column<DateTime>(nullable: false),
                     RemovedAt = table.Column<DateTime>(nullable: true),
-                    Code = table.Column<string>(maxLength: 20, nullable: false),
-                    Name = table.Column<string>(maxLength: 50, nullable: false),
-                    Type = table.Column<string>(maxLength: 5, nullable: false)
+                    Code = table.Column<string>(maxLength: 10, nullable: false),
+                    Name = table.Column<string>(maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -85,7 +84,8 @@ namespace SKD.Model.src.Migrations
                     RemovedAt = table.Column<DateTime>(nullable: true),
                     VehicleModelId = table.Column<Guid>(nullable: false),
                     ComponentId = table.Column<Guid>(nullable: false),
-                    Sequence = table.Column<int>(nullable: false)
+                    Sequence = table.Column<int>(nullable: false),
+                    PrerequisiteSequences = table.Column<string>(maxLength: 50, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -113,7 +113,10 @@ namespace SKD.Model.src.Migrations
                     RemovedAt = table.Column<DateTime>(nullable: true),
                     VehicleId = table.Column<Guid>(nullable: false),
                     ComponentId = table.Column<Guid>(nullable: false),
-                    SerialNumber = table.Column<string>(maxLength: 50, nullable: false)
+                    Sequence = table.Column<int>(nullable: false),
+                    Scan1 = table.Column<string>(maxLength: 100, nullable: true),
+                    Scan2 = table.Column<string>(maxLength: 100, nullable: true),
+                    ScanAt = table.Column<DateTime>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -141,7 +144,8 @@ namespace SKD.Model.src.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_component_Name",
                 table: "component",
-                column: "Name");
+                column: "Name",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_user_Email",
@@ -164,6 +168,16 @@ namespace SKD.Model.src.Migrations
                 name: "IX_vehicle_component_ComponentId",
                 table: "vehicle_component",
                 column: "ComponentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_vehicle_component_Scan1",
+                table: "vehicle_component",
+                column: "Scan1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_vehicle_component_Scan2",
+                table: "vehicle_component",
+                column: "Scan2");
 
             migrationBuilder.CreateIndex(
                 name: "IX_vehicle_component_VehicleId_ComponentId",

@@ -58,8 +58,8 @@ namespace SKD.Test {
         private void GenerateSeedData() {
 
             var components = new List<Component>() {
-                new Component() { Code = "COMP1", Name = "Component name 1", FordComponentType = "T1"},
-                new Component() { Code = "COMP2", Name = "Component name 2", FordComponentType=  "T2"},
+                new Component() { Code = "COMP1", Name = "Component name 1" },
+                new Component() { Code = "COMP2", Name = "Component name 2" },
             };
 
             ctx.Components.AddRange(components);

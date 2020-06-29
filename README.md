@@ -61,6 +61,7 @@ dotnet ef migrations add VehicleComponent_Serial_Nullable --project SKD.Model
 dotnet ef migrations add VehicleComponent_Sequence --project SKD.Model
 dotnet ef migrations add Component_Unique_Name --project SKD.Model
 dotnet ef migrations add Component_FordComponentType --project SKD.Model
+dotnet ef migrations add Refactor_Component --project SKD.Model
 ```
 
 ### Remove migratins

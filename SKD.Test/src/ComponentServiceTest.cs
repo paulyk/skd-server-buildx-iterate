@@ -23,8 +23,7 @@ namespace SKD.Test {
 
             var component = new Component() {
                 Code = existingComponent.Code,
-                Name = new String('x',
-              EntityMaxLen.Component_Code), FordComponentType = "xx"
+                Name = new String('x',EntityMaxLen.Component_Code)
             };
 
             var errors = await service.ValidateCreateComponent<Component>(component);
@@ -48,7 +47,7 @@ namespace SKD.Test {
             var existingComponent = await ctx.Components.FirstAsync();
 
             var component = new Component() {
-                Code = new String('x', EntityMaxLen.Component_Code), FordComponentType = "xx",
+                Code = new String('x', EntityMaxLen.Component_Code), 
                 Name = existingComponent.Name
             };
 
@@ -68,8 +67,8 @@ namespace SKD.Test {
 
         private void GenerateSeedData() {
             var components = new List<Component>() {
-                new Component() { Code = "COMP1", Name = "Component name 1", FordComponentType = "T1"},
-                new Component() { Code = "COMP2", Name = "Component name 2", FordComponentType=  "T2"},
+                new Component() { Code = "COMP1", Name = "Component name 1" },
+                new Component() { Code = "COMP2", Name = "Component name 2" }
             };
 
             ctx.Components.AddRange(components);

@@ -13,6 +13,7 @@ namespace SKD.Model {
             builder.HasIndex(t => new { t.VehicleModelId, t.ComponentId }).IsUnique();
 
             builder.Property(t => t.Id).HasMaxLength(EntityMaxLen.Id).ValueGeneratedOnAdd();
+            builder.Property(t => t.PrerequisiteSequences).HasMaxLength(EntityMaxLen.VehicleComponent_PrerequisiteSequence);
 
             builder.HasOne(t => t.VehicleModel)
                 .WithMany(t => t.ComponentMappings)

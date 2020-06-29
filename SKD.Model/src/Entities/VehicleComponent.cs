@@ -12,9 +12,10 @@ namespace SKD.Model {
 
 
         public int Sequence { get; set; }
-        public string SerialNumber { get; set; }
-
-        public DateTime? CompletedAt { get; set; }
+        public string Scan1 { get; set; }
+        public string Scan2 { get; set; }
+        
+        public DateTime? ScanAt { get; set; }
 
         public VehicleComponent() {
 

@@ -28,21 +28,16 @@ namespace SKD.Model.src.Migrations
 
                     b.Property<string>("Code")
                         .IsRequired()
-                        .HasColumnType("nvarchar(20)")
-                        .HasMaxLength(20);
+                        .HasColumnType("nvarchar(10)")
+                        .HasMaxLength(10);
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("FordComponentType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(5)")
-                        .HasMaxLength(5);
-
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(50)")
-                        .HasMaxLength(50);
+                        .HasColumnType("nvarchar(100)")
+                        .HasMaxLength(100);
 
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
@@ -128,9 +123,6 @@ namespace SKD.Model.src.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasMaxLength(36);
 
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<Guid>("ComponentId")
                         .HasColumnType("uniqueidentifier");
 
@@ -140,12 +132,19 @@ namespace SKD.Model.src.Migrations
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Scan1")
+                        .HasColumnType("nvarchar(100)")
+                        .HasMaxLength(100);
+
+                    b.Property<string>("Scan2")
+                        .HasColumnType("nvarchar(100)")
+                        .HasMaxLength(100);
+
+                    b.Property<DateTime?>("ScanAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("Sequence")
                         .HasColumnType("int");
-
-                    b.Property<string>("SerialNumber")
-                        .HasColumnType("nvarchar(50)")
-                        .HasMaxLength(50);
 
                     b.Property<Guid>("VehicleId")
                         .HasColumnType("uniqueidentifier");
@@ -153,6 +152,10 @@ namespace SKD.Model.src.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ComponentId");
+
+                    b.HasIndex("Scan1");
+
+                    b.HasIndex("Scan2");
 
                     b.HasIndex("VehicleId", "ComponentId")
                         .IsUnique();
@@ -209,6 +212,10 @@ namespace SKD.Model.src.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("PrerequisiteSequences")
+                        .HasColumnType("nvarchar(50)")
+                        .HasMaxLength(50);
 
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");

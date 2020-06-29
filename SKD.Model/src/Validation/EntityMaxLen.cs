@@ -3,8 +3,8 @@ namespace SKD.Model {
 
 		public static int Id = 36;
 		public static int Email = 320;	
-		public static int Component_Code = 20;	
-		public static int Component_Name = 50;	
+		public static int Component_Code = 10;	
+		public static int Component_Name = 100;	
 		public static int Component_FordComponentType = 5;	
 
 		public static int Vehicle_VIN = 17;	
@@ -15,7 +15,9 @@ namespace SKD.Model {
 		public static int VehicleModel_Name = 100;	
 		public static int VehicleModel_Type = 4;	
 
-		public static int VehicleComponent_SerialNumber = 50;
+		public static int VehicleComponent_Scan1 = 100;
+		public static int VehicleComponent_Scan2 = 100;
 		public static int CreatedBy = 255;
+		public static int VehicleComponent_PrerequisiteSequence = 50;
 	}
 }
