@@ -35,7 +35,8 @@ namespace SKD.Seed {
                     Component = component,
                     VehicleModel = model,
                     Sequence = item.sequence,
-                    PrerequisiteSequences = item.prerequisite
+                    PrerequisiteSequences = item.prerequisite,
+                    CreatedAt = SeedUtil.RandomDateTime(DateTime.UtcNow)
                 });
             }
 
@@ -71,7 +72,8 @@ namespace SKD.Seed {
                     VIN = entry.vin,
                     KitNo = entry.kitNo,
                     LotNo = entry.lotNo,
-                    Model = ctx.VehicleModels.First(m => m.Code == entry.modelId)
+                    Model = ctx.VehicleModels.First(m => m.Code == entry.modelId),
+                    CreatedAt = SeedUtil.RandomDateTime(DateTime.UtcNow)
                 };
 
                 ctx.Vehicles.Add(vehicle);
@@ -83,7 +85,8 @@ namespace SKD.Seed {
                     vehicle.VehicleComponents.Add(new VehicleComponent() {
                         Component = modelComponent.Component,
                         ComponentId = modelComponent.ComponentId,
-                        Sequence = modelComponent.Sequence
+                        Sequence = modelComponent.Sequence,
+                        CreatedAt = vehicle.CreatedAt
                     });
                 }
 
@@ -99,7 +102,8 @@ namespace SKD.Seed {
         public async Task Seed_Components(ICollection<Component_Seed_DTO> componentData) {
             var components = componentData.ToList().Select(x => new Component() {
                 Code = x.code,
-                Name = x.name
+                Name = x.name,
+                CreatedAt = SeedUtil.RandomDateTime(DateTime.UtcNow)
             });
 
             ctx.Components.AddRange(components);

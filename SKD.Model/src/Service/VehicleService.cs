@@ -32,7 +32,8 @@ namespace SKD.Model {
                     if (!vehicle.VehicleComponents.Any(t => t.Component.Id == mapping.ComponentId)) {
                         vehicle.VehicleComponents.Add(new VehicleComponent() {
                             Component = mapping.Component,
-                            Sequence = mapping.Sequence
+                            Sequence = mapping.Sequence,
+                            CreatedAt = vehicle.CreatedAt
                         });
                     }
                 });
