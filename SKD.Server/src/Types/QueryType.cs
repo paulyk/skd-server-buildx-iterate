@@ -1,20 +1,43 @@
 using SKD.Model;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
-namespace SKD.Server {
-    public class QueryType: ObjectType<Query> {
-        protected override void Configure(IObjectTypeDescriptor<Query> descriptor) {
-              descriptor.Field("getComponents")
-                .Resolver(ctx => ctx.Service<AppDbContext>().Components.AsQueryable())
-                .UsePaging<ComponentType>();
+using System.Linq;
+using HotChocolate.Resolvers;
 
-            descriptor.Field("getVehicleModles")
-                .Resolver(ctx => ctx.Service<AppDbContext>().VehicleModels.AsQueryable())
+namespace SKD.Server {
+    public class QueryType : ObjectType<Query> {
+        protected override void Configure(IObjectTypeDescriptor<Query> descriptor) {
+
+
+            /// <summary>
+            /// Gets all components.
+            /// </summary>
+            descriptor.Field("Components")
+              .Resolver(GetComponents)
+              .UsePaging<ComponentType>()
+              .UseFiltering()
+              .UseSorting();
+
+            descriptor.Field("VehicleModles")
+                .Resolver(GetVehicleModles)
                 .UsePaging<VehicleModelType>();
 
-            descriptor.Field("getVehicles")
-                .Resolver(ctx => ctx.Service<AppDbContext>().Vehicles.AsQueryable())
+            descriptor.Field("Vehicles")
+                .Resolver(GetVehicles)
                 .UsePaging<VehicleType>();
+
         }
+
+        public IQueryable<Component> GetComponents(IResolverContext ctx) {
+            return ctx.Service<AppDbContext>().Components.AsQueryable();
+        }
+        public IQueryable<VehicleModel> GetVehicleModles(IResolverContext ctx) {
+            return ctx.Service<AppDbContext>().VehicleModels.AsQueryable();
+        }
+
+        public IQueryable<Vehicle> GetVehicles(IResolverContext ctx) {
+            return ctx.Service<AppDbContext>().Vehicles.AsQueryable();
+        }
+
     }
 }
