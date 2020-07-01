@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace SKD.Model {
     public class VehicleComponent : EntityBase {
@@ -9,13 +10,8 @@ namespace SKD.Model {
 
         public Guid ComponentId { get; set; }
         public Component Component { get; set; }
-
-
         public int Sequence { get; set; }
-        public string Scan1 { get; set; }
-        public string Scan2 { get; set; }
-        
-        public DateTime? ScanAt { get; set; }
+        public virtual ICollection<VehicleComponentScan> ComponentScans { get; set; }
 
         public VehicleComponent() {
 

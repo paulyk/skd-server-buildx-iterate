@@ -13,11 +13,7 @@ namespace SKD.Model {
             builder.Property(t => t.Id).HasMaxLength(EntityMaxLen.Id).ValueGeneratedOnAdd();
 
             builder.HasIndex(t => new { t.VehicleId, t.ComponentId }).IsUnique();
-            builder.HasIndex(t => t.Scan1);
-            builder.HasIndex(t => t.Scan2);
 
-            builder.Property(t => t.Scan1).HasMaxLength(EntityMaxLen.VehicleComponent_Scan1);
-            builder.Property(t => t.Scan2).HasMaxLength(EntityMaxLen.VehicleComponent_Scan2);
             builder.Property(t => t.Sequence).IsRequired();
 
             builder.HasOne(t => t.Component)
@@ -27,6 +23,10 @@ namespace SKD.Model {
             builder.HasOne(t => t.Vehicle)
                 .WithMany(t => t.VehicleComponents)
                 .HasForeignKey(t => t.VehicleId);
+
+            builder.HasMany(t => t.ComponentScans)
+                .WithOne(t => t.VehicleComponent)
+                .HasForeignKey(t => t.VehicleComponentId);
 
         }
     }

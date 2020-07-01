@@ -9,6 +9,7 @@ namespace SKD.Model {
         public DbSet<Component> Components { get; set; }
         public DbSet<VehicleModel> VehicleModels { get; set; }
         public DbSet<VehicleComponent> VehicleComponents { get; set; }
+        public DbSet<VehicleComponentScan> VehicleComponentScans { get; set; }
         public DbSet<VehicleModelComponent> VehicleModelComponents { get; set; }
         
         public SkdContext(DbContextOptions options) : base(options) { }
