@@ -48,7 +48,7 @@ namespace SKD.Seed {
 
                     if (existing != null) {
                         Console.WriteLine($"Duplicate model component entry: {existing.VehicleModel.Name}  {existing.Component.Code}");
-                        
+
                     } else {
                         ctx.VehicleModelComponents.Add(vmc);
                         await ctx.SaveChangesAsync();
@@ -67,8 +67,9 @@ namespace SKD.Seed {
                 throw new Exception("Vehicle models must be seeded before vheicles");
             }
 
+            var index = 1;
             foreach (var entry in vehicleData.ToList()) {
-                var vehicle = new Vehicle(){
+                var vehicle = new Vehicle() {
                     VIN = entry.vin,
                     KitNo = entry.kitNo,
                     LotNo = entry.lotNo,
@@ -79,24 +80,47 @@ namespace SKD.Seed {
                 ctx.Vehicles.Add(vehicle);
 
                 var modelComponents = ctx.VehicleModelComponents.Where(t => t.VehicleModelId == vehicle.ModelId).ToList();
-                Console.WriteLine($"{vehicle.Model.Name} has {modelComponents.Count} components");
 
-                foreach(var modelComponent in modelComponents) {
-                    vehicle.VehicleComponents.Add(new VehicleComponent() {
+                var addMockComponentScans = index % 2 == 0;
+
+                foreach (var modelComponent in modelComponents) {
+                    var vehicleComponent = new VehicleComponent() {
                         Component = modelComponent.Component,
                         ComponentId = modelComponent.ComponentId,
                         Sequence = modelComponent.Sequence,
                         CreatedAt = vehicle.CreatedAt
-                    });
+                    };
+
+                    vehicle.VehicleComponents.Add(vehicleComponent);
                 }
 
-                Console.WriteLine($"  Added  {vehicle.VehicleComponents.Count} children");   
+                if (addMockComponentScans) {
+                    Seed_VehicleComponentScan(vehicle);
+                }
+
+                Console.WriteLine($"  Added  {vehicle.VehicleComponents.Count} children");
                 Console.WriteLine("--------");
                 Console.WriteLine(" ");
-                await ctx.SaveChangesAsync();     
+                await ctx.SaveChangesAsync();
+                index++;
             }
             // vehicles        
             Console.WriteLine($"Added {await ctx.Vehicles.CountAsync()} vehicles");
+        }
+
+        public void Seed_VehicleComponentScan(Vehicle vehicle) {
+            var date =vehicle.CreatedAt.AddDays(4);
+            var i = 0;
+            foreach(var vc in vehicle.VehicleComponents) {
+                var componentScan = new VehicleComponentScan {
+                    Scan1 = SeedUtil.RandomString(30),
+                    Scan2 = i++ % 3 == 0 ? SeedUtil.RandomString(15) : "",
+                    CreatedAt = date
+                };
+                vc.ComponentScans.Add(componentScan);
+
+                date = date.AddDays(1);
+            };
         }
 
         public async Task Seed_Components(ICollection<Component_Seed_DTO> componentData) {
@@ -108,7 +132,7 @@ namespace SKD.Seed {
 
             ctx.Components.AddRange(components);
             await ctx.SaveChangesAsync();
-            
+
             Console.WriteLine($"Added {ctx.Components.Count()} components");
         }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 namespace SKD.Seed {
     public class SeedUtil {
@@ -18,6 +19,14 @@ namespace SKD.Seed {
             var hour = r.Next(0, 23);
             var minute = r.Next(0, 59);
             return new Tuple<int, int>(hour, minute);
+        }
+
+        public static string RandomString(int len) {
+            var str = Guid.NewGuid().ToString().Replace("-", "");
+            while (len > str.Length) {
+                str += str;
+            }
+            return str.Substring(0, len);
         }
     }
 }
