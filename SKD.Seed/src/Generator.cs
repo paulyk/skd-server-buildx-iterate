@@ -8,9 +8,9 @@ using System.Transactions;
 
 namespace SKD.Seed {
     internal class Generator {
-        private AppDbContext ctx;
+        private SkdContext ctx;
 
-        public Generator(AppDbContext ctx) {
+        public Generator(SkdContext ctx) {
             this.ctx = ctx;
         }
 

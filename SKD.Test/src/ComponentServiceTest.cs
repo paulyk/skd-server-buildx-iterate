@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace SKD.Test {
     public class ComponentServiceTest : TestBase {
 
-        private AppDbContext ctx;
+        private SkdContext ctx;
         public ComponentServiceTest() {
             ctx = GetAppDbContext();
             GenerateSeedData();

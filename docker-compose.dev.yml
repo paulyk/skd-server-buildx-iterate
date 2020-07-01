@@ -2,7 +2,7 @@ version: '3.8'
 services: 
   db:
     image: mcr.microsoft.com/mssql/server:2017-latest
-    container_name: vtdb
+    container_name: skd
     environment: 
       ACCEPT_EULA: Y
       SA_PASSWORD:  Resign98

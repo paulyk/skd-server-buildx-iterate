@@ -12,9 +12,9 @@ namespace SKD.Model {
 
     public class VehicleService {
 
-        private readonly AppDbContext context;
+        private readonly SkdContext context;
 
-        public VehicleService(AppDbContext ctx) {
+        public VehicleService(SkdContext ctx) {
             this.context = ctx;
         }
         public async Task<MutationPayload<Vehicle>> CreateVehicle(Vehicle vehicle) {
@@ -76,12 +76,12 @@ namespace SKD.Model {
 
                 if (vehicle.VehicleComponents.Count == 0) {
                     errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponents, "Vehicle components required, but none found"));
-                } else if (vehicle.Model.ComponentMappings.Count != vehicle.VehicleComponents.Count) {
+                } else if (vehicle.Model.ModelComponents.Count != vehicle.VehicleComponents.Count) {
                     errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponents, $"Vehicle components don't match model component count"));
                 } else {
                     // vehicle components sequence must match model component sequence
                     var vehicleComponents = vehicle.VehicleComponents.OrderBy(t => t.Sequence).ToList();
-                    var modelComponents = vehicle.Model.ComponentMappings.OrderBy(t => t.Sequence).ToList();
+                    var modelComponents = vehicle.Model.ModelComponents.OrderBy(t => t.Sequence).ToList();
 
                     var zipped = vehicleComponents.Zip(modelComponents, (v, m) => new {
                         vehicle_Seq = v.Sequence,

@@ -11,9 +11,9 @@ namespace SKD.Model {
 
     public class SearchService {
 
-        private readonly AppDbContext context;
+        private readonly SkdContext context;
 
-        public SearchService(AppDbContext ctx) {
+        public SearchService(SkdContext ctx) {
             this.context = ctx;
         }
 

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Playground;
+using HotChocolate.Execution.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -29,7 +30,7 @@ namespace SKD.Server {
 
         public void ConfigureServices(IServiceCollection services) {
 
-            services.AddDbContext<AppDbContext>(options => {
+            services.AddDbContext<SkdContext>(options => {
                 var databaseProviderName = Configuration["DatabaseProviderName"];
 
                 var aspnet_env = _env.EnvironmentName != null
@@ -55,13 +56,11 @@ namespace SKD.Server {
                 .AddTransient<SearchService>();
 
             services.AddGraphQL(sp => SchemaBuilder.New()
-                .AddQueryType<QueryType>()
-                .AddType<VehicleType>()
-                .AddType<VehicleComponentType>()
-                .AddType<VehicleModelType>()
+                .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
+                .AddType<VehicleType>()
                 .AddServices(sp)
-                .Create());
+                .Create(), new QueryExecutionOptions { ForceSerialExecution = true });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
@@ -88,7 +87,6 @@ namespace SKD.Server {
 
             app.UseEndpoints(endpoints => {
                           
-
                 if (_env.IsDevelopment()) {
                     endpoints.Map("/reset_db", endpoints.CreateApplicationBuilder()
                         .UseMiddleware<SeedDbMiddleware>()

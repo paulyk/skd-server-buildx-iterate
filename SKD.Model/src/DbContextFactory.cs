@@ -4,8 +4,8 @@ using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
 namespace SKD.Model {
-    public class DbContextFactory : IDesignTimeDbContextFactory<AppDbContext> {
-        public AppDbContext CreateDbContext(string[] args) {
+    public class DbContextFactory : IDesignTimeDbContextFactory<SkdContext> {
+        public SkdContext CreateDbContext(string[] args) {
           
             var Configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: false)
@@ -23,7 +23,7 @@ namespace SKD.Model {
                 throw new Exception($"Connection string not found for Development");
             }
 
-            var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+            var optionsBuilder = new DbContextOptionsBuilder<SkdContext>();
             switch (databaseProviderName) {
                 case "sqlite": optionsBuilder.UseSqlite(connectionString); break;
                 case "sqlserver": optionsBuilder.UseSqlServer(connectionString); break;
@@ -31,7 +31,7 @@ namespace SKD.Model {
                 default: throw new Exception($"supported providers are sqlite, sqlserver, postgres");
             }
 
-            return new AppDbContext(optionsBuilder.Options);
+            return new SkdContext(optionsBuilder.Options);
         }
     }
 }

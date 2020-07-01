@@ -14,7 +14,7 @@ namespace SKD.Server {
 
         public async Task<MutationPayload<Vehicle>> CreateVehicle(
             [Service] VehicleService service,
-            [Service] AppDbContext ctx,
+            [Service] SkdContext ctx,
             VehicleInput input
         ) {
             var vehicle = new Vehicle() {

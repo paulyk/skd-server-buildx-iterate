@@ -10,7 +10,9 @@
     <PackageReference Include="HotChocolate.AspNetCore" Version="10.4.1" />
     <PackageReference Include="hotchocolate.aspnetcore.playground" Version="10.4.1" />
     <None Include="appsettings.json" CopyToOutputDirectory="Always" />
+    <PackageReference Include="HotChocolate.Types.Filters" Version="10.4.3" />
     <PackageReference Include="HotChocolate.Types.Selections" Version="10.4.3" />
+    <PackageReference Include="HotChocolate.Types.Sorting" Version="10.4.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.4">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

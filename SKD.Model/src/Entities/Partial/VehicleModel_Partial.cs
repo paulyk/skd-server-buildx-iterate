@@ -6,7 +6,7 @@ namespace SKD.Model {
     public partial class VehicleModel : EntityBase {
            public IQueryable<VehicleModelComponent> ActiveComponentMappings { 
                get {
-                   return ComponentMappings.Where(t => t.RemovedAt == null).AsQueryable();
+                   return ModelComponents.Where(t => t.RemovedAt == null).AsQueryable();
                }
            }
     }

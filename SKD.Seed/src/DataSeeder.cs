@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace SKD.Seed {
    public class DataSeeder {
       
-       public async Task GenerateSeedData(AppDbContext ctx) {
+       public async Task GenerateSeedData(SkdContext ctx) {
             var seedDataPath = Path.Combine(Directory.GetCurrentDirectory(),"src/json");
 
             var seedData = new SeedData(seedDataPath);

@@ -7,11 +7,11 @@ namespace SKD.Model {
         public string Name { get; set; }
         public string Type { get; set; }
         public ICollection<Vehicle> Vehicles { get; set; }
-        public ICollection<VehicleModelComponent> ComponentMappings { get; set; }
+        public ICollection<VehicleModelComponent> ModelComponents { get; set; }
 
         public VehicleModel() : base() {
             Vehicles = new List<Vehicle>();
-            ComponentMappings = new List<VehicleModelComponent>();
+            ModelComponents = new List<VehicleModelComponent>();
         }
     }
 }

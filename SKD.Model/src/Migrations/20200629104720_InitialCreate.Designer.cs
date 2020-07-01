@@ -9,7 +9,7 @@ using SKD.Model;
 
 namespace SKD.Model.src.Migrations
 {
-    [DbContext(typeof(AppDbContext))]
+    [DbContext(typeof(SkdContext))]
     [Migration("20200629104720_InitialCreate")]
     partial class InitialCreate
     {

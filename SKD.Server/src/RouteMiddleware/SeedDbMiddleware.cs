@@ -15,7 +15,7 @@ public class SeedDbMiddleware {
 
     public async Task Invoke(HttpContext context) {
     
-        var ctx = context.RequestServices.GetService<AppDbContext>();
+        var ctx = context.RequestServices.GetService<SkdContext>();
         if (ctx != null) {
             var dataSeeder = new DataSeeder();
             await dataSeeder.GenerateSeedData(ctx);

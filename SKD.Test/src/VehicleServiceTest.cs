@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace SKD.Test {
     public class VehicleServiceTest : TestBase {
 
-        private AppDbContext ctx;
+        private SkdContext ctx;
         public VehicleServiceTest() {
             ctx = GetAppDbContext();
             GenerateSeedData();
@@ -67,7 +67,7 @@ namespace SKD.Test {
             var vehicleModel_1 = new VehicleModel() {
                 Code = "FRNG20",
                 Name = "Ford Ranger 2.0",
-                ComponentMappings = components.Select((component, i) => new VehicleModelComponent() {
+                ModelComponents = components.Select((component, i) => new VehicleModelComponent() {
                     Component = component,
                     Sequence = i + 1
                 }).ToList()

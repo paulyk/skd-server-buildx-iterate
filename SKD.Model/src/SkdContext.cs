@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 
 namespace SKD.Model {
-    public class AppDbContext : DbContext {
+    public class SkdContext : DbContext {
         public DbSet<User> Users { get; set; }
         public DbSet<Vehicle> Vehicles { get; set; }
         public DbSet<Component> Components { get; set; }
@@ -11,7 +11,7 @@ namespace SKD.Model {
         public DbSet<VehicleComponent> VehicleComponents { get; set; }
         public DbSet<VehicleModelComponent> VehicleModelComponents { get; set; }
         
-        public AppDbContext(DbContextOptions options) : base(options) { }
+        public SkdContext(DbContextOptions options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder builder) {
             builder.ApplyConfiguration(new Component_Config());

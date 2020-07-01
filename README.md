@@ -19,7 +19,7 @@ This will be used for migrations.
   },
   "connectionStrings": {
     "Production": "",
-    "Development": "server=localhost,9301;database=vtdb;uid=sa;pwd=Resign98",
+    "Development": "server=localhost,9301;database=skd;uid=sa;pwd=Resign98",
     "Staging": ""
   },
   "DatabaseProviderName": "sqlserver"
@@ -38,7 +38,7 @@ docker-compose  -f docker-compose.dev.yml down
 Mkake sure your `appsettings.json` connection string matches
 
 ```json
-"server=localhost,9301;database=vtdb;uid=sa;pwd=Resign98"
+"server=localhost,9301;database=skd;uid=sa;pwd=Resign98"
 ```
 
 ## Running migrations

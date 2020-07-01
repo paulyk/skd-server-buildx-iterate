@@ -6,16 +6,16 @@ using SKD.Model;
 namespace SKD.Test {
     public class TestBase {
 
-         public  AppDbContext GetAppDbContext() {
+         public  SkdContext GetAppDbContext() {
 
             var connection = new SqliteConnection("DataSource=:memory:");
             connection.Open();
 
-            var options = new DbContextOptionsBuilder<AppDbContext>()
+            var options = new DbContextOptionsBuilder<SkdContext>()
                         .UseSqlite(connection)
                         .Options;
 
-            var ctx = new AppDbContext(options);
+            var ctx = new SkdContext(options);
 
             ctx.Database.EnsureCreated();
             return ctx;

@@ -12,9 +12,9 @@ using Microsoft.EntityFrameworkCore;
 namespace SKD.Model {
 
     public class ComponentService {
-        private readonly AppDbContext context;
+        private readonly SkdContext context;
 
-        public ComponentService(AppDbContext ctx) {
+        public ComponentService(SkdContext ctx) {
             this.context = ctx;
 
         }

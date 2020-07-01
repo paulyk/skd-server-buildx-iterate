@@ -16,7 +16,7 @@ namespace SKD.Model {
             builder.Property(t => t.PrerequisiteSequences).HasMaxLength(EntityMaxLen.VehicleComponent_PrerequisiteSequence);
 
             builder.HasOne(t => t.VehicleModel)
-                .WithMany(t => t.ComponentMappings)
+                .WithMany(t => t.ModelComponents)
                 .HasForeignKey(t => t.VehicleModelId);
 
             builder.HasOne(t => t.Component)
