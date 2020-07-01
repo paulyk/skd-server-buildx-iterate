@@ -1,6 +1,7 @@
 # Vehicle Component Tracking App
 
-Scan and record specific vehicle components for which vehicle management software must be configured for.
+* Service to scan and upload component and serial numbers to Ford.
+* Shipments Parts Receving Service
 
 ## Appsettings
 
@@ -55,13 +56,7 @@ dotnet tool update --global dotnet-ef
 
 ```bash
 cd SKD.Model
-dotnet ef migrations add InitialCreate -o src/Migrations  --project SKD.Model 
-dotnet ef migrations add VehicleComponent_Completed --project SKD.Model
-dotnet ef migrations add VehicleComponent_Serial_Nullable --project SKD.Model
-dotnet ef migrations add VehicleComponent_Sequence --project SKD.Model
-dotnet ef migrations add Component_Unique_Name --project SKD.Model
-dotnet ef migrations add Component_FordComponentType --project SKD.Model
-dotnet ef migrations add Refactor_Component --project SKD.Model
+dotnet ef migrations add <igration-name> -o src/Migrations  --project SKD.Model 
 ```
 
 ### Remove migratins

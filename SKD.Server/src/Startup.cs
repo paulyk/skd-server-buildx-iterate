@@ -59,6 +59,7 @@ namespace SKD.Server {
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
                 .AddType<VehicleType>()
+                .AddType<VehicleModelType>()
                 .AddServices(sp)
                 .Create(), new QueryExecutionOptions { ForceSerialExecution = true });
         }
