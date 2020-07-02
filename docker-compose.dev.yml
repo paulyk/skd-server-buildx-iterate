@@ -7,9 +7,9 @@ services:
       ACCEPT_EULA: Y
       SA_PASSWORD:  Resign98
     volumes:
-      - mssql_vtdb:/var/opt/mssql/data 
+      - mssql_skd:/var/opt/mssql/data 
     ports:
      - '9301:1433'
 
 volumes:
-  mssql_vtdb:     
+  mssql_skd:     

@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SKD.Model;
 
-namespace SKD.Model.src.Migrations
+namespace SKD.Model.Migrations
 {
     [DbContext(typeof(SkdContext))]
-    [Migration("20200629104720_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20200702120632_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -134,17 +134,6 @@ namespace SKD.Model.src.Migrations
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Scan1")
-                        .HasColumnType("nvarchar(100)")
-                        .HasMaxLength(100);
-
-                    b.Property<string>("Scan2")
-                        .HasColumnType("nvarchar(100)")
-                        .HasMaxLength(100);
-
-                    b.Property<DateTime?>("ScanAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<int>("Sequence")
                         .HasColumnType("int");
 
@@ -155,14 +144,45 @@ namespace SKD.Model.src.Migrations
 
                     b.HasIndex("ComponentId");
 
-                    b.HasIndex("Scan1");
-
-                    b.HasIndex("Scan2");
-
                     b.HasIndex("VehicleId", "ComponentId")
                         .IsUnique();
 
                     b.ToTable("vehicle_component");
+                });
+
+            modelBuilder.Entity("SKD.Model.VehicleComponentScan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasMaxLength(36);
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("RemovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Scan1")
+                        .HasColumnType("nvarchar(100)")
+                        .HasMaxLength(100);
+
+                    b.Property<string>("Scan2")
+                        .HasColumnType("nvarchar(100)")
+                        .HasMaxLength(100);
+
+                    b.Property<Guid>("VehicleComponentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Scan1");
+
+                    b.HasIndex("Scan2");
+
+                    b.HasIndex("VehicleComponentId");
+
+                    b.ToTable("vehicle_component_scan");
                 });
 
             modelBuilder.Entity("SKD.Model.VehicleModel", b =>
@@ -262,6 +282,15 @@ namespace SKD.Model.src.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SKD.Model.VehicleComponentScan", b =>
+                {
+                    b.HasOne("SKD.Model.VehicleComponent", "VehicleComponent")
+                        .WithMany("ComponentScans")
+                        .HasForeignKey("VehicleComponentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SKD.Model.VehicleModelComponent", b =>
                 {
                     b.HasOne("SKD.Model.Component", "Component")
@@ -271,7 +300,7 @@ namespace SKD.Model.src.Migrations
                         .IsRequired();
 
                     b.HasOne("SKD.Model.VehicleModel", "VehicleModel")
-                        .WithMany("ComponentMappings")
+                        .WithMany("ModelComponents")
                         .HasForeignKey("VehicleModelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

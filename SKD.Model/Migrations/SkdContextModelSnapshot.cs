@@ -6,10 +6,10 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SKD.Model;
 
-namespace SKD.Model.src.Migrations
+namespace SKD.Model.Migrations
 {
     [DbContext(typeof(SkdContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    partial class SkdContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
@@ -152,7 +152,8 @@ namespace SKD.Model.src.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasMaxLength(36);
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -161,19 +162,25 @@ namespace SKD.Model.src.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Scan1")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(100)")
+                        .HasMaxLength(100);
 
                     b.Property<string>("Scan2")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(100)")
+                        .HasMaxLength(100);
 
                     b.Property<Guid>("VehicleComponentId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Scan1");
+
+                    b.HasIndex("Scan2");
+
                     b.HasIndex("VehicleComponentId");
 
-                    b.ToTable("VehicleComponentScans");
+                    b.ToTable("vehicle_component_scan");
                 });
 
             modelBuilder.Entity("SKD.Model.VehicleModel", b =>

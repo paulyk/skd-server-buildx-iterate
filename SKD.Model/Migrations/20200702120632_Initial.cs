@@ -1,9 +1,9 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace SKD.Model.src.Migrations
+namespace SKD.Model.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -113,10 +113,7 @@ namespace SKD.Model.src.Migrations
                     RemovedAt = table.Column<DateTime>(nullable: true),
                     VehicleId = table.Column<Guid>(nullable: false),
                     ComponentId = table.Column<Guid>(nullable: false),
-                    Sequence = table.Column<int>(nullable: false),
-                    Scan1 = table.Column<string>(maxLength: 100, nullable: true),
-                    Scan2 = table.Column<string>(maxLength: 100, nullable: true),
-                    ScanAt = table.Column<DateTime>(nullable: true)
+                    Sequence = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -131,6 +128,28 @@ namespace SKD.Model.src.Migrations
                         name: "FK_vehicle_component_vehicle_VehicleId",
                         column: x => x.VehicleId,
                         principalTable: "vehicle",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "vehicle_component_scan",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(maxLength: 36, nullable: false),
+                    CreatedAt = table.Column<DateTime>(nullable: false),
+                    RemovedAt = table.Column<DateTime>(nullable: true),
+                    VehicleComponentId = table.Column<Guid>(nullable: false),
+                    Scan1 = table.Column<string>(maxLength: 100, nullable: true),
+                    Scan2 = table.Column<string>(maxLength: 100, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_vehicle_component_scan", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_vehicle_component_scan_vehicle_component_VehicleComponentId",
+                        column: x => x.VehicleComponentId,
+                        principalTable: "vehicle_component",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -170,20 +189,25 @@ namespace SKD.Model.src.Migrations
                 column: "ComponentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_vehicle_component_Scan1",
-                table: "vehicle_component",
-                column: "Scan1");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_vehicle_component_Scan2",
-                table: "vehicle_component",
-                column: "Scan2");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_vehicle_component_VehicleId_ComponentId",
                 table: "vehicle_component",
                 columns: new[] { "VehicleId", "ComponentId" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_vehicle_component_scan_Scan1",
+                table: "vehicle_component_scan",
+                column: "Scan1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_vehicle_component_scan_Scan2",
+                table: "vehicle_component_scan",
+                column: "Scan2");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_vehicle_component_scan_VehicleComponentId",
+                table: "vehicle_component_scan",
+                column: "VehicleComponentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_vehicle_model_Code",
@@ -215,16 +239,19 @@ namespace SKD.Model.src.Migrations
                 name: "user");
 
             migrationBuilder.DropTable(
-                name: "vehicle_component");
+                name: "vehicle_component_scan");
 
             migrationBuilder.DropTable(
                 name: "vehicle_model_component");
 
             migrationBuilder.DropTable(
-                name: "vehicle");
+                name: "vehicle_component");
 
             migrationBuilder.DropTable(
                 name: "component");
+
+            migrationBuilder.DropTable(
+                name: "vehicle");
 
             migrationBuilder.DropTable(
                 name: "vehicle_model");
