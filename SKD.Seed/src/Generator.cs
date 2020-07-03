@@ -88,6 +88,7 @@ namespace SKD.Seed {
                         Component = modelComponent.Component,
                         ComponentId = modelComponent.ComponentId,
                         Sequence = modelComponent.Sequence,
+                        PrerequisiteSequences = modelComponent.PrerequisiteSequences,
                         CreatedAt = vehicle.CreatedAt
                     };
 

@@ -22,7 +22,6 @@ namespace SKD.Model {
             builder.ApplyConfiguration(new VehicleComponent_Config());
             builder.ApplyConfiguration(new VehicleModelComponent_Config());
             builder.ApplyConfiguration(new VehicleComponentScan_Config());
-
         }
     }
 }

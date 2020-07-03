@@ -90,13 +90,13 @@ namespace SKD.Server {
             app.UseEndpoints(endpoints => {
                           
                 if (_env.IsDevelopment()) {
-                    endpoints.Map("/reset_db", endpoints.CreateApplicationBuilder()
+                    endpoints.MapPost("/reset_db", endpoints.CreateApplicationBuilder()
                         .UseMiddleware<SeedDbMiddleware>()
                         .Build())
                         .WithDisplayName("reset db");
                 }
 
-                endpoints.Map("/test", endpoints.CreateApplicationBuilder()
+                endpoints.MapGet("/test", endpoints.CreateApplicationBuilder()
                      .UseMiddleware<TestMiddleware>()
                      .Build())
                      .WithDisplayName("test number");

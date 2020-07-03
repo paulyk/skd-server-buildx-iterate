@@ -129,6 +129,9 @@ namespace SKD.Model.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("PrerequisiteSequences")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
 

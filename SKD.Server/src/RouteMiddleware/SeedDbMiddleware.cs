@@ -20,7 +20,7 @@ public class SeedDbMiddleware {
             var dataSeeder = new DataSeeder();
             await dataSeeder.GenerateSeedData(ctx);
         } else {
-            throw new Exception("RequestServices.GetService returned null AppDbContext ");
+            throw new Exception("RequestServices.GetService returned null SkdContext ");
         }
         context.Response.StatusCode = 200;
     }
