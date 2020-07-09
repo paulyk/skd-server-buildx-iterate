@@ -15,6 +15,47 @@ namespace SKD.Test {
             GenerateSeedData();
         }
 
+                [Fact]
+        private async Task can_save_new_component(){
+            var service = new ComponentService(ctx);
+            var component = new Component() {
+                Code = Util.RandomString(EntityMaxLen.Component_Code),
+                Name = Util.RandomString(EntityMaxLen.Component_Name)
+            };
+
+            var priorComponentCount = await ctx.Components.CountAsync();
+            var payload = await service.SaveComponent(component);
+
+            Assert.NotNull(payload.Entity);
+            var newCount = await ctx.Components.CountAsync();
+            Assert.Equal(priorComponentCount + 1, newCount);            
+        }
+
+        [Fact]
+        private async Task can_update_component() {
+            var service = new ComponentService(ctx);
+            var component = await ctx.Components.FirstOrDefaultAsync();
+            
+            var newCode = Util.RandomString(EntityMaxLen.Component_Code);
+            var newName = Util.RandomString(EntityMaxLen.Component_Name);
+            var oldCreatedAt = component.CreatedAt;
+
+            component.Code = newCode;
+            component.Name = newName;
+
+
+            var priorComponentCount = await ctx.Components.CountAsync();
+            var payload = await service.SaveComponent(component);
+            var newCount = await ctx.Components.CountAsync();
+
+            Assert.Equal(priorComponentCount, newCount);
+
+            var modifiedComponent = await ctx.Components.FirstOrDefaultAsync(t => t.Id == component.Id);
+            Assert.Equal(newCode, component.Code);
+            Assert.Equal(newName, component.Name);
+            Assert.Equal(oldCreatedAt, component.CreatedAt);
+        }
+
         [Fact]
         private async Task validate_component_warns_duplicate_code() {
             var service = new ComponentService(ctx);
@@ -39,6 +80,7 @@ namespace SKD.Test {
                 Assert.Equal("duplicate code", errors.First().Message);
             }
         }
+
 
         [Fact]
         private async Task validate_component_warns_duplicate_name() {

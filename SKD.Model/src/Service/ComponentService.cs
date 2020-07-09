@@ -16,12 +16,23 @@ namespace SKD.Model {
 
         public ComponentService(SkdContext ctx) {
             this.context = ctx;
+        }virtual 
 
-        }
-
-        public async Task<MutationPayload<Component>> CreateComponent(Component component) {
+        public async Task<MutationPayload<Component>> SaveComponent(Component component) {
             var payload = new MutationPayload<Component>(component);
-            context.Components.Add(component);
+
+            var existing = context.Components.FirstOrDefault(t => t.Id == component.Id);
+            if (existing != null) {
+                existing.Code = component.Code;
+                existing.Name = component.Name;
+                component = existing;
+            } else {
+                context.Components.Add(component);
+            }
+
+            // trim
+            component.Code = component.Code.Trim();
+            component.Name = component.Name.Trim();
 
             // validate
             payload.Errors = await ValidateCreateComponent<Component>(component);
@@ -33,7 +44,7 @@ namespace SKD.Model {
             await context.SaveChangesAsync();
 
             payload.Entity = component;
-            return payload;                        
+            return payload;
         }
 
         public async Task<List<Error>> ValidateCreateComponent<T>(Component component) where T : Component {
@@ -41,9 +52,13 @@ namespace SKD.Model {
 
             if (component.Code.Trim().Length == 0) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Code, "code requred"));
+            } else if (component.Code.Length > EntityMaxLen.Component_Code) {
+                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityMaxLen.Component_Code} characters "));
             }
             if (component.Name.Trim().Length == 0) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Name, "name required"));
+            } else if (component.Code.Length > EntityMaxLen.Component_Name) {
+                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded name max length of {EntityMaxLen.Component_Name} characters "));
             }
 
             if (await context.Components.AnyAsync(t => t.Id != component.Id && t.Code == component.Code)) {

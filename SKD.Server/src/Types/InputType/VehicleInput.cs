@@ -1,4 +1,3 @@
-
 using SKD.Model;
 using HotChocolate.Types;
 
