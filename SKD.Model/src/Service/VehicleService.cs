@@ -21,6 +21,7 @@ namespace SKD.Model {
             var payload = new MutationPayload<Vehicle>(vehicle);
             context.Vehicles.Add(vehicle);
 
+
             // ensure vehicle.Model set
             if (vehicle.ModelId != null && vehicle.ModelId != Guid.Empty) {
                 vehicle.Model = await context.VehicleModels.FirstOrDefaultAsync(t => t.Id == vehicle.ModelId);
@@ -29,13 +30,11 @@ namespace SKD.Model {
             if (vehicle.Model != null) {
                 // add components
                 vehicle.Model.ActiveComponentMappings.ToList().ForEach(mapping => {
-                    if (!vehicle.VehicleComponents.Any(t => t.Component.Id == mapping.ComponentId)) {
-                        vehicle.VehicleComponents.Add(new VehicleComponent() {
-                            Component = mapping.Component,
-                            Sequence = mapping.Sequence,
-                            CreatedAt = vehicle.CreatedAt
-                        });
-                    }
+                    vehicle.VehicleComponents.Add(new VehicleComponent() {
+                        Component = mapping.Component,
+                        Sequence = mapping.Sequence,
+                        CreatedAt = vehicle.CreatedAt
+                    });
                 });
             }
 
@@ -54,16 +53,16 @@ namespace SKD.Model {
             var errors = new List<Error>();
 
             if (vehicle.VIN.Trim().Length != EntityMaxLen.Vehicle_VIN) {
-                errors.Add(ErrorHelper.Create<T>(t => t.VIN,$"VIN must be exactly {EntityMaxLen.Vehicle_VIN} characters" ));
                 errors.Add(ErrorHelper.Create<T>(t => t.VIN, $"VIN must be exactly {EntityMaxLen.Vehicle_VIN} characters"));
-            }   
+                errors.Add(ErrorHelper.Create<T>(t => t.VIN, $"VIN must be exactly {EntityMaxLen.Vehicle_VIN} characters"));
+            }
             if (await context.Vehicles.AnyAsync(t => t.Id != vehicle.Id && t.VIN == vehicle.VIN)) {
-                errors.Add(ErrorHelper.Create<T>(t => t.VIN   , "Duplicate VIN found"));
+                errors.Add(ErrorHelper.Create<T>(t => t.VIN, "Duplicate VIN found"));
             }
 
             // vehicle mode ID empty / not found
             if (vehicle.Model == null) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Model , $"Vehicle model not specified"));
+                errors.Add(ErrorHelper.Create<T>(t => t.Model, $"Vehicle model not specified"));
             }
 
             // vehicle mode deactivated

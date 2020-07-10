@@ -19,27 +19,27 @@ namespace SKD.Test {
         public async Task can_create_vehicle() {
             var service = new VehicleService(ctx);
 
+            var vehicleModel = await ctx.VehicleModels.FirstOrDefaultAsync(t => t.Code == TestVehicleModel_Code);
             var vehicle = new Vehicle() {
                 VIN = new String('1', EntityMaxLen.Vehicle_VIN),
-                Model = await ctx.VehicleModels.FirstOrDefaultAsync(t => t.Code == "FRNG20"),
+                Model = vehicleModel,
                 LotNo = "001",
                 KitNo = "001"
             };
 
-            var payload = await service.CreateVehicle(vehicle);
-            if (payload.Entity == null) {
-                Console.WriteLine("Entity is null!!!!!!!!!");
-            } else {
-                Console.WriteLine(("Vehicle VIN: " + payload.Entity.VIN));
-            }
-
+            var before_VehicleCount = await ctx.Vehicles.CountAsync();
+            var payload = await service.CreateVehicle(vehicle);          
             Assert.NotNull(payload.Entity);
             
-            var vehicleCount = await ctx.Vehicles.CountAsync();
-            Assert.Equal(1, vehicleCount);
+            var after_VehicleCount = await ctx.Vehicles.CountAsync();
+            Assert.True(after_VehicleCount == before_VehicleCount + 1, "Vehicle count unchanged after save");
+
+            Assert.True(vehicleModel.ModelComponents.Count() == vehicle.VehicleComponents.Count(),"Vehicle components don't match vehicle model components");
         }
+
         [Fact]
         public async Task create_vehicle_with_no_model_return_payload_error() {
+            // setup
             var service = new VehicleService(ctx);
 
             var vehicle = new Vehicle() {
@@ -48,12 +48,16 @@ namespace SKD.Test {
                 KitNo = "001"
             };
 
+            // test
             var payload = await service.CreateVehicle(vehicle);
 
+            // assert
             var errorCount = payload.Errors.Count();
             Assert.Equal(1, errorCount);
             Assert.Equal("Vehicle model not specified", payload.Errors.First().Message);
         }
+
+        private string TestVehicleModel_Code = "FRNG20";
 
         private void GenerateSeedData() {
 
@@ -65,7 +69,7 @@ namespace SKD.Test {
             ctx.Components.AddRange(components);
 
             var vehicleModel_1 = new VehicleModel() {
-                Code = "FRNG20",
+                Code = TestVehicleModel_Code,
                 Name = "Ford Ranger 2.0",
                 ModelComponents = components.Select((component, i) => new VehicleModelComponent() {
                     Component = component,

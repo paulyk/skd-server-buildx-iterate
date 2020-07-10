@@ -16,9 +16,9 @@ namespace SKD.Model {
 
         public ComponentService(SkdContext ctx) {
             this.context = ctx;
-        }virtual 
+        }
 
-        public async Task<MutationPayload<Component>> SaveComponent(Component component) {
+       public async Task<MutationPayload<Component>> SaveComponent(Component component) {
             var payload = new MutationPayload<Component>(component);
 
             var existing = context.Components.FirstOrDefault(t => t.Id == component.Id);
@@ -30,9 +30,7 @@ namespace SKD.Model {
                 context.Components.Add(component);
             }
 
-            // trim
-            component.Code = component.Code.Trim();
-            component.Name = component.Name.Trim();
+            component.TrimStringProperties();
 
             // validate
             payload.Errors = await ValidateCreateComponent<Component>(component);

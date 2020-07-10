@@ -15,8 +15,8 @@ namespace SKD.Test {
             GenerateSeedData();
         }
 
-                [Fact]
-        private async Task can_save_new_component(){
+        [Fact]
+        private async Task can_save_new_component() {
             var service = new ComponentService(ctx);
             var component = new Component() {
                 Code = Util.RandomString(EntityMaxLen.Component_Code),
@@ -28,14 +28,15 @@ namespace SKD.Test {
 
             Assert.NotNull(payload.Entity);
             var newCount = await ctx.Components.CountAsync();
-            Assert.Equal(priorComponentCount + 1, newCount);            
+            Assert.Equal(priorComponentCount + 1, newCount);
         }
 
         [Fact]
         private async Task can_update_component() {
+            // setup
             var service = new ComponentService(ctx);
             var component = await ctx.Components.FirstOrDefaultAsync();
-            
+
             var newCode = Util.RandomString(EntityMaxLen.Component_Code);
             var newName = Util.RandomString(EntityMaxLen.Component_Name);
             var oldCreatedAt = component.CreatedAt;
@@ -43,12 +44,17 @@ namespace SKD.Test {
             component.Code = newCode;
             component.Name = newName;
 
+            var before_ComponentCount = await ctx.Components.CountAsync();
+            var before_CreatedAt = component.CreatedAt;
 
-            var priorComponentCount = await ctx.Components.CountAsync();
+            // test
             var payload = await service.SaveComponent(component);
-            var newCount = await ctx.Components.CountAsync();
 
-            Assert.Equal(priorComponentCount, newCount);
+            // assert
+            var after_ComponentCount = await ctx.Components.CountAsync();
+
+            Assert.Equal(before_ComponentCount, after_ComponentCount);
+            Assert.True(before_CreatedAt == payload.Entity.CreatedAt, "CreatedAt should not change when on saving existing component");
 
             var modifiedComponent = await ctx.Components.FirstOrDefaultAsync(t => t.Id == component.Id);
             Assert.Equal(newCode, component.Code);
@@ -58,21 +64,20 @@ namespace SKD.Test {
 
         [Fact]
         private async Task validate_component_warns_duplicate_code() {
+            // setup
             var service = new ComponentService(ctx);
 
             var existingComponent = await ctx.Components.FirstAsync();
 
             var component = new Component() {
                 Code = existingComponent.Code,
-                Name = new String('x',EntityMaxLen.Component_Code)
+                Name = new String('x', EntityMaxLen.Component_Code)
             };
 
+            // test
             var errors = await service.ValidateCreateComponent<Component>(component);
 
-            errors.ForEach(error => {
-                Console.WriteLine($"{error.Path},  {error.Message}");
-            });
-
+            // assert
             var errorCount = errors.Count;
             Assert.Equal(1, errorCount);
 
@@ -81,24 +86,22 @@ namespace SKD.Test {
             }
         }
 
-
         [Fact]
         private async Task validate_component_warns_duplicate_name() {
+            // setup
             var service = new ComponentService(ctx);
 
             var existingComponent = await ctx.Components.FirstAsync();
 
             var component = new Component() {
-                Code = new String('x', EntityMaxLen.Component_Code), 
+                Code = new String('x', EntityMaxLen.Component_Code),
                 Name = existingComponent.Name
             };
 
+            // test
             var errors = await service.ValidateCreateComponent<Component>(component);
 
-            errors.ForEach(error => {
-                Console.WriteLine($"{error.Path},  {error.Message}");
-            });
-
+            // assert    
             var errorCount = errors.Count;
             Assert.Equal(1, errorCount);
 
