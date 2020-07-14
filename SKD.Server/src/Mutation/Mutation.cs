@@ -45,6 +45,8 @@ namespace SKD.Server {
             return await service1.SaveComponent(component);
         }
 
+        
+
         private Guid ToGuid(string str) {
             Guid gOut;
             Guid.TryParse(str, out gOut);
