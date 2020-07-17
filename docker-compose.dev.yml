@@ -5,7 +5,7 @@ services:
     container_name: skd
     environment: 
       ACCEPT_EULA: Y
-      SA_PASSWORD:  Resign98
+      SA_PASSWORD:  DevOnlyPassword119
     volumes:
       - mssql_skd:/var/opt/mssql/data 
     ports:

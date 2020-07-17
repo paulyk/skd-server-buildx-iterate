@@ -31,23 +31,9 @@ namespace SKD.Server {
         public void ConfigureServices(IServiceCollection services) {
 
             services.AddDbContext<SkdContext>(options => {
-                var databaseProviderName = Configuration["DatabaseProviderName"];
-
-                var aspnet_env = _env.EnvironmentName != null
-                    ? _env.EnvironmentName : "Production";
-
+                var aspnet_env = _env.EnvironmentName != null ? _env.EnvironmentName : "Production";
                 var connectionString = Configuration.GetConnectionString(aspnet_env);
-
-                if (connectionString == null) {
-                    throw new Exception($"Connection string not found for ASPNETCORE_ENVIRONMENT: {aspnet_env} ");
-                }
-
-                switch (databaseProviderName) {
-                    case "sqlite": options.UseSqlite(connectionString); break;
-                    case "sqlserver": options.UseSqlServer(connectionString); break;
-                    case "postgres": options.UseNpgsql(connectionString); break;
-                    default: throw new Exception($"supported providers are sqlite, sqlserver, postgres");
-                }
+                options.UseSqlServer(connectionString);
             }, ServiceLifetime.Transient);
 
             services
@@ -88,7 +74,7 @@ namespace SKD.Server {
             app.UsePlayground(opt);
 
             app.UseEndpoints(endpoints => {
-                          
+
                 if (_env.IsDevelopment()) {
                     endpoints.MapPost("/reset_db", endpoints.CreateApplicationBuilder()
                         .UseMiddleware<SeedDbMiddleware>()
