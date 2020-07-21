@@ -12,7 +12,7 @@ namespace SKD.Model {
 
         public ComponentScanService(SkdContext ctx) => this.context = ctx;
 
-        public async Task<MutationPayload<ComponentScan>> SaveComponent(CreateComponentScan_DTO dto) {
+        public async Task<MutationPayload<ComponentScan>> SaveComponentScan(CreateComponentScan_DTO dto) {
             var entity = new ComponentScan();
             var payload = new MutationPayload<ComponentScan>(entity);
 
@@ -20,33 +20,39 @@ namespace SKD.Model {
             if (payload.Errors.Count() > 0) {
                 return payload;
             }
-
+ 
             return payload;
         }
 
         public async Task<List<Error>> ValidateScan<T>(CreateComponentScan_DTO dto) where T : CreateComponentScan_DTO {
             var errors = new List<Error>();
 
-            var vehicle = await context.Vehicles.Include(t => t.VehicleComponents).FirstOrDefaultAsync(t => t.VIN == dto.VIN);
+            var vehicle = await context.Vehicles.AsNoTracking().Include(t => t.VehicleComponents).FirstOrDefaultAsync(t => t.VIN == dto.VIN);
             if (vehicle == null) {
-                errors.Append(ErrorHelper.Create<T>(t => t.VIN, "vin not found"));
+                errors.Add(ErrorHelper.Create<T>(t => t.VIN, "vin not found"));
                 return errors;
-            } 
+            }
 
             if (vehicle.ComponentScanLockedAt != null) {
-                errors.Append(ErrorHelper.Create<T>(t => t.VIN, "vin component scan locked"));
+                errors.Add(ErrorHelper.Create<T>(t => t.VIN, "vin component scan locked"));
                 return errors;
             }
 
             var component = await context.Components.FirstOrDefaultAsync(t => t.Code == dto.ComponentCode && t.RemovedAt == null);
-            if (vehicle == null) {
-                errors.Append(ErrorHelper.Create<T>(t => t.ComponentCode, "component code not found"));
+            if (component == null) {
+                errors.Add(ErrorHelper.Create<T>(t => t.ComponentCode, "component code not found"));
                 return errors;
             }
 
             var vehicleComponents = vehicle.VehicleComponents.Where(t => t.ComponentId == component.Id && t.RemovedAt == null);
             if (vehicleComponents.Count() == 0) {
-                errors.Append(ErrorHelper.Create<T>(t => t.ComponentCode, "component code not required"));
+                errors.Add(ErrorHelper.Create<T>(t => t.ComponentCode, "component code not used in this vehicle"));
+                return errors;
+            }
+
+            var matchingComponentCodeAndSequence = vehicle.VehicleComponents.FirstOrDefault(t => t.Component.Code == dto.ComponentCode && t.Sequence == dto.Sequence);
+            if (matchingComponentCodeAndSequence == null) {
+                errors.Add(ErrorHelper.Create<T>(t => t.Sequence, "vehicle componnet with this code and sequence not found"));
                 return errors;
             }
 
