@@ -52,11 +52,12 @@ namespace SKD.Model {
         public async Task<List<Error>> ValidateCreateVehicle<T>(T vehicle) where T : Vehicle {
             var errors = new List<Error>();
 
+            // vin format
             if (vehicle.VIN.Trim().Length != EntityMaxLen.Vehicle_VIN) {
                 errors.Add(ErrorHelper.Create<T>(t => t.VIN, $"VIN must be exactly {EntityMaxLen.Vehicle_VIN} characters"));
-                errors.Add(ErrorHelper.Create<T>(t => t.VIN, $"VIN must be exactly {EntityMaxLen.Vehicle_VIN} characters"));
             }
-            if (await context.Vehicles.AnyAsync(t => t.Id != vehicle.Id && t.VIN == vehicle.VIN)) {
+            // check duplicate vin
+            if (await context.Vehicles.AnyAsync(t => t.VIN == vehicle.VIN && t.Id != vehicle.Id)) {
                 errors.Add(ErrorHelper.Create<T>(t => t.VIN, "Duplicate VIN found"));
             }
 
