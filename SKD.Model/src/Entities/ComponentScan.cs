@@ -2,7 +2,7 @@ using System;
 
 namespace SKD.Model {
 
-  public class VehicleComponentScan : EntityBase {
+  public class ComponentScan : EntityBase {
 
     public Guid VehicleComponentId { get; set; }
     public virtual VehicleComponent VehicleComponent { get; set; }

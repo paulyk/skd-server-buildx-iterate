@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace SKD.Model.Migrations
+namespace SKD.Model.src.Migrations
 {
     public partial class Initial : Migration
     {
@@ -62,7 +62,8 @@ namespace SKD.Model.Migrations
                     VIN = table.Column<string>(maxLength: 17, nullable: false),
                     KitNo = table.Column<string>(nullable: true),
                     LotNo = table.Column<string>(nullable: true),
-                    ModelId = table.Column<Guid>(nullable: false)
+                    ModelId = table.Column<Guid>(nullable: false),
+                    ComponentScanLockedAt = table.Column<DateTime>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -113,7 +114,8 @@ namespace SKD.Model.Migrations
                     RemovedAt = table.Column<DateTime>(nullable: true),
                     VehicleId = table.Column<Guid>(nullable: false),
                     ComponentId = table.Column<Guid>(nullable: false),
-                    Sequence = table.Column<int>(nullable: false)
+                    Sequence = table.Column<int>(nullable: false),
+                    PrerequisiteSequences = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {

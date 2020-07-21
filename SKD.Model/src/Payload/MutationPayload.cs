@@ -7,6 +7,6 @@ namespace SKD.Model {
             Entity = entity;
         }
         public T Entity { get; set; }
-        public IEnumerable<Error> Errors { get; set; }
+        public IEnumerable<Error> Errors { get; set; } = new List<Error>();
     }
 }

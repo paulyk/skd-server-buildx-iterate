@@ -1,5 +1,3 @@
-
-
 #nullable enable
 
 using System;
@@ -68,8 +66,5 @@ namespace SKD.Model {
 
             return errors;
         }
-
-
-
     }
 }

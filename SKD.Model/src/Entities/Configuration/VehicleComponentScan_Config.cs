@@ -3,8 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace SKD.Model {
-    public class VehicleComponentScan_Config : IEntityTypeConfiguration<VehicleComponentScan> {
-      public void Configure(EntityTypeBuilder<VehicleComponentScan> builder) {
+    public class VehicleComponentScan_Config : IEntityTypeConfiguration<ComponentScan> {
+      public void Configure(EntityTypeBuilder<ComponentScan> builder) {
             builder.ToTable("vehicle_component_scan");
 
             builder.HasKey(t => t.Id);

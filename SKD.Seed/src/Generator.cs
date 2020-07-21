@@ -113,7 +113,7 @@ namespace SKD.Seed {
             var date =vehicle.CreatedAt.AddDays(4);
             var i = 0;
             foreach(var vc in vehicle.VehicleComponents) {
-                var componentScan = new VehicleComponentScan {
+                var componentScan = new ComponentScan {
                     Scan1 = SeedUtil.RandomString(30),
                     Scan2 = i++ % 3 == 0 ? SeedUtil.RandomString(15) : "",
                     CreatedAt = date

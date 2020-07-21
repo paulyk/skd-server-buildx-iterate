@@ -12,7 +12,7 @@ namespace SKD.Model {
         public Component Component { get; set; }
         public int Sequence { get; set; }
         public string PrerequisiteSequences { get; set; }
-        public virtual ICollection<VehicleComponentScan> ComponentScans { get; set; } = new List<VehicleComponentScan>();
+        public virtual ICollection<ComponentScan> ComponentScans { get; set; } = new List<ComponentScan>();
 
         public VehicleComponent() {
 

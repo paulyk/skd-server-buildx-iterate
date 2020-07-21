@@ -47,7 +47,7 @@ namespace SKD.Server {
         [UseSelection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<VehicleComponentScan> GetVehicleComponentScans([Service] SkdContext context) => 
-                context.VehicleComponentScans.AsQueryable();
+        public IQueryable<ComponentScan> GetVehicleComponentScans([Service] SkdContext context) => 
+                context.ComponentScans.AsQueryable();
     }
 }

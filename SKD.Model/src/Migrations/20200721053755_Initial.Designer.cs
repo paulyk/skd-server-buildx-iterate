@@ -7,10 +7,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SKD.Model;
 
-namespace SKD.Model.Migrations
+namespace SKD.Model.src.Migrations
 {
     [DbContext(typeof(SkdContext))]
-    [Migration("20200702120632_Initial")]
+    [Migration("20200721053755_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -55,6 +55,41 @@ namespace SKD.Model.Migrations
                     b.ToTable("component");
                 });
 
+            modelBuilder.Entity("SKD.Model.ComponentScan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasMaxLength(36);
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("RemovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Scan1")
+                        .HasColumnType("nvarchar(100)")
+                        .HasMaxLength(100);
+
+                    b.Property<string>("Scan2")
+                        .HasColumnType("nvarchar(100)")
+                        .HasMaxLength(100);
+
+                    b.Property<Guid>("VehicleComponentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Scan1");
+
+                    b.HasIndex("Scan2");
+
+                    b.HasIndex("VehicleComponentId");
+
+                    b.ToTable("vehicle_component_scan");
+                });
+
             modelBuilder.Entity("SKD.Model.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -87,6 +122,9 @@ namespace SKD.Model.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier")
                         .HasMaxLength(36);
+
+                    b.Property<DateTime?>("ComponentScanLockedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -131,6 +169,9 @@ namespace SKD.Model.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("PrerequisiteSequences")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
 
@@ -148,41 +189,6 @@ namespace SKD.Model.Migrations
                         .IsUnique();
 
                     b.ToTable("vehicle_component");
-                });
-
-            modelBuilder.Entity("SKD.Model.VehicleComponentScan", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasMaxLength(36);
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("RemovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Scan1")
-                        .HasColumnType("nvarchar(100)")
-                        .HasMaxLength(100);
-
-                    b.Property<string>("Scan2")
-                        .HasColumnType("nvarchar(100)")
-                        .HasMaxLength(100);
-
-                    b.Property<Guid>("VehicleComponentId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Scan1");
-
-                    b.HasIndex("Scan2");
-
-                    b.HasIndex("VehicleComponentId");
-
-                    b.ToTable("vehicle_component_scan");
                 });
 
             modelBuilder.Entity("SKD.Model.VehicleModel", b =>
@@ -258,6 +264,15 @@ namespace SKD.Model.Migrations
                     b.ToTable("vehicle_model_component");
                 });
 
+            modelBuilder.Entity("SKD.Model.ComponentScan", b =>
+                {
+                    b.HasOne("SKD.Model.VehicleComponent", "VehicleComponent")
+                        .WithMany("ComponentScans")
+                        .HasForeignKey("VehicleComponentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SKD.Model.Vehicle", b =>
                 {
                     b.HasOne("SKD.Model.VehicleModel", "Model")
@@ -278,15 +293,6 @@ namespace SKD.Model.Migrations
                     b.HasOne("SKD.Model.Vehicle", "Vehicle")
                         .WithMany("VehicleComponents")
                         .HasForeignKey("VehicleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("SKD.Model.VehicleComponentScan", b =>
-                {
-                    b.HasOne("SKD.Model.VehicleComponent", "VehicleComponent")
-                        .WithMany("ComponentScans")
-                        .HasForeignKey("VehicleComponentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
