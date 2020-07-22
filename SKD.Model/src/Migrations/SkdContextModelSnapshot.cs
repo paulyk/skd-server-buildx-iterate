@@ -85,7 +85,7 @@ namespace SKD.Model.src.Migrations
 
                     b.HasIndex("VehicleComponentId");
 
-                    b.ToTable("vehicle_component_scan");
+                    b.ToTable("component_scan");
                 });
 
             modelBuilder.Entity("SKD.Model.User", b =>
@@ -121,9 +121,6 @@ namespace SKD.Model.src.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasMaxLength(36);
 
-                    b.Property<DateTime?>("ComponentScanLockedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -137,6 +134,9 @@ namespace SKD.Model.src.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("RemovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ScanLockedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("VIN")

@@ -25,9 +25,10 @@ namespace SKD.Test {
 
         [Fact]
         public async Task can_save_component_scan() {
-            var dto = new CreateComponentScan_DTO {
-                VIN = vin_in_progress,
-                ComponentCode = componentCode1,
+            var vehicleComponent = await ctx.VehicleComponents.FirstOrDefaultAsync(t => t.Vehicle.VIN == vin1 && t.Component.Code == componentCode1);
+
+            var dto = new ComponentScan {
+                VehicleComponentId = vehicleComponent.Id,
                 Scan1 = Util.RandomString(12),
                 Scan2 = ""
             };
@@ -41,10 +42,27 @@ namespace SKD.Test {
 
 
         [Fact]
-        public async Task cannot_save_scan_if_vin_not_found() {
-            var dto = new CreateComponentScan_DTO {
-                VIN = "VVVVV" + Util.RandomString(EntityMaxLen.Vehicle_VIN - 5),
-                ComponentCode = componentCode1,
+        public async Task cannot_save_component_scan_if_vehicleComponentId_not_found() {
+
+            var dto = new ComponentScan {
+                VehicleComponentId = Guid.NewGuid(),
+                Scan1 = Util.RandomString(12),
+                Scan2 = ""
+            };
+
+            var service = new ComponentScanService(ctx);
+            var payload = await service.SaveComponentScan(dto);
+            var errors = payload.Errors.ToList();
+
+            Assert.True(errors.Count == 1 && errors[0].Message == "vehicle component not found");
+        }
+
+        [Fact]
+        public async Task cannot_save_component_scan_if_vehicle_scan_locked() {
+            var vehicleComponent = await ctx.VehicleComponents.FirstOrDefaultAsync(t => t.Vehicle.VIN == vin2_locked && t.Component.Code == componentCode1);
+
+            var dto = new ComponentScan {
+                VehicleComponentId = vehicleComponent.Id,
                 Scan1 = Util.RandomString(12),
                 Scan2 = ""
             };
@@ -54,15 +72,16 @@ namespace SKD.Test {
 
             var errors = payload.Errors.ToList();
 
-            Assert.True(errors.Count == 1 && errors[0].Message == "vin not found");
+            Assert.True(errors.Count == 1 && errors[0].Message == "vehicle locked, scans not allowed");
         }
 
         [Fact]
-        public async Task cannot_save_scan_if_component_scan_locked() {
-            var dto = new CreateComponentScan_DTO {
-                VIN = vin_locked,
-                ComponentCode = componentCode1,
-                Scan1 = Util.RandomString(12),
+        public async Task cannot_save_component_scan_if_scan1_scan2_empty() {
+            var vehicleComponent = await ctx.VehicleComponents.FirstOrDefaultAsync(t => t.Vehicle.VIN == vin1 && t.Component.Code == componentCode1);
+
+            var dto = new ComponentScan {
+                VehicleComponentId = vehicleComponent.Id,
+                Scan1 = "",
                 Scan2 = ""
             };
 
@@ -70,53 +89,13 @@ namespace SKD.Test {
             var payload = await service.SaveComponentScan(dto);
 
             var errors = payload.Errors.ToList();
-
-            Assert.True(errors.Count == 1 && errors[0].Message == "vin component scan locked");
+            Assert.True(errors.Count == 1 && errors[0].Message == "scan1 and or scan2 required");
         }
 
-        [Fact]
-        public async Task cannot_save_scan_if_component_code_not_found() {
-            var randomComponentCode = Util.RandomString(EntityMaxLen.Component_Code);
-            var dto = new CreateComponentScan_DTO {
-                VIN = vin_in_progress,
-                ComponentCode = randomComponentCode,
-                Scan1 = Util.RandomString(12),
-                Scan2 = ""
-            };
 
-            var service = new ComponentScanService(ctx);
-            var payload = await service.SaveComponentScan(dto);
-
-            var errors = payload.Errors.ToList();
-
-            Assert.True(errors.Count == 1 && errors[0].Message == "component code not found");
-        }
-
-        [Fact]
-        public async Task cannot_save_scan_if_component_not_in_vehicle_components() {
-            var randomComponentCode = Util.RandomString(EntityMaxLen.Component_Code);
-            var dto = new CreateComponentScan_DTO {
-                VIN = vin_in_progress,
-                ComponentCode = unused_componentCode,
-                Scan1 = Util.RandomString(12),
-                Scan2 = ""
-            };
-
-            var service = new ComponentScanService(ctx);
-            var payload = await service.SaveComponentScan(dto);
-
-            var errors = payload.Errors.ToList();
-
-            Assert.True(errors.Count == 1 && errors[0].Message == "component code not used in this vehicle");
-        }
-
-        [Fact]
-        public async Task cannot_add_if_sequence_incorrect() {
-            // use existing componetn but wrong sequence number
-        }
-
-        private string vin_in_progress = Util.RandomString(EntityMaxLen.Vehicle_VIN);
-        private string vin_locked = Util.RandomString(EntityMaxLen.Vehicle_VIN);
+        /*  setup seed data */
+        private string vin1 = Util.RandomString(EntityMaxLen.Vehicle_VIN);
+        private string vin2_locked = Util.RandomString(EntityMaxLen.Vehicle_VIN);
 
         private string componentCode1 = "COMP_1";
         private string componentCode2 = "COMP_2";
@@ -147,11 +126,11 @@ namespace SKD.Test {
             ctx.VehicleModels.Add(vehicleModel);
 
             // vehicles
-            var vehicles = new List<string> { vin_in_progress, vin_locked }.ToList().Select(vin =>
+            var vehicles = new List<string> { vin1, vin2_locked }.ToList().Select(vin =>
               new Vehicle {
                   VIN = vin, KitNo = "123", LotNo = "123",
                   Model = vehicleModel,
-                  ComponentScanLockedAt = (vin == vin_locked) ? DateTime.UtcNow : (DateTime?)null,
+                  ScanLockedAt = (vin == vin2_locked) ? DateTime.UtcNow : (DateTime?)null,
                   VehicleComponents = vehicleModel.ModelComponents.Select(mc => new VehicleComponent {
                       Component = mc.Component,
                       Sequence = mc.Sequence

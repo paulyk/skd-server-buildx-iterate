@@ -13,8 +13,8 @@ namespace SKD.Model {
             builder.HasIndex(t => t.Scan1);
             builder.HasIndex(t => t.Scan2);
 
-            builder.Property(t => t.Scan1).HasMaxLength(EntityMaxLen.VehicleComponent_Scan);
-            builder.Property(t => t.Scan2).HasMaxLength(EntityMaxLen.VehicleComponent_Scan);
+            builder.Property(t => t.Scan1).HasMaxLength(EntityMaxLen.ComponentScan_ScanEntry);
+            builder.Property(t => t.Scan2).HasMaxLength(EntityMaxLen.ComponentScan_ScanEntry);
 
             builder.HasOne(t => t.VehicleComponent)
                 .WithMany(t => t.ComponentScans)

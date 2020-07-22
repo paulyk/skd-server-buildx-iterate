@@ -15,7 +15,7 @@ namespace SKD.Model {
 		public static int VehicleModel_Name = 100;	
 		public static int VehicleModel_Type = 4;	
 
-		public static int VehicleComponent_Scan = 100;
+		public static int ComponentScan_ScanEntry = 100;
 		public static int CreatedBy = 255;
 		public static int VehicleComponent_PrerequisiteSequence = 50;
 	}
