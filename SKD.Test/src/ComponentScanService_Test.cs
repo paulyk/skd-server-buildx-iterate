@@ -92,6 +92,68 @@ namespace SKD.Test {
             Assert.True(errors.Count == 1 && errors[0].Message == "scan1 and or scan2 required");
         }
 
+        [Fact]
+        public async Task cannot_submit_component_scan_before_prerequisite_scan() {
+            // setup
+
+            var vehicle = await ctx.Vehicles
+                .Include(t => t.VehicleComponents).ThenInclude(vc => vc.Component)
+                .FirstAsync(t => t.VIN == vin1);
+
+            // last component in sequence depends has a prerequisite that the firat component should be scanned first
+            var lastVehicleComponent = vehicle.VehicleComponents.OrderByDescending(t => t.Sequence).FirstOrDefault();
+            lastVehicleComponent.PrerequisiteSequences = "1,2";
+            await ctx.SaveChangesAsync();
+
+            //test
+            var dto = new ComponentScan {
+                VehicleComponentId = lastVehicleComponent.Id,
+                Scan1 = "",
+                Scan2 = Util.RandomString(12),
+            };
+
+            var service = new ComponentScanService(ctx);
+            var payload = await service.SaveComponentScan(dto);
+
+            Assert.True(payload.Errors.Count() > 0);
+            Assert.True(payload.Errors.ToArray()[0].Message.StartsWith("prerequisite scans required"));
+        }
+
+        [Fact]
+        public async Task cannot_submit_component_with_prerequisite_scan() {
+            // setup
+
+            var vehicle = await ctx.Vehicles
+                .Include(t => t.VehicleComponents).ThenInclude(vc => vc.Component)
+                .FirstAsync(t => t.VIN == vin1);
+
+            // last component in sequence depends has a prerequisite that the firat component should be scanned first
+            var lastVehicleComponent = vehicle.VehicleComponents.OrderByDescending(t => t.Sequence).FirstOrDefault();
+            lastVehicleComponent.PrerequisiteSequences = "1";
+            await ctx.SaveChangesAsync();
+
+            // scan first component
+            var dto1 = new ComponentScan {
+                VehicleComponentId = vehicle.VehicleComponents.OrderBy(t => t.Sequence).Select(t => t.Id).First(),
+                Scan1 = "",
+                Scan2 = Util.RandomString(12),
+            };
+
+            var service1 = new ComponentScanService(ctx);
+            await service1.SaveComponentScan(dto1);
+
+            //test
+            var dto = new ComponentScan {
+                VehicleComponentId = lastVehicleComponent.Id,
+                Scan1 = "",
+                Scan2 = Util.RandomString(12),
+            };
+
+            var service = new ComponentScanService(ctx);
+            var payload = await service.SaveComponentScan(dto);
+
+            Assert.True(payload.Errors.Count() == 0);
+        }
 
         /*  setup seed data */
         private string vin1 = Util.RandomString(EntityMaxLen.Vehicle_VIN);
