@@ -33,20 +33,27 @@ namespace SKD.Model {
 
             var vehicleComponent = await context.VehicleComponents
                 .AsNoTracking()
-                .Include(t => t.Vehicle).ThenInclude(vehicle => vehicle.Model)
+
                 .FirstOrDefaultAsync(t => t.Id == scan.VehicleComponentId);
 
+            var vehicle = vehicleComponent != null 
+                ? await context.Vehicles.AsTracking()
+                    .Include(t => t.VehicleComponents)
+                    .ThenInclude(vc => vc.ComponentScans)
+                    .FirstOrDefaultAsync(t => t.Id == vehicleComponent.VehicleId)
+                : null;
+
+            // validate
             if (vehicleComponent == null) {
                 errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehicle component not found"));
                 return errors;
             } 
 
-            var vehicle = vehicleComponent.Vehicle;
             if (vehicle.ScanLockedAt != null) {
                 errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehicle locked, scans not allowed"));
                 return errors;
             }
-            
+
             if (string.IsNullOrEmpty(scan.Scan1) && string.IsNullOrEmpty(scan.Scan2)) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Scan1, "scan1 and or scan2 required"));
                 return errors;
@@ -55,6 +62,24 @@ namespace SKD.Model {
             if (scan.Scan1.Length > EntityMaxLen.ComponentScan_ScanEntry || scan.Scan2.Length > EntityMaxLen.ComponentScan_ScanEntry) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Scan1, $"scan entry cannot exceed {EntityMaxLen.ComponentScan_ScanEntry} characters"));
                 return errors;
+            }
+
+            // check if prequisite sequences have scans
+            if (!string.IsNullOrEmpty(vehicleComponent.PrerequisiteSequences)) {
+                var sequenceNumbers = vehicleComponent.PrerequisiteSequences.Split(' ', ',')
+                    .ToList()
+                    .Select(t => t.Trim())
+                    .Where(t => t.Length > 0)
+                    .Select(x => Int32.Parse(x)).ToList();
+
+                // 
+                var items = vehicle.VehicleComponents
+                    .Where(t => sequenceNumbers.Contains(t.Sequence) && t.ComponentScans.Count() == 0).ToList();
+
+                if (items.Count > 0) {
+                    errors.Add(ErrorHelper.Create<T>(t => t.Scan1,$"prerequisite scans required for sequences: {String.Join(", ", items)}"));
+                    return errors;
+                }
             }
 
             return errors;
