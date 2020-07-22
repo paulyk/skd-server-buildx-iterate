@@ -12,52 +12,48 @@ namespace SKD.Model {
 
         public ComponentScanService(SkdContext ctx) => this.context = ctx;
 
-        public async Task<MutationPayload<ComponentScan>> SaveComponentScan(CreateComponentScan_DTO dto) {
-            var entity = new ComponentScan();
-            var payload = new MutationPayload<ComponentScan>(entity);
+        public async Task<MutationPayload<ComponentScan>> SaveComponentScan(ComponentScan componentScan) {
+            componentScan.TrimStringProperties();
+            var payload = new MutationPayload<ComponentScan>(componentScan);
 
-            payload.Errors = await ValidateScan<CreateComponentScan_DTO>(dto);
+            payload.Errors = await ValidateCreateComponentScan<ComponentScan>(componentScan);
             if (payload.Errors.Count() > 0) {
                 return payload;
-            }
- 
+            } 
+
+            context.ComponentScans.Add(componentScan);
+
+            // save
+            await context.SaveChangesAsync();
             return payload;
         }
 
-        public async Task<List<Error>> ValidateScan<T>(CreateComponentScan_DTO dto) where T : CreateComponentScan_DTO {
+        public async Task<List<Error>> ValidateCreateComponentScan<T>(ComponentScan scan) where T : ComponentScan {
             var errors = new List<Error>();
 
-            var vehicle = await context.Vehicles.AsNoTracking().Include(t => t.VehicleComponents).FirstOrDefaultAsync(t => t.VIN == dto.VIN);
-            if (vehicle == null) {
-                errors.Add(ErrorHelper.Create<T>(t => t.VIN, "vin not found"));
+            var vehicleComponent = await context.VehicleComponents
+                .AsNoTracking()
+                .Include(t => t.Vehicle).ThenInclude(vehicle => vehicle.Model)
+                .FirstOrDefaultAsync(t => t.Id == scan.VehicleComponentId);
+
+            if (vehicleComponent == null) {
+                errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehicle component not found"));
+                return errors;
+            } 
+
+            var vehicle = vehicleComponent.Vehicle;
+            if (vehicle.ScanLockedAt != null) {
+                errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehicle locked, scans not allowed"));
+                return errors;
+            }
+            
+            if (string.IsNullOrEmpty(scan.Scan1) && string.IsNullOrEmpty(scan.Scan2)) {
+                errors.Add(ErrorHelper.Create<T>(t => t.Scan1, "scan1 and or scan2 required"));
                 return errors;
             }
 
-            if (vehicle.ComponentScanLockedAt != null) {
-                errors.Add(ErrorHelper.Create<T>(t => t.VIN, "vin component scan locked"));
-                return errors;
-            }
-
-            var component = await context.Components.FirstOrDefaultAsync(t => t.Code == dto.ComponentCode && t.RemovedAt == null);
-            if (component == null) {
-                errors.Add(ErrorHelper.Create<T>(t => t.ComponentCode, "component code not found"));
-                return errors;
-            }
-
-            var vehicleComponents = vehicle.VehicleComponents.Where(t => t.ComponentId == component.Id && t.RemovedAt == null);
-            if (vehicleComponents.Count() == 0) {
-                errors.Add(ErrorHelper.Create<T>(t => t.ComponentCode, "component code not used in this vehicle"));
-                return errors;
-            }
-
-            var matchingComponentCodeAndSequence = vehicle.VehicleComponents.FirstOrDefault(t => t.Component.Code == dto.ComponentCode && t.Sequence == dto.Sequence);
-            if (matchingComponentCodeAndSequence == null) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Sequence, "vehicle componnet with this code and sequence not found"));
-                return errors;
-            }
-
-            if (dto.Scan1 == String.Empty && dto.Scan2 == string.Empty) {
-                errors.Append(ErrorHelper.Create<T>(t => t.Scan1, "part / serial number required"));
+            if (scan.Scan1.Length > EntityMaxLen.ComponentScan_ScanEntry || scan.Scan2.Length > EntityMaxLen.ComponentScan_ScanEntry) {
+                errors.Add(ErrorHelper.Create<T>(t => t.Scan1, $"scan entry cannot exceed {EntityMaxLen.ComponentScan_ScanEntry} characters"));
                 return errors;
             }
 

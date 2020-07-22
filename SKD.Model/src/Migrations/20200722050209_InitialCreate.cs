@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace SKD.Model.src.Migrations
 {
-    public partial class Initial : Migration
+    public partial class InitialCreate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -63,7 +63,7 @@ namespace SKD.Model.src.Migrations
                     KitNo = table.Column<string>(nullable: true),
                     LotNo = table.Column<string>(nullable: true),
                     ModelId = table.Column<Guid>(nullable: false),
-                    ComponentScanLockedAt = table.Column<DateTime>(nullable: true)
+                    ScanLockedAt = table.Column<DateTime>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -135,7 +135,7 @@ namespace SKD.Model.src.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "vehicle_component_scan",
+                name: "component_scan",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(maxLength: 36, nullable: false),
@@ -147,9 +147,9 @@ namespace SKD.Model.src.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_vehicle_component_scan", x => x.Id);
+                    table.PrimaryKey("PK_component_scan", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_vehicle_component_scan_vehicle_component_VehicleComponentId",
+                        name: "FK_component_scan_vehicle_component_VehicleComponentId",
                         column: x => x.VehicleComponentId,
                         principalTable: "vehicle_component",
                         principalColumn: "Id",
@@ -167,6 +167,21 @@ namespace SKD.Model.src.Migrations
                 table: "component",
                 column: "Name",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_component_scan_Scan1",
+                table: "component_scan",
+                column: "Scan1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_component_scan_Scan2",
+                table: "component_scan",
+                column: "Scan2");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_component_scan_VehicleComponentId",
+                table: "component_scan",
+                column: "VehicleComponentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_user_Email",
@@ -197,21 +212,6 @@ namespace SKD.Model.src.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_vehicle_component_scan_Scan1",
-                table: "vehicle_component_scan",
-                column: "Scan1");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_vehicle_component_scan_Scan2",
-                table: "vehicle_component_scan",
-                column: "Scan2");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_vehicle_component_scan_VehicleComponentId",
-                table: "vehicle_component_scan",
-                column: "VehicleComponentId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_vehicle_model_Code",
                 table: "vehicle_model",
                 column: "Code",
@@ -238,10 +238,10 @@ namespace SKD.Model.src.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "user");
+                name: "component_scan");
 
             migrationBuilder.DropTable(
-                name: "vehicle_component_scan");
+                name: "user");
 
             migrationBuilder.DropTable(
                 name: "vehicle_model_component");

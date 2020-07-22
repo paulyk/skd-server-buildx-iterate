@@ -8,7 +8,7 @@ namespace SKD.Model {
         public string LotNo { get; set; } = "";
         public Guid ModelId { get; set; }
 
-        public DateTime? ComponentScanLockedAt { get; set; }
+        public DateTime? ScanLockedAt { get; set; }
         public virtual VehicleModel Model { get; set; }
         public virtual ICollection<VehicleComponent> VehicleComponents { get; set; }
 
