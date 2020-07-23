@@ -49,6 +49,19 @@ namespace SKD.Model {
             return payload;
         }
 
+        public async Task<MutationPayload<Vehicle>> ScanLockVehicle(string vin) {
+            var vehicle = await context.Vehicles.FirstOrDefaultAsync(t => t.VIN == vin);
+            var payload = new MutationPayload<Vehicle>(vehicle);
+
+            payload.Errors = ValicateScanLockVehicle<Vehicle>(vehicle);
+            if (payload.Errors.Count() > 0) {
+                return payload;
+            }
+
+            vehicle.ScanLockedAt = DateTime.UtcNow;
+            await context.SaveChangesAsync();
+            return payload;
+        }
         public async Task<List<Error>> ValidateCreateVehicle<T>(T vehicle) where T : Vehicle {
             var errors = new List<Error>();
 
@@ -118,7 +131,21 @@ namespace SKD.Model {
             return errors;
         }
 
+        public List<Error> ValicateScanLockVehicle<T>(T vehicle) where T : Vehicle {
+            var errors = new List<Error>();
 
+            var unscannedComponents = vehicle.VehicleComponents.Any(t => !t.ComponentScans.Any());
+            if (unscannedComponents) {
+                errors.Add(ErrorHelper.Create<T>(t => t.LotNo, $"found vehicle components with not scans"));
+            }
+            var unverifiedScans = vehicle.VehicleComponents.Any(t => t.ScanVerifiedAt == null);
+            if (unscannedComponents) {
+                errors.Add(ErrorHelper.Create<T>(t => t.LotNo, $"not vehicle components have verified scans "));
+            }
+
+            return errors;
+
+        }
         private bool IsNumeric(string str) {
             Int32 n;
             return Int32.TryParse(str, out n);
