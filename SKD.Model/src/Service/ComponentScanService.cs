@@ -64,7 +64,7 @@ namespace SKD.Model {
                 return errors;
             }
 
-            // check if prequisite sequences have scans
+            // check if that any pre requisite sequences have all been verified
             if (!string.IsNullOrEmpty(vehicleComponent.PrerequisiteSequences)) {
                 var sequenceNumbers = vehicleComponent.PrerequisiteSequences.Split(' ', ',')
                     .ToList()
@@ -72,12 +72,12 @@ namespace SKD.Model {
                     .Where(t => t.Length > 0)
                     .Select(x => Int32.Parse(x)).ToList();
 
-                // 
-                var items = vehicle.VehicleComponents
-                    .Where(t => sequenceNumbers.Contains(t.Sequence) && t.ComponentScans.Count() == 0).ToList();
+                var prerequisite_VehicleComponents = vehicle.VehicleComponents.Where(t => sequenceNumbers.Contains(t.Sequence));
 
-                if (items.Count > 0) {
-                    errors.Add(ErrorHelper.Create<T>(t => t.Scan1,$"prerequisite scans required for sequences: {String.Join(", ", items)}"));
+                var unveriviedSequences = prerequisite_VehicleComponents .Where(t => t.ScanVerifiedAt == null).Select(t => t.Sequence).ToList();
+
+                if (unveriviedSequences.Count > 0) {
+                    errors.Add(ErrorHelper.Create<T>(t => t.Scan1,$"verified prerequisite scans required for sequences: {String.Join(", ", unveriviedSequences)}"));
                     return errors;
                 }
             }

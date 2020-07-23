@@ -96,14 +96,14 @@ namespace SKD.Test {
 
 
         [Fact]
-        public async Task cannot_submit_component_scan_before_prerequisite_scan() {
+        public async Task cannot_save_component_scan_before_prerequisite_scans() {
             // setup
 
             var vehicle = await ctx.Vehicles
                 .Include(t => t.VehicleComponents).ThenInclude(vc => vc.Component)
                 .FirstAsync(t => t.VIN == vin1);
 
-            // last component in sequence depends has a prerequisite that the firat component should be scanned first
+            // Last vehicle component in sequence requires sequence 1 and 2 as prerequisies
             var lastVehicleComponent = vehicle.VehicleComponents.OrderByDescending(t => t.Sequence).FirstOrDefault();
             lastVehicleComponent.PrerequisiteSequences = "1,2";
             await ctx.SaveChangesAsync();
@@ -119,31 +119,43 @@ namespace SKD.Test {
             var payload = await service.SaveComponentScan(dto);
 
             Assert.True(payload.Errors.Count() > 0);
-            Assert.True(payload.Errors.ToArray()[0].Message.StartsWith("prerequisite scans required"));
+            Assert.True(payload.Errors.ToArray()[0].Message.StartsWith("verified prerequisite scans required"));
         }
 
         [Fact]
-        public async Task cannot_submit_component_with_prerequisite_scan() {
+        public async Task can_save_component_with_prerequisite_scans_if_prerequisites_have_verified_scans() {
+
+            var service = new ComponentScanService(ctx);
+
             // setup
+            var preReqSeqNums = new List<int> { 1, 2 };
+            var preReqSeqNums_String = preReqSeqNums.Select(t => t.ToString()).Aggregate((a, b) => a + "," + b);
 
             var vehicle = await ctx.Vehicles
                 .Include(t => t.VehicleComponents).ThenInclude(vc => vc.Component)
                 .FirstAsync(t => t.VIN == vin1);
 
-            // last component in sequence depends has a prerequisite that the firat component should be scanned first
+            // Modify  Last vehicle component in sequence to requires sequence 1 and 2 as prerequisies
             var lastVehicleComponent = vehicle.VehicleComponents.OrderByDescending(t => t.Sequence).FirstOrDefault();
-            lastVehicleComponent.PrerequisiteSequences = "1";
+            
+            lastVehicleComponent.PrerequisiteSequences = preReqSeqNums_String;
             await ctx.SaveChangesAsync();
 
-            // scan first component
-            var dto1 = new ComponentScan {
-                VehicleComponentId = vehicle.VehicleComponents.OrderBy(t => t.Sequence).Select(t => t.Id).First(),
-                Scan1 = "",
-                Scan2 = Util.RandomString(12),
-            };
 
-            var service1 = new ComponentScanService(ctx);
-            await service1.SaveComponentScan(dto1);
+            // for each of the prereq sequences save a component scan
+            preReqSeqNums.ForEach(async seqUm => {
+                var vcs = vehicle.VehicleComponents.FirstOrDefault(t => t.Sequence == seqUm);
+                var dto = new ComponentScan {
+                    VehicleComponentId = vcs.Id,
+                    Scan1 = Util.RandomString(12),
+                    Scan2 = Util.RandomString(12)
+                };
+
+                await service.SaveComponentScan(dto);
+                // mark vehicleComponent as verfied
+                vcs.ScanVerifiedAt = DateTime.UtcNow;
+                // await ctx.SaveChangesAsync(); // no need due to in memory testing
+            });
 
             //test
             var dto = new ComponentScan {
@@ -152,12 +164,15 @@ namespace SKD.Test {
                 Scan2 = Util.RandomString(12),
             };
 
-            var service = new ComponentScanService(ctx);
             var payload = await service.SaveComponentScan(dto);
 
+            if (payload.Errors.Count() > 0) {
+                payload.Errors.ToList().ForEach(err => Console.WriteLine($"*** Error Message: {err.Message}   "));
+            }
             Assert.True(payload.Errors.Count() == 0);
         }
 
+        #region generate seed data 
 
         /*  setup seed data */
         private string vin1 = Util.RandomString(EntityMaxLen.Vehicle_VIN);
@@ -206,5 +221,6 @@ namespace SKD.Test {
             ctx.Vehicles.AddRange(vehicles);
             ctx.SaveChanges();
         }
+        #endregion
     }
 }

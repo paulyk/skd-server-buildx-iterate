@@ -10,7 +10,7 @@ using SKD.Model;
 namespace SKD.Model.src.Migrations
 {
     [DbContext(typeof(SkdContext))]
-    [Migration("20200722050209_InitialCreate")]
+    [Migration("20200723054509_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -173,6 +173,9 @@ namespace SKD.Model.src.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("RemovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ScanVerifiedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Sequence")

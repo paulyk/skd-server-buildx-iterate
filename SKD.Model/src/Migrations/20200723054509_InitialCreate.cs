@@ -115,7 +115,8 @@ namespace SKD.Model.src.Migrations
                     VehicleId = table.Column<Guid>(nullable: false),
                     ComponentId = table.Column<Guid>(nullable: false),
                     Sequence = table.Column<int>(nullable: false),
-                    PrerequisiteSequences = table.Column<string>(nullable: true)
+                    PrerequisiteSequences = table.Column<string>(nullable: true),
+                    ScanVerifiedAt = table.Column<DateTime>(nullable: true)
                 },
                 constraints: table =>
                 {

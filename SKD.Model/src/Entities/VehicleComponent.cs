@@ -14,6 +14,8 @@ namespace SKD.Model {
         public string PrerequisiteSequences { get; set; }
         public virtual ICollection<ComponentScan> ComponentScans { get; set; } = new List<ComponentScan>();
 
+        public DateTime? ScanVerifiedAt { get; set; }
+
         public VehicleComponent() {
 
         }

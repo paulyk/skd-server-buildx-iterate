@@ -173,6 +173,9 @@ namespace SKD.Model.src.Migrations
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("ScanVerifiedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("Sequence")
                         .HasColumnType("int");
 
