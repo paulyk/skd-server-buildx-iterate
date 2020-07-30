@@ -76,18 +76,22 @@ namespace SKD.Server {
             app.UseEndpoints(endpoints => {
 
                 if (_env.IsDevelopment()) {
-                    endpoints.MapPost("/reset_db", endpoints.CreateApplicationBuilder()
-                        .UseMiddleware<SeedDbMiddleware>()
-                        .Build())
-                        .WithDisplayName("reset db");
+                    endpoints.MapPost("/seed_mock_data", async (context) => {
+                        var ctx = context.RequestServices.GetService<SkdContext>();
+                        var service = new MockDataService(ctx);
+                        await service.GenerateMockData();
+                        context.Response.StatusCode = 200;
+                    });
+
+                    endpoints.MapPost("/migrate_db", async (context) => {
+                        var ctx = context.RequestServices.GetService<SkdContext>();
+                        var dbService = new DbService(ctx);
+                        await dbService.MigrateDb();
+                        context.Response.StatusCode = 200;
+                    });
                 }
 
-                endpoints.MapGet("/test", endpoints.CreateApplicationBuilder()
-                     .UseMiddleware<TestMiddleware>()
-                     .Build())
-                     .WithDisplayName("test number");
             });
-
         }
     }
 }

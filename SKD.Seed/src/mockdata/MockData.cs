@@ -8,14 +8,14 @@ using System.Linq;
 using Microsoft.CSharp.RuntimeBinder;
 
 namespace SKD.Seed {
-    internal class SeedData {
+    internal class MockData {
 
         public ICollection<Vehicle_Seed_DTO> Vehicle_SeedData;
         public ICollection<Component_Seed_DTO> Component_SeedData;
         public ICollection<VehicleModel_Seed_DTO> VehicleModel_SeedData;
         public ICollection<VehicleModelComponent_Seed_DTO> VehicleModelComponent_SeedData;
 
-        public SeedData(string dirPath) {
+        public MockData(string dirPath) {
 
             Vehicle_SeedData = JsonSerializer.Deserialize<List<Vehicle_Seed_DTO>>(Vehicles_JSON.Replace("'", "\""));
             Component_SeedData = JsonSerializer.Deserialize<List<Component_Seed_DTO>>(Components_JSON.Replace("'", "\""));

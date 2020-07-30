@@ -2,8 +2,7 @@ using System;
 using System.Linq;
 
 namespace SKD.Seed {
-    public class SeedUtil {
-
+    public static class Util {
 
         public static DateTime RandomDateTime(DateTime seedDate) {
             var daysInMonth = DateTime.DaysInMonth(seedDate.Year, seedDate.Month);

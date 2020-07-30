@@ -7,18 +7,11 @@ using System.Threading.Tasks;
 using System.Transactions;
 
 namespace SKD.Seed {
-    internal class Generator {
+    internal class MockDataGenerator {
         private SkdContext ctx;
 
-        public Generator(SkdContext ctx) {
+        public MockDataGenerator(SkdContext ctx) {
             this.ctx = ctx;
-        }
-
-        public async Task DroCreateDb() {
-            await ctx.Database.EnsureDeletedAsync();
-            Console.WriteLine("Dropped database");
-            await ctx.Database.MigrateAsync();
-            Console.WriteLine("Created database");
         }
 
         public async Task Seed_VehicleModelComponents(ICollection<VehicleModelComponent_Seed_DTO> vehicleModelComponentData) {
@@ -36,7 +29,7 @@ namespace SKD.Seed {
                     VehicleModel = model,
                     Sequence = item.sequence,
                     PrerequisiteSequences = item.prerequisite,
-                    CreatedAt = SeedUtil.RandomDateTime(DateTime.UtcNow)
+                    CreatedAt = Util.RandomDateTime(DateTime.UtcNow)
                 });
             }
 
@@ -74,14 +67,12 @@ namespace SKD.Seed {
                     KitNo = entry.kitNo,
                     LotNo = entry.lotNo,
                     Model = ctx.VehicleModels.First(m => m.Code == entry.modelId),
-                    CreatedAt = SeedUtil.RandomDateTime(DateTime.UtcNow)
+                    CreatedAt = Util.RandomDateTime(DateTime.UtcNow)
                 };
 
                 ctx.Vehicles.Add(vehicle);
 
                 var modelComponents = ctx.VehicleModelComponents.Where(t => t.VehicleModelId == vehicle.ModelId).ToList();
-
-                var addMockComponentScans = index % 2 == 0;
 
                 foreach (var modelComponent in modelComponents) {
                     var vehicleComponent = new VehicleComponent() {
@@ -93,10 +84,6 @@ namespace SKD.Seed {
                     };
 
                     vehicle.VehicleComponents.Add(vehicleComponent);
-                }
-
-                if (addMockComponentScans) {
-                    Seed_VehicleComponentScan(vehicle);
                 }
 
                 Console.WriteLine($"  Added  {vehicle.VehicleComponents.Count} children");
@@ -114,8 +101,8 @@ namespace SKD.Seed {
             var i = 0;
             foreach(var vc in vehicle.VehicleComponents) {
                 var componentScan = new ComponentScan {
-                    Scan1 = SeedUtil.RandomString(30),
-                    Scan2 = i++ % 3 == 0 ? SeedUtil.RandomString(15) : "",
+                    Scan1 = Util.RandomString(30),
+                    Scan2 = i++ % 3 == 0 ? Util.RandomString(15) : "",
                     CreatedAt = date
                 };
                 vc.ComponentScans.Add(componentScan);
@@ -128,7 +115,7 @@ namespace SKD.Seed {
             var components = componentData.ToList().Select(x => new Component() {
                 Code = x.code,
                 Name = x.name,
-                CreatedAt = SeedUtil.RandomDateTime(DateTime.UtcNow)
+                CreatedAt = Util.RandomDateTime(DateTime.UtcNow)
             });
 
             ctx.Components.AddRange(components);
@@ -146,46 +133,6 @@ namespace SKD.Seed {
             ctx.VehicleModels.AddRange(vehicleModels);
             await ctx.SaveChangesAsync();
             Console.WriteLine($"Added {ctx.VehicleModels.Count()} vehicle models");
-        }
-
-        public void CheckDuplicates(SeedData seedData) {
-
-            var duplicateVehileModelCode = seedData.VehicleModel_SeedData.ToList().GroupBy(x => x.code).Select(g => new {
-                Code = g.Key,
-                Count = g.Count()
-            }).Any(g => g.Count > 1);
-
-            if (duplicateVehileModelCode) {
-                throw new Exception("Found duplicate vehilce model code");
-            }
-
-            var duplicateVehicleModelName = seedData.VehicleModel_SeedData.ToList().GroupBy(x => x.name).Select(g => new {
-                Name = g.Key,
-                Count = g.Count()
-            }).Any(g => g.Count > 1);
-
-            if (duplicateVehicleModelName) {
-                throw new Exception("Found duplicate vehilce model name");
-            }
-
-            var duplicateComponentCode = seedData.Component_SeedData.ToList().GroupBy(x => x.code).Select(g => new {
-                Name = g.Key,
-                Count = g.Count()
-            }).Any(g => g.Count > 1);
-
-
-            if (duplicateComponentCode) {
-                throw new Exception("duplicate component code");
-            }
-
-            var duplicateVehicleModelComponents = seedData.VehicleModelComponent_SeedData.ToList().GroupBy(x => new { x.modelCode, x.componentCode }).Select(g => new {
-                Name = g.Key,
-                Count = g.Count()
-            }).Any(g => g.Count > 1);
-
-            if (duplicateComponentCode) {
-                throw new Exception("duplicate vehicle model components code");
-            }
         }
     }
 }
