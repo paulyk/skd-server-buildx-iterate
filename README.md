@@ -1,30 +1,10 @@
 # Vehicle Component Tracking App
 
 * Service to scan and upload component and serial numbers to Ford.
-* Shipments Parts Receving Service
 
-## Appsettings
-
-Create at `SKD.VCS.Model/appsettings.json` with the following structure.
-
-This will be used for migrations.
-
-```json
-{
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft": "Warning",
-      "Microsoft.Hosting.Lifetime": "Information"
-    }
-  },
-  "connectionStrings": {
-    "Production": "",
-    "Development": "server=localhost,9301;database=skd;uid=sa;pwd=Resign98",
-    "Staging": ""
-  },
-  "DatabaseProviderName": "sqlserver"
-}
+## run
+```
+dotnet run --project SKD.VCS.Server
 ```
 
 ## dev database and connections string
@@ -39,7 +19,7 @@ docker-compose  -f docker-compose.dev.yml down
 Mkake sure your `appsettings.json` connection string matches
 
 ```json
-"server=localhost,9301;database=skd;uid=sa;pwd=Resign98"
+"server=localhost,9301;database=skd;uid=sa;pwd=DevOnlyPassword119"
 ```
 
 ## Running migrations
@@ -49,7 +29,6 @@ Install the `dotnet-ef` tooling globally
 ```bash
 dotnet tool install --global dotnet-ef
 dotnet tool update --global dotnet-ef
-
 ```
 
 ### Add migrations

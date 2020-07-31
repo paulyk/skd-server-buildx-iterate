@@ -17,7 +17,7 @@ namespace SKD.VCS.Seed {
 
             // drop & create
             var dbService = new DbService(ctx);
-            await dbService.DroCreateDb();
+            await dbService.MigrateDb();
 
             // seed
             var seedDataPath = Path.Combine(Directory.GetCurrentDirectory(), "src/json");
