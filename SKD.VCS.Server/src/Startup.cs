@@ -89,6 +89,11 @@ namespace SKD.VCS.Server {
                         await dbService.MigrateDb();
                         context.Response.StatusCode = 200;
                     });
+
+                    endpoints.MapGet("/ping", async context => {
+                        await context.Response.WriteAsync("Ping!");
+                        context.Response.StatusCode = 200;
+                    });
                 }
 
             });
