@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SKD.Model", "SKD.Model\SKD.Model.csproj", "{53C98C1A-DBAB-484A-8E9F-6D25262E5FAA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SKD.VCS.Model", "SKD.VCS.Model\SKD.VCS.Model.csproj", "{53C98C1A-DBAB-484A-8E9F-6D25262E5FAA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SKD.Seed", "SKD.Seed\SKD.Seed.csproj", "{2296426B-CC4B-4081-9151-E8B582275C3B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SKD.VCS.Seed", "SKD.VCS.Seed\SKD.VCS.Seed.csproj", "{2296426B-CC4B-4081-9151-E8B582275C3B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "graphql-web", "SKD.Server\SKD.Server.csproj", "{F3911B84-8D66-4720-8095-56E492A0D306}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "graphql-web", "SKD.VCS.Server\SKD.VCS.Server.csproj", "{F3911B84-8D66-4720-8095-56E492A0D306}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SKD.Test", "SKD.Test\SKD.Test.csproj", "{A1A33FA8-B7E6-40F5-B856-A7F3CF5C3D1A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SKD.VCS.Test", "SKD.VCS.Test\SKD.VCS.Test.csproj", "{A1A33FA8-B7E6-40F5-B856-A7F3CF5C3D1A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

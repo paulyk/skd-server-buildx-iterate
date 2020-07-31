@@ -5,7 +5,7 @@
 
 ## Appsettings
 
-Create at `SKD.Model/appsettings.json` with the following structure.
+Create at `SKD.VCS.Model/appsettings.json` with the following structure.
 
 This will be used for migrations.
 
@@ -55,21 +55,21 @@ dotnet tool update --global dotnet-ef
 ### Add migrations
 
 ```bash
-cd SKD.Model
-dotnet ef migrations add <igration-name> -o src/Migrations  --project SKD.Model 
+cd SKD.VCS.Model
+dotnet ef migrations add <igration-name> -o src/Migrations  --project SKD.VCS.Model 
 ```
 
 ### Remove migratins
 ```
-dotnet ef migrations remove --project SKD.Model
+dotnet ef migrations remove --project SKD.VCS.Model
 ```
 ### Update database
 
 ```bash
-dotnet ef database update --project SKD.Model
+dotnet ef database update --project SKD.VCS.Model
 ```
 
 ### Revert to specific migration 
 ```
-dotnet ef database update Migration_Name  --project SKD.Model
+dotnet ef database update Migration_Name  --project SKD.VCS.Model
 ```

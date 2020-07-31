@@ -5,27 +5,27 @@
    "version": "0.2.0",
    "configurations": [
         {
-            "name": "SKD.Seed",
+            "name": "SKD.VCS.Seed",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/SKD.Seed/bin/Debug/netcoreapp3.1/SKD.Seed.dll",
+            "program": "${workspaceFolder}/SKD.VCS.Seed/bin/Debug/netcoreapp3.1/SKD.VCS.Seed.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/SKD.Seed",
+            "cwd": "${workspaceFolder}/SKD.VCS.Seed",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
             "stopAtEntry": false
         },
         {
-            "name": "SKD.Server",
+            "name": "SKD.VCS.Server",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/SKD.Server/bin/Debug/netcoreapp3.1/SKD.Server.dll",
+            "program": "${workspaceFolder}/SKD.VCS.Server/bin/Debug/netcoreapp3.1/SKD.VCS.Server.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/SKD.Server",
+            "cwd": "${workspaceFolder}/SKD.VCS.Server",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
             "stopAtEntry": false
