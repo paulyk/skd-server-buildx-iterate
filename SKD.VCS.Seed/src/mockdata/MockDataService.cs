@@ -19,6 +19,11 @@ namespace SKD.VCS.Seed {
             var dbService = new DbService(ctx);
             await dbService.MigrateDb();
 
+            if (await ctx.Vehicles.CountAsync() > 0) {
+                // already seeded
+                return;
+            }
+
             // seed
             var seedDataPath = Path.Combine(Directory.GetCurrentDirectory(), "src/json");
             var seedData = new MockData(seedDataPath);
