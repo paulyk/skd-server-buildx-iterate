@@ -58,7 +58,7 @@ namespace SKD.VCS.Server {
 
             app.UseRouting();
 
-            app.UseGraphQL("/api");
+            app.UseGraphQL("/gql");
 
             app.Use(next => context => {
                 Console.WriteLine("Request log: " + context.Request.HttpContext.Request.Path);
@@ -70,7 +70,7 @@ namespace SKD.VCS.Server {
 
             );
             opt.Path = "/playground";
-            opt.QueryPath = "/api";
+            opt.QueryPath = "/gql";
             app.UsePlayground(opt);
 
             app.UseEndpoints(endpoints => {
