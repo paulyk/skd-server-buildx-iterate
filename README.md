@@ -22,7 +22,23 @@ Mkake sure your `appsettings.json` connection string matches
 "server=localhost,9301;database=skd;uid=sa;pwd=DevOnlyPassword119"
 ```
 
-## Running migrations
+## running the app
+
+1. ensure db server running
+2. run server
+
+```
+docker-compose  -f docker-compose.dev.yml up -d
+dotnet run --project SKD.VCS.Server
+```
+
+## seed with mock data
+
+```
+curl https://localhost:5101/seed_mock_data -X POST -d "{}"
+```
+
+## Database migration
 
 Install the `dotnet-ef` tooling globally
 

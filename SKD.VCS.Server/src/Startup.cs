@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Playground;
@@ -28,7 +25,16 @@ namespace SKD.VCS.Server {
         public IConfiguration Configuration { get; }
         public IWebHostEnvironment _env { get; }
 
+
         public void ConfigureServices(IServiceCollection services) {
+
+            services.AddCors(options => {
+                options.AddDefaultPolicy(
+                    builder => {
+                        builder.WithOrigins("*").AllowAnyHeader().AllowAnyMethod();
+                    }
+                );
+            });
 
             services.AddDbContext<SkdContext>(options => {
                 var aspnet_env = _env.EnvironmentName != null ? _env.EnvironmentName : "Production";
@@ -56,21 +62,23 @@ namespace SKD.VCS.Server {
                 app.UseDeveloperExceptionPage();
             }
 
+
             app.UseRouting();
+            app.UseCors();
 
             app.UseGraphQL("/gql");
 
-            app.Use(next => context => {
-                Console.WriteLine("Request log: " + context.Request.HttpContext.Request.Path);
-                return next(context);
-            });
+            if (env.IsDevelopment()) {
+                app.Use(next => context => {
+                    Console.WriteLine("Request log: " + context.Request.HttpContext.Request.Path);
+                    return next(context);
+                });
+            }
 
-            // find a more concise way of doing this.
-            PlaygroundOptions opt = new PlaygroundOptions(
-
-            );
-            opt.Path = "/playground";
-            opt.QueryPath = "/gql";
+            var opt = new PlaygroundOptions() {
+                Path = "/playground",
+                QueryPath = "/gql"
+            };
             app.UsePlayground(opt);
 
             app.UseEndpoints(endpoints => {
