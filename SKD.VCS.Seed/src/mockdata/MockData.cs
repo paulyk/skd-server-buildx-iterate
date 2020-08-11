@@ -10,17 +10,19 @@ using Microsoft.CSharp.RuntimeBinder;
 namespace SKD.VCS.Seed {
     internal class MockData {
 
-        public ICollection<Vehicle_Seed_DTO> Vehicle_SeedData;
-        public ICollection<Component_Seed_DTO> Component_SeedData;
-        public ICollection<VehicleModel_Seed_DTO> VehicleModel_SeedData;
-        public ICollection<VehicleModelComponent_Seed_DTO> VehicleModelComponent_SeedData;
+        public ICollection<Vehicle_MockData_DTO> Vehicle_MockData;
+        public ICollection<Component_MockData_DTO> Component_MockData;
+        public ICollection<VehicleModel_MockData_DTO> VehicleModel_MockData;
+        public ICollection<VehicleModelComponent_MockData_DTO> VehicleModelComponent_MockData;
+        public ICollection<ProductionStation_Mock_DTO> ProductionStation_MockData;
 
         public MockData(string dirPath) {
 
-            Vehicle_SeedData = JsonSerializer.Deserialize<List<Vehicle_Seed_DTO>>(Vehicles_JSON.Replace("'", "\""));
-            Component_SeedData = JsonSerializer.Deserialize<List<Component_Seed_DTO>>(Components_JSON.Replace("'", "\""));
-            VehicleModel_SeedData = JsonSerializer.Deserialize<List<VehicleModel_Seed_DTO>>(VehicleModels_JSON.Replace("'", "\""));
-            VehicleModelComponent_SeedData = JsonSerializer.Deserialize<List<VehicleModelComponent_Seed_DTO>>(VehicleModelComponents_JSON.Replace("'", "\""));            
+            Vehicle_MockData = JsonSerializer.Deserialize<List<Vehicle_MockData_DTO>>(Vehicles_JSON.Replace("'", "\""));
+            Component_MockData = JsonSerializer.Deserialize<List<Component_MockData_DTO>>(Components_JSON.Replace("'", "\""));
+            VehicleModel_MockData = JsonSerializer.Deserialize<List<VehicleModel_MockData_DTO>>(VehicleModels_JSON.Replace("'", "\""));
+            VehicleModelComponent_MockData = JsonSerializer.Deserialize<List<VehicleModelComponent_MockData_DTO>>(VehicleModelComponents_JSON.Replace("'", "\""));
+            ProductionStation_MockData = JsonSerializer.Deserialize<List<ProductionStation_Mock_DTO>>(ProductionStations_JSON);
         }
 
         private string Vehicles_JSON = @"
@@ -642,6 +644,32 @@ namespace SKD.VCS.Seed {
     'prerequisite': ''
   }
 ]";
-    }
 
+
+        private string ProductionStations_JSON = @"
+[
+  {
+    'code': 'FRM03',
+    'sortOrder': 1
+  },
+  {
+    'code': 'CAB02',
+    'sortOrder': 2
+  },
+  {
+    'code': 'CHS01',
+    'sortOrder': 3
+  },
+  {
+    'code': 'CHS02',
+    'sortOrder': 4
+  },
+  {
+    'code': 'CHS03',
+    'sortOrder': 5
+  }
+]      
+";
+
+    }
 }

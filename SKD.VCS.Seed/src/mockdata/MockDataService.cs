@@ -29,10 +29,10 @@ namespace SKD.VCS.Seed {
             var seedData = new MockData(seedDataPath);
 
             var generator = new MockDataGenerator(ctx);
-            await generator.Seed_Components(seedData.Component_SeedData);
-            await generator.Seed_VehicleModels(seedData.VehicleModel_SeedData);
-            await generator.Seed_VehicleModelComponents(seedData.VehicleModelComponent_SeedData);
-            await generator.Seed_Vehicles(seedData.Vehicle_SeedData);
+            await generator.Seed_Components(seedData.Component_MockData);
+            await generator.Seed_VehicleModels(seedData.VehicleModel_MockData);
+            await generator.Seed_VehicleModelComponents(seedData.VehicleModelComponent_MockData);
+            await generator.Seed_Vehicles(seedData.Vehicle_MockData);
         }
     }
 }

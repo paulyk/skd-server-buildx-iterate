@@ -119,7 +119,9 @@ namespace SKD.VCS.Test {
             var payload = await service.SaveComponentScan(dto);
 
             Assert.True(payload.Errors.Count() > 0);
-            Assert.True(payload.Errors.ToArray()[0].Message.StartsWith("verified prerequisite scans required"));
+
+            var msg ="verified prerequisite scans required";
+            Assert.Contains(msg, payload.Errors.ToArray()[0].Message);
         }
 
         [Fact]

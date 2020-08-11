@@ -7,6 +7,9 @@ namespace SKD.VCS.Model {
 		public static int Component_Name = 100;	
 		public static int Component_FordComponentType = 5;	
 
+		public static int ProductionStation_Code = 15;	
+		public static int ProductionStation_Name = 100;	
+
 		public static int Vehicle_VIN = 17;	
 		public static int Vehicle_KitNo = 3;
 		public static int Vehicle_LotNo = 3;

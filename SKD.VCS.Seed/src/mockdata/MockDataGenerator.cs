@@ -14,7 +14,7 @@ namespace SKD.VCS.Seed {
             this.ctx = ctx;
         }
 
-        public async Task Seed_VehicleModelComponents(ICollection<VehicleModelComponent_Seed_DTO> vehicleModelComponentData) {
+        public async Task Seed_VehicleModelComponents(ICollection<VehicleModelComponent_MockData_DTO> vehicleModelComponentData) {
 
             // vehicle model components
             var components = vehicleModelComponentData.ToList();
@@ -54,7 +54,7 @@ namespace SKD.VCS.Seed {
             Console.WriteLine($"Added {count} vehicle model components ");
         }
 
-        public async Task Seed_Vehicles(ICollection<Vehicle_Seed_DTO> vehicleData) {
+        public async Task Seed_Vehicles(ICollection<Vehicle_MockData_DTO> vehicleData) {
 
             if (await ctx.VehicleModels.CountAsync() == 0) {
                 throw new Exception("Vehicle models must be seeded before vheicles");
@@ -67,7 +67,7 @@ namespace SKD.VCS.Seed {
                     KitNo = entry.kitNo,
                     LotNo = entry.lotNo,
                     Model = ctx.VehicleModels.First(m => m.Code == entry.modelId),
-                    PlannedBuildAt = index % 2 == 0 ? DateTime.UtcNow.AddDays(- (index * 3)) : (DateTime?)null,
+                    PlannedBuildAt = index % 2 == 0 ? DateTime.UtcNow.AddDays(-(index * 3)) : (DateTime?)null,
                     CreatedAt = Util.RandomDateTime(DateTime.UtcNow)
                 };
 
@@ -98,9 +98,9 @@ namespace SKD.VCS.Seed {
         }
 
         public void Seed_VehicleComponentScan(Vehicle vehicle) {
-            var date =vehicle.CreatedAt.AddDays(4);
+            var date = vehicle.CreatedAt.AddDays(4);
             var i = 0;
-            foreach(var vc in vehicle.VehicleComponents) {
+            foreach (var vc in vehicle.VehicleComponents) {
                 var componentScan = new ComponentScan {
                     Scan1 = Util.RandomString(30),
                     Scan2 = i++ % 3 == 0 ? Util.RandomString(15) : "",
@@ -112,7 +112,22 @@ namespace SKD.VCS.Seed {
             };
         }
 
-        public async Task Seed_Components(ICollection<Component_Seed_DTO> componentData) {
+        public async Task Seed_ProductionStations(ICollection<ProductionStation_Mock_DTO> data) {
+            var stations = data.ToList().Select(x => new ProductionStation() {
+                Code = x.code,
+                Name = x.name,
+                SortOrder = x.sortOrder,
+                CreatedAt = Util.RandomDateTime(DateTime.UtcNow)
+            });
+
+            ctx.ProductionStations.AddRange(stations);
+            await ctx.SaveChangesAsync();
+
+            Console.WriteLine($"Added {ctx.ProductionStations.Count()} production stations");
+        }
+
+
+        public async Task Seed_Components(ICollection<Component_MockData_DTO> componentData) {
             var components = componentData.ToList().Select(x => new Component() {
                 Code = x.code,
                 Name = x.name,
@@ -125,7 +140,7 @@ namespace SKD.VCS.Seed {
             Console.WriteLine($"Added {ctx.Components.Count()} components");
         }
 
-        public async Task Seed_VehicleModels(ICollection<VehicleModel_Seed_DTO> vehicleModelData) {
+        public async Task Seed_VehicleModels(ICollection<VehicleModel_MockData_DTO> vehicleModelData) {
             var vehicleModels = vehicleModelData.ToList().Select(x => new VehicleModel() {
                 Code = x.code,
                 Name = x.name,
