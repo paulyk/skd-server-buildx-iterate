@@ -67,6 +67,7 @@ namespace SKD.VCS.Seed {
                     KitNo = entry.kitNo,
                     LotNo = entry.lotNo,
                     Model = ctx.VehicleModels.First(m => m.Code == entry.modelId),
+                    PlannedBuildAt = index % 2 == 0 ? DateTime.UtcNow.AddDays(- (index * 3)) : (DateTime?)null,
                     CreatedAt = Util.RandomDateTime(DateTime.UtcNow)
                 };
 

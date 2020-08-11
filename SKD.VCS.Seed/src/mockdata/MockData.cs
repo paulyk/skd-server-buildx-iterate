@@ -77,7 +77,7 @@ namespace SKD.VCS.Seed {
       ,{'code':'DSC','name':'Driver Side Air Curtain'}
       ,{'code':'EN','name':'Engine'}
       ,{'code':'ENL','name':'Engine Legal Code'}
-      ,{'code':'FNL','name':'FRAME NUMBER LEGAL'}
+      ,{'code':'FNL','name':'Frame Number Legal'}
       ,{'code':'FT','name':'Fuel Tank'}
       ,{'code':'IK','name':'Ignition Key Code'}
       ,{'code':'PA','name':'Passenger Airbag'}
@@ -85,6 +85,7 @@ namespace SKD.VCS.Seed {
       ,{'code':'PSC','name':'Passenger Side Air Curtain'}
       ,{'code':'TC','name':'Transfer Case'}
       ,{'code':'TR','name':'Transmission'}
+      ,{'code':'VIN','name':'Marry Body & Frame Check'}
   ]
 ";
 
