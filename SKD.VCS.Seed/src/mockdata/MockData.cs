@@ -13,16 +13,18 @@ namespace SKD.VCS.Seed {
         public ICollection<Vehicle_MockData_DTO> Vehicle_MockData;
         public ICollection<Component_MockData_DTO> Component_MockData;
         public ICollection<VehicleModel_MockData_DTO> VehicleModel_MockData;
-        public ICollection<VehicleModelComponent_MockData_DTO> VehicleModelComponent_MockData;
+        public ICollection<CmponentStation_McckData_DTO> ComponentStation_MockData;
         public ICollection<ProductionStation_Mock_DTO> ProductionStation_MockData;
 
         public MockData(string dirPath) {
 
-            Vehicle_MockData = JsonSerializer.Deserialize<List<Vehicle_MockData_DTO>>(Vehicles_JSON.Replace("'", "\""));
             Component_MockData = JsonSerializer.Deserialize<List<Component_MockData_DTO>>(Components_JSON.Replace("'", "\""));
-            VehicleModel_MockData = JsonSerializer.Deserialize<List<VehicleModel_MockData_DTO>>(VehicleModels_JSON.Replace("'", "\""));
-            VehicleModelComponent_MockData = JsonSerializer.Deserialize<List<VehicleModelComponent_MockData_DTO>>(VehicleModelComponents_JSON.Replace("'", "\""));
             ProductionStation_MockData = JsonSerializer.Deserialize<List<ProductionStation_Mock_DTO>>(ProductionStations_JSON.Replace("'", "\""));
+            ComponentStation_MockData = JsonSerializer.Deserialize<List<CmponentStation_McckData_DTO>>(ComponentStationMapping_JSON.Replace("'", "\""));
+
+            
+            Vehicle_MockData = JsonSerializer.Deserialize<List<Vehicle_MockData_DTO>>(Vehicles_JSON.Replace("'", "\""));
+            VehicleModel_MockData = JsonSerializer.Deserialize<List<VehicleModel_MockData_DTO>>(VehicleModels_JSON.Replace("'", "\""));
         }
 
         private string Vehicles_JSON = @"
@@ -119,531 +121,76 @@ namespace SKD.VCS.Seed {
   }
 ]";
 
-        private string VehicleModelComponents_JSON = @"
-[
+ private string ComponentStationMapping_JSON = @"
+ 
+ [
   {
-    'modelCode': 'IJBW9E40001',
-    'componentCode': 'DA',
-    'sequence': 1,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBW9E40001',
-    'componentCode': 'DS',
-    'sequence': 2,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBW9E40001',
-    'componentCode': 'DSC',
-    'sequence': 3,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBW9E40001',
     'componentCode': 'EN',
-    'sequence': 4,
-    'prerequisite': ''
+    'stationCode': 'FRM03'
   },
   {
-    'modelCode': 'IJBW9E40001',
     'componentCode': 'ENL',
-    'sequence': 5,
-    'prerequisite': ''
+    'stationCode': 'FRM03'
   },
   {
-    'modelCode': 'IJBW9E40001',
-    'componentCode': 'FNL',
-    'sequence': 6,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBW9E40001',
     'componentCode': 'FT',
-    'sequence': 7,
-    'prerequisite': ''
+    'stationCode': 'FRM03'
   },
   {
-    'modelCode': 'IJBW9E40001',
-    'componentCode': 'IK',
-    'sequence': 7,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBW9E40001',
-    'componentCode': 'PA',
-    'sequence': 8,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBW9E40001',
-    'componentCode': 'PS',
-    'sequence': 8,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBW9E40001',
-    'componentCode': 'PSC',
-    'sequence': 9,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBW9E40001',
     'componentCode': 'TC',
-    'sequence': 9,
-    'prerequisite': ''
+    'stationCode': 'FRM03'
   },
   {
-    'modelCode': 'IJBW9E40001',
     'componentCode': 'TR',
-    'sequence': 10,
-    'prerequisite': ''
+    'stationCode': 'FRM03'
   },
   {
-    'modelCode': 'IJBW9E40001',
     'componentCode': 'EN',
-    'sequence': 10,
-    'prerequisite': ''
+    'stationCode': 'CHS01'
   },
   {
-    'modelCode': 'IJBT9E40002',
+    'componentCode': 'VIN',
+    'stationCode': 'CHS01'
+  },
+  {
     'componentCode': 'DA',
-    'sequence': 1,
-    'prerequisite': ''
+    'stationCode': 'CAB02'
   },
   {
-    'modelCode': 'IJBT9E40002',
-    'componentCode': 'DS',
-    'sequence': 2,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9E40002',
-    'componentCode': 'DSC',
-    'sequence': 3,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9E40002',
-    'componentCode': 'EN',
-    'sequence': 4,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9E40002',
-    'componentCode': 'ENL',
-    'sequence': 5,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9E40002',
-    'componentCode': 'FNL',
-    'sequence': 6,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9E40002',
-    'componentCode': 'FT',
-    'sequence': 7,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9E40002',
-    'componentCode': 'IK',
-    'sequence': 7,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9E40002',
-    'componentCode': 'PA',
-    'sequence': 8,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9E40002',
-    'componentCode': 'PS',
-    'sequence': 8,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9E40002',
-    'componentCode': 'PSC',
-    'sequence': 9,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9E40002',
-    'componentCode': 'TC',
-    'sequence': 9,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9E40002',
-    'componentCode': 'TR',
-    'sequence': 10,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9E40002',
-    'componentCode': 'EN',
-    'sequence': 10,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9240002',
-    'componentCode': 'DA',
-    'sequence': 1,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9240002',
-    'componentCode': 'DS',
-    'sequence': 2,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9240002',
-    'componentCode': 'DSC',
-    'sequence': 3,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9240002',
-    'componentCode': 'EN',
-    'sequence': 4,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9240002',
-    'componentCode': 'ENL',
-    'sequence': 5,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9240002',
-    'componentCode': 'FNL',
-    'sequence': 6,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9240002',
-    'componentCode': 'FT',
-    'sequence': 7,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9240002',
-    'componentCode': 'IK',
-    'sequence': 7,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9240002',
-    'componentCode': 'PA',
-    'sequence': 8,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9240002',
-    'componentCode': 'PS',
-    'sequence': 8,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9240002',
-    'componentCode': 'PSC',
-    'sequence': 9,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9240002',
-    'componentCode': 'TC',
-    'sequence': 9,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9240002',
-    'componentCode': 'TR',
-    'sequence': 10,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'IJBT9240002',
-    'componentCode': 'EN',
-    'sequence': 10,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAV9DC0001',
-    'componentCode': 'DA',
-    'sequence': 1,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAV9DC0001',
     'componentCode': 'DKA',
-    'sequence': 1,
-    'prerequisite': ''
+    'stationCode': 'CAB02'
   },
   {
-    'modelCode': 'ZJAV9DC0001',
-    'componentCode': 'DS',
-    'sequence': 1,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAV9DC0001',
     'componentCode': 'DSC',
-    'sequence': 1,
-    'prerequisite': ''
+    'stationCode': 'CAB02'
   },
   {
-    'modelCode': 'ZJAV9DC0001',
-    'componentCode': 'EN',
-    'sequence': 2,
-    'prerequisite': '1'
-  },
-  {
-    'modelCode': 'ZJAV9DC0001',
-    'componentCode': 'ENL',
-    'sequence': 3,
-    'prerequisite': '2'
-  },
-  {
-    'modelCode': 'ZJAV9DC0001',
-    'componentCode': 'FNL',
-    'sequence': 4,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAV9DC0001',
-    'componentCode': 'FT',
-    'sequence': 5,
-    'prerequisite': '3,5'
-  },
-  {
-    'modelCode': 'ZJAV9DC0001',
-    'componentCode': 'IK',
-    'sequence': 6,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAV9DC0001',
     'componentCode': 'PA',
-    'sequence': 7,
-    'prerequisite': ''
+    'stationCode': 'CAB02'
   },
   {
-    'modelCode': 'ZJAV9DC0001',
     'componentCode': 'PS',
-    'sequence': 8,
-    'prerequisite': ''
+    'stationCode': 'CAB02'
   },
   {
-    'modelCode': 'ZJAV9DC0001',
-    'componentCode': 'PSC',
-    'sequence': 9,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAV9DC0001',
-    'componentCode': 'TC',
-    'sequence': 9,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAV9DC0001',
-    'componentCode': 'TR',
-    'sequence': 10,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAV9DC0001',
-    'componentCode': 'EN',
-    'sequence': 10,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAJ9CD0003',
-    'componentCode': 'DA',
-    'sequence': 1,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAJ9CD0003',
-    'componentCode': 'DKA',
-    'sequence': 1,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAJ9CD0003',
     'componentCode': 'DS',
-    'sequence': 1,
-    'prerequisite': ''
+    'stationCode': 'CHS02'
   },
   {
-    'modelCode': 'ZJAJ9CD0003',
-    'componentCode': 'DSC',
-    'sequence': 1,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAJ9CD0003',
-    'componentCode': 'EN',
-    'sequence': 2,
-    'prerequisite': '1'
-  },
-  {
-    'modelCode': 'ZJAJ9CD0003',
-    'componentCode': 'ENL',
-    'sequence': 3,
-    'prerequisite': '2'
-  },
-  {
-    'modelCode': 'ZJAJ9CD0003',
-    'componentCode': 'FNL',
-    'sequence': 4,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAJ9CD0003',
-    'componentCode': 'FT',
-    'sequence': 5,
-    'prerequisite': '3,5'
-  },
-  {
-    'modelCode': 'ZJAJ9CD0003',
     'componentCode': 'IK',
-    'sequence': 6,
-    'prerequisite': ''
+    'stationCode': 'CHS02'
   },
   {
-    'modelCode': 'ZJAJ9CD0003',
-    'componentCode': 'PA',
-    'sequence': 7,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAJ9CD0003',
-    'componentCode': 'PS',
-    'sequence': 8,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAJ9CD0003',
     'componentCode': 'PSC',
-    'sequence': 9,
-    'prerequisite': ''
+    'stationCode': 'CHS02'
   },
   {
-    'modelCode': 'ZJAJ9CD0003',
-    'componentCode': 'TC',
-    'sequence': 9,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAJ9CD0003',
-    'componentCode': 'TR',
-    'sequence': 10,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAJ9CD0003',
     'componentCode': 'EN',
-    'sequence': 10,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAE9CD0002',
-    'componentCode': 'DA',
-    'sequence': 1,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAE9CD0002',
-    'componentCode': 'DKA',
-    'sequence': 1,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAE9CD0002',
-    'componentCode': 'DS',
-    'sequence': 1,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAE9CD0002',
-    'componentCode': 'DSC',
-    'sequence': 1,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAE9CD0002',
-    'componentCode': 'EN',
-    'sequence': 2,
-    'prerequisite': '1'
-  },
-  {
-    'modelCode': 'ZJAE9CD0002',
-    'componentCode': 'ENL',
-    'sequence': 3,
-    'prerequisite': '2'
-  },
-  {
-    'modelCode': 'ZJAE9CD0002',
-    'componentCode': 'FNL',
-    'sequence': 4,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAE9CD0002',
-    'componentCode': 'FT',
-    'sequence': 5,
-    'prerequisite': '3,5'
-  },
-  {
-    'modelCode': 'ZJAE9CD0002',
-    'componentCode': 'IK',
-    'sequence': 6,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAE9CD0002',
-    'componentCode': 'PA',
-    'sequence': 7,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAE9CD0002',
-    'componentCode': 'PS',
-    'sequence': 8,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAE9CD0002',
-    'componentCode': 'PSC',
-    'sequence': 9,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAE9CD0002',
-    'componentCode': 'TC',
-    'sequence': 9,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAE9CD0002',
-    'componentCode': 'TR',
-    'sequence': 10,
-    'prerequisite': ''
-  },
-  {
-    'modelCode': 'ZJAE9CD0002',
-    'componentCode': 'EN',
-    'sequence': 10,
-    'prerequisite': ''
+    'stationCode': 'CHS03'
   }
-]";
+]
+ 
+ ";
 
 
         private string ProductionStations_JSON = @"

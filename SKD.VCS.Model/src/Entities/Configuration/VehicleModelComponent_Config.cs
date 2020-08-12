@@ -8,7 +8,7 @@ namespace SKD.VCS.Model {
             builder.ToTable("vehicle_model_component");
 
             builder.HasKey(t => t.Id);
-            builder.HasIndex(t => new { t.VehicleModelId, t.ComponentId }).IsUnique();
+            builder.HasIndex(t => new { t.VehicleModelId, t.ComponentId, t.ProductionStationId }).IsUnique();
 
             builder.Property(t => t.Id).HasMaxLength(EntityMaxLen.Id).ValueGeneratedOnAdd();
 

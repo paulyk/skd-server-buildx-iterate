@@ -50,7 +50,6 @@ dotnet tool update --global dotnet-ef
 ### Add migrations
 
 ```bash
-cd SKD.VCS.Model
 dotnet ef migrations add <igration-name> -o src/Migrations  --project SKD.VCS.Model 
 ```
 

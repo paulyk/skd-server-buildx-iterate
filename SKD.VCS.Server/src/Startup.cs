@@ -103,7 +103,6 @@ namespace SKD.VCS.Server {
                         context.Response.StatusCode = 200;
                     });
                 }
-
             });
         }
     }

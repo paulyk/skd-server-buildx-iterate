@@ -10,7 +10,7 @@ using SKD.VCS.Model;
 namespace SKD.VCS.Model.src.Migrations
 {
     [DbContext(typeof(SkdContext))]
-    [Migration("20200812045013_Initial")]
+    [Migration("20200812085050_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -226,7 +226,7 @@ namespace SKD.VCS.Model.src.Migrations
 
                     b.HasIndex("ProductionStationId");
 
-                    b.HasIndex("VehicleId", "ComponentId")
+                    b.HasIndex("VehicleId", "ComponentId", "ProductionStationId")
                         .IsUnique();
 
                     b.ToTable("vehicle_component");
@@ -297,7 +297,7 @@ namespace SKD.VCS.Model.src.Migrations
 
                     b.HasIndex("ProductionStationId");
 
-                    b.HasIndex("VehicleModelId", "ComponentId")
+                    b.HasIndex("VehicleModelId", "ComponentId", "ProductionStationId")
                         .IsUnique();
 
                     b.ToTable("vehicle_model_component");

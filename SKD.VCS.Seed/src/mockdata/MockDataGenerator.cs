@@ -14,42 +14,39 @@ namespace SKD.VCS.Seed {
             this.ctx = ctx;
         }
 
-        public async Task Seed_VehicleModelComponents(ICollection<VehicleModelComponent_MockData_DTO> vehicleModelComponentData) {
+        public async Task Seed_VehicleModelComponents(ICollection<CmponentStation_McckData_DTO> componentStationMapping) {
 
-            // vehicle model components
-            var components = vehicleModelComponentData.ToList();
-            var vehicleModelComponents = new List<VehicleModelComponent>();
+            var vehicleModels = await ctx.VehicleModels.ToListAsync();
+            var components = await ctx.Components.ToListAsync();
+            var stations = await ctx.ProductionStations.ToListAsync();
 
-            foreach (var item in vehicleModelComponentData) {
-                var component = await ctx.Components.FirstOrDefaultAsync(c => c.Code == item.componentCode);
-                var model = await ctx.VehicleModels.FirstOrDefaultAsync(m => m.Code == item.modelCode);
-                var productionStation = await ctx.ProductionStations.FirstOrDefaultAsync(t => t.Code == item.productionStationCode );
+            // check 
 
-                vehicleModelComponents.Add(new VehicleModelComponent() {
-                    Component = component,
-                    VehicleModel = model,
-                    ProductionStationId = productionStation.Id,
-                    CreatedAt = Util.RandomDateTime(DateTime.UtcNow)
-                });
-            }
-
-            foreach (var vmc in vehicleModelComponents) {
-                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled)) {
-                    var existing = await ctx.VehicleModelComponents
-                        .Where(x => x.VehicleModel.Code == vmc.VehicleModel.Code && x.Component.Code == vmc.Component.Code)
-                        .FirstOrDefaultAsync();
-
-                    if (existing != null) {
-                        Console.WriteLine($"Duplicate model component entry: {existing.VehicleModel.Name}  {existing.Component.Code}");
-
-                    } else {
-                        ctx.VehicleModelComponents.Add(vmc);
-                        await ctx.SaveChangesAsync();
-                    }
-                    scope.Complete();
+            componentStationMapping.ToList().ForEach(m => {
+                var existingComponent = components.FirstOrDefault(c => c.Code == m.componentCode);
+                if (existingComponent == null) {
+                    throw new Exception($"comopnent code not found {m.componentCode}");
                 }
+                var existingStation = stations.FirstOrDefault(c => c.Code == m.stationCode);
+                if (existingStation == null) {
+                    throw new Exception($"comopnent code not found {m.stationCode}");
+                }
+            });
+
+            foreach (var model in vehicleModels) {
+                foreach(var mapping in componentStationMapping) {
+                    var component = components.First(t => t.Code == mapping.componentCode);
+                    var station = stations.First(t => t.Code == mapping.stationCode);
+
+                    var modelComponent = new VehicleModelComponent {
+                        Component = component,
+                        ProductionStation = station
+                    };
+                    model.ModelComponents.Add(modelComponent);
+                }             
             }
 
+            await ctx.SaveChangesAsync();
             var count = await ctx.VehicleModelComponents.CountAsync();
             Console.WriteLine($"Added {count} vehicle model components ");
         }

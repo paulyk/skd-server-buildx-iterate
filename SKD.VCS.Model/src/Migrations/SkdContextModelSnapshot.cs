@@ -224,7 +224,7 @@ namespace SKD.VCS.Model.src.Migrations
 
                     b.HasIndex("ProductionStationId");
 
-                    b.HasIndex("VehicleId", "ComponentId")
+                    b.HasIndex("VehicleId", "ComponentId", "ProductionStationId")
                         .IsUnique();
 
                     b.ToTable("vehicle_component");
@@ -295,7 +295,7 @@ namespace SKD.VCS.Model.src.Migrations
 
                     b.HasIndex("ProductionStationId");
 
-                    b.HasIndex("VehicleModelId", "ComponentId")
+                    b.HasIndex("VehicleModelId", "ComponentId", "ProductionStationId")
                         .IsUnique();
 
                     b.ToTable("vehicle_model_component");

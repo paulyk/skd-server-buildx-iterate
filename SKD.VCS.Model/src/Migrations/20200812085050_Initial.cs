@@ -252,9 +252,9 @@ namespace SKD.VCS.Model.src.Migrations
                 column: "ProductionStationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_vehicle_component_VehicleId_ComponentId",
+                name: "IX_vehicle_component_VehicleId_ComponentId_ProductionStationId",
                 table: "vehicle_component",
-                columns: new[] { "VehicleId", "ComponentId" },
+                columns: new[] { "VehicleId", "ComponentId", "ProductionStationId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -280,9 +280,9 @@ namespace SKD.VCS.Model.src.Migrations
                 column: "ProductionStationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_vehicle_model_component_VehicleModelId_ComponentId",
+                name: "IX_vehicle_model_component_VehicleModelId_ComponentId_ProductionStationId",
                 table: "vehicle_model_component",
-                columns: new[] { "VehicleModelId", "ComponentId" },
+                columns: new[] { "VehicleModelId", "ComponentId", "ProductionStationId" },
                 unique: true);
         }
 
