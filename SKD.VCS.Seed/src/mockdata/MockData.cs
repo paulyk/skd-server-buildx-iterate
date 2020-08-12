@@ -22,7 +22,7 @@ namespace SKD.VCS.Seed {
             Component_MockData = JsonSerializer.Deserialize<List<Component_MockData_DTO>>(Components_JSON.Replace("'", "\""));
             VehicleModel_MockData = JsonSerializer.Deserialize<List<VehicleModel_MockData_DTO>>(VehicleModels_JSON.Replace("'", "\""));
             VehicleModelComponent_MockData = JsonSerializer.Deserialize<List<VehicleModelComponent_MockData_DTO>>(VehicleModelComponents_JSON.Replace("'", "\""));
-            ProductionStation_MockData = JsonSerializer.Deserialize<List<ProductionStation_Mock_DTO>>(ProductionStations_JSON);
+            ProductionStation_MockData = JsonSerializer.Deserialize<List<ProductionStation_Mock_DTO>>(ProductionStations_JSON.Replace("'", "\""));
         }
 
         private string Vehicles_JSON = @"
@@ -650,25 +650,31 @@ namespace SKD.VCS.Seed {
 [
   {
     'code': 'FRM03',
+    'name': 'FRM03',
     'sortOrder': 1
   },
   {
-    'code': 'CAB02',
-    'sortOrder': 2
-  },
-  {
     'code': 'CHS01',
+    'name': 'CHS01',
     'sortOrder': 3
   },
   {
+    'code': 'CAB02',
+    'name': 'CAB02',
+    'sortOrder': 2
+  },
+  {
     'code': 'CHS02',
+    'name': 'CHS02',
     'sortOrder': 4
   },
   {
     'code': 'CHS03',
+    'name': 'CHS03',
     'sortOrder': 5
   }
-]      
+]
+      
 ";
 
     }

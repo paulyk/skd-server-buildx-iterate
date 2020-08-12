@@ -33,6 +33,7 @@ namespace SKD.VCS.Seed {
             await generator.Seed_VehicleModels(seedData.VehicleModel_MockData);
             await generator.Seed_VehicleModelComponents(seedData.VehicleModelComponent_MockData);
             await generator.Seed_Vehicles(seedData.Vehicle_MockData);
+            await generator.Seed_ProductionStations(seedData.ProductionStation_MockData);
         }
     }
 }
