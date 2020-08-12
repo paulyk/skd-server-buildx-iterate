@@ -18,9 +18,12 @@ namespace SKD.VCS.Test {
         [Fact]
         public async Task seed_data_correct() {
             var components = await ctx.Components.ToListAsync();
-            Assert.True(4 == components.Count);
+            Assert.Equal(3, components.Count);
+            var stations = await ctx.ProductionStations.ToListAsync();
+            Assert.Equal(3, stations.Count);
             var vehicleModles = await ctx.VehicleModels.ToListAsync();
-            Assert.True(1 == vehicleModles.Count());
+            Assert.Equal(1, vehicleModles.Count());
+            Assert.Equal(3, vehicleModles[0].ModelComponents.Count);
         }
 
         [Fact]
@@ -40,8 +43,6 @@ namespace SKD.VCS.Test {
             var componentScan = await ctx.ComponentScans.FirstOrDefaultAsync(t => t.Id == payload.Entity.Id);
             Assert.NotNull(componentScan);
         }
-
-
 
         [Fact]
         public async Task cannot_save_component_scan_if_vehicleComponentId_not_found() {
@@ -95,9 +96,6 @@ namespace SKD.VCS.Test {
         }
 
 
-
-    
-
         #region generate seed data 
 
         /*  setup seed data */
@@ -125,6 +123,7 @@ namespace SKD.VCS.Test {
             var productionStationCodes = new string[] { stationCode1, stationCode2, stationCode3  };
             var productionStations = productionStationCodes.Select(code => new ProductionStation { Code = code, Name = code }).ToList(); // ToList() to prevent UNIQUE constraint failed: component.Name'
             ctx.ProductionStations.AddRange(productionStations);
+            ctx.SaveChanges();
 
             components = ctx.Components.ToList();
             productionStations = ctx.ProductionStations.ToList();
@@ -149,8 +148,8 @@ namespace SKD.VCS.Test {
                   VIN = vin, KitNo = "123", LotNo = "123",
                   Model = vehicleModel,
                   ScanLockedAt = (vin == vin2_locked) ? DateTime.UtcNow : (DateTime?)null,
-                  VehicleComponents = vehicleModel.ModelComponents.Select(mc => new VehicleComponent {
-                      Component = mc.Component,
+                  VehicleComponents = vehicleModel.ModelComponents.Select(mc => new VehicleComponent() { 
+                      Component = mc.Component, 
                       ProductionStation = mc.ProductionStation
                   }).ToList()
               });
