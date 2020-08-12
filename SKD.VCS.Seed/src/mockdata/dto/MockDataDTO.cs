@@ -21,8 +21,7 @@ namespace SKD.VCS.Seed {
     public class VehicleModelComponent_MockData_DTO {
         public string modelCode { get; set; }
         public string componentCode { get; set; }
-        public int sequence { get; set; }
-        public string prerequisite { get; set; }
+        public string productionStationCode { get; set; }
     }
 
     public class ProductionStation_Mock_DTO {

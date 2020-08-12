@@ -64,23 +64,7 @@ namespace SKD.VCS.Model {
                 return errors;
             }
 
-            // check if that any pre requisite sequences have all been verified
-            if (!string.IsNullOrEmpty(vehicleComponent.PrerequisiteSequences)) {
-                var sequenceNumbers = vehicleComponent.PrerequisiteSequences.Split(' ', ',')
-                    .ToList()
-                    .Select(t => t.Trim())
-                    .Where(t => t.Length > 0)
-                    .Select(x => Int32.Parse(x)).ToList();
-
-                var prerequisite_VehicleComponents = vehicle.VehicleComponents.Where(t => sequenceNumbers.Contains(t.Sequence));
-
-                var unveriviedSequences = prerequisite_VehicleComponents .Where(t => t.ScanVerifiedAt == null).Select(t => t.Sequence).ToList();
-
-                if (unveriviedSequences.Count > 0) {
-                    errors.Add(ErrorHelper.Create<T>(t => t.Scan1,$"verified prerequisite scans required for sequences: {String.Join(", ", unveriviedSequences)}"));
-                    return errors;
-                }
-            }
+          
 
             return errors;
         }

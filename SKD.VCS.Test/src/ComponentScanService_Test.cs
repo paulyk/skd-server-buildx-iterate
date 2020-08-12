@@ -95,84 +95,8 @@ namespace SKD.VCS.Test {
         }
 
 
-        [Fact]
-        public async Task cannot_save_component_scan_before_prerequisite_scans() {
-            // setup
 
-            var vehicle = await ctx.Vehicles
-                .Include(t => t.VehicleComponents).ThenInclude(vc => vc.Component)
-                .FirstAsync(t => t.VIN == vin1);
-
-            // Last vehicle component in sequence requires sequence 1 and 2 as prerequisies
-            var lastVehicleComponent = vehicle.VehicleComponents.OrderByDescending(t => t.Sequence).FirstOrDefault();
-            lastVehicleComponent.PrerequisiteSequences = "1,2";
-            await ctx.SaveChangesAsync();
-
-            //test
-            var dto = new ComponentScan {
-                VehicleComponentId = lastVehicleComponent.Id,
-                Scan1 = "",
-                Scan2 = Util.RandomString(12),
-            };
-
-            var service = new ComponentScanService(ctx);
-            var payload = await service.SaveComponentScan(dto);
-
-            Assert.True(payload.Errors.Count() > 0);
-
-            var msg ="verified prerequisite scans required";
-            Assert.Contains(msg, payload.Errors.ToArray()[0].Message);
-        }
-
-        [Fact]
-        public async Task can_save_component_with_prerequisite_scans_if_prerequisites_have_verified_scans() {
-
-            var service = new ComponentScanService(ctx);
-
-            // setup
-            var preReqSeqNums = new List<int> { 1, 2 };
-            var preReqSeqNums_String = preReqSeqNums.Select(t => t.ToString()).Aggregate((a, b) => a + "," + b);
-
-            var vehicle = await ctx.Vehicles
-                .Include(t => t.VehicleComponents).ThenInclude(vc => vc.Component)
-                .FirstAsync(t => t.VIN == vin1);
-
-            // Modify  Last vehicle component in sequence to requires sequence 1 and 2 as prerequisies
-            var lastVehicleComponent = vehicle.VehicleComponents.OrderByDescending(t => t.Sequence).FirstOrDefault();
-            
-            lastVehicleComponent.PrerequisiteSequences = preReqSeqNums_String;
-            await ctx.SaveChangesAsync();
-
-
-            // for each of the prereq sequences save a component scan
-            preReqSeqNums.ForEach(async seqUm => {
-                var vcs = vehicle.VehicleComponents.FirstOrDefault(t => t.Sequence == seqUm);
-                var dto = new ComponentScan {
-                    VehicleComponentId = vcs.Id,
-                    Scan1 = Util.RandomString(12),
-                    Scan2 = Util.RandomString(12)
-                };
-
-                await service.SaveComponentScan(dto);
-                // mark vehicleComponent as verfied
-                vcs.ScanVerifiedAt = DateTime.UtcNow;
-                // await ctx.SaveChangesAsync(); // no need due to in memory testing
-            });
-
-            //test
-            var dto = new ComponentScan {
-                VehicleComponentId = lastVehicleComponent.Id,
-                Scan1 = "",
-                Scan2 = Util.RandomString(12),
-            };
-
-            var payload = await service.SaveComponentScan(dto);
-
-            if (payload.Errors.Count() > 0) {
-                payload.Errors.ToList().ForEach(err => Console.WriteLine($"*** Error Message: {err.Message}   "));
-            }
-            Assert.True(payload.Errors.Count() == 0);
-        }
+    
 
         #region generate seed data 
 
@@ -180,24 +104,35 @@ namespace SKD.VCS.Test {
         private string vin1 = Util.RandomString(EntityMaxLen.Vehicle_VIN);
         private string vin2_locked = Util.RandomString(EntityMaxLen.Vehicle_VIN);
 
+
+
+        private string stationCode1 = "STATIONE_1";
+        private string stationCode2 = "STATIONE_2";
+        private string stationCode3 = "STATIONE_3";
+
         private string componentCode1 = "COMP_1";
         private string componentCode2 = "COMP_2";
         private string componentCode3 = "COMP_3";
-        private string unused_componentCode = "COMP_4";
+        
 
         private void GenerateSeedData() {
-            //components
-            var componentCodes = new string[] { componentCode1, componentCode2, componentCode3, unused_componentCode };
+            // components
+            var componentCodes = new string[] { componentCode1, componentCode2, componentCode3 };
             var components = componentCodes.Select(code => new Component { Code = code, Name = code }).ToList(); // ToList() to prevent UNIQUE constraint failed: component.Name'
             ctx.Components.AddRange(components);
 
-            // vehicle model            
-            var seqNum = 1;
-            var modelComponents = components.Where(t => t.Code != unused_componentCode).ToList().Select(component =>
-                new VehicleModelComponent {
-                    Component = component,
-                    Sequence = seqNum++
-                }).ToList();
+            // production stations
+            var productionStationCodes = new string[] { stationCode1, stationCode2, stationCode3  };
+            var productionStations = productionStationCodes.Select(code => new ProductionStation { Code = code, Name = code }).ToList(); // ToList() to prevent UNIQUE constraint failed: component.Name'
+            ctx.ProductionStations.AddRange(productionStations);
+
+            components = ctx.Components.ToList();
+            productionStations = ctx.ProductionStations.ToList();
+            var zipped = components.Zip(productionStations, (component, station) => new { Component = component, ProductionStation = station});      
+            var modelComponents = zipped.Select(t => new VehicleModelComponent {
+                Component = t.Component,
+                ProductionStation = t.ProductionStation
+            }).ToList();
 
             var vehicleModel = new VehicleModel {
                 Code = "Model Code",
@@ -216,7 +151,7 @@ namespace SKD.VCS.Test {
                   ScanLockedAt = (vin == vin2_locked) ? DateTime.UtcNow : (DateTime?)null,
                   VehicleComponents = vehicleModel.ModelComponents.Select(mc => new VehicleComponent {
                       Component = mc.Component,
-                      Sequence = mc.Sequence
+                      ProductionStation = mc.ProductionStation
                   }).ToList()
               });
 

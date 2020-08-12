@@ -61,7 +61,13 @@ namespace SKD.VCS.Test {
 
         private void GenerateSeedData() {
 
-            var components = new List<Component>() {
+            var productionStations = new List<ProductionStation> {
+                new ProductionStation() { Code = "STATION_1", Name = "Station name 1" },
+                new ProductionStation() { Code = "STATION_2", Name = "Station name 2" },
+
+            };
+
+            var components = new List<Component> {
                 new Component() { Code = "COMP1", Name = "Component name 1" },
                 new Component() { Code = "COMP2", Name = "Component name 2" },
             };
@@ -73,7 +79,7 @@ namespace SKD.VCS.Test {
                 Name = "Ford Ranger 2.0",
                 ModelComponents = components.Select((component, i) => new VehicleModelComponent() {
                     Component = component,
-                    Sequence = i + 1
+                    ProductionStation = productionStations[i]
                 }).ToList()
             };
 

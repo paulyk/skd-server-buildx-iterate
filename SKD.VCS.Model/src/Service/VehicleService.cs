@@ -32,7 +32,7 @@ namespace SKD.VCS.Model {
                 vehicle.Model.ActiveComponentMappings.ToList().ForEach(mapping => {
                     vehicle.VehicleComponents.Add(new VehicleComponent() {
                         Component = mapping.Component,
-                        Sequence = mapping.Sequence,
+                        ProductionStationId = mapping.ProductionStationId,
                         CreatedAt = vehicle.CreatedAt
                     });
                 });
@@ -92,21 +92,15 @@ namespace SKD.VCS.Model {
                 } else if (vehicle.Model.ModelComponents.Count != vehicle.VehicleComponents.Count) {
                     errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponents, $"Vehicle components don't match model component count"));
                 } else {
-                    // vehicle components sequence must match model component sequence
-                    var vehicleComponents = vehicle.VehicleComponents.OrderBy(t => t.Sequence).ToList();
-                    var modelComponents = vehicle.Model.ModelComponents.OrderBy(t => t.Sequence).ToList();
+                    // vehicle components must match model component
+                    var vehicleComponents = vehicle.VehicleComponents.OrderBy(t => t.Component.Code).ToList();
+                    var modelComponents = vehicle.Model.ModelComponents.OrderBy(t => t.Component.Code).ToList();
 
                     var zipped = vehicleComponents.Zip(modelComponents, (v, m) => new {
-                        vehicle_Seq = v.Sequence,
-                        model_Seq = m.Sequence,
                         vehicle_ComponentId = v.Component.Id,
                         model_ComponentId = m.Component.Id
                     }).ToList();
 
-                    // any sequence mismatch
-                    if (zipped.Any(item => item.vehicle_Seq != item.model_Seq)) {
-                        errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponents, "Vehicle compopnent sequence doesn't match model component sequeunce"));
-                    }
                     // any component mismatch
                     if (zipped.Any(item => item.vehicle_ComponentId != item.model_ComponentId)) {
                         errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponents, "Vehicle component ID doesn't match model component ID"));

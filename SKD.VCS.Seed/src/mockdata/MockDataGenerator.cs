@@ -23,12 +23,12 @@ namespace SKD.VCS.Seed {
             foreach (var item in vehicleModelComponentData) {
                 var component = await ctx.Components.FirstOrDefaultAsync(c => c.Code == item.componentCode);
                 var model = await ctx.VehicleModels.FirstOrDefaultAsync(m => m.Code == item.modelCode);
+                var productionStation = await ctx.ProductionStations.FirstOrDefaultAsync(t => t.Code == item.productionStationCode );
 
                 vehicleModelComponents.Add(new VehicleModelComponent() {
                     Component = component,
                     VehicleModel = model,
-                    Sequence = item.sequence,
-                    PrerequisiteSequences = item.prerequisite,
+                    ProductionStationId = productionStation.Id,
                     CreatedAt = Util.RandomDateTime(DateTime.UtcNow)
                 });
             }
@@ -79,8 +79,8 @@ namespace SKD.VCS.Seed {
                     var vehicleComponent = new VehicleComponent() {
                         Component = modelComponent.Component,
                         ComponentId = modelComponent.ComponentId,
-                        Sequence = modelComponent.Sequence,
-                        PrerequisiteSequences = modelComponent.PrerequisiteSequences,
+                        ProductionStationId = modelComponent.ProductionStationId,
+                        ProductionStation = modelComponent.ProductionStation,
                         CreatedAt = vehicle.CreatedAt
                     };
 

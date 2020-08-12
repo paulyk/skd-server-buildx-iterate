@@ -8,11 +8,10 @@ namespace SKD.VCS.Model {
 
         public Guid ComponentId { get; set; }
         public Component Component { get; set; }
-        public int Sequence { get; set; }
-        public string PrerequisiteSequences { get; set; }
-        
-        public VehicleModelComponent() : base() {
 
-        }
+        public Guid ProductionStationId { get; set; }
+        public ProductionStation ProductionStation { get; set; }
+
+        public VehicleModelComponent() : base() {}
     }
 }

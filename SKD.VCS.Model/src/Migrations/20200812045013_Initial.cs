@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace SKD.VCS.Model.src.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -20,6 +20,22 @@ namespace SKD.VCS.Model.src.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_component", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "production_station",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(maxLength: 36, nullable: false),
+                    CreatedAt = table.Column<DateTime>(nullable: false),
+                    RemovedAt = table.Column<DateTime>(nullable: true),
+                    Code = table.Column<string>(maxLength: 100, nullable: false),
+                    Name = table.Column<string>(nullable: true),
+                    SortOrder = table.Column<int>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_production_station", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -63,6 +79,7 @@ namespace SKD.VCS.Model.src.Migrations
                     KitNo = table.Column<string>(nullable: true),
                     LotNo = table.Column<string>(nullable: true),
                     ModelId = table.Column<Guid>(nullable: false),
+                    PlannedBuildAt = table.Column<DateTime>(nullable: true),
                     ScanLockedAt = table.Column<DateTime>(nullable: true)
                 },
                 constraints: table =>
@@ -85,8 +102,7 @@ namespace SKD.VCS.Model.src.Migrations
                     RemovedAt = table.Column<DateTime>(nullable: true),
                     VehicleModelId = table.Column<Guid>(nullable: false),
                     ComponentId = table.Column<Guid>(nullable: false),
-                    Sequence = table.Column<int>(nullable: false),
-                    PrerequisiteSequences = table.Column<string>(maxLength: 50, nullable: true)
+                    ProductionStationId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -95,6 +111,12 @@ namespace SKD.VCS.Model.src.Migrations
                         name: "FK_vehicle_model_component_component_ComponentId",
                         column: x => x.ComponentId,
                         principalTable: "component",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_vehicle_model_component_production_station_ProductionStationId",
+                        column: x => x.ProductionStationId,
+                        principalTable: "production_station",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -114,8 +136,7 @@ namespace SKD.VCS.Model.src.Migrations
                     RemovedAt = table.Column<DateTime>(nullable: true),
                     VehicleId = table.Column<Guid>(nullable: false),
                     ComponentId = table.Column<Guid>(nullable: false),
-                    Sequence = table.Column<int>(nullable: false),
-                    PrerequisiteSequences = table.Column<string>(nullable: true),
+                    ProductionStationId = table.Column<Guid>(nullable: false),
                     ScanVerifiedAt = table.Column<DateTime>(nullable: true)
                 },
                 constraints: table =>
@@ -125,6 +146,12 @@ namespace SKD.VCS.Model.src.Migrations
                         name: "FK_vehicle_component_component_ComponentId",
                         column: x => x.ComponentId,
                         principalTable: "component",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_vehicle_component_production_station_ProductionStationId",
+                        column: x => x.ProductionStationId,
+                        principalTable: "production_station",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -185,6 +212,19 @@ namespace SKD.VCS.Model.src.Migrations
                 column: "VehicleComponentId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_production_station_Code",
+                table: "production_station",
+                column: "Code",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_production_station_Name",
+                table: "production_station",
+                column: "Name",
+                unique: true,
+                filter: "[Name] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_user_Email",
                 table: "user",
                 column: "Email",
@@ -205,6 +245,11 @@ namespace SKD.VCS.Model.src.Migrations
                 name: "IX_vehicle_component_ComponentId",
                 table: "vehicle_component",
                 column: "ComponentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_vehicle_component_ProductionStationId",
+                table: "vehicle_component",
+                column: "ProductionStationId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_vehicle_component_VehicleId_ComponentId",
@@ -230,6 +275,11 @@ namespace SKD.VCS.Model.src.Migrations
                 column: "ComponentId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_vehicle_model_component_ProductionStationId",
+                table: "vehicle_model_component",
+                column: "ProductionStationId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_vehicle_model_component_VehicleModelId_ComponentId",
                 table: "vehicle_model_component",
                 columns: new[] { "VehicleModelId", "ComponentId" },
@@ -252,6 +302,9 @@ namespace SKD.VCS.Model.src.Migrations
 
             migrationBuilder.DropTable(
                 name: "component");
+
+            migrationBuilder.DropTable(
+                name: "production_station");
 
             migrationBuilder.DropTable(
                 name: "vehicle");

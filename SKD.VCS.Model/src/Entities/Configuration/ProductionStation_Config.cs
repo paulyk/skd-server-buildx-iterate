@@ -16,7 +16,13 @@ namespace SKD.VCS.Model {
             builder.Property(t => t.Code).IsRequired().HasMaxLength(EntityMaxLen.ProductionStation_Code);
             builder.Property(t => t.Code).IsRequired().HasMaxLength(EntityMaxLen.ProductionStation_Name);
 
+            builder.HasMany(t => t.ModelComponents)
+                .WithOne(t => t.ProductionStation)
+                .HasForeignKey(t => t.ProductionStationId);
 
+            builder.HasMany(t => t.VehicleComponents)
+                .WithOne(t => t.ProductionStation)
+                .HasForeignKey(t => t.ProductionStationId);
         }
     }
 }

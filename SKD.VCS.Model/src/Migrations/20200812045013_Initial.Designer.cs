@@ -10,8 +10,8 @@ using SKD.VCS.Model;
 namespace SKD.VCS.Model.src.Migrations
 {
     [DbContext(typeof(SkdContext))]
-    [Migration("20200811085835_VehiclePlannedBuild")]
-    partial class VehiclePlannedBuild
+    [Migration("20200812045013_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -88,6 +88,42 @@ namespace SKD.VCS.Model.src.Migrations
                     b.HasIndex("VehicleComponentId");
 
                     b.ToTable("component_scan");
+                });
+
+            modelBuilder.Entity("SKD.VCS.Model.ProductionStation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)")
+                        .HasMaxLength(100);
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("RemovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasFilter("[Name] IS NOT NULL");
+
+                    b.ToTable("production_station");
                 });
 
             modelBuilder.Entity("SKD.VCS.Model.User", b =>
@@ -172,8 +208,8 @@ namespace SKD.VCS.Model.src.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("PrerequisiteSequences")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid>("ProductionStationId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
@@ -181,15 +217,14 @@ namespace SKD.VCS.Model.src.Migrations
                     b.Property<DateTime?>("ScanVerifiedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("Sequence")
-                        .HasColumnType("int");
-
                     b.Property<Guid>("VehicleId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ComponentId");
+
+                    b.HasIndex("ProductionStationId");
 
                     b.HasIndex("VehicleId", "ComponentId")
                         .IsUnique();
@@ -247,15 +282,11 @@ namespace SKD.VCS.Model.src.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("PrerequisiteSequences")
-                        .HasColumnType("nvarchar(50)")
-                        .HasMaxLength(50);
+                    b.Property<Guid>("ProductionStationId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("Sequence")
-                        .HasColumnType("int");
 
                     b.Property<Guid>("VehicleModelId")
                         .HasColumnType("uniqueidentifier");
@@ -263,6 +294,8 @@ namespace SKD.VCS.Model.src.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ComponentId");
+
+                    b.HasIndex("ProductionStationId");
 
                     b.HasIndex("VehicleModelId", "ComponentId")
                         .IsUnique();
@@ -296,6 +329,12 @@ namespace SKD.VCS.Model.src.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("SKD.VCS.Model.ProductionStation", "ProductionStation")
+                        .WithMany("VehicleComponents")
+                        .HasForeignKey("ProductionStationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("SKD.VCS.Model.Vehicle", "Vehicle")
                         .WithMany("VehicleComponents")
                         .HasForeignKey("VehicleId")
@@ -308,6 +347,12 @@ namespace SKD.VCS.Model.src.Migrations
                     b.HasOne("SKD.VCS.Model.Component", "Component")
                         .WithMany("VehicleModelComponents")
                         .HasForeignKey("ComponentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SKD.VCS.Model.ProductionStation", "ProductionStation")
+                        .WithMany("ModelComponents")
+                        .HasForeignKey("ProductionStationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

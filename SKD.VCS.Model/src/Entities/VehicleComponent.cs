@@ -10,10 +10,11 @@ namespace SKD.VCS.Model {
 
         public Guid ComponentId { get; set; }
         public Component Component { get; set; }
-        public int Sequence { get; set; }
-        public string PrerequisiteSequences { get; set; }
-        public virtual ICollection<ComponentScan> ComponentScans { get; set; } = new List<ComponentScan>();
 
+        public Guid ProductionStationId { get; set; }
+        public ProductionStation ProductionStation { get; set; }
+
+        public virtual ICollection<ComponentScan> ComponentScans { get; set; } = new List<ComponentScan>();
         public DateTime? ScanVerifiedAt { get; set; }
 
         public VehicleComponent() {
