@@ -61,9 +61,7 @@ namespace SKD.VCS.Seed {
             foreach (var entry in vehicleData.ToList()) {
                 var vehicle = new Vehicle() {
                     VIN = entry.vin,
-                    KitNo = entry.kitNo,
-                    LotNo = entry.lotNo,
-                    Model = ctx.VehicleModels.First(m => m.Code == entry.modelId),
+                    Model = ctx.VehicleModels.First(m => m.Code == entry.modelCode),
                     PlannedBuildAt = index % 2 == 0 ? DateTime.UtcNow.AddDays(-(index * 3)) : (DateTime?)null,
                     CreatedAt = Util.RandomDateTime(DateTime.UtcNow)
                 };

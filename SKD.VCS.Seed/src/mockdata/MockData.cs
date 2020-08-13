@@ -20,58 +20,39 @@ namespace SKD.VCS.Seed {
 
             Component_MockData = JsonSerializer.Deserialize<List<Component_MockData_DTO>>(Components_JSON.Replace("'", "\""));
             ProductionStation_MockData = JsonSerializer.Deserialize<List<ProductionStation_Mock_DTO>>(ProductionStations_JSON.Replace("'", "\""));
-            ComponentStation_MockData = JsonSerializer.Deserialize<List<CmponentStation_McckData_DTO>>(ComponentStationMapping_JSON.Replace("'", "\""));
-
-            
-            Vehicle_MockData = JsonSerializer.Deserialize<List<Vehicle_MockData_DTO>>(Vehicles_JSON.Replace("'", "\""));
+            ComponentStation_MockData = JsonSerializer.Deserialize<List<CmponentStation_McckData_DTO>>(ComponentStationMapping_JSON.Replace("'", "\""));          
             VehicleModel_MockData = JsonSerializer.Deserialize<List<VehicleModel_MockData_DTO>>(VehicleModels_JSON.Replace("'", "\""));
+            Vehicle_MockData = JsonSerializer.Deserialize<List<Vehicle_MockData_DTO>>(Vehicles_JSON.Replace("'", "\""));
         }
 
         private string Vehicles_JSON = @"
-[
-    {
-      'vin': 'MNCUMNF50JW795262',
-      'kitNo': '',
-      'lotNo': '',
-      'modelId': 'IJBW9E40001',
-      'modelName': 'Ranger DC Wildtrak - MY18'
-    },
-    {
-      'vin': 'MNCUMNF50JW795267',
-      'kitNo': '',
-      'lotNo': '',
-      'modelId': 'IJBT9E40002',
-      'modelName': 'Ranger DC 3.2 XLT 6AT - MY18'
-    },
-    {
-      'vin': 'MNCUMNF80JW795260',
-      'kitNo': '',
-      'lotNo': '',
-      'modelId': 'IJBT9240002',
-      'modelName': 'Ranger DC 2.2 XLT 6AT - MY18'
-    },
-    {
-      'vin': 'MNCBXXMAWBHK48380',
-      'kitNo': '',
-      'lotNo': '',
-      'modelId': 'ZJAV9DC0001',
-      'modelName': 'Everest Ambiente 2.2 6AT 2WD - MY18'
-    },
-    {
-      'vin': 'MNCBXXMAWBHD65253',
-      'kitNo': '',
-      'lotNo': '',
-      'modelId': 'ZJAJ9CD0003',
-      'modelName': 'Everest Trend 3.2 6AT AWD - MY18'
-    },
-    {
-      'vin': 'MNCBXXMAWBHD63946',
-      'kitNo': '',
-      'lotNo': '',
-      'modelId': 'ZJAE9CD0002',
-      'modelName': 'Everest Titanium 3.2 6AT - MY18'
-    }
-  ]";
+        [
+  {
+    'vin': 'MNCUMNF50JW795262',
+    'modelCode': 'IJBW9E40001'
+  },
+  {
+    'vin': 'MNCUMNF50JW795267',
+    'modelCode': 'IJBT9E40002'
+  },
+  {
+    'vin': 'MNCUMNF80JW795260',
+    'modelCode': 'IJBT9240002'
+  },
+  {
+    'vin': 'MNCBXXMAWBHK48380',
+    'modelCode': 'ZJAV9DC0001'
+  },
+  {
+    'vin': 'MNCBXXMAWBHD65253',
+    'modelCode': 'ZJAJ9CD0003'
+  },
+  {
+    'vin': 'MNCBXXMAWBHD63946',
+    'modelCode': 'ZJAE9CD0002'
+  }
+]
+";
 
         private string Components_JSON = @"
   [
