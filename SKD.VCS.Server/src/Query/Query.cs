@@ -49,5 +49,13 @@ namespace SKD.VCS.Server {
         [UseSorting]
         public IQueryable<ComponentScan> GetVehicleComponentScans([Service] SkdContext context) => 
                 context.ComponentScans.AsQueryable();
+
+
+        [UsePaging]
+        [UseSelection]
+        [UseFiltering]
+        [UseSorting]
+        public IQueryable<ProductionStation> GetProductionStations([Service] SkdContext context) => 
+                context.ProductionStations.AsQueryable();
     }
 }
