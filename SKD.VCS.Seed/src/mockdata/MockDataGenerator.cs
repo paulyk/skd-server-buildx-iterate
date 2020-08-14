@@ -62,8 +62,10 @@ namespace SKD.VCS.Seed {
                 var vehicle = new Vehicle() {
                     VIN = entry.vin,
                     Model = ctx.VehicleModels.First(m => m.Code == entry.modelCode),
-                    PlannedBuildAt = index % 2 == 0 ? DateTime.UtcNow.AddDays(-(index * 3)) : (DateTime?)null,
-                    CreatedAt = Util.RandomDateTime(DateTime.UtcNow)
+                    PlannedBuildAt = index % 2 == 0 
+                        ? DateTime.UtcNow.Date
+                        : (DateTime?)null,
+                    CreatedAt = Util.RandomDateTime(DateTime.UtcNow.Date.AddMonths(-1))
                 };
 
                 ctx.Vehicles.Add(vehicle);
