@@ -40,14 +40,14 @@ namespace SKD.VCS.Server {
         [UseSelection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<VehicleComponent> GetVehicleComponents([Service] SkdContext context) => 
+        public IQueryable<VehicleComponent> GetVehicleComponents([Service] SkdContext context) =>
                 context.VehicleComponents.AsQueryable();
 
         [UsePaging]
         [UseSelection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<ComponentScan> GetVehicleComponentScans([Service] SkdContext context) => 
+        public IQueryable<ComponentScan> GetVehicleComponentScans([Service] SkdContext context) =>
                 context.ComponentScans.AsQueryable();
 
 
@@ -55,7 +55,11 @@ namespace SKD.VCS.Server {
         [UseSelection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<ProductionStation> GetProductionStations([Service] SkdContext context) => 
+        public IQueryable<ProductionStation> GetProductionStations([Service] SkdContext context) =>
                 context.ProductionStations.AsQueryable();
+
+        public async Task<Vehicle> GetVehicleByVIN([Service] SkdContext context, string vin) =>
+                await context.Vehicles.FirstOrDefaultAsync(t => t.VIN == vin);
+
     }
 }
