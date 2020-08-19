@@ -26,30 +26,42 @@ namespace SKD.VCS.Seed {
         }
 
         private string Vehicles_JSON = @"
-        [
+[
   {
     'vin': 'MNCUMNF50JW795262',
-    'modelCode': 'IJBW9E40001'
+    'modelCode': 'ZRAE9GD0010'
   },
   {
     'vin': 'MNCUMNF50JW795267',
-    'modelCode': 'IJBT9E40002'
+    'modelCode': 'ZRAE9GD9999'
   },
   {
     'vin': 'MNCUMNF80JW795260',
-    'modelCode': 'IJBT9240002'
+    'modelCode': 'ZRAE9PQ0010'
   },
   {
     'vin': 'MNCBXXMAWBHK48380',
-    'modelCode': 'ZJAV9DC0001'
+    'modelCode': 'ZRAE9GD5010'
   },
   {
     'vin': 'MNCBXXMAWBHD65253',
-    'modelCode': 'ZJAJ9CD0003'
+    'modelCode': 'ARLQ93D0001'
   },
   {
     'vin': 'MNCBXXMAWBHD63946',
-    'modelCode': 'ZJAE9CD0002'
+    'modelCode': 'ARLQ93D9999'
+  },
+  {
+    'vin': 'MNCBXXMAWBHD65454',
+    'modelCode': 'ARLQ99E0001'
+  },
+  {
+    'vin': 'MNCBXXMAWBHD65873',
+    'modelCode': 'ARLQ93D5555'
+  },
+  {
+    'vin': 'MNCBXXMAWBHDK4871',
+    'modelCode': 'ARLQ93A2222'
   }
 ]
 ";
@@ -74,33 +86,46 @@ namespace SKD.VCS.Seed {
   ]
 ";
 
-        private string VehicleModels_JSON = @"
+private string VehicleModels_JSON = @"
 [
   {
-    'code': 'IJBW9E40001',
-    'name': 'Ranger DC Wildtrak - MY18'
+    'code': 'ZRAE9GD0010',
+    'name': 'U375 XLT 2.0L SG DSL PANTHER-B 2WHD AUTO HONEY GOLD'
   },
   {
-    'code': 'IJBT9E40002',
-    'name': 'Ranger DC 3.2 XLT 6AT - MY18'
+    'code': 'ZRAE9GD9999',
+    'name': 'U375 LTD 2.0L BI DSL PANTHER-C 4WHD AUTO COGNAC'
   },
   {
-    'code': 'IJBT9240002',
-    'name': 'Ranger DC 2.2 XLT 6AT - MY18'
+    'code': 'ZRAE9PQ0010',
+    'name': 'U375 XLT 2.0L SG DSL PANTHER-B 2WHD AUTO EBONY'
   },
   {
-    'code': 'ZJAV9DC0001',
-    'name': 'Everest Ambiente 2.2 6AT 2WD - MY18'
+    'code': 'ZRAE9GD5010',
+    'name': 'U375 LTD 2.0L BI DSL PANTHER-C 4WHD AUTO EBONY'
   },
   {
-    'code': 'ZJAJ9CD0003',
-    'name': 'Everest Trend 3.2 6AT AWD - MY18'
+    'code': 'ARLQ93D0001',
+    'name': 'P375 XL 2.2L I4 DSL PUMA 4WHD MAN'
   },
   {
-    'code': 'ZJAE9CD0002',
-    'name': 'Everest Titanium 3.2 6AT - MY18'
+    'code': 'ARLQ93D9999',
+    'name': 'P375 XLT 2.2L I4 DSL PUMA 4WHD AUTO'
+  },
+  {
+    'code': 'ARLQ99E0001',
+    'name': 'P375 XLT 3.2L I5 DSL PUMA 4WHD AUTOA9SAA'
+  },
+  {
+    'code': 'ARLQ93D5555',
+    'name': 'P375 XLT 3.2L I5 DSL PUMA 4WHD AUTOA9SAB'
+  },
+  {
+    'code': 'ARLQ93A2222',
+    'name': 'P375 WILDTRAK 3.2L I5 DSL PUMA 4WHD AUTO'
   }
-]";
+]
+";
 
  private string ComponentStationMapping_JSON = @"
  

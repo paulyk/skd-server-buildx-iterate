@@ -58,10 +58,12 @@ namespace SKD.VCS.Seed {
             }
 
             var index = 1;
-            foreach (var entry in vehicleData.ToList()) {
+            
+            foreach (var entry in vehicleData) {
+                var vehicleModel = ctx.VehicleModels.First(m => m.Code == entry.modelCode);
                 var vehicle = new Vehicle() {
                     VIN = entry.vin,
-                    Model = ctx.VehicleModels.First(m => m.Code == entry.modelCode),
+                    Model = vehicleModel,
                     PlannedBuildAt = index % 2 == 0 
                         ? DateTime.UtcNow.Date
                         : (DateTime?)null,
@@ -123,7 +125,6 @@ namespace SKD.VCS.Seed {
             Console.WriteLine($"Added {ctx.ProductionStations.Count()} production stations");
         }
 
-
         public async Task Seed_Components(ICollection<Component_MockData_DTO> componentData) {
             var components = componentData.ToList().Select(x => new Component() {
                 Code = x.code,
@@ -141,7 +142,7 @@ namespace SKD.VCS.Seed {
             var vehicleModels = vehicleModelData.ToList().Select(x => new VehicleModel() {
                 Code = x.code,
                 Name = x.name,
-            });
+            }).ToList();        
 
             ctx.VehicleModels.AddRange(vehicleModels);
             await ctx.SaveChangesAsync();
