@@ -16,19 +16,19 @@ namespace SKD.VCS.Model {
             this.context = ctx;
         }
 
-       public async Task<MutationPayload<Component>> SaveComponent(Component component) {
-            var payload = new MutationPayload<Component>(component);
+       public async Task<MutationPayload<Component>> SaveComponent(SaveComponentDTO dto) {
+            var component = await context.Components.FirstOrDefaultAsync(t => t.Id == dto.Id);
 
-            var existing = context.Components.FirstOrDefault(t => t.Id == component.Id);
-            if (existing != null) {
-                existing.Code = component.Code;
-                existing.Name = component.Name;
-                component = existing;
+            if (component != null) {
+                component.Code = dto.Code;
+                component.Name = dto.Name;
             } else {
+                component = new Component { Code = dto.Code, Name = dto.Name };
                 context.Components.Add(component);
             }
-
             component.TrimStringProperties();
+
+            var payload = new MutationPayload<Component>(component);
 
             // validate
             payload.Errors = await ValidateCreateComponent<Component>(component);

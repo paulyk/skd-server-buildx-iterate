@@ -18,17 +18,19 @@ namespace SKD.VCS.Test {
         [Fact]
         private async Task can_save_new_component() {
             var service = new ComponentService(ctx);
-            var component = new Component() {
+            var componentDTO = new SaveComponentDTO() {
                 Code = Util.RandomString(EntityMaxLen.Component_Code),
                 Name = Util.RandomString(EntityMaxLen.Component_Name)
             };
 
-            var priorComponentCount = await ctx.Components.CountAsync();
-            var payload = await service.SaveComponent(component);
+
+            var before_count = await ctx.Components.CountAsync();
+            var payload = await service.SaveComponent(componentDTO);
 
             Assert.NotNull(payload.Entity);
-            var newCount = await ctx.Components.CountAsync();
-            Assert.Equal(priorComponentCount + 1, newCount);
+            var expectedCount = before_count + 1;
+            var actualCount = ctx.Components.Count();
+            Assert.Equal(expectedCount, actualCount);
         }
 
         [Fact]
@@ -37,18 +39,18 @@ namespace SKD.VCS.Test {
             var service = new ComponentService(ctx);
             var component = await ctx.Components.FirstOrDefaultAsync();
 
+            var before_CreatedAt = component.CreatedAt;
+            var before_ComponentCount = await ctx.Components.CountAsync();
+
             var newCode = Util.RandomString(EntityMaxLen.Component_Code);
             var newName = Util.RandomString(EntityMaxLen.Component_Name);
-            var oldCreatedAt = component.CreatedAt;
-
-            component.Code = newCode;
-            component.Name = newName;
-
-            var before_ComponentCount = await ctx.Components.CountAsync();
-            var before_CreatedAt = component.CreatedAt;
-
             // test
-            var payload = await service.SaveComponent(component);
+            await Task.Delay(1000);
+            var payload = await service.SaveComponent(new SaveComponentDTO {
+                Id = component.Id,
+                Code = newCode,
+                Name = newName
+            });
 
             // assert
             var after_ComponentCount = await ctx.Components.CountAsync();
@@ -59,7 +61,7 @@ namespace SKD.VCS.Test {
             var modifiedComponent = await ctx.Components.FirstOrDefaultAsync(t => t.Id == component.Id);
             Assert.Equal(newCode, component.Code);
             Assert.Equal(newName, component.Name);
-            Assert.Equal(oldCreatedAt, component.CreatedAt);
+            Assert.Equal(before_CreatedAt, component.CreatedAt);
         }
 
         [Fact]
@@ -78,7 +80,7 @@ namespace SKD.VCS.Test {
             var errors = await service.ValidateCreateComponent<Component>(component);
 
             // assert
-            var errorCount = errors.Count;
+            var errorCount = errors.Count();
             Assert.Equal(1, errorCount);
 
             if (errors.Count > 0) {
@@ -87,27 +89,60 @@ namespace SKD.VCS.Test {
         }
 
         [Fact]
-        private async Task validate_component_warns_duplicate_name() {
-            // setup
+        private async Task can_save_multiple_component() {
+            var before_count = ctx.Components.Count();
+            var componentService = new ComponentService(ctx);
+
+            // first
+            await componentService.SaveComponent(new SaveComponentDTO {
+                Code = "AA", Name = "AA Name"
+            });
+            await componentService.SaveComponent(new SaveComponentDTO {
+                Code = "BB", Name = "BB Name"
+            });
+
+            var atterCount = ctx.Components.Count();
+
+            Assert.Equal(before_count + 2, atterCount);
+        }
+
+        [Fact]
+        private async Task can_modify_componetn_code() {
             var service = new ComponentService(ctx);
+            var component = await ctx.Components.FirstOrDefaultAsync();
 
-            var existingComponent = await ctx.Components.FirstAsync();
+            var newCode = Util.RandomString(EntityMaxLen.Component_Code).ToString();
+            var payload = await service.SaveComponent(new SaveComponentDTO {
+                Id = component.Id,
+                Code = newCode,
+                Name = component.Name
+            });
 
-            var component = new Component() {
-                Code = new String('x', EntityMaxLen.Component_Code),
-                Name = existingComponent.Name
-            };
+            var errorCount = payload.Errors.Count();
+            Assert.Equal(0, errorCount);
+            Assert.Equal(newCode, payload.Entity.Code);
+        }
 
-            // test
-            var errors = await service.ValidateCreateComponent<Component>(component);
+        [Fact]
+        private async Task validate_component_warns_duplicate_name() {
+            var before_count = ctx.Components.Count();
+            var componentService = new ComponentService(ctx);
 
-            // assert    
-            var errorCount = errors.Count;
+            // first
+            await componentService.SaveComponent(new SaveComponentDTO {
+                Code = "AA", Name = "AA Name"
+            });
+            var count = ctx.Components.Count();
+            Assert.Equal(before_count + 1, count);
+
+            // try add with duplicate name
+            var payload = await componentService.SaveComponent(new SaveComponentDTO {
+                Code = "BB", Name = "AA Name"
+            });
+
+            var errorCount = payload.Errors.Count();
             Assert.Equal(1, errorCount);
-
-            if (errors.Count > 0) {
-                Assert.Equal("duplicate name", errors.First().Message);
-            }
+            Assert.Equal("duplicate name", payload.Errors.First().Message);
         }
 
         private void GenerateSeedData() {

@@ -7,4 +7,5 @@ namespace SKD.VCS.Server {
         public string Code { get; set; } = "";
         public string Name { get; set; } = "";
     }
+
 }

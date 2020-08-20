@@ -17,7 +17,7 @@ namespace SKD.VCS.Model {
         public virtual ICollection<ComponentScan> ComponentScans { get; set; } = new List<ComponentScan>();
         public DateTime? ScanVerifiedAt { get; set; }
 
-        public VehicleComponent() {
+        public VehicleComponent(): base() {
 
         }
     }

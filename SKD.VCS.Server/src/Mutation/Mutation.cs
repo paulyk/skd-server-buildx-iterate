@@ -37,15 +37,13 @@ namespace SKD.VCS.Server {
             [Service] SkdContext ctx,
             ComponentInput input
         ) {
-            var component = new Component {
-                Id = input.Id != null ? new Guid(input.Id) : Guid.NewGuid(),
-                Code = input.Code,
+            var component = new SaveComponentDTO {
+                Id = ToGuid(input.Id != null ? input.Id : ""),
+                Code = input.Code,                
                 Name = input.Name
             };
             return await service1.SaveComponent(component);
         }
-
-        
 
         private Guid ToGuid(string str) {
             Guid gOut;

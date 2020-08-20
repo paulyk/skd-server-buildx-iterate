@@ -10,7 +10,7 @@ using SKD.VCS.Model;
 namespace SKD.VCS.Model.src.Migrations
 {
     [DbContext(typeof(SkdContext))]
-    [Migration("20200812085050_Initial")]
+    [Migration("20200820083131_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -8,5 +8,7 @@ namespace SKD.VCS.Model {
     public virtual VehicleComponent VehicleComponent { get; set; }
     public string Scan1 { get; set; }
     public string Scan2 { get; set; }      
+
+    public ComponentScan(): base() {}
   }
 }
