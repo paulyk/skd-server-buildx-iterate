@@ -28,13 +28,13 @@ namespace SKD.VCS.Test {
             };
 
             var before_VehicleCount = await ctx.Vehicles.CountAsync();
-            var payload = await service.CreateVehicle(vehicle);          
+            var payload = await service.CreateVehicle(vehicle);
             Assert.NotNull(payload.Entity);
-            
+
             var after_VehicleCount = await ctx.Vehicles.CountAsync();
             Assert.True(after_VehicleCount == before_VehicleCount + 1, "Vehicle count unchanged after save");
 
-            Assert.True(vehicleModel.ModelComponents.Count() == vehicle.VehicleComponents.Count(),"Vehicle components don't match vehicle model components");
+            Assert.True(vehicleModel.ModelComponents.Count() == vehicle.VehicleComponents.Count(), "Vehicle components don't match vehicle model components");
         }
 
         [Fact]
@@ -64,14 +64,14 @@ namespace SKD.VCS.Test {
             var productionStations = new List<ProductionStation> {
                 new ProductionStation() { Code = "STATION_1", Name = "Station name 1" },
                 new ProductionStation() { Code = "STATION_2", Name = "Station name 2" },
-
             };
+            ctx.ProductionStations.AddRange(productionStations);
+
 
             var components = new List<Component> {
-                new Component() { Code = "COMP1", Name = "Component name 1" },
-                new Component() { Code = "COMP2", Name = "Component name 2" },
+                new Component() { Code = "COMP_1", Name = "Component name 1" },
+                new Component() { Code = "COMP_2", Name = "Component name 2" },
             };
-
             ctx.Components.AddRange(components);
 
             var vehicleModel_1 = new VehicleModel() {
