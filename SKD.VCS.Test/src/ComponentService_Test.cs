@@ -18,7 +18,7 @@ namespace SKD.VCS.Test {
         [Fact]
         private async Task can_save_new_component() {
             var service = new ComponentService(ctx);
-            var componentDTO = new SaveComponentDTO() {
+            var componentDTO = new ComponentDTO() {
                 Code = Util.RandomString(EntityMaxLen.Component_Code),
                 Name = Util.RandomString(EntityMaxLen.Component_Name)
             };
@@ -46,7 +46,7 @@ namespace SKD.VCS.Test {
             var newName = Util.RandomString(EntityMaxLen.Component_Name);
             // test
             await Task.Delay(1000);
-            var payload = await service.SaveComponent(new SaveComponentDTO {
+            var payload = await service.SaveComponent(new ComponentDTO {
                 Id = component.Id,
                 Code = newCode,
                 Name = newName
@@ -94,10 +94,10 @@ namespace SKD.VCS.Test {
             var componentService = new ComponentService(ctx);
 
             // first
-            await componentService.SaveComponent(new SaveComponentDTO {
+            await componentService.SaveComponent(new ComponentDTO {
                 Code = "AA", Name = "AA Name"
             });
-            await componentService.SaveComponent(new SaveComponentDTO {
+            await componentService.SaveComponent(new ComponentDTO {
                 Code = "BB", Name = "BB Name"
             });
 
@@ -112,7 +112,7 @@ namespace SKD.VCS.Test {
             var component = await ctx.Components.FirstOrDefaultAsync();
 
             var newCode = Util.RandomString(EntityMaxLen.Component_Code).ToString();
-            var payload = await service.SaveComponent(new SaveComponentDTO {
+            var payload = await service.SaveComponent(new ComponentDTO {
                 Id = component.Id,
                 Code = newCode,
                 Name = component.Name
@@ -129,14 +129,14 @@ namespace SKD.VCS.Test {
             var componentService = new ComponentService(ctx);
 
             // first
-            await componentService.SaveComponent(new SaveComponentDTO {
+            await componentService.SaveComponent(new ComponentDTO {
                 Code = "AA", Name = "AA Name"
             });
             var count = ctx.Components.Count();
             Assert.Equal(before_count + 1, count);
 
             // try add with duplicate name
-            var payload = await componentService.SaveComponent(new SaveComponentDTO {
+            var payload = await componentService.SaveComponent(new ComponentDTO {
                 Code = "BB", Name = "AA Name"
             });
 

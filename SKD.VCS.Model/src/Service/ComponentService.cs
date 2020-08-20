@@ -16,7 +16,7 @@ namespace SKD.VCS.Model {
             this.context = ctx;
         }
 
-       public async Task<MutationPayload<Component>> SaveComponent(SaveComponentDTO dto) {
+       public async Task<MutationPayload<Component>> SaveComponent(ComponentDTO dto) {
             var component = await context.Components.FirstOrDefaultAsync(t => t.Id == dto.Id);
 
             if (component != null) {
