@@ -45,6 +45,22 @@ namespace SKD.VCS.Server {
             return await service1.SaveComponent(component);
         }
 
+          /// <summary>
+        /// Create or update a production station
+        /// </summary>
+        public async Task<MutationPayload<ProductionStation>> SaveProductionStation(
+            [Service] ProductionStationService service,
+            [Service] SkdContext ctx,
+            ProductionStationInput input
+        ) {
+            var productionStation = new ProductionStationDTO {
+                Id = ToGuid(input.Id != null ? input.Id : ""),
+                Code = input.Code,                
+                Name = input.Name
+            };
+            return await service.SaveProductionStation(productionStation);
+        }
+
         private Guid ToGuid(string str) {
             Guid gOut;
             Guid.TryParse(str, out gOut);
