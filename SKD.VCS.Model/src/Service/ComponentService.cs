@@ -16,7 +16,7 @@ namespace SKD.VCS.Model {
             this.context = ctx;
         }
 
-       public async Task<MutationPayload<Component>> SaveComponent(ComponentDTO dto) {
+        public async Task<MutationPayload<Component>> SaveComponent(ComponentDTO dto) {
             var component = await context.Components.FirstOrDefaultAsync(t => t.Id == dto.Id);
 
             if (component != null) {
@@ -41,6 +41,31 @@ namespace SKD.VCS.Model {
 
             payload.Entity = component;
             return payload;
+        }
+
+        public async Task<MutationPayload<Component>> RemoveComponent(Guid componentId) {
+            var component = await context.Components.FirstOrDefaultAsync(t => t.Id == componentId);
+
+            var payload = new MutationPayload<Component>(component);
+
+            payload.Errors = ValidateRemoveComponent<Component>(component);
+
+            if (payload.Errors.Any()) {
+                return payload;
+            }
+
+            component.RemovedAt = DateTime.UtcNow;
+            await context.SaveChangesAsync();
+            return payload;
+        }
+
+        public List<Error> ValidateRemoveComponent<T>(Component component) where T : Component {
+            var errors = new List<Error>();
+
+            if (component.RemovedAt != null) {
+                errors.Add(ErrorHelper.Create<T>(t => t.Code, "component already removed"));
+            }
+            return errors;
         }
 
         public async Task<List<Error>> ValidateCreateComponent<T>(Component component) where T : Component {

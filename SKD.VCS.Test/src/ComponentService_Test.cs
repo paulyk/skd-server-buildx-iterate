@@ -23,7 +23,6 @@ namespace SKD.VCS.Test {
                 Name = Util.RandomString(EntityMaxLen.Component_Name)
             };
 
-
             var before_count = await ctx.Components.CountAsync();
             var payload = await service.SaveComponent(componentDTO);
 
@@ -31,8 +30,7 @@ namespace SKD.VCS.Test {
             var expectedCount = before_count + 1;
             var actualCount = ctx.Components.Count();
             Assert.Equal(expectedCount, actualCount);
-            Console.WriteLine(payload.Entity.Id);
-            
+            Console.WriteLine(payload.Entity.Id);            
         }
 
         [Fact]
@@ -125,6 +123,26 @@ namespace SKD.VCS.Test {
             Assert.Equal(newCode, payload.Entity.Code);
         }
 
+        [Fact]
+        private async Task can_remove_componet() {
+            var service = new ComponentService(ctx);
+            var before_count = ctx.Components.Count();
+
+            var dto = new ComponentDTO {
+                Code = Util.RandomString(EntityMaxLen.Component_Code),
+                Name = Util.RandomString(EntityMaxLen.Component_Name),
+            };
+
+            var payload = await service.SaveComponent(dto);
+
+            var after_count = ctx.Components.Count();
+            Assert.Equal(before_count + 1, after_count);
+            Assert.Equal(null, payload.Entity.RemovedAt);
+
+            var payload2 = service.RemoveComponent(payload.Entity.Id);
+            Assert.NotEqual(null, payload.Entity.RemovedAt);
+        }
+       
         [Fact]
         private async Task validate_component_warns_duplicate_name() {
             var before_count = ctx.Components.Count();
