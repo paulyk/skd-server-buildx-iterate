@@ -31,6 +31,8 @@ namespace SKD.VCS.Test {
             var expectedCount = before_count + 1;
             var actualCount = ctx.Components.Count();
             Assert.Equal(expectedCount, actualCount);
+            Console.WriteLine(payload.Entity.Id);
+            
         }
 
         [Fact]
