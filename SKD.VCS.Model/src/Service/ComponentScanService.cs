@@ -12,8 +12,15 @@ namespace SKD.VCS.Model {
 
         public ComponentScanService(SkdContext ctx) => this.context = ctx;
 
-        public async Task<MutationPayload<ComponentScan>> SaveComponentScan(ComponentScan componentScan) {
-            componentScan.TrimStringProperties();
+        public async Task<MutationPayload<ComponentScan>> CreateComponentScan(ComponentScanDTO dto) {
+            var componentScan = new ComponentScan {
+                Scan1 = dto.Scan1,
+                Scan2 = dto.Scan2,
+                VehicleComponent = await context.VehicleComponents
+                    .Include(t => t.Vehicle).ThenInclude(t => t.VehicleComponents)
+                    .FirstOrDefaultAsync(t => t.Id == dto.VehicleComponentId)
+            };
+
             var payload = new MutationPayload<ComponentScan>(componentScan);
 
             payload.Errors = await ValidateCreateComponentScan<ComponentScan>(componentScan);
@@ -21,9 +28,8 @@ namespace SKD.VCS.Model {
                 return payload;
             } 
 
-            context.ComponentScans.Add(componentScan);
-
             // save
+            context.ComponentScans.Add(componentScan);
             await context.SaveChangesAsync();
             return payload;
         }
@@ -31,10 +37,7 @@ namespace SKD.VCS.Model {
         public async Task<List<Error>> ValidateCreateComponentScan<T>(ComponentScan scan) where T : ComponentScan {
             var errors = new List<Error>();
 
-            var vehicleComponent = await context.VehicleComponents
-                .AsNoTracking()
-
-                .FirstOrDefaultAsync(t => t.Id == scan.VehicleComponentId);
+            var vehicleComponent = scan.VehicleComponent;
 
             var vehicle = vehicleComponent != null 
                 ? await context.Vehicles.AsTracking()

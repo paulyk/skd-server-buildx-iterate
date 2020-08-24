@@ -27,18 +27,17 @@ namespace SKD.VCS.Test {
         }
 
         [Fact]
-        public async Task can_save_component_scan() {
+        public async Task can_create_component_scan() {
             var vehicleComponent = await ctx.VehicleComponents.FirstOrDefaultAsync(t => t.Vehicle.VIN == vin1 && t.Component.Code == componentCode1);
 
-
-            var dto = new ComponentScan {
+            var dto = new ComponentScanDTO {
                 VehicleComponentId = vehicleComponent.Id,
-                Scan1 = Util.RandomString(12),
+                Scan1 = Util.RandomString(EntityMaxLen.ComponentScan_ScanEntry),
                 Scan2 = ""
             };
 
             var service = new ComponentScanService(ctx);
-            var payload = await service.SaveComponentScan(dto);
+            var payload = await service.CreateComponentScan(dto);
 
             var componentScan = await ctx.ComponentScans.FirstOrDefaultAsync(t => t.Id == payload.Entity.Id);
             Assert.NotNull(componentScan);
@@ -47,14 +46,14 @@ namespace SKD.VCS.Test {
         [Fact]
         public async Task cannot_save_component_scan_if_vehicleComponentId_not_found() {
 
-            var dto = new ComponentScan {
+            var dto = new ComponentScanDTO {
                 VehicleComponentId = Guid.NewGuid(),
                 Scan1 = Util.RandomString(12),
                 Scan2 = ""
             };
 
             var service = new ComponentScanService(ctx);
-            var payload = await service.SaveComponentScan(dto);
+            var payload = await service.CreateComponentScan(dto);
             var errors = payload.Errors.ToList();
 
             Assert.True(errors.Count == 1 && errors[0].Message == "vehicle component not found");
@@ -64,14 +63,14 @@ namespace SKD.VCS.Test {
         public async Task cannot_save_component_scan_if_vehicle_scan_locked() {
             var vehicleComponent = await ctx.VehicleComponents.FirstOrDefaultAsync(t => t.Vehicle.VIN == vin2_locked && t.Component.Code == componentCode1);
 
-            var dto = new ComponentScan {
+            var dto = new ComponentScanDTO {
                 VehicleComponentId = vehicleComponent.Id,
                 Scan1 = Util.RandomString(12),
                 Scan2 = ""
             };
 
             var service = new ComponentScanService(ctx);
-            var payload = await service.SaveComponentScan(dto);
+            var payload = await service.CreateComponentScan(dto);
 
             var errors = payload.Errors.ToList();
 
@@ -82,14 +81,14 @@ namespace SKD.VCS.Test {
         public async Task cannot_save_component_scan_if_scan1_scan2_empty() {
             var vehicleComponent = await ctx.VehicleComponents.FirstOrDefaultAsync(t => t.Vehicle.VIN == vin1 && t.Component.Code == componentCode1);
 
-            var dto = new ComponentScan {
+            var dto = new ComponentScanDTO {
                 VehicleComponentId = vehicleComponent.Id,
                 Scan1 = "",
                 Scan2 = ""
             };
 
             var service = new ComponentScanService(ctx);
-            var payload = await service.SaveComponentScan(dto);
+            var payload = await service.CreateComponentScan(dto);
 
             var errors = payload.Errors.ToList();
             Assert.True(errors.Count == 1 && errors[0].Message == "scan1 and or scan2 required");
