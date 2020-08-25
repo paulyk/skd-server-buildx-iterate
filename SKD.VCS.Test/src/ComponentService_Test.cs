@@ -137,10 +137,10 @@ namespace SKD.VCS.Test {
 
             var after_count = ctx.Components.Count();
             Assert.Equal(before_count + 1, after_count);
-            Assert.Equal(null, payload.Entity.RemovedAt);
+            Assert.Null(payload.Entity.RemovedAt);
 
             var payload2 = service.RemoveComponent(payload.Entity.Id);
-            Assert.NotEqual(null, payload.Entity.RemovedAt);
+            Assert.NotNull( payload.Entity.RemovedAt);
         }
        
         [Fact]
