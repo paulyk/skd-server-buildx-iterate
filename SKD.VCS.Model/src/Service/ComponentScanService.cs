@@ -53,8 +53,14 @@ namespace SKD.VCS.Model {
             } 
 
             if (vehicle.ScanLockedAt != null) {
-                errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehicle locked, scans not allowed"));
+                errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehicle scan locked"));
                 return errors;
+            }
+
+            if (vehicle.PlannedBuildAt == null) {
+                errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehilce planned build date required"));
+                return errors;
+
             }
 
             if (string.IsNullOrEmpty(scan.Scan1) && string.IsNullOrEmpty(scan.Scan2)) {
@@ -66,6 +72,7 @@ namespace SKD.VCS.Model {
                 errors.Add(ErrorHelper.Create<T>(t => t.Scan1, $"scan entry cannot exceed {EntityMaxLen.ComponentScan_ScanEntry} characters"));
                 return errors;
             }
+
 
           
 
