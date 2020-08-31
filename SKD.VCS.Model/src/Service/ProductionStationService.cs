@@ -48,13 +48,13 @@ namespace SKD.VCS.Model {
 
             if (productionStation.Code.Trim().Length == 0) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Code, "code requred"));
-            } else if (productionStation.Code.Length > EntityMaxLen.ProductionStation_Code) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityMaxLen.ProductionStation_Code} characters "));
+            } else if (productionStation.Code.Length > EntityFieldLen.ProductionStation_Code) {
+                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityFieldLen.ProductionStation_Code} characters "));
             }
             if (productionStation.Name.Trim().Length == 0) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Name, "name required"));
-            } else if (productionStation.Code.Length > EntityMaxLen.ProductionStation_Name) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded name max length of {EntityMaxLen.ProductionStation_Name} characters "));
+            } else if (productionStation.Code.Length > EntityFieldLen.ProductionStation_Name) {
+                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded name max length of {EntityFieldLen.ProductionStation_Name} characters "));
             }
 
             if (await context.ProductionStations.AnyAsync(t => t.Id != productionStation.Id && t.Code == productionStation.Code)) {

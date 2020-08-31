@@ -18,8 +18,8 @@ namespace SKD.VCS.Test {
         private async Task can_save_new_production_station() {
             var service = new ProductionStationService(ctx);
             var productionStationDTO = new ProductionStationDTO() {
-                Code = Util.RandomString(EntityMaxLen.ProductionStation_Code),
-                Name = Util.RandomString(EntityMaxLen.ProductionStation_Name)
+                Code = Util.RandomString(EntityFieldLen.ProductionStation_Code),
+                Name = Util.RandomString(EntityFieldLen.ProductionStation_Name)
             };
 
             var before_count = await ctx.Components.CountAsync();
@@ -35,8 +35,8 @@ namespace SKD.VCS.Test {
         private async Task can_update_new_production_station() {
             var service = new ProductionStationService(ctx);
             var productionStationDTO = new ProductionStationDTO() {
-                Code = Util.RandomString(EntityMaxLen.ProductionStation_Code),
-                Name = Util.RandomString(EntityMaxLen.ProductionStation_Name)
+                Code = Util.RandomString(EntityFieldLen.ProductionStation_Code),
+                Name = Util.RandomString(EntityFieldLen.ProductionStation_Name)
             };
 
             var before_count = await ctx.Components.CountAsync();
@@ -47,8 +47,8 @@ namespace SKD.VCS.Test {
             Assert.Equal(expectedCount, firstCount);
 
             // update
-            var newCode = Util.RandomString(EntityMaxLen.ProductionStation_Code);
-            var newName = Util.RandomString(EntityMaxLen.ProductionStation_Name);
+            var newCode = Util.RandomString(EntityFieldLen.ProductionStation_Code);
+            var newName = Util.RandomString(EntityFieldLen.ProductionStation_Name);
 
             var updatedPayload = await service.SaveProductionStation(new ProductionStationDTO {
                 Id = payload.Entity.Id,
@@ -68,8 +68,8 @@ namespace SKD.VCS.Test {
             // setup
             var service = new ProductionStationService(ctx);
 
-            var code = Util.RandomString(EntityMaxLen.ProductionStation_Code).ToString();
-            var name = Util.RandomString(EntityMaxLen.ProductionStation_Name).ToString();
+            var code = Util.RandomString(EntityFieldLen.ProductionStation_Code).ToString();
+            var name = Util.RandomString(EntityFieldLen.ProductionStation_Name).ToString();
 
             var count_1 = ctx.ProductionStations.Count();
             var payload = await service.SaveProductionStation(new ProductionStationDTO {

@@ -12,8 +12,8 @@ namespace SKD.VCS.Test {
             using (var ctx = GetAppDbContext()) {
                 // setup
                 var component = new Component() {
-                    Code = new String('X', EntityMaxLen.Component_Code),
-                    Name = new String('X', EntityMaxLen.Component_Name)
+                    Code = new String('X', EntityFieldLen.Component_Code),
+                    Name = new String('X', EntityFieldLen.Component_Name)
                 };
 
                 ctx.Components.Add(component);
@@ -79,9 +79,9 @@ namespace SKD.VCS.Test {
             using (var ctx = GetAppDbContext()) {
                 // setup
                 var vehicleModel = new VehicleModel() {
-                    Code = new String('X', EntityMaxLen.VehicleModel_Code),
-                    Name = new String('X', EntityMaxLen.VehicleModel_Name),
-                    Type = new String('X', EntityMaxLen.VehicleModel_Type),
+                    Code = new String('X', EntityFieldLen.VehicleModel_Code),
+                    Name = new String('X', EntityFieldLen.VehicleModel_Name),
+                    Type = new String('X', EntityFieldLen.VehicleModel_Type),
                 };
 
                 ctx.VehicleModels.Add(vehicleModel);
@@ -98,17 +98,17 @@ namespace SKD.VCS.Test {
         public void cannot_add_duplicate_vehicle_model_code() {
             using (var ctx = GetAppDbContext()) {
                 // setup
-                var modelCode = new String('A', EntityMaxLen.VehicleModel_Code);
+                var modelCode = new String('A', EntityFieldLen.VehicleModel_Code);
                 var vehicleModel_1 = new VehicleModel() {
                     Code = modelCode,
-                    Name = new String('A', EntityMaxLen.VehicleModel_Name),
-                    Type = new String('A', EntityMaxLen.VehicleModel_Type),
+                    Name = new String('A', EntityFieldLen.VehicleModel_Name),
+                    Type = new String('A', EntityFieldLen.VehicleModel_Type),
                 };
 
                 var vehicleModel_2 = new VehicleModel() {
                     Code = modelCode,
-                    Name = new String('B', EntityMaxLen.VehicleModel_Name),
-                    Type = new String('B', EntityMaxLen.VehicleModel_Type),
+                    Name = new String('B', EntityFieldLen.VehicleModel_Name),
+                    Type = new String('B', EntityFieldLen.VehicleModel_Type),
                 };
                 
                 ctx.VehicleModels.AddRange(vehicleModel_1, vehicleModel_2);
@@ -122,17 +122,17 @@ namespace SKD.VCS.Test {
         public void cannot_add_duplicate_vehicle_model_name() {
             using (var ctx = GetAppDbContext()) {
                 // setup
-                var modelName = new String('A', EntityMaxLen.Component_Name);
+                var modelName = new String('A', EntityFieldLen.Component_Name);
                 var vehicleModel_1 = new VehicleModel() {
-                    Code = new String('A', EntityMaxLen.VehicleModel_Code),
+                    Code = new String('A', EntityFieldLen.VehicleModel_Code),
                     Name = modelName,
-                    Type = new String('A', EntityMaxLen.VehicleModel_Type),
+                    Type = new String('A', EntityFieldLen.VehicleModel_Type),
                 };
 
                 var vehicleModel_2 = new VehicleModel() {
-                    Code = new String('B', EntityMaxLen.VehicleModel_Code),
+                    Code = new String('B', EntityFieldLen.VehicleModel_Code),
                     Name = modelName,
-                    Type = new String('B', EntityMaxLen.VehicleModel_Type),
+                    Type = new String('B', EntityFieldLen.VehicleModel_Type),
                 };
 
                 ctx.VehicleModels.AddRange(vehicleModel_1, vehicleModel_2);
@@ -148,15 +148,15 @@ namespace SKD.VCS.Test {
             using (var ctx = GetAppDbContext()) {
                 // setup
                 var vehicleModel = new VehicleModel() {
-                    Code = new String('X', EntityMaxLen.VehicleModel_Code),
-                    Name = new String('X', EntityMaxLen.VehicleModel_Name),
-                    Type = new String('X', EntityMaxLen.VehicleModel_Type),
+                    Code = new String('X', EntityFieldLen.VehicleModel_Code),
+                    Name = new String('X', EntityFieldLen.VehicleModel_Name),
+                    Type = new String('X', EntityFieldLen.VehicleModel_Type),
                 };
 
                 ctx.VehicleModels.Add(vehicleModel);
 
                 var vehicle = new Vehicle() {
-                    VIN = new String('X', EntityMaxLen.Vehicle_VIN),
+                    VIN = new String('X', EntityFieldLen.Vehicle_VIN),
                     Model = vehicleModel
                 };
 
@@ -176,7 +176,7 @@ namespace SKD.VCS.Test {
             using (var ctx = GetAppDbContext()) {
                 // setup
                 var vehicle = new Vehicle() {
-                    VIN = new String('X', EntityMaxLen.Vehicle_VIN),
+                    VIN = new String('X', EntityFieldLen.Vehicle_VIN),
                 };
 
                 ctx.Vehicles.Add(vehicle);
@@ -191,20 +191,20 @@ namespace SKD.VCS.Test {
             using (var ctx = GetAppDbContext()) {
                 // setup
                 var vehicleModel = new VehicleModel() {
-                    Code = new String('X', EntityMaxLen.VehicleModel_Code),
-                    Name = new String('X', EntityMaxLen.VehicleModel_Name),
-                    Type = new String('X', EntityMaxLen.VehicleModel_Type),
+                    Code = new String('X', EntityFieldLen.VehicleModel_Code),
+                    Name = new String('X', EntityFieldLen.VehicleModel_Name),
+                    Type = new String('X', EntityFieldLen.VehicleModel_Type),
                 };
 
                 ctx.VehicleModels.Add(vehicleModel);
 
                 var vehicle_1 = new Vehicle() {
-                    VIN = new String('X', EntityMaxLen.Vehicle_VIN),
+                    VIN = new String('X', EntityFieldLen.Vehicle_VIN),
                     Model = vehicleModel
                 };
 
                 var vehicle_2 = new Vehicle() {
-                    VIN = new String('X', EntityMaxLen.Vehicle_VIN),
+                    VIN = new String('X', EntityFieldLen.Vehicle_VIN),
                     Model = vehicleModel
                 };
 

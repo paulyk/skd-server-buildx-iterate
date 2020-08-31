@@ -8,7 +8,7 @@ namespace SKD.VCS.Model {
             builder.ToTable("vehicle_model");
 
             builder.HasKey(t => t.Id);
-            builder.Property(t => t.Id).HasMaxLength(EntityMaxLen.Id).ValueGeneratedOnAdd();
+            builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
 
             builder.HasIndex(t => t.Code).IsUnique();
             builder.HasIndex(t => t.Name).IsUnique();
@@ -17,11 +17,11 @@ namespace SKD.VCS.Model {
 
             builder.Property(t => t.Code)
                 .IsRequired()
-                .HasMaxLength(EntityMaxLen.VehicleModel_Code);
+                .HasMaxLength(EntityFieldLen.VehicleModel_Code);
 
             builder.Property(t => t.Name)
                 .IsRequired()
-                .HasMaxLength(EntityMaxLen.VehicleModel_Name);
+                .HasMaxLength(EntityFieldLen.VehicleModel_Name);
 
             builder.HasMany(t => t.Vehicles)
                 .WithOne(t => t.Model)

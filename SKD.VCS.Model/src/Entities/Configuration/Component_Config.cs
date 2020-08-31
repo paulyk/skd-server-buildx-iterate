@@ -8,18 +8,18 @@ namespace SKD.VCS.Model {
             builder.ToTable("component");
                 
             builder.HasKey(t => t.Id);
-            builder.Property(t => t.Id).HasMaxLength(EntityMaxLen.Id).ValueGeneratedOnAdd();
+            builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
 
             builder.HasIndex(t => t.Code).IsUnique();
             builder.HasIndex(t => t.Name).IsUnique();
                             
             builder.Property(t => t.Code)
                 .IsRequired()
-                .HasMaxLength(EntityMaxLen.Component_Code);
+                .HasMaxLength(EntityFieldLen.Component_Code);
 
             builder.Property(t => t.Name)
                 .IsRequired()
-                .HasMaxLength(EntityMaxLen.Component_Name);
+                .HasMaxLength(EntityFieldLen.Component_Name);
 
             builder.HasMany(t => t.VehicleModelComponents)
                 .WithOne(t => t.Component)

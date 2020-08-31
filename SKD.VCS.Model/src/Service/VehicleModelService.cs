@@ -52,15 +52,15 @@ namespace SKD.VCS.Model {
             // validate code 
             if (model.Code.Trim().Length == 0) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Code, "code requred"));
-            } else if (model.Code.Length > EntityMaxLen.VehicleModel_Code) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityMaxLen.VehicleModel_Code} characters "));
+            } else if (model.Code.Length > EntityFieldLen.VehicleModel_Code) {
+                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityFieldLen.VehicleModel_Code} characters "));
             }
 
             // validate name
             if (model.Name.Trim().Length == 0) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Code, "name requred"));
-            } else if (model.Name.Length > EntityMaxLen.VehicleModel_Name) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityMaxLen.VehicleModel_Name} characters "));
+            } else if (model.Name.Length > EntityFieldLen.VehicleModel_Name) {
+                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityFieldLen.VehicleModel_Name} characters "));
             }
 
             // duplicate code

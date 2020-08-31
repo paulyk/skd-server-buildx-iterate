@@ -23,8 +23,8 @@ namespace SKD.VCS.Test {
             var productionStations = await ctx.ProductionStations.ToListAsync();
 
             var vehicleModel = new VehicleModelDTO {
-                Code = Util.RandomString(EntityMaxLen.VehicleModel_Code),
-                Name = Util.RandomString(EntityMaxLen.VehicleModel_Name),
+                Code = Util.RandomString(EntityFieldLen.VehicleModel_Code),
+                Name = Util.RandomString(EntityFieldLen.VehicleModel_Name),
                 Components = new int[STATION_COMPONENT_COUNT].ToList()
                     .Select((v, i) => new ComponeentStationDTO {
                         ComponentCode = components[i].Code,
@@ -52,8 +52,8 @@ namespace SKD.VCS.Test {
             var before_count = await ctx.VehicleModels.CountAsync();
 
             var model_1 = new VehicleModelDTO {
-                Code = Util.RandomString(EntityMaxLen.VehicleModel_Code),
-                Name = Util.RandomString(EntityMaxLen.VehicleModel_Name)
+                Code = Util.RandomString(EntityFieldLen.VehicleModel_Code),
+                Name = Util.RandomString(EntityFieldLen.VehicleModel_Name)
             };
             var payload = await service.CreateVehicleModel(model_1);
 
@@ -73,8 +73,8 @@ namespace SKD.VCS.Test {
             var components = await ctx.Components.ToListAsync();
             var productionStations = await ctx.ProductionStations.ToListAsync();
 
-            var modelCode = Util.RandomString(EntityMaxLen.VehicleModel_Code);
-            var modelName = Util.RandomString(EntityMaxLen.VehicleModel_Name);
+            var modelCode = Util.RandomString(EntityFieldLen.VehicleModel_Code);
+            var modelName = Util.RandomString(EntityFieldLen.VehicleModel_Name);
 
             var model_1 = new VehicleModelDTO {
                 Code = modelCode,
@@ -90,7 +90,7 @@ namespace SKD.VCS.Test {
             // test
             var model_2 = new VehicleModelDTO {
                 Code = modelCode,
-                Name = Util.RandomString(EntityMaxLen.VehicleModel_Name),
+                Name = Util.RandomString(EntityFieldLen.VehicleModel_Name),
                 Components = new int[STATION_COMPONENT_COUNT].ToList()
                     .Select((v, i) => new ComponeentStationDTO {
                         ComponentCode = components[i].Code,
@@ -117,8 +117,8 @@ namespace SKD.VCS.Test {
             var components = await ctx.Components.ToListAsync();
             var productionStations = await ctx.ProductionStations.ToListAsync();
 
-            var modelCode = Util.RandomString(EntityMaxLen.VehicleModel_Code);
-            var modelName = Util.RandomString(EntityMaxLen.VehicleModel_Name);
+            var modelCode = Util.RandomString(EntityFieldLen.VehicleModel_Code);
+            var modelName = Util.RandomString(EntityFieldLen.VehicleModel_Name);
 
             var model_1 = new VehicleModelDTO {
                 Code = modelCode,
@@ -133,7 +133,7 @@ namespace SKD.VCS.Test {
 
             // test
             var model_2 = new VehicleModelDTO {
-                Code = Util.RandomString(EntityMaxLen.VehicleModel_Code),
+                Code = Util.RandomString(EntityFieldLen.VehicleModel_Code),
                 Name = modelName,
                 Components = new int[STATION_COMPONENT_COUNT].ToList()
                     .Select((v, i) => new ComponeentStationDTO {

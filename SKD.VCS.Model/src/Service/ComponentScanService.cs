@@ -26,7 +26,7 @@ namespace SKD.VCS.Model {
             payload.Errors = await ValidateCreateComponentScan<ComponentScan>(componentScan);
             if (payload.Errors.Count() > 0) {
                 return payload;
-            } 
+            }
 
             // save
             context.ComponentScans.Add(componentScan);
@@ -39,7 +39,7 @@ namespace SKD.VCS.Model {
 
             var vehicleComponent = scan.VehicleComponent;
 
-            var vehicle = vehicleComponent != null 
+            var vehicle = vehicleComponent != null
                 ? await context.Vehicles.AsTracking()
                     .Include(t => t.VehicleComponents)
                     .ThenInclude(vc => vc.ComponentScans)
@@ -50,7 +50,7 @@ namespace SKD.VCS.Model {
             if (vehicleComponent == null) {
                 errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehicle component not found"));
                 return errors;
-            } 
+            }
 
             if (vehicle.ScanLockedAt != null) {
                 errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehicle scan locked"));
@@ -68,13 +68,22 @@ namespace SKD.VCS.Model {
                 return errors;
             }
 
-            if (scan.Scan1.Length > EntityMaxLen.ComponentScan_ScanEntry || scan.Scan2.Length > EntityMaxLen.ComponentScan_ScanEntry) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Scan1, $"scan entry cannot exceed {EntityMaxLen.ComponentScan_ScanEntry} characters"));
+            if (scan.Scan1.Length > 0 && scan.Scan1.Length < EntityFieldLen.ComponentScan_ScanEntry_Min
+                ||
+                scan.Scan2.Length > 0 && scan.Scan2.Length < EntityFieldLen.ComponentScan_ScanEntry_Min) {
+
+                errors.Add(ErrorHelper.Create<T>(t => t.Scan1, $"scan entry lenth min {EntityFieldLen.ComponentScan_ScanEntry_Min} characters"));
                 return errors;
             }
 
 
-          
+            if (scan.Scan1.Length > EntityFieldLen.ComponentScan_ScanEntry || scan.Scan2.Length > EntityFieldLen.ComponentScan_ScanEntry) {
+                errors.Add(ErrorHelper.Create<T>(t => t.Scan1, $"scan entry length max {EntityFieldLen.ComponentScan_ScanEntry} characters"));
+                return errors;
+            }
+
+
+
 
             return errors;
         }

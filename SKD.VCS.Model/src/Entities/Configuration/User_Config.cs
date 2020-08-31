@@ -8,14 +8,14 @@ namespace SKD.VCS.Model {
             builder.ToTable("user");
                 
             builder.HasKey(t => t.Id);
-            builder.Property(t => t.Id).HasMaxLength(EntityMaxLen.Id).ValueGeneratedOnAdd();
+            builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
 
             builder.HasIndex(t => t.Email).IsUnique();
 
-            builder.Property(t => t.Id).HasMaxLength(EntityMaxLen.Id).ValueGeneratedOnAdd();
+            builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
             builder.Property(t => t.Email)
                     .IsRequired()
-                    .HasMaxLength(EntityMaxLen.Email);
+                    .HasMaxLength(EntityFieldLen.Email);
                                              
         }
     }

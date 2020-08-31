@@ -39,13 +39,13 @@ namespace SKD.VCS.Server {
         ) {
             var component = new ComponentDTO {
                 Id = ToGuid(input.Id != null ? input.Id : ""),
-                Code = input.Code,                
+                Code = input.Code,
                 Name = input.Name
             };
             return await service1.SaveComponent(component);
         }
 
-          /// <summary>
+        /// <summary>
         /// Create or update a production station
         /// </summary>
         public async Task<MutationPayload<ProductionStation>> SaveProductionStation(
@@ -55,10 +55,23 @@ namespace SKD.VCS.Server {
         ) {
             var productionStation = new ProductionStationDTO {
                 Id = ToGuid(input.Id != null ? input.Id : ""),
-                Code = input.Code,                
+                Code = input.Code,
                 Name = input.Name
             };
             return await service.SaveProductionStation(productionStation);
+        }
+
+        public async Task<MutationPayload<ComponentScan>> CreateComponentScan(
+          [Service] ComponentScanService service,
+          [Service] SkdContext ctx,
+          ComponentScanInput input
+        ) {
+            var componentScanDTO = new ComponentScanDTO {
+                VehicleComponentId = input.vehicleComponentId,
+                Scan1 = input.Scan1,
+                Scan2 = input.Scan2
+            };
+            return await service.CreateComponentScan(componentScanDTO);
         }
 
         private Guid ToGuid(string str) {

@@ -66,8 +66,8 @@ namespace SKD.VCS.Model {
             var errors = new List<Error>();
 
             // vin format
-            if (vehicle.VIN.Trim().Length != EntityMaxLen.Vehicle_VIN) {
-                errors.Add(ErrorHelper.Create<T>(t => t.VIN, $"VIN must be exactly {EntityMaxLen.Vehicle_VIN} characters"));
+            if (vehicle.VIN.Trim().Length != EntityFieldLen.Vehicle_VIN) {
+                errors.Add(ErrorHelper.Create<T>(t => t.VIN, $"VIN must be exactly {EntityFieldLen.Vehicle_VIN} characters"));
             }
             // check duplicate vin
             if (await context.Vehicles.AnyAsync(t => t.VIN == vehicle.VIN && t.Id != vehicle.Id)) {
@@ -109,15 +109,15 @@ namespace SKD.VCS.Model {
             }
 
             // Lot No
-            if (vehicle.LotNo.Trim().Length < EntityMaxLen.Vehicle_LotNo) {
-                errors.Add(ErrorHelper.Create<T>(t => t.KitNo, $"LotNo must be {EntityMaxLen.Vehicle_LotNo} characters"));
+            if (vehicle.LotNo.Trim().Length < EntityFieldLen.Vehicle_LotNo) {
+                errors.Add(ErrorHelper.Create<T>(t => t.KitNo, $"LotNo must be {EntityFieldLen.Vehicle_LotNo} characters"));
             } else if (!IsNumeric(vehicle.LotNo)) {
                 errors.Add(ErrorHelper.Create<T>(t => t.LotNo, $"KitNo must be numeric"));
             }
 
             // Kit No
-            if (vehicle.KitNo.Trim().Length < EntityMaxLen.Vehicle_KitNo) {
-                errors.Add(ErrorHelper.Create<T>(t => t.KitNo, $"KitNo must be {EntityMaxLen.Vehicle_KitNo} characters"));
+            if (vehicle.KitNo.Trim().Length < EntityFieldLen.Vehicle_KitNo) {
+                errors.Add(ErrorHelper.Create<T>(t => t.KitNo, $"KitNo must be {EntityFieldLen.Vehicle_KitNo} characters"));
             } else if (!IsNumeric(vehicle.KitNo)) {
                 errors.Add(ErrorHelper.Create<T>(t => t.LotNo, $"KitNo must be numeric"));
             }

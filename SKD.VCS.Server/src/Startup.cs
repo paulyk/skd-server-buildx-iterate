@@ -43,10 +43,11 @@ namespace SKD.VCS.Server {
             }, ServiceLifetime.Transient);
 
             services
+                .AddTransient<SearchService>()
                 .AddTransient<VehicleService>()
                 .AddTransient<ComponentService>()
                 .AddTransient<ProductionStationService>()
-                .AddTransient<SearchService>();
+                .AddTransient<ComponentScanService>();
 
             services.AddGraphQL(sp => SchemaBuilder.New()
                 .AddQueryType<Query>()

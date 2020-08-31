@@ -22,7 +22,7 @@ namespace SKD.VCS.Test {
 
             var stationCount = await ctx.ProductionStations.CountAsync();
             Assert.Equal(3, stationCount);
-            
+
             var modelCount = await ctx.VehicleModels.CountAsync();
             Assert.Equal(1, modelCount);
 
@@ -36,7 +36,7 @@ namespace SKD.VCS.Test {
 
             var dto = new ComponentScanDTO {
                 VehicleComponentId = vehicleComponent.Id,
-                Scan1 = Util.RandomString(EntityMaxLen.ComponentScan_ScanEntry),
+                Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
                 Scan2 = ""
             };
 
@@ -105,8 +105,27 @@ namespace SKD.VCS.Test {
             Assert.True(errors.Count == 1 && errors[0].Message == "scan1 and or scan2 required");
         }
 
-         [Fact]
-         public async Task cannot_create_component_scan_if_no_planned_build_date() {
+        [Fact]
+        public async Task cannot_create_component_scan_if_less_than_min_length() {
+            var vehicleComponent = await ctx.VehicleComponents.FirstOrDefaultAsync();
+
+            var dto = new ComponentScanDTO {
+                VehicleComponentId = vehicleComponent.Id,
+                Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry_Min - 1),
+                Scan2 = ""
+            };
+
+            var service = new ComponentScanService(ctx);
+            var payload = await service.CreateComponentScan(dto);
+
+            var errors = payload.Errors.ToList();
+            var expectedMessage = "scan entry lenth min";
+            var actualMessage = errors[0].Message.Substring(0, expectedMessage.Length);
+            Assert.Equal(expectedMessage, actualMessage);
+        }
+
+        [Fact]
+        public async Task cannot_create_component_scan_if_no_planned_build_date() {
             var vehicleComponent = await ctx.VehicleComponents
                 .Include(t => t.Vehicle)
                 .FirstOrDefaultAsync();
@@ -141,15 +160,15 @@ namespace SKD.VCS.Test {
             var modelCode = "model_1";
             var modelName = "model_1_name";
             Gen_VehicleModel(
-                ctx, 
-                code: modelCode, 
-                name: modelName, 
-                components, 
+                ctx,
+                code: modelCode,
+                name: modelName,
+                components,
                 productionStations);
 
             Gen_Vehicle(
              ctx: ctx,
-             vin: Util.RandomString(EntityMaxLen.Vehicle_VIN),
+             vin: Util.RandomString(EntityFieldLen.Vehicle_VIN),
              modelCode: modelCode,
              plannedBuildAt: DateTime.UtcNow.AddDays(-2));
         }

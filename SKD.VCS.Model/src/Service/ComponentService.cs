@@ -73,13 +73,13 @@ namespace SKD.VCS.Model {
 
             if (component.Code.Trim().Length == 0) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Code, "code requred"));
-            } else if (component.Code.Length > EntityMaxLen.Component_Code) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityMaxLen.Component_Code} characters "));
+            } else if (component.Code.Length > EntityFieldLen.Component_Code) {
+                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityFieldLen.Component_Code} characters "));
             }
             if (component.Name.Trim().Length == 0) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Name, "name required"));
-            } else if (component.Code.Length > EntityMaxLen.Component_Name) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded name max length of {EntityMaxLen.Component_Name} characters "));
+            } else if (component.Code.Length > EntityFieldLen.Component_Name) {
+                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded name max length of {EntityFieldLen.Component_Name} characters "));
             }
 
             if (await context.Components.AnyAsync(t => t.Id != component.Id && t.Code == component.Code)) {

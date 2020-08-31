@@ -21,7 +21,7 @@ namespace SKD.VCS.Test {
 
             var vehicleModel = await ctx.VehicleModels.FirstOrDefaultAsync(t => t.Code == TestVehicleModel_Code);
             var vehicle = new Vehicle() {
-                VIN = new String('1', EntityMaxLen.Vehicle_VIN),
+                VIN = new String('1', EntityFieldLen.Vehicle_VIN),
                 Model = vehicleModel,
                 LotNo = "001",
                 KitNo = "001"
@@ -43,7 +43,7 @@ namespace SKD.VCS.Test {
             var service = new VehicleService(ctx);
 
             var vehicle = new Vehicle() {
-                VIN = new String('1', EntityMaxLen.Vehicle_VIN),
+                VIN = new String('1', EntityFieldLen.Vehicle_VIN),
                 LotNo = "001",
                 KitNo = "001"
             };

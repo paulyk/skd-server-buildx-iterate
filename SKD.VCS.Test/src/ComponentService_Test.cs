@@ -19,8 +19,8 @@ namespace SKD.VCS.Test {
         private async Task can_save_new_component() {
             var service = new ComponentService(ctx);
             var componentDTO = new ComponentDTO() {
-                Code = Util.RandomString(EntityMaxLen.Component_Code),
-                Name = Util.RandomString(EntityMaxLen.Component_Name)
+                Code = Util.RandomString(EntityFieldLen.Component_Code),
+                Name = Util.RandomString(EntityFieldLen.Component_Name)
             };
 
             var before_count = await ctx.Components.CountAsync();
@@ -42,8 +42,8 @@ namespace SKD.VCS.Test {
             var before_CreatedAt = component.CreatedAt;
             var before_ComponentCount = await ctx.Components.CountAsync();
 
-            var newCode = Util.RandomString(EntityMaxLen.Component_Code);
-            var newName = Util.RandomString(EntityMaxLen.Component_Name);
+            var newCode = Util.RandomString(EntityFieldLen.Component_Code);
+            var newName = Util.RandomString(EntityFieldLen.Component_Name);
             // test
             await Task.Delay(1000);
             var payload = await service.SaveComponent(new ComponentDTO {
@@ -73,7 +73,7 @@ namespace SKD.VCS.Test {
 
             var component = new Component() {
                 Code = existingComponent.Code,
-                Name = new String('x', EntityMaxLen.Component_Code)
+                Name = new String('x', EntityFieldLen.Component_Code)
             };
 
             // test
@@ -111,7 +111,7 @@ namespace SKD.VCS.Test {
             var service = new ComponentService(ctx);
             var component = await ctx.Components.FirstOrDefaultAsync();
 
-            var newCode = Util.RandomString(EntityMaxLen.Component_Code).ToString();
+            var newCode = Util.RandomString(EntityFieldLen.Component_Code).ToString();
             var payload = await service.SaveComponent(new ComponentDTO {
                 Id = component.Id,
                 Code = newCode,
@@ -129,8 +129,8 @@ namespace SKD.VCS.Test {
             var before_count = ctx.Components.Count();
 
             var dto = new ComponentDTO {
-                Code = Util.RandomString(EntityMaxLen.Component_Code),
-                Name = Util.RandomString(EntityMaxLen.Component_Name),
+                Code = Util.RandomString(EntityFieldLen.Component_Code),
+                Name = Util.RandomString(EntityFieldLen.Component_Name),
             };
 
             var payload = await service.SaveComponent(dto);
