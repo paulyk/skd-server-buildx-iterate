@@ -48,7 +48,7 @@ namespace SKD.VCS.Test {
         }
 
         [Fact]
-        public async Task cannot_save_component_scan_if_vehicleComponentId_not_found() {
+        public async Task cannot_create_component_scan_if_vehicleComponentId_not_found() {
 
             var dto = new ComponentScanDTO {
                 VehicleComponentId = Guid.NewGuid(),
@@ -64,7 +64,7 @@ namespace SKD.VCS.Test {
         }
 
         [Fact]
-        public async Task cannot_save_component_scan_if_vehicle_scan_locked() {
+        public async Task cannot_create_component_scan_if_vehicle_scan_locked() {
             // setup
             var vehicle = ctx.Vehicles.FirstOrDefault();
             vehicle.ScanLockedAt = DateTime.UtcNow;
@@ -85,11 +85,11 @@ namespace SKD.VCS.Test {
 
             var errors = payload.Errors.ToList();
 
-            Assert.True(errors.Count == 1 && errors[0].Message == "vehicle locked, scans not allowed");
+            Assert.True(errors.Count == 1 && errors[0].Message == "vehicle scan locked");
         }
 
         [Fact]
-        public async Task cannot_save_component_scan_if_scan1_scan2_empty() {
+        public async Task cannot_create_component_scan_if_scan1_scan2_empty() {
             var vehicleComponent = await ctx.VehicleComponents.FirstOrDefaultAsync();
 
             var dto = new ComponentScanDTO {
@@ -105,6 +105,29 @@ namespace SKD.VCS.Test {
             Assert.True(errors.Count == 1 && errors[0].Message == "scan1 and or scan2 required");
         }
 
+         [Fact]
+         public async Task cannot_create_component_scan_if_no_planned_build_date() {
+            var vehicleComponent = await ctx.VehicleComponents
+                .Include(t => t.Vehicle)
+                .FirstOrDefaultAsync();
+
+            var vehicle = vehicleComponent.Vehicle;
+            vehicle.PlannedBuildAt = null;
+            await ctx.SaveChangesAsync();
+
+            var dto = new ComponentScanDTO {
+                VehicleComponentId = vehicleComponent.Id,
+                Scan1 = "",
+                Scan2 = ""
+            };
+
+            var service = new ComponentScanService(ctx);
+            var payload = await service.CreateComponentScan(dto);
+
+            var errors = payload.Errors.ToList();
+            Assert.True(errors.Count == 1 && errors[0].Message == "vehilce planned build date required");
+        }
+
         #region generate seed data         
 
         private void GenerateSeedData() {
@@ -117,12 +140,18 @@ namespace SKD.VCS.Test {
 
             var modelCode = "model_1";
             var modelName = "model_1_name";
-            Gen_VehicleModel(ctx, code: modelCode, name: modelName, components, productionStations);
+            Gen_VehicleModel(
+                ctx, 
+                code: modelCode, 
+                name: modelName, 
+                components, 
+                productionStations);
 
             Gen_Vehicle(
              ctx: ctx,
              vin: Util.RandomString(EntityMaxLen.Vehicle_VIN),
-             modelCode: modelCode);
+             modelCode: modelCode,
+             plannedBuildAt: DateTime.UtcNow.AddDays(-2));
         }
         #endregion
     }

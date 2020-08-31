@@ -7,7 +7,6 @@ namespace SKD.VCS.Model {
         public Guid VehicleId { get; set; }
         public Vehicle Vehicle { get; set; }
 
-
         public Guid ComponentId { get; set; }
         public Component Component { get; set; }
 

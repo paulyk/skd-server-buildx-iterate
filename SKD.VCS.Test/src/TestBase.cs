@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using SKD.VCS.Model;
 using System.Linq;
+using System;
 
 namespace SKD.VCS.Test {
     public class TestBase {
@@ -58,7 +59,7 @@ namespace SKD.VCS.Test {
 
             var vehicleModel = new VehicleModel {
                 Code = code,
-                Name = name,
+                Name = name,                
                 ModelComponents = modelComponents
             };
 
@@ -68,7 +69,9 @@ namespace SKD.VCS.Test {
 
         public void Gen_Vehicle(SkdContext ctx,
             string vin,
-            string modelCode
+            string modelCode,
+            DateTime? plannedBuildAt = null,
+            DateTime? scanLockAt = null
             ) {
 
             var vehicleModel = ctx.VehicleModels
@@ -83,6 +86,8 @@ namespace SKD.VCS.Test {
             var vehicle = new Vehicle { 
                 VIN = vin,
                 Model = vehicleModel,
+                PlannedBuildAt = plannedBuildAt,
+                ScanLockedAt = scanLockAt,
                 VehicleComponents = vehicleComponents
             };
 
