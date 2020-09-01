@@ -13,11 +13,19 @@ namespace SKD.VCS.Model {
         public ComponentScanService(SkdContext ctx) => this.context = ctx;
 
         public async Task<MutationPayload<ComponentScan>> CreateComponentScan(ComponentScanDTO dto) {
+            // swap if scan1 empty
+            if (dto.Scan1.Trim().Length == 0) {
+                dto.Scan1 = dto.Scan2;
+                dto.Scan2 = null;
+            }
+
             var componentScan = new ComponentScan {
                 Scan1 = dto.Scan1,
                 Scan2 = dto.Scan2,
                 VehicleComponent = await context.VehicleComponents
-                    .Include(t => t.Vehicle).ThenInclude(t => t.VehicleComponents)
+                    .Include(t => t.Vehicle)
+                        .ThenInclude(t => t.VehicleComponents)
+                        .ThenInclude(t => t.ComponentScans)
                     .FirstOrDefaultAsync(t => t.Id == dto.VehicleComponentId)
             };
 
@@ -42,48 +50,57 @@ namespace SKD.VCS.Model {
             var vehicle = vehicleComponent != null
                 ? await context.Vehicles.AsTracking()
                     .Include(t => t.VehicleComponents)
-                    .ThenInclude(vc => vc.ComponentScans)
                     .FirstOrDefaultAsync(t => t.Id == vehicleComponent.VehicleId)
                 : null;
 
-            // validate
+            // vehicle component id
             if (vehicleComponent == null) {
                 errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehicle component not found"));
                 return errors;
             }
 
+            // scan locked
             if (vehicle.ScanLockedAt != null) {
                 errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehicle scan locked"));
                 return errors;
             }
 
+            // plan build set
             if (vehicle.PlannedBuildAt == null) {
                 errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehilce planned build date required"));
                 return errors;
 
             }
 
+            // scan 1 || scan 2 set
             if (string.IsNullOrEmpty(scan.Scan1) && string.IsNullOrEmpty(scan.Scan2)) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Scan1, "scan1 and or scan2 required"));
                 return errors;
             }
 
-            if (scan.Scan1.Length > 0 && scan.Scan1.Length < EntityFieldLen.ComponentScan_ScanEntry_Min
+            if (scan.Scan1?.Length > 0 && scan.Scan1?.Length < EntityFieldLen.ComponentScan_ScanEntry_Min
                 ||
-                scan.Scan2.Length > 0 && scan.Scan2.Length < EntityFieldLen.ComponentScan_ScanEntry_Min) {
+                scan.Scan2?.Length > 0 && scan.Scan2?.Length < EntityFieldLen.ComponentScan_ScanEntry_Min) {
 
                 errors.Add(ErrorHelper.Create<T>(t => t.Scan1, $"scan entry lenth min {EntityFieldLen.ComponentScan_ScanEntry_Min} characters"));
                 return errors;
             }
 
-
-            if (scan.Scan1.Length > EntityFieldLen.ComponentScan_ScanEntry || scan.Scan2.Length > EntityFieldLen.ComponentScan_ScanEntry) {
+            // scan lenth
+            if (scan.Scan1?.Length > EntityFieldLen.ComponentScan_ScanEntry || scan.Scan2?.Length > EntityFieldLen.ComponentScan_ScanEntry) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Scan1, $"scan entry length max {EntityFieldLen.ComponentScan_ScanEntry} characters"));
                 return errors;
             }
 
+            // duplicate 
+            var duplicate =  vehicleComponent.ComponentScans.Any(t => 
+                (t.Scan1 == scan.Scan1 && t.Scan2 == scan.Scan2)
+                ||
+                (t.Scan1 == scan.Scan2 && t.Scan2 == scan.Scan1));
 
-
+            if (duplicate) {
+                errors.Add(new Error("", "duplicate scan"));
+            }
 
             return errors;
         }
