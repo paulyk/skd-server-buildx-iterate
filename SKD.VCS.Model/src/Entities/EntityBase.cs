@@ -13,14 +13,6 @@ namespace SKD.VCS.Model {
             CreatedAt = DateTime.UtcNow;
         }
 
-        public void TrimStringProperties() {
-            var properties = this.GetType().GetProperties()
-                .Where(p => p.PropertyType == typeof(string));
 
-            foreach (var prop in properties) {
-                var value = (string)prop.GetValue(this, null);
-                prop.SetValue(this, value.Trim());
-            }
-        }
     }
 }

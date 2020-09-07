@@ -21,7 +21,7 @@ namespace SKD.VCS.Test {
       Assert.Equal(component.Code.Length, codeValue.Length);
       Assert.Equal(component.Name.Length, nameValue.Length);
 
-      component.TrimStringProperties();
+      Trim.TrimStringProperties<Component>(component);
 
       Assert.Equal(component.Code.Length, codeValue.Trim().Length);
       Assert.Equal(component.Name.Length, nameValue.Trim().Length);

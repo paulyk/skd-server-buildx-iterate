@@ -6,10 +6,10 @@ services:
     environment: 
       ACCEPT_EULA: "Y"
       SA_PASSWORD:  DevOnlyPassword119
-    # volumes:
-    #   - mssql_volume:/var/opt/mssql/data 
+    volumes:
+      - mssql_volume:/var/opt/mssql/data 
     ports:
      - '9301:1433'
 
-# volumes:
-#   mssql_volume:     
+volumes:
+  mssql_volume:     

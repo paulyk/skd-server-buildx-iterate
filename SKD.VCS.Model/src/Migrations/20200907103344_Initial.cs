@@ -15,7 +15,8 @@ namespace SKD.VCS.Model.src.Migrations
                     CreatedAt = table.Column<DateTime>(nullable: false),
                     RemovedAt = table.Column<DateTime>(nullable: true),
                     Code = table.Column<string>(maxLength: 10, nullable: false),
-                    Name = table.Column<string>(maxLength: 100, nullable: false)
+                    Name = table.Column<string>(maxLength: 100, nullable: false),
+                    IconUURL = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -76,8 +77,8 @@ namespace SKD.VCS.Model.src.Migrations
                     CreatedAt = table.Column<DateTime>(nullable: false),
                     RemovedAt = table.Column<DateTime>(nullable: true),
                     VIN = table.Column<string>(maxLength: 17, nullable: false),
-                    KitNo = table.Column<string>(nullable: true),
-                    LotNo = table.Column<string>(nullable: true),
+                    KitNo = table.Column<string>(maxLength: 3, nullable: true),
+                    LotNo = table.Column<string>(maxLength: 3, nullable: true),
                     ModelId = table.Column<Guid>(nullable: false),
                     PlannedBuildAt = table.Column<DateTime>(nullable: true),
                     ScanLockedAt = table.Column<DateTime>(nullable: true)
@@ -229,6 +230,11 @@ namespace SKD.VCS.Model.src.Migrations
                 table: "user",
                 column: "Email",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_vehicle_LotNo",
+                table: "vehicle",
+                column: "LotNo");
 
             migrationBuilder.CreateIndex(
                 name: "IX_vehicle_ModelId",

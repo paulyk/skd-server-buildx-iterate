@@ -34,6 +34,9 @@ namespace SKD.VCS.Model.src.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("IconUURL")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(100)")
@@ -161,10 +164,12 @@ namespace SKD.VCS.Model.src.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("KitNo")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(3)")
+                        .HasMaxLength(3);
 
                     b.Property<string>("LotNo")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(3)")
+                        .HasMaxLength(3);
 
                     b.Property<Guid>("ModelId")
                         .HasColumnType("uniqueidentifier");
@@ -184,6 +189,8 @@ namespace SKD.VCS.Model.src.Migrations
                         .HasMaxLength(17);
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LotNo");
 
                     b.HasIndex("ModelId");
 

@@ -26,7 +26,7 @@ namespace SKD.VCS.Model {
                 component = new Component { Code = dto.Code, Name = dto.Name };
                 context.Components.Add(component);
             }
-            component.TrimStringProperties();
+            Trim.TrimStringProperties<Component>(component);
 
             var payload = new MutationPayload<Component>(component);
 

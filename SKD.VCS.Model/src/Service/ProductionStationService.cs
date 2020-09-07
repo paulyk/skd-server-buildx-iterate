@@ -16,7 +16,7 @@ namespace SKD.VCS.Model {
             this.context = ctx;
         }
 
-       public async Task<MutationPayload<ProductionStation>> SaveProductionStation(ProductionStationDTO dto) {
+        public async Task<MutationPayload<ProductionStation>> SaveProductionStation(ProductionStationDTO dto) {
             var productionStation = await context.ProductionStations.FirstOrDefaultAsync(t => t.Id == dto.Id);
 
             if (productionStation != null) {
@@ -26,7 +26,7 @@ namespace SKD.VCS.Model {
                 productionStation = new ProductionStation { Code = dto.Code, Name = dto.Name };
                 context.ProductionStations.Add(productionStation);
             }
-            productionStation.TrimStringProperties();
+            Trim.TrimStringProperties<ProductionStation>(productionStation);
 
             var payload = new MutationPayload<ProductionStation>(productionStation);
 
