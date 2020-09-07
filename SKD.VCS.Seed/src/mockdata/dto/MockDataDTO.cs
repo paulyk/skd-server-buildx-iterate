@@ -4,6 +4,8 @@ namespace SKD.VCS.Seed {
     public class Vehicle_MockData_DTO {
         public string vin { get; set; }
         public string modelCode { get; set; }
+        public string lotNo { get; set; }
+        public string kitNo { get; set; }
     }
 
     public class VehicleModel_MockData_DTO{

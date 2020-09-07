@@ -29,39 +29,58 @@ namespace SKD.VCS.Seed {
 [
   {
     'vin': 'MNCUMNF50JW795262',
-    'modelCode': 'ZRAE9GD0010'
+    'modelCode': 'ZRAE9GD0010',
+    'lotNo': '001',
+    'kitNo': '001'
   },
   {
     'vin': 'MNCUMNF50JW795267',
-    'modelCode': 'ZRAE9GD9999'
+    'modelCode': 'ZRAE9GD9999',
+    'lotNo': '002',
+    'kitNo': '001'
   },
   {
     'vin': 'MNCUMNF80JW795260',
-    'modelCode': 'ZRAE9PQ0010'
+    'modelCode': 'ZRAE9PQ0010',
+    'lotNo': '003',
+    'kitNo': '001'
   },
   {
     'vin': 'MNCBXXMAWBHK48380',
-    'modelCode': 'ZRAE9GD5010'
+    'modelCode': 'ZRAE9GD5010',
+    'lotNo': '004',
+    'kitNo': '001'
   },
   {
     'vin': 'MNCBXXMAWBHD65253',
-    'modelCode': 'ARLQ93D0001'
+    'modelCode': 'ARLQ93D0001',
+    'lotNo': '005',
+    'kitNo': '001'
   },
   {
     'vin': 'MNCBXXMAWBHD63946',
-    'modelCode': 'ARLQ93D9999'
+    'modelCode': 'ARLQ93D9999',
+    'lotNo': '006',
+    'kitNo': '001'
   },
   {
     'vin': 'MNCBXXMAWBHD65454',
-    'modelCode': 'ARLQ99E0001'
+    'modelCode': 'ARLQ99E0001',
+    'lotNo': '007',
+    'kitNo': '001'
+
   },
   {
     'vin': 'MNCBXXMAWBHD65873',
-    'modelCode': 'ARLQ93D5555'
+    'modelCode': 'ARLQ93D5555',
+    'lotNo': '008',
+    'kitNo': '001'
   },
   {
     'vin': 'MNCBXXMAWBHDK4871',
-    'modelCode': 'ARLQ93A2222'
+    'modelCode': 'ARLQ93A2222',
+    'lotNo': '009',
+    'kitNo': '001'
   }
 ]
 ";

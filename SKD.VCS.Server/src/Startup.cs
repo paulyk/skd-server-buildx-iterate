@@ -100,6 +100,13 @@ namespace SKD.VCS.Server {
                         context.Response.StatusCode = 200;
                     });
 
+                      endpoints.MapPost("/reset_db", async (context) => {
+                        var ctx = context.RequestServices.GetService<SkdContext>();
+                        var dbService = new DbService(ctx);
+                        await dbService.DroCreateDb();
+                        context.Response.StatusCode = 200;
+                    });
+
                     endpoints.MapGet("/ping", async context => {
                         await context.Response.WriteAsync("Ping!");
                         context.Response.StatusCode = 200;

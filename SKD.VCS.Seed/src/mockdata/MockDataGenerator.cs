@@ -34,7 +34,7 @@ namespace SKD.VCS.Seed {
             });
 
             foreach (var model in vehicleModels) {
-                foreach(var mapping in componentStationMapping) {
+                foreach (var mapping in componentStationMapping) {
                     var component = components.First(t => t.Code == mapping.componentCode);
                     var station = stations.First(t => t.Code == mapping.stationCode);
 
@@ -43,7 +43,7 @@ namespace SKD.VCS.Seed {
                         ProductionStation = station
                     };
                     model.ModelComponents.Add(modelComponent);
-                }             
+                }
             }
 
             await ctx.SaveChangesAsync();
@@ -58,16 +58,14 @@ namespace SKD.VCS.Seed {
             }
 
             var index = 1;
-            
+
             foreach (var entry in vehicleData) {
                 var vehicleModel = ctx.VehicleModels.First(m => m.Code == entry.modelCode);
                 var vehicle = new Vehicle() {
                     VIN = entry.vin,
                     Model = vehicleModel,
-                    PlannedBuildAt = index % 2 == 0 
-                        ? DateTime.UtcNow.Date
-                        : (DateTime?)null,
-                    CreatedAt = Util.RandomDateTime(DateTime.UtcNow.Date.AddMonths(-1))
+                    LotNo = entry.lotNo,
+                    KitNo = entry.kitNo
                 };
 
                 ctx.Vehicles.Add(vehicle);
@@ -86,14 +84,33 @@ namespace SKD.VCS.Seed {
                     vehicle.VehicleComponents.Add(vehicleComponent);
                 }
 
-                Console.WriteLine($"  Added  {vehicle.VehicleComponents.Count} children");
-                Console.WriteLine("--------");
-                Console.WriteLine(" ");
-                await ctx.SaveChangesAsync();
                 index++;
             }
-            // vehicles        
+            await ctx.SaveChangesAsync();
+
             Console.WriteLine($"Added {await ctx.Vehicles.CountAsync()} vehicles");
+            Console.WriteLine($"Added {await ctx.VehicleComponents.CountAsync()} vehicle components");
+
+
+            // // dates
+            var vehicles = await ctx.Vehicles.OrderBy(t => t.LotNo).ToListAsync();
+            index = 0;
+
+            var mockCreatedDate = DateTime.UtcNow.AddDays(- (vehicles.Count() - 10));
+
+            foreach (var vehicle in vehicles) {
+
+                // set planned build date for all but last 3 vehicles
+                if (index < vehicles.Count() - 3) {
+                    vehicle.PlannedBuildAt = mockCreatedDate.AddDays(3);
+                    vehicle.CreatedAt = mockCreatedDate;
+
+                    mockCreatedDate = mockCreatedDate.AddDays(1);
+                }
+                index++;
+            }
+
+            await ctx.SaveChangesAsync();
         }
 
         public void Seed_VehicleComponentScan(Vehicle vehicle) {
@@ -142,7 +159,7 @@ namespace SKD.VCS.Seed {
             var vehicleModels = vehicleModelData.ToList().Select(x => new VehicleModel() {
                 Code = x.code,
                 Name = x.name,
-            }).ToList();        
+            }).ToList();
 
             ctx.VehicleModels.AddRange(vehicleModels);
             await ctx.SaveChangesAsync();
