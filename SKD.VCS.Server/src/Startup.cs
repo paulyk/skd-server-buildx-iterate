@@ -25,7 +25,6 @@ namespace SKD.VCS.Server {
         public IConfiguration Configuration { get; }
         public IWebHostEnvironment _env { get; }
 
-
         public void ConfigureServices(IServiceCollection services) {
 
             services.AddCors(options => {
@@ -64,7 +63,6 @@ namespace SKD.VCS.Server {
                 app.UseDeveloperExceptionPage();
             }
 
-
             app.UseRouting();
             app.UseCors();
 
@@ -100,7 +98,7 @@ namespace SKD.VCS.Server {
                         context.Response.StatusCode = 200;
                     });
 
-                      endpoints.MapPost("/reset_db", async (context) => {
+                    endpoints.MapPost("/reset_db", async (context) => {
                         var ctx = context.RequestServices.GetService<SkdContext>();
                         var dbService = new DbService(ctx);
                         await dbService.DroCreateDb();
@@ -109,7 +107,6 @@ namespace SKD.VCS.Server {
 
                     endpoints.MapGet("/ping", async context => {
                         await context.Response.WriteAsync("Ping!");
-                        context.Response.StatusCode = 200;
                     });
                 }
             });

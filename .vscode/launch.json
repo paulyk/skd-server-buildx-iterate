@@ -4,37 +4,42 @@
    // For further information visit https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md
    "version": "0.2.0",
    "configurations": [
-        {
-            "name": "SKD.VCS.Seed",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build",
-            // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/SKD.VCS.Seed/bin/Debug/netcoreapp3.1/SKD.VCS.Seed.dll",
-            "args": [],
-            "cwd": "${workspaceFolder}/SKD.VCS.Seed",
-            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
-            "console": "internalConsole",
-            "stopAtEntry": false
-        },
-        {
-            "name": "SKD.VCS.Server",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build",
-            // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/SKD.VCS.Server/bin/Debug/netcoreapp3.1/SKD.VCS.Server.dll",
-            "args": [],
-            "cwd": "${workspaceFolder}/SKD.VCS.Server",
-            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
-            "console": "internalConsole",
-            "stopAtEntry": false
-        },
-        {
-            "name": ".NET Core Attach",
-            "type": "coreclr",
-            "request": "attach",
-            "processId": "${command:pickProcess}"
+    {
+        "name": "SKD.VCS.Seed",
+        "type": "coreclr",
+        "request": "launch",
+        "preLaunchTask": "build",
+        "program": "${workspaceFolder}/SKD.VCS.Seed/bin/Debug/netcoreapp3.1/SKD.VCS.Seed.dll",
+        "args": [],
+        "cwd": "${workspaceFolder}/SKD.VCS.Seed",
+        "console": "internalConsole",
+        "stopAtEntry": false
+    },
+    {
+        "name": "SKD.VCS.Server",
+        "type": "coreclr",
+        "request": "launch",
+        "preLaunchTask": "build",
+        "program": "${workspaceFolder}/SKD.VCS.Server/bin/Debug/netcoreapp3.1/SKD.VCS.Server.dll",
+        "args": [],
+        "cwd": "${workspaceFolder}/SKD.VCS.Server",
+        "console": "internalConsole",
+        "stopAtEntry": false
+    },
+    {
+        "name": ".NET Core Attach",
+        "type": "coreclr",
+        "request": "attach",
+        "processId": "${command:pickProcess}"
+    },
+    {
+        "name": "Docker .NET Core Launch",
+        "type": "docker",
+        "request": "launch",
+        "preLaunchTask": "docker-run: debug",
+        "netCore": {
+            "appProject": "${workspaceFolder}/SKD.VCS.Server/SKD.VCS.Server.csproj"
         }
-    ]
+    }
+]
 }
