@@ -67,5 +67,8 @@ namespace SKD.VCS.Server {
                         .Include(t => t.Model)
                         .FirstOrDefaultAsync(t => t.VIN == vin);
 
+        public  async Task<Component> GetComponentById([Service] SkdContext context, Guid id) =>
+                 await context.Components.FirstOrDefaultAsync(t => t.Id == id);
+
     }
 }
