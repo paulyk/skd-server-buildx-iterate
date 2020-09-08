@@ -45,7 +45,6 @@ namespace SKD.VCS.Model {
 
         public async Task<MutationPayload<Component>> RemoveComponent(Guid componentId) {
             var component = await context.Components.FirstOrDefaultAsync(t => t.Id == componentId);
-
             var payload = new MutationPayload<Component>(component);
 
             payload.Errors = ValidateRemoveComponent<Component>(component);
@@ -59,11 +58,45 @@ namespace SKD.VCS.Model {
             return payload;
         }
 
+          public async Task<MutationPayload<Component>> RestoreComponent(Guid componentId) {
+            var component = await context.Components.FirstOrDefaultAsync(t => t.Id == componentId);
+            var payload = new MutationPayload<Component>(component);
+
+            payload.Errors = ValidateRestoreComponent<Component>(component);
+
+            if (payload.Errors.Any()) {
+                return payload;
+            }
+
+            component.RemovedAt = null;
+            await context.SaveChangesAsync();
+            return payload;
+        }
+
         public List<Error> ValidateRemoveComponent<T>(Component component) where T : Component {
             var errors = new List<Error>();
 
+            if (component == null) {
+                errors.Add(new Error("", "component not found"));
+                return errors;
+            }
+
             if (component.RemovedAt != null) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Code, "component already removed"));
+            }
+            return errors;
+        }
+
+         public List<Error> ValidateRestoreComponent<T>(Component component) where T : Component {
+            var errors = new List<Error>();
+
+              if (component == null) {
+                errors.Add(new Error("", "component not found"));
+                return errors;
+            }
+
+            if (component.RemovedAt == null) {
+                errors.Add(ErrorHelper.Create<T>(t => t.Code, "component already active"));
             }
             return errors;
         }

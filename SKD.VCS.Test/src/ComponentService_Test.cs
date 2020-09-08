@@ -139,8 +139,30 @@ namespace SKD.VCS.Test {
             Assert.Equal(before_count + 1, after_count);
             Assert.Null(payload.Entity.RemovedAt);
 
-            var payload2 = service.RemoveComponent(payload.Entity.Id);
+            var payload2 = await service.RemoveComponent(payload.Entity.Id);
             Assert.NotNull( payload.Entity.RemovedAt);
+        }
+
+         [Fact]
+        private async Task can_restore_componet() {
+            var service = new ComponentService(ctx);
+
+            // setup
+
+            var dto = new ComponentDTO {
+                Code = Util.RandomString(EntityFieldLen.Component_Code),
+                Name = Util.RandomString(EntityFieldLen.Component_Name),
+            };
+
+            var payload = await service.SaveComponent(dto);
+            Assert.Null(payload.Entity.RemovedAt);
+
+            var payload2 = await service.RemoveComponent(payload.Entity.Id);
+            Assert.NotNull( payload.Entity.RemovedAt);
+
+            // test
+            var payload3 = service.RestoreComponent(payload2.Entity.Id);
+            Assert.Null( payload.Entity.RemovedAt);
         }
        
         [Fact]

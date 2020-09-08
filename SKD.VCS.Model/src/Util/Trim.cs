@@ -10,9 +10,6 @@ namespace SKD.VCS.Model {
                 .Where(p => p.PropertyType == typeof(string)).ToList();
 
             foreach (var prop in properties) {
-                Console.WriteLine(prop.Name);
-            }
-            foreach (var prop in properties) {
                 var value = (string)prop.GetValue(obj, null);
                 if (value != null) {
                     prop.SetValue(obj, value.Trim());
