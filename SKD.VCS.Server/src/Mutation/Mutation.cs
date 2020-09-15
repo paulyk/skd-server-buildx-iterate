@@ -20,13 +20,14 @@ namespace SKD.VCS.Server {
             [Service] SkdContext ctx,
             VehicleInput input
         ) {
-            var vehicle = new Vehicle {
+            var dto = new VehicleDTO {
                 VIN = input.Vin,
                 ModelId = ToGuid(input.ModelId),
                 KitNo = input.KitNo,
-                LotNo = input.LotNo
+                LotNo = input.LotNo,
+                PlannedBuildAt = input.PlannedBuildAt
             };
-            return await service.CreateVehicle(vehicle);
+            return await service.CreateVehicle(dto);
         }
 
         /// <summary>

@@ -17,19 +17,30 @@ namespace SKD.VCS.Model {
         public VehicleService(SkdContext ctx) {
             this.context = ctx;
         }
-        public async Task<MutationPayload<Vehicle>> CreateVehicle(Vehicle vehicle) {
+        public async Task<MutationPayload<Vehicle>> CreateVehicle(VehicleDTO dto) {
+            var vehicle = new Vehicle();
+            vehicle.VIN = dto.VIN;
+            vehicle.ModelId = dto.ModelId;
+            vehicle.LotNo = dto.LotNo;
+            vehicle.KitNo = dto.KitNo;
+            vehicle.PlannedBuildAt = dto.PlannedBuildAt;
+
             var payload = new MutationPayload<Vehicle>(vehicle);
             context.Vehicles.Add(vehicle);
 
-
             // ensure vehicle.Model set
             if (vehicle.ModelId != null && vehicle.ModelId != Guid.Empty) {
-                vehicle.Model = await context.VehicleModels.FirstOrDefaultAsync(t => t.Id == vehicle.ModelId);
+                vehicle.Model = await context.VehicleModels
+                    .Include(t => t.ModelComponents).ThenInclude(t => t.Component)
+                    .Include(t => t.ModelComponents).ThenInclude(t => t.ProductionStation)
+                    .FirstOrDefaultAsync(t => t.Id == vehicle.ModelId);
             }
 
             if (vehicle.Model != null) {
                 // add components
-                vehicle.Model.ActiveComponentMappings.ToList().ForEach(mapping => {
+                var modelCOmponents = vehicle.Model.ModelComponents.Where(t => t.RemovedAt == null).ToList();
+
+                modelCOmponents.ForEach(mapping => {                    
                     vehicle.VehicleComponents.Add(new VehicleComponent() {
                         Component = mapping.Component,
                         ProductionStationId = mapping.ProductionStationId,
@@ -89,7 +100,7 @@ namespace SKD.VCS.Model {
 
                 if (vehicle.VehicleComponents.Count == 0) {
                     errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponents, "Vehicle components required, but none found"));
-                } else if (vehicle.Model.ModelComponents.Count != vehicle.VehicleComponents.Count) {
+                } else if (vehicle.Model.ModelComponents.Where(t => t.RemovedAt == null).Count() != vehicle.VehicleComponents.Count) {
                     errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponents, $"Vehicle components don't match model component count"));
                 } else {
                     // vehicle components must match model component

@@ -20,21 +20,26 @@ namespace SKD.VCS.Test {
             var service = new VehicleService(ctx);
 
             var vehicleModel = await ctx.VehicleModels.FirstOrDefaultAsync(t => t.Code == TestVehicleModel_Code);
-            var vehicle = new Vehicle() {
+            var dto = new VehicleDTO() {
                 VIN = new String('1', EntityFieldLen.Vehicle_VIN),
-                Model = vehicleModel,
+                ModelId = vehicleModel.Id,
                 LotNo = "001",
                 KitNo = "001"
             };
 
             var before_VehicleCount = await ctx.Vehicles.CountAsync();
-            var payload = await service.CreateVehicle(vehicle);
+            var payload = await service.CreateVehicle(dto);
             Assert.NotNull(payload.Entity);
 
             var after_VehicleCount = await ctx.Vehicles.CountAsync();
             Assert.True(after_VehicleCount == before_VehicleCount + 1, "Vehicle count unchanged after save");
 
-            Assert.True(vehicleModel.ModelComponents.Count() == vehicle.VehicleComponents.Count(), "Vehicle components don't match vehicle model components");
+            var vehicle = await ctx.Vehicles.FirstOrDefaultAsync(t => t.VIN == dto.VIN);
+            var vehicleComponentCount = vehicle.VehicleComponents.Count();
+            var modelComponentCount = vehicleModel.ModelComponents.Count();
+
+            Console.WriteLine($"**** vehicle {vehicleComponentCount} model {modelComponentCount} ****");
+            Assert.True(modelComponentCount == vehicleComponentCount, "Vehicle components don't match vehicle model components");
         }
 
         [Fact]
@@ -42,14 +47,14 @@ namespace SKD.VCS.Test {
             // setup
             var service = new VehicleService(ctx);
 
-            var vehicle = new Vehicle() {
+            var dto = new VehicleDTO() {
                 VIN = new String('1', EntityFieldLen.Vehicle_VIN),
                 LotNo = "001",
                 KitNo = "001"
             };
 
             // test
-            var payload = await service.CreateVehicle(vehicle);
+            var payload = await service.CreateVehicle(dto);
 
             // assert
             var errorCount = payload.Errors.Count();
