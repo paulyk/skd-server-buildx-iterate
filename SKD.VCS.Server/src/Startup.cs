@@ -36,11 +36,7 @@ namespace SKD.VCS.Server {
             });
 
             services.AddDbContext<SkdContext>(options => {
-                var aspnet_env = _env.EnvironmentName != null ? _env.EnvironmentName : "Production";
-                var connectionString = Configuration.GetConnectionString(aspnet_env);
-
-                Console.WriteLine(connectionString);
-
+                var connectionString = Configuration.GetConnectionString("");
                 options.UseSqlServer(connectionString);
             }, ServiceLifetime.Transient);
 
@@ -73,10 +69,7 @@ namespace SKD.VCS.Server {
 
             if (env.IsDevelopment()) {
                 app.Use(next => context => {
-                    var aspnet_env = _env.EnvironmentName != null ? env.EnvironmentName : "Production";
-                    var connectionString = Configuration.GetConnectionString(aspnet_env);
-
-                    Console.WriteLine(aspnet_env);
+                    var connectionString = Configuration.GetConnectionString("");
                     Console.WriteLine(connectionString);
 
                     Console.WriteLine("Request log: " + context.Request.HttpContext.Request.Path);

@@ -12,24 +12,14 @@ namespace SKD.VCS.Model {
                 .AddEnvironmentVariables()
                 .Build();
 
+            var connectionString = Configuration.GetConnectionString("");
 
-            var databaseProviderName = Configuration["DatabaseProviderName"];
-            var connectionString = Configuration.GetConnectionString("Development");
-
-            if (databaseProviderName == null) {
-                throw new Exception($"databaseProviderName not found");
-            }
             if (connectionString == null) {
                 throw new Exception($"Connection string not found for Development");
             }
 
             var optionsBuilder = new DbContextOptionsBuilder<SkdContext>();
-            switch (databaseProviderName) {
-                case "sqlite": optionsBuilder.UseSqlite(connectionString); break;
-                case "sqlserver": optionsBuilder.UseSqlServer(connectionString); break;
-                case "postgres": optionsBuilder.UseNpgsql(connectionString); break;
-                default: throw new Exception($"supported providers are sqlite, sqlserver, postgres");
-            }
+            optionsBuilder.UseSqlServer(connectionString); 
 
             return new SkdContext(optionsBuilder.Options);
         }
