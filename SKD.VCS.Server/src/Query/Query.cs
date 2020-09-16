@@ -76,6 +76,13 @@ namespace SKD.VCS.Server {
         public async Task<Component> GetComponentById([Service] SkdContext context, Guid id) =>
                  await context.Components.FirstOrDefaultAsync(t => t.Id == id);
 
+        public async Task<VehicleComponent> GetVehicleComponentByVinAndComponent([Service] SkdContext context, string vin, string componentCode) =>
+                 await context.VehicleComponents
+                        .Include(t => t.Vehicle)
+                        .Include(t => t.Component)
+                        .Include(t => t.ComponentScans)
+                        .FirstOrDefaultAsync(t => t.Vehicle.VIN == vin && t.Component.Code == componentCode);
+
         public async Task<VehicleOrComponentDTO> GetVehicleOrComponentByCode([Service] SkdContext context, string code)  {
                 var component = await context.Components.FirstOrDefaultAsync(t => t.Code == code);
                 var vehicle = await context.Vehicles
@@ -88,6 +95,5 @@ namespace SKD.VCS.Server {
                         Component = component
                 };
         }
-
     }
 }
