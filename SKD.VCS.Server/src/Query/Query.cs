@@ -58,8 +58,8 @@ namespace SKD.VCS.Server {
         public IQueryable<ProductionStation> GetProductionStations([Service] SkdContext context) =>
                 context.ProductionStations.AsQueryable();
 
-        
-        public  async Task<Vehicle> GetVehicleByVIN([Service] SkdContext context, string vin) =>
+
+        public async Task<Vehicle> GetVehicleByVIN([Service] SkdContext context, string vin) =>
                  await context.Vehicles
                         .Include(t => t.VehicleComponents).ThenInclude(t => t.Component)
                         .Include(t => t.VehicleComponents).ThenInclude(t => t.ProductionStation)
@@ -67,14 +67,27 @@ namespace SKD.VCS.Server {
                         .Include(t => t.Model)
                         .FirstOrDefaultAsync(t => t.VIN == vin);
 
-   public  async Task<VehicleModel> GetVehicleModelById([Service] SkdContext context, Guid id) =>
-                 await context.VehicleModels
+        public async Task<VehicleModel> GetVehicleModelById([Service] SkdContext context, Guid id) =>
+                await context.VehicleModels
                         .Include(t => t.ModelComponents).ThenInclude(t => t.Component)
                         .Include(t => t.ModelComponents).ThenInclude(t => t.ProductionStation)
-                        .FirstOrDefaultAsync(t => t.Id == id);                        
+                        .FirstOrDefaultAsync(t => t.Id == id);
 
-        public  async Task<Component> GetComponentById([Service] SkdContext context, Guid id) =>
+        public async Task<Component> GetComponentById([Service] SkdContext context, Guid id) =>
                  await context.Components.FirstOrDefaultAsync(t => t.Id == id);
+
+        public async Task<VehicleOrComponentDTO> GetVehicleOrComponentByCode([Service] SkdContext context, string code)  {
+                var component = await context.Components.FirstOrDefaultAsync(t => t.Code == code);
+                var vehicle = await context.Vehicles
+                        .Include(t => t.Model)
+                        .FirstOrDefaultAsync(t => t.VIN == code);
+
+                return new VehicleOrComponentDTO {
+                        Code = code,
+                        Vehicle = vehicle,
+                        Component = component
+                };
+        }
 
     }
 }

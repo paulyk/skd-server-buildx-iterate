@@ -82,7 +82,7 @@ namespace SKD.VCS.Model {
             }
             // check duplicate vin
             if (await context.Vehicles.AnyAsync(t => t.VIN == vehicle.VIN && t.Id != vehicle.Id)) {
-                errors.Add(ErrorHelper.Create<T>(t => t.VIN, "Duplicate VIN found"));
+                errors.Add(ErrorHelper.Create<T>(t => t.VIN, "Duplicate VIN"));
             }
 
             // vehicle mode ID empty / not found
@@ -97,7 +97,6 @@ namespace SKD.VCS.Model {
 
             // vehicle components
             if (vehicle.Model != null) {
-
                 if (vehicle.VehicleComponents.Count == 0) {
                     errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponents, "Vehicle components required, but none found"));
                 } else if (vehicle.Model.ModelComponents.Where(t => t.RemovedAt == null).Count() != vehicle.VehicleComponents.Count) {

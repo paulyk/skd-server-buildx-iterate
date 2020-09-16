@@ -21,7 +21,6 @@ namespace SKD.VCS.Server {
                     logging.AddConsole();
                 })
                 .ConfigureWebHostDefaults(webBuilder => {
-
                     webBuilder.UseConfiguration(ConfigHelper.GetConfig());
                     webBuilder.UseStartup<Startup>();
                 });

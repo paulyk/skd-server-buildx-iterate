@@ -38,6 +38,9 @@ namespace SKD.VCS.Server {
             services.AddDbContext<SkdContext>(options => {
                 var aspnet_env = _env.EnvironmentName != null ? _env.EnvironmentName : "Production";
                 var connectionString = Configuration.GetConnectionString(aspnet_env);
+
+                Console.WriteLine(connectionString);
+
                 options.UseSqlServer(connectionString);
             }, ServiceLifetime.Transient);
 
@@ -70,6 +73,12 @@ namespace SKD.VCS.Server {
 
             if (env.IsDevelopment()) {
                 app.Use(next => context => {
+                    var aspnet_env = _env.EnvironmentName != null ? env.EnvironmentName : "Production";
+                    var connectionString = Configuration.GetConnectionString(aspnet_env);
+
+                    Console.WriteLine(aspnet_env);
+                    Console.WriteLine(connectionString);
+
                     Console.WriteLine("Request log: " + context.Request.HttpContext.Request.Path);
                     return next(context);
                 });
@@ -84,7 +93,7 @@ namespace SKD.VCS.Server {
             app.UseEndpoints(endpoints => {
 
                 if (_env.IsDevelopment()) {
-                    endpoints.MapPost("/gen_mock_data", async (context) => {
+                    endpoints.MapPost("/ ", async (context) => {
                         var ctx = context.RequestServices.GetService<SkdContext>();
                         var service = new MockDataService(ctx);
                         await service.GenerateMockData();
