@@ -12,10 +12,10 @@ namespace SKD.VCS.Model {
                 .AddEnvironmentVariables()
                 .Build();
 
-            var connectionString = Configuration.GetConnectionString("");
+            var connectionString = Configuration.GetConnectionString("Default");
 
             if (connectionString == null) {
-                throw new Exception($"Connection string not found for Development");
+                throw new Exception($"Default connection string not found for Development");
             }
 
             var optionsBuilder = new DbContextOptionsBuilder<SkdContext>();

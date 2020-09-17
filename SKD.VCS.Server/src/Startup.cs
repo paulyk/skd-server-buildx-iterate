@@ -36,7 +36,7 @@ namespace SKD.VCS.Server {
             });
 
             services.AddDbContext<SkdContext>(options => {
-                var connectionString = Configuration.GetConnectionString("");
+                var connectionString = Configuration.GetConnectionString("Default");
                 options.UseSqlServer(connectionString);
             }, ServiceLifetime.Transient);
 
@@ -69,9 +69,8 @@ namespace SKD.VCS.Server {
 
             if (env.IsDevelopment()) {
                 app.Use(next => context => {
-                    var connectionString = Configuration.GetConnectionString("");
+                    var connectionString = Configuration.GetConnectionString("Default");
                     Console.WriteLine(connectionString);
-
                     Console.WriteLine("Request log: " + context.Request.HttpContext.Request.Path);
                     return next(context);
                 });

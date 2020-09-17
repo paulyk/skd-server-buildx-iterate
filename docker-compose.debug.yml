@@ -13,7 +13,8 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
-      - 'connectionString="server=mssql;database=skd;uid=sa;pwd=DevOnlyPassword119"'
+      - ConnectionStrings__Default=server=mssql;database=skd;uid=sa;pwd=DevOnlyPassword119
+      - ping=hello-pauly-2
     volumes:
       - ~/.vsdbg:/remote_debugger:rw
     depends_on:
