@@ -83,17 +83,22 @@ namespace SKD.VCS.Server {
                         .Include(t => t.ComponentScans)
                         .FirstOrDefaultAsync(t => t.Vehicle.VIN == vin && t.Component.Code == componentCode);
 
-        public async Task<VehicleOrComponentDTO> GetVehicleOrComponentByCode([Service] SkdContext context, string code)  {
-                var component = await context.Components.FirstOrDefaultAsync(t => t.Code == code);
-                var vehicle = await context.Vehicles
-                        .Include(t => t.Model)
-                        .FirstOrDefaultAsync(t => t.VIN == code);
+        public async Task<VehicleOrComponentDTO> GetVehicleOrComponent([Service] SkdContext context, string vinOrCode) {
+            Component component = await context.Components.FirstOrDefaultAsync(t => t.Code == vinOrCode);
+            Vehicle? vehicle = null;
 
-                return new VehicleOrComponentDTO {
-                        Code = code,
-                        Vehicle = vehicle,
-                        Component = component
-                };
+            if (component == null) {
+                vehicle = await context.Vehicles
+                        .Include(t => t.Model)
+                        .Include(t => t.VehicleComponents).ThenInclude(t => t.Component)
+                        .FirstOrDefaultAsync(t => t.VIN == vinOrCode);
+            }
+
+            return new VehicleOrComponentDTO {
+                Code = vinOrCode,
+                Vehicle = vehicle,
+                Component = component
+            };
         }
     }
 }
