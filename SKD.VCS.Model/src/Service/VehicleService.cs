@@ -75,10 +75,11 @@ namespace SKD.VCS.Model {
         }
         public async Task<List<Error>> ValidateCreateVehicle<T>(T vehicle) where T : Vehicle {
             var errors = new List<Error>();
+            var validator = new Validator();
 
             // vin format
-            if (vehicle.VIN.Trim().Length != EntityFieldLen.Vehicle_VIN) {
-                errors.Add(ErrorHelper.Create<T>(t => t.VIN, $"VIN must be exactly {EntityFieldLen.Vehicle_VIN} characters"));
+            if (!validator.ValidVIN(vehicle.VIN)) {
+                errors.Add(ErrorHelper.Create<T>(t => t.VIN, $"Invalid VIN format"));
             }
             // check duplicate vin
             if (await context.Vehicles.AnyAsync(t => t.VIN == vehicle.VIN && t.Id != vehicle.Id)) {
