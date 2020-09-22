@@ -51,68 +51,6 @@ namespace SKD.VCS.Seed {
             Console.WriteLine($"Added {count} vehicle model components ");
         }
 
-        public async Task Seed_Vehicles(ICollection<Vehicle_MockData_DTO> vehicleData) {
-
-            if (await ctx.VehicleModels.CountAsync() == 0) {
-                throw new Exception("Vehicle models must be seeded before vheicles");
-            }
-
-            var index = 1;
-
-            foreach (var entry in vehicleData) {
-                var vehicleModel = ctx.VehicleModels.First(m => m.Code == entry.modelCode);
-                var vehicle = new Vehicle() {
-                    VIN = entry.vin,
-                    Model = vehicleModel,
-                    LotNo = entry.lotNo,
-                    KitNo = entry.kitNo
-                };
-
-                ctx.Vehicles.Add(vehicle);
-
-                var modelComponents = ctx.VehicleModelComponents.Where(t => t.VehicleModelId == vehicle.ModelId).ToList();
-
-                foreach (var modelComponent in modelComponents) {
-                    var vehicleComponent = new VehicleComponent() {
-                        Component = modelComponent.Component,
-                        ComponentId = modelComponent.ComponentId,
-                        ProductionStationId = modelComponent.ProductionStationId,
-                        ProductionStation = modelComponent.ProductionStation,
-                        CreatedAt = vehicle.CreatedAt
-                    };
-
-                    vehicle.VehicleComponents.Add(vehicleComponent);
-                }
-
-                index++;
-            }
-            await ctx.SaveChangesAsync();
-
-            Console.WriteLine($"Added {await ctx.Vehicles.CountAsync()} vehicles");
-            Console.WriteLine($"Added {await ctx.VehicleComponents.CountAsync()} vehicle components");
-
-
-            // // dates
-            var vehicles = await ctx.Vehicles.OrderBy(t => t.LotNo).ToListAsync();
-            index = 0;
-
-            var mockCreatedDate = DateTime.UtcNow.AddDays(- (vehicles.Count() - 10));
-
-            foreach (var vehicle in vehicles) {
-
-                // set planned build date for all but last 3 vehicles
-                if (index < vehicles.Count() - 3) {
-                    vehicle.PlannedBuildAt = mockCreatedDate.AddDays(3);
-                    vehicle.CreatedAt = mockCreatedDate;
-
-                    mockCreatedDate = mockCreatedDate.AddDays(1);
-                }
-                index++;
-            }
-
-            await ctx.SaveChangesAsync();
-        }
-
         public void Seed_VehicleComponentScan(Vehicle vehicle) {
             var date = vehicle.CreatedAt.AddDays(4);
             var i = 0;

@@ -10,80 +10,17 @@ using Microsoft.CSharp.RuntimeBinder;
 namespace SKD.VCS.Seed {
     internal class MockData {
 
-        public ICollection<Vehicle_MockData_DTO> Vehicle_MockData;
         public ICollection<Component_MockData_DTO> Component_MockData;
         public ICollection<VehicleModel_MockData_DTO> VehicleModel_MockData;
         public ICollection<CmponentStation_McckData_DTO> ComponentStation_MockData;
         public ICollection<ProductionStation_Mock_DTO> ProductionStation_MockData;
 
         public MockData(string dirPath) {
-
             Component_MockData = JsonSerializer.Deserialize<List<Component_MockData_DTO>>(Components_JSON.Replace("'", "\""));
             ProductionStation_MockData = JsonSerializer.Deserialize<List<ProductionStation_Mock_DTO>>(ProductionStations_JSON.Replace("'", "\""));
             ComponentStation_MockData = JsonSerializer.Deserialize<List<CmponentStation_McckData_DTO>>(ComponentStationMapping_JSON.Replace("'", "\""));          
             VehicleModel_MockData = JsonSerializer.Deserialize<List<VehicleModel_MockData_DTO>>(VehicleModels_JSON.Replace("'", "\""));
-            Vehicle_MockData = JsonSerializer.Deserialize<List<Vehicle_MockData_DTO>>(Vehicles_JSON.Replace("'", "\""));
         }
-
-        private string Vehicles_JSON = @"
-[
-  {
-    'vin': 'MNCUMNF50JW795262',
-    'modelCode': 'ZRAE9GD0010',
-    'lotNo': '001',
-    'kitNo': '001'
-  },
-  {
-    'vin': 'MNCUMNF50JW795267',
-    'modelCode': 'ZRAE9GD9999',
-    'lotNo': '002',
-    'kitNo': '001'
-  },
-  {
-    'vin': 'MNCUMNF80JW795260',
-    'modelCode': 'ZRAE9PQ0010',
-    'lotNo': '003',
-    'kitNo': '001'
-  },
-  {
-    'vin': 'MNCBXXMAWBHK48380',
-    'modelCode': 'ZRAE9GD5010',
-    'lotNo': '004',
-    'kitNo': '001'
-  },
-  {
-    'vin': 'MNCBXXMAWBHD65253',
-    'modelCode': 'ARLQ93D0001',
-    'lotNo': '005',
-    'kitNo': '001'
-  },
-  {
-    'vin': 'MNCBXXMAWBHD63946',
-    'modelCode': 'ARLQ93D9999',
-    'lotNo': '006',
-    'kitNo': '001'
-  },
-  {
-    'vin': 'MNCBXXMAWBHD65454',
-    'modelCode': 'ARLQ99E0001',
-    'lotNo': '007',
-    'kitNo': '001'
-
-  },
-  {
-    'vin': 'MNCBXXMAWBHD65873',
-    'modelCode': 'ARLQ93D5555',
-    'lotNo': '008',
-    'kitNo': '001'
-  },
-  {
-    'vin': 'MNCBXXMAWBHDK4871',
-    'modelCode': 'ARLQ93A2222',
-    'lotNo': '009',
-    'kitNo': '001'
-  }
-]
-";
 
         private string Components_JSON = @"
   [
