@@ -121,17 +121,13 @@ namespace SKD.VCS.Model {
 
             // Lot No
             if (vehicle.LotNo.Trim().Length < EntityFieldLen.Vehicle_LotNo) {
-                errors.Add(ErrorHelper.Create<T>(t => t.KitNo, $"LotNo must be {EntityFieldLen.Vehicle_LotNo} characters"));
-            } else if (!IsNumeric(vehicle.LotNo)) {
-                errors.Add(ErrorHelper.Create<T>(t => t.LotNo, $"KitNo must be numeric"));
-            }
+                errors.Add(ErrorHelper.Create<T>(t => t.LotNo, $"LotNo must be {EntityFieldLen.Vehicle_LotNo} characters"));
+            } 
 
             // Kit No
             if (vehicle.KitNo.Trim().Length < EntityFieldLen.Vehicle_KitNo) {
                 errors.Add(ErrorHelper.Create<T>(t => t.KitNo, $"KitNo must be {EntityFieldLen.Vehicle_KitNo} characters"));
-            } else if (!IsNumeric(vehicle.KitNo)) {
-                errors.Add(ErrorHelper.Create<T>(t => t.LotNo, $"KitNo must be numeric"));
-            }
+            } 
 
             return errors;
         }

@@ -11,7 +11,6 @@ namespace SKD.VCS.Seed {
     internal class MockData {
 
         public ICollection<Component_MockData_DTO> Component_MockData;
-        public ICollection<VehicleModel_MockData_DTO> VehicleModel_MockData;
         public ICollection<CmponentStation_McckData_DTO> ComponentStation_MockData;
         public ICollection<ProductionStation_Mock_DTO> ProductionStation_MockData;
 
@@ -19,7 +18,6 @@ namespace SKD.VCS.Seed {
             Component_MockData = JsonSerializer.Deserialize<List<Component_MockData_DTO>>(Components_JSON.Replace("'", "\""));
             ProductionStation_MockData = JsonSerializer.Deserialize<List<ProductionStation_Mock_DTO>>(ProductionStations_JSON.Replace("'", "\""));
             ComponentStation_MockData = JsonSerializer.Deserialize<List<CmponentStation_McckData_DTO>>(ComponentStationMapping_JSON.Replace("'", "\""));          
-            VehicleModel_MockData = JsonSerializer.Deserialize<List<VehicleModel_MockData_DTO>>(VehicleModels_JSON.Replace("'", "\""));
         }
 
         private string Components_JSON = @"
@@ -41,48 +39,6 @@ namespace SKD.VCS.Seed {
       ,{'code':'VIN','name':'Marry Body & Frame Check'}
   ]
 ";
-
-private string VehicleModels_JSON = @"
-[
-  {
-    'code': 'ZRAE9GD0010',
-    'name': 'U375 XLT 2.0L SG DSL PANTHER-B 2WHD AUTO HONEY GOLD'
-  },
-  {
-    'code': 'ZRAE9GD9999',
-    'name': 'U375 LTD 2.0L BI DSL PANTHER-C 4WHD AUTO COGNAC'
-  },
-  {
-    'code': 'ZRAE9PQ0010',
-    'name': 'U375 XLT 2.0L SG DSL PANTHER-B 2WHD AUTO EBONY'
-  },
-  {
-    'code': 'ZRAE9GD5010',
-    'name': 'U375 LTD 2.0L BI DSL PANTHER-C 4WHD AUTO EBONY'
-  },
-  {
-    'code': 'ARLQ93D0001',
-    'name': 'P375 XL 2.2L I4 DSL PUMA 4WHD MAN'
-  },
-  {
-    'code': 'ARLQ93D9999',
-    'name': 'P375 XLT 2.2L I4 DSL PUMA 4WHD AUTO'
-  },
-  {
-    'code': 'ARLQ99E0001',
-    'name': 'P375 XLT 3.2L I5 DSL PUMA 4WHD AUTOA9SAA'
-  },
-  {
-    'code': 'ARLQ93D5555',
-    'name': 'P375 XLT 3.2L I5 DSL PUMA 4WHD AUTOA9SAB'
-  },
-  {
-    'code': 'ARLQ93A2222',
-    'name': 'P375 WILDTRAK 3.2L I5 DSL PUMA 4WHD AUTO'
-  }
-]
-";
-
  private string ComponentStationMapping_JSON = @"
  
  [

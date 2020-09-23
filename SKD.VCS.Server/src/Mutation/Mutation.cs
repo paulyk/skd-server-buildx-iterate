@@ -30,6 +30,14 @@ namespace SKD.VCS.Server {
             return await service.CreateVehicle(dto);
         }
 
+        public async Task<MutationPayload<VehicleModel>> CreateVehicleModel(
+            [Service] VehicleModelService service,
+            [Service] SkdContext ctx,
+            VehicleModelDTO input
+        ) {
+            return await service.CreateVehicleModel(input);
+        }
+
         /// <summary>
         /// Create or update a component
         /// </summary>

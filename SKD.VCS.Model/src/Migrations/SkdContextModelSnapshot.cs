@@ -164,12 +164,12 @@ namespace SKD.VCS.Model.src.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("KitNo")
-                        .HasColumnType("nvarchar(3)")
-                        .HasMaxLength(3);
+                        .HasColumnType("nvarchar(15)")
+                        .HasMaxLength(15);
 
                     b.Property<string>("LotNo")
-                        .HasColumnType("nvarchar(3)")
-                        .HasMaxLength(3);
+                        .HasColumnType("nvarchar(15)")
+                        .HasMaxLength(15);
 
                     b.Property<Guid>("ModelId")
                         .HasColumnType("uniqueidentifier");

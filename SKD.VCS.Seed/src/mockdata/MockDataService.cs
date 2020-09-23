@@ -31,8 +31,6 @@ namespace SKD.VCS.Seed {
             var generator = new MockDataGenerator(ctx);
             await generator.Seed_Components(seedData.Component_MockData);
             await generator.Seed_ProductionStations(seedData.ProductionStation_MockData);
-            await generator.Seed_VehicleModels(seedData.VehicleModel_MockData);
-            await generator.Seed_VehicleModelComponents(seedData.ComponentStation_MockData);
         }
     }
 }

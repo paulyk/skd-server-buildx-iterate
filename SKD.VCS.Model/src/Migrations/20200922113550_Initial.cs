@@ -77,8 +77,8 @@ namespace SKD.VCS.Model.src.Migrations
                     CreatedAt = table.Column<DateTime>(nullable: false),
                     RemovedAt = table.Column<DateTime>(nullable: true),
                     VIN = table.Column<string>(maxLength: 17, nullable: false),
-                    KitNo = table.Column<string>(maxLength: 3, nullable: true),
-                    LotNo = table.Column<string>(maxLength: 3, nullable: true),
+                    LotNo = table.Column<string>(maxLength: 15, nullable: true),
+                    KitNo = table.Column<string>(maxLength: 15, nullable: true),
                     ModelId = table.Column<Guid>(nullable: false),
                     PlannedBuildAt = table.Column<DateTime>(nullable: true),
                     ScanLockedAt = table.Column<DateTime>(nullable: true)

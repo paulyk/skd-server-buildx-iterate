@@ -23,8 +23,8 @@ namespace SKD.VCS.Test {
             var dto = new VehicleDTO() {
                 VIN = new String('1', EntityFieldLen.Vehicle_VIN),
                 ModelId = vehicleModel.Id,
-                LotNo = "001",
-                KitNo = "001"
+                LotNo = new string('1', EntityFieldLen.Vehicle_LotNo),
+                KitNo = new string('1', EntityFieldLen.Vehicle_KitNo)
             };
 
             var before_VehicleCount = await ctx.Vehicles.CountAsync();
@@ -49,8 +49,8 @@ namespace SKD.VCS.Test {
 
             var dto = new VehicleDTO() {
                 VIN = new String('1', EntityFieldLen.Vehicle_VIN),
-                LotNo = "001",
-                KitNo = "001"
+                LotNo = new string('1', EntityFieldLen.Vehicle_LotNo),
+                KitNo = new string('1', EntityFieldLen.Vehicle_KitNo)
             };
 
             // test
