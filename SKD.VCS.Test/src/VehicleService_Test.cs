@@ -19,10 +19,11 @@ namespace SKD.VCS.Test {
         public async Task can_create_vehicle() {
             var service = new VehicleService(ctx);
 
-            var vehicleModel = await ctx.VehicleModels.FirstOrDefaultAsync(t => t.Code == TestVehicleModel_Code);
+            var vehicleModel = await ctx.VehicleModels
+                .FirstOrDefaultAsync(t => t.Code == TestVehicleModel_Code);
             var dto = new VehicleDTO() {
                 VIN = new String('1', EntityFieldLen.Vehicle_VIN),
-                ModelId = vehicleModel.Id,
+                ModelCode = vehicleModel.Code,
                 LotNo = new string('1', EntityFieldLen.Vehicle_LotNo),
                 KitNo = new string('1', EntityFieldLen.Vehicle_KitNo)
             };

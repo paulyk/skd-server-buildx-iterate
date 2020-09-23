@@ -164,8 +164,8 @@ namespace SKD.VCS.Model.src.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("KitNo")
-                        .HasColumnType("nvarchar(15)")
-                        .HasMaxLength(15);
+                        .HasColumnType("nvarchar(17)")
+                        .HasMaxLength(17);
 
                     b.Property<string>("LotNo")
                         .HasColumnType("nvarchar(15)")

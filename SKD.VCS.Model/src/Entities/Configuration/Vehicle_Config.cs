@@ -14,7 +14,7 @@ namespace SKD.VCS.Model {
             builder.HasIndex(t => t.LotNo);
 
             builder.Property(t => t.LotNo).HasMaxLength(EntityFieldLen.Vehicle_LotNo);
-            builder.Property(t => t.KitNo).HasMaxLength(EntityFieldLen.Vehicle_LotNo);
+            builder.Property(t => t.KitNo).HasMaxLength(EntityFieldLen.Vehicle_KitNo);
 
             builder.Property(t => t.VIN)
                 .IsRequired()

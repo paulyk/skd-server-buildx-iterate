@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace SKD.VCS.Model {
 
@@ -18,9 +19,13 @@ namespace SKD.VCS.Model {
             this.context = ctx;
         }
         public async Task<MutationPayload<Vehicle>> CreateVehicle(VehicleDTO dto) {
+            var modelId = await context.VehicleModels
+                .Where(t => t.Code == dto.ModelCode)
+                .Select(t => t.Id).FirstOrDefaultAsync();      
+
             var vehicle = new Vehicle();
             vehicle.VIN = dto.VIN;
-            vehicle.ModelId = dto.ModelId;
+            vehicle.ModelId = modelId;      
             vehicle.LotNo = dto.LotNo;
             vehicle.KitNo = dto.KitNo;
             vehicle.PlannedBuildAt = dto.PlannedBuildAt;

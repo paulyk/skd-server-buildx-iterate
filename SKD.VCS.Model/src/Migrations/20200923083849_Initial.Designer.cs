@@ -10,7 +10,7 @@ using SKD.VCS.Model;
 namespace SKD.VCS.Model.src.Migrations
 {
     [DbContext(typeof(SkdContext))]
-    [Migration("20200922113550_Initial")]
+    [Migration("20200923083849_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -166,8 +166,8 @@ namespace SKD.VCS.Model.src.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("KitNo")
-                        .HasColumnType("nvarchar(15)")
-                        .HasMaxLength(15);
+                        .HasColumnType("nvarchar(17)")
+                        .HasMaxLength(17);
 
                     b.Property<string>("LotNo")
                         .HasColumnType("nvarchar(15)")
