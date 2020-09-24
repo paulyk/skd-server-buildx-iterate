@@ -155,8 +155,13 @@ namespace SKD.VCS.Test {
 
                 ctx.VehicleModels.Add(vehicleModel);
 
+                var lotNo = new String('X', EntityFieldLen.Vehicle_LotNo);
+                var vehicleLot = new VehicleLot { LotNo = lotNo };
+                ctx.VehicleLots.Add(vehicleLot);
+
                 var vehicle = new Vehicle() {
                     VIN = new String('X', EntityFieldLen.Vehicle_VIN),
+                    Lot = vehicleLot,
                     Model = vehicleModel
                 };
 

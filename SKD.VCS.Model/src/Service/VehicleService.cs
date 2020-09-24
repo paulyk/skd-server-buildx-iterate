@@ -21,13 +21,13 @@ namespace SKD.VCS.Model {
         public async Task<MutationPayload<Vehicle>> CreateVehicle(VehicleDTO dto) {
             var modelId = await context.VehicleModels
                 .Where(t => t.Code == dto.ModelCode)
-                .Select(t => t.Id).FirstOrDefaultAsync();      
+                .Select(t => t.Id).FirstOrDefaultAsync();
 
             var vehicle = new Vehicle();
-            vehicle.VIN = dto.VIN;
-            vehicle.ModelId = modelId;      
-            vehicle.LotNo = dto.LotNo;
-            vehicle.KitNo = dto.KitNo;
+            vehicle.VIN = dto.VIN ?? "";
+            vehicle.ModelId = modelId;
+            vehicle.LotNo = dto.LotNo ?? "";
+            vehicle.KitNo = dto.KitNo ?? "";
             vehicle.PlannedBuildAt = dto.PlannedBuildAt;
 
             var payload = new MutationPayload<Vehicle>(vehicle);
@@ -42,10 +42,10 @@ namespace SKD.VCS.Model {
             }
 
             if (vehicle.Model != null) {
-                // add components
+                // add vehicle components
                 var modelCOmponents = vehicle.Model.ModelComponents.Where(t => t.RemovedAt == null).ToList();
 
-                modelCOmponents.ForEach(mapping => {                    
+                modelCOmponents.ForEach(mapping => {
                     vehicle.VehicleComponents.Add(new VehicleComponent() {
                         Component = mapping.Component,
                         ProductionStationId = mapping.ProductionStationId,
@@ -53,6 +53,14 @@ namespace SKD.VCS.Model {
                     });
                 });
             }
+
+            // ensure vehicle lot
+            var vehicleLot = await context.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
+            if (vehicleLot == null) {
+                vehicleLot = new VehicleLot { LotNo = dto.LotNo };
+                context.VehicleLots.Add(vehicleLot);
+            }
+            vehicle.Lot = vehicleLot;
 
             // validate
             payload.Errors = await ValidateCreateVehicle<Vehicle>(vehicle);
@@ -125,14 +133,19 @@ namespace SKD.VCS.Model {
             }
 
             // Lot No
-            if (vehicle.LotNo.Trim().Length < EntityFieldLen.Vehicle_LotNo) {
+            if (vehicle.LotNo?.Trim().Length < EntityFieldLen.Vehicle_LotNo) {
                 errors.Add(ErrorHelper.Create<T>(t => t.LotNo, $"LotNo must be {EntityFieldLen.Vehicle_LotNo} characters"));
-            } 
+            }
 
             // Kit No
-            if (vehicle.KitNo.Trim().Length < EntityFieldLen.Vehicle_KitNo) {
+            if (vehicle.KitNo?.Trim().Length < EntityFieldLen.Vehicle_KitNo) {
                 errors.Add(ErrorHelper.Create<T>(t => t.KitNo, $"KitNo must be {EntityFieldLen.Vehicle_KitNo} characters"));
-            } 
+            }
+
+            // vehicle lot
+            // if (vehicle.Lot == null) {
+            //     errors.Add(ErrorHelper.Create<T>(t => t.Lot, "must be linked to vehicle lot"));
+            // } 
 
             return errors;
         }

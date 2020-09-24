@@ -83,8 +83,13 @@ namespace SKD.VCS.Test {
                 ProductionStationId = mc.ProductionStationId
             }).ToList();
 
+            var lotNo = new String('X', EntityFieldLen.Vehicle_LotNo);
+            var vehicleLot = new VehicleLot { LotNo = lotNo };
+            ctx.VehicleLots.Add(vehicleLot);
+
             var vehicle = new Vehicle { 
                 VIN = vin,
+                Lot = vehicleLot,
                 Model = vehicleModel,
                 PlannedBuildAt = plannedBuildAt,
                 ScanLockedAt = scanLockAt,

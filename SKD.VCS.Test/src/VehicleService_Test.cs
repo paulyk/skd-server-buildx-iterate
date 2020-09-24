@@ -17,21 +17,28 @@ namespace SKD.VCS.Test {
 
         [Fact]
         public async Task can_create_vehicle() {
+            // setup
             var service = new VehicleService(ctx);
 
             var vehicleModel = await ctx.VehicleModels
                 .FirstOrDefaultAsync(t => t.Code == TestVehicleModel_Code);
+
             var dto = new VehicleDTO() {
-                VIN = new String('1', EntityFieldLen.Vehicle_VIN),
+                VIN = Util.RandomString(EntityFieldLen.Vehicle_VIN).ToUpper(),
                 ModelCode = vehicleModel.Code,
-                LotNo = new string('1', EntityFieldLen.Vehicle_LotNo),
-                KitNo = new string('1', EntityFieldLen.Vehicle_KitNo)
+                LotNo = Util.RandomString(EntityFieldLen.Vehicle_LotNo).ToUpper(),
+                KitNo = Util.RandomString(EntityFieldLen.Vehicle_KitNo).ToUpper(),
             };
 
             var before_VehicleCount = await ctx.Vehicles.CountAsync();
-            var payload = await service.CreateVehicle(dto);
-            Assert.NotNull(payload.Entity);
 
+            // test
+            var payload = await service.CreateVehicle(dto);
+            
+            // assert
+            var errorCount = payload.Errors.Count();
+            Assert.True(errorCount == 0, "Errors creating vehicle");
+            
             var after_VehicleCount = await ctx.Vehicles.CountAsync();
             Assert.True(after_VehicleCount == before_VehicleCount + 1, "Vehicle count unchanged after save");
 
@@ -41,7 +48,47 @@ namespace SKD.VCS.Test {
 
             Console.WriteLine($"**** vehicle {vehicleComponentCount} model {modelComponentCount} ****");
             Assert.True(modelComponentCount == vehicleComponentCount, "Vehicle components don't match vehicle model components");
+
+            // lot no
+            var vehicleLot = await ctx.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == vehicle.LotNo);
+            Assert.NotNull(vehicleLot);
         }
+
+        [Fact]
+        public async Task can_add_two_vehicles_to_same_lot() {
+            var vehicleModel = await ctx.VehicleModels
+                .FirstOrDefaultAsync(t => t.Code == TestVehicleModel_Code);
+
+            var vehicle_lot_mo = Util.RandomString(EntityFieldLen.Vehicle_LotNo).ToUpper();
+            
+            var dto_1 = new VehicleDTO() {
+                VIN = Util.RandomString(EntityFieldLen.Vehicle_VIN).ToUpper(),
+                ModelCode = vehicleModel.Code,
+                LotNo = vehicle_lot_mo,
+                KitNo = vehicle_lot_mo + "01"
+            };
+            var dto_2 = new VehicleDTO() {
+                VIN = Util.RandomString(EntityFieldLen.Vehicle_VIN).ToUpper(),
+                ModelCode = vehicleModel.Code,
+                LotNo = vehicle_lot_mo,
+                KitNo = vehicle_lot_mo + "01"
+            };
+
+            var service = new VehicleService(ctx);
+
+            var payload_1 = await service.CreateVehicle(dto_1);
+            var payload_2 = await service.CreateVehicle(dto_2);
+
+            Assert.True(payload_1.Errors.Count() == 0,"error creating vehicle 1");
+            Assert.True(payload_2.Errors.Count() == 0,"error creating vehicle 2");
+
+            var vehicleLot = await ctx.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == vehicle_lot_mo);
+            Assert.NotNull(vehicleLot);
+
+            var vehicle_count = await ctx.Vehicles.CountAsync(t => t.LotId == vehicleLot.Id);
+            Assert.Equal(2, vehicle_count);
+        }
+      
 
         [Fact]
         public async Task create_vehicle_with_no_model_return_payload_error() {
