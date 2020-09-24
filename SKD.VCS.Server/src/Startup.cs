@@ -52,6 +52,7 @@ namespace SKD.VCS.Server {
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
                 .AddType<VehicleType>()
+                .AddType<VehicleInputType>()
                 .AddType<VehicleModelType>()
                 .AddType<VehicleComponentType>()
                 .AddServices(sp)

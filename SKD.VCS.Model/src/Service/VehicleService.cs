@@ -42,7 +42,7 @@ namespace SKD.VCS.Model {
             }
 
             if (vehicle.Model != null) {
-                // add components
+                // add vehicle components
                 var modelCOmponents = vehicle.Model.ModelComponents.Where(t => t.RemovedAt == null).ToList();
 
                 modelCOmponents.ForEach(mapping => {                    
@@ -52,6 +52,14 @@ namespace SKD.VCS.Model {
                         CreatedAt = vehicle.CreatedAt
                     });
                 });
+            }
+
+            // ensure vehicle lot
+            var vehicleLot = await context.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
+            if (vehicleLot == null) {
+                vehicleLot = new VehicleLot { LotNo = dto.LotNo };
+                context.VehicleLots.Add(vehicleLot);
+                vehicle.Lot = vehicleLot;
             }
 
             // validate
@@ -133,6 +141,11 @@ namespace SKD.VCS.Model {
             if (vehicle.KitNo.Trim().Length < EntityFieldLen.Vehicle_KitNo) {
                 errors.Add(ErrorHelper.Create<T>(t => t.KitNo, $"KitNo must be {EntityFieldLen.Vehicle_KitNo} characters"));
             } 
+
+            // vehicle lot
+            // if (vehicle.Lot == null) {
+            //     errors.Add(ErrorHelper.Create<T>(t => t.Lot, "must be linked to vehicle lot"));
+            // } 
 
             return errors;
         }
