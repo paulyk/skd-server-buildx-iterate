@@ -61,7 +61,7 @@ namespace SKD.VCS.Model {
                 context.VehicleLots.Add(vehicleLot);
             }
             vehicle.Lot = vehicleLot;
-
+       
             // validate
             payload.Errors = await ValidateCreateVehicle<Vehicle>(vehicle);
             if (payload.Errors.Any()) {
@@ -141,6 +141,11 @@ namespace SKD.VCS.Model {
             if (vehicle.KitNo?.Trim().Length < EntityFieldLen.Vehicle_KitNo) {
                 errors.Add(ErrorHelper.Create<T>(t => t.KitNo, $"KitNo must be {EntityFieldLen.Vehicle_KitNo} characters"));
             }
+
+            // vehicle lot
+            // if (vehicle.Lot == null) {
+            //     errors.Add(ErrorHelper.Create<T>(t => t.Lot, "must be linked to vehicle lot"));
+            // } 
 
             // vehicle lot
             // if (vehicle.Lot == null) {
