@@ -54,6 +54,20 @@ namespace SKD.VCS.Model.src.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "vehicle_lot",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(maxLength: 36, nullable: false),
+                    CreatedAt = table.Column<DateTime>(nullable: false),
+                    RemovedAt = table.Column<DateTime>(nullable: true),
+                    LotNo = table.Column<string>(maxLength: 15, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_vehicle_lot", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "vehicle_model",
                 columns: table => new
                 {
@@ -79,13 +93,20 @@ namespace SKD.VCS.Model.src.Migrations
                     VIN = table.Column<string>(maxLength: 17, nullable: false),
                     LotNo = table.Column<string>(maxLength: 15, nullable: true),
                     KitNo = table.Column<string>(maxLength: 17, nullable: true),
-                    ModelId = table.Column<Guid>(nullable: false),
                     PlannedBuildAt = table.Column<DateTime>(nullable: true),
-                    ScanLockedAt = table.Column<DateTime>(nullable: true)
+                    ScanLockedAt = table.Column<DateTime>(nullable: true),
+                    ModelId = table.Column<Guid>(nullable: false),
+                    LotId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_vehicle", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_vehicle_vehicle_lot_LotId",
+                        column: x => x.LotId,
+                        principalTable: "vehicle_lot",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_vehicle_vehicle_model_ModelId",
                         column: x => x.ModelId,
@@ -232,6 +253,11 @@ namespace SKD.VCS.Model.src.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_vehicle_LotId",
+                table: "vehicle",
+                column: "LotId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_vehicle_LotNo",
                 table: "vehicle",
                 column: "LotNo");
@@ -262,6 +288,13 @@ namespace SKD.VCS.Model.src.Migrations
                 table: "vehicle_component",
                 columns: new[] { "VehicleId", "ComponentId", "ProductionStationId" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_vehicle_lot_LotNo",
+                table: "vehicle_lot",
+                column: "LotNo",
+                unique: true,
+                filter: "[LotNo] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_vehicle_model_Code",
@@ -314,6 +347,9 @@ namespace SKD.VCS.Model.src.Migrations
 
             migrationBuilder.DropTable(
                 name: "vehicle");
+
+            migrationBuilder.DropTable(
+                name: "vehicle_lot");
 
             migrationBuilder.DropTable(
                 name: "vehicle_model");

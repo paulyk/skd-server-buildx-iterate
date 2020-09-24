@@ -167,6 +167,9 @@ namespace SKD.VCS.Model.src.Migrations
                         .HasColumnType("nvarchar(17)")
                         .HasMaxLength(17);
 
+                    b.Property<Guid>("LotId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("LotNo")
                         .HasColumnType("nvarchar(15)")
                         .HasMaxLength(15);
@@ -189,6 +192,8 @@ namespace SKD.VCS.Model.src.Migrations
                         .HasMaxLength(17);
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LotId");
 
                     b.HasIndex("LotNo");
 
@@ -235,6 +240,32 @@ namespace SKD.VCS.Model.src.Migrations
                         .IsUnique();
 
                     b.ToTable("vehicle_component");
+                });
+
+            modelBuilder.Entity("SKD.VCS.Model.VehicleLot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasMaxLength(36);
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LotNo")
+                        .HasColumnType("nvarchar(15)")
+                        .HasMaxLength(15);
+
+                    b.Property<DateTime?>("RemovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LotNo")
+                        .IsUnique()
+                        .HasFilter("[LotNo] IS NOT NULL");
+
+                    b.ToTable("vehicle_lot");
                 });
 
             modelBuilder.Entity("SKD.VCS.Model.VehicleModel", b =>
@@ -319,6 +350,12 @@ namespace SKD.VCS.Model.src.Migrations
 
             modelBuilder.Entity("SKD.VCS.Model.Vehicle", b =>
                 {
+                    b.HasOne("SKD.VCS.Model.VehicleLot", "Lot")
+                        .WithMany("Vehicles")
+                        .HasForeignKey("LotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("SKD.VCS.Model.VehicleModel", "Model")
                         .WithMany("Vehicles")
                         .HasForeignKey("ModelId")

@@ -25,6 +25,10 @@ namespace SKD.VCS.Model {
                 .WithMany(t => t.Vehicles)
                 .HasForeignKey(t => t.ModelId);
 
+            builder.HasOne(t => t.Lot)
+                .WithMany(t => t.Vehicles)
+                .HasForeignKey(t => t.LotId);
+
             builder.HasMany(t => t.VehicleComponents)
                 .WithOne(t => t.Vehicle)
                 .HasForeignKey(t => t.VehicleId);
