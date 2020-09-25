@@ -12,6 +12,18 @@ using System.Threading.Tasks;
 namespace SKD.VCS.Server {
     public class Mutation {
 
+
+        /// <summary>
+        /// Create a vehicle lot
+        /// </summary>
+        public async Task<MutationPayload<VehicleLot>> CreateVehicleLot(
+            [Service] VehicleService service,
+            [Service] SkdContext ctx,
+            VehicleLotDTO input
+        ) {
+            return await service.CreateVhicleLot(input);
+        }
+
         /// <summary>
         /// Create a vehicle entry
         /// </summary>
@@ -19,7 +31,7 @@ namespace SKD.VCS.Server {
             [Service] VehicleService service,
             [Service] SkdContext ctx,
             VehicleDTO input
-        ) {            
+        ) {
             return await service.CreateVehicle(input);
         }
 
