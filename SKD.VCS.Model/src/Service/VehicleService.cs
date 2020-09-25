@@ -20,41 +20,50 @@ namespace SKD.VCS.Model {
         }
 
         public async Task<MutationPayload<VehicleLot>> CreateVhicleLot(VehicleLotDTO vehicleLotDTO) {
-            var vehicleLot = await context.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == vehicleLotDTO.LotNo);
+            var vehicleLot = await GetCreateVehicleLot(vehicleLotDTO.LotNo);
             var vehicleLotPayload = new MutationPayload<VehicleLot>(vehicleLot);
-            if (vehicleLotPayload.Entity != null) {
+
+            // error if vehicle lot already has vehicles
+            if (vehicleLot.Vehicles.Any()) {
                 vehicleLotPayload.Errors.Add(ErrorHelper.Create<VehicleLot>(t => t.LotNo, "Duplicate vehicle lot"));
                 return vehicleLotPayload;
             }
 
-            vehicleLotPayload.Entity = new VehicleLot { LotNo = vehicleLotDTO.LotNo };
-            context.VehicleLots.Add(vehicleLotPayload.Entity);
-            
-            foreach(var vehicleDTO in vehicleLotDTO.VehicleDTOs) {
-                var vehiclePayload = await CreateVehicle_Common(vehicleDTO);
+            // create vehicle records and add to vehicleLot.Vehicles
+            foreach (var vehicleDTO in vehicleLotDTO.VehicleDTOs) {
+                var vehiclePayload = await CreateVehicle_Common(vehicleDTO, vehicleLot);
                 if (vehiclePayload.Errors.Any()) {
                     vehicleLotPayload.Errors.AddRange(vehiclePayload.Errors);
                     break;
                 }
-                vehicleLot.Vehicles.Add(vehiclePayload.Entity)
-;            }
+                vehicleLot.Vehicles.Add(vehiclePayload.Entity);
+            }
             if (vehicleLotPayload.Errors.Any()) {
                 return vehicleLotPayload;
             }
 
+            // persist
             await context.SaveChangesAsync();
             return vehicleLotPayload;
         }
 
-         public async Task<MutationPayload<Vehicle>> CreateVehicle(VehicleDTO dto) {
-             var payload = await CreateVehicle_Common(dto);
-             if (payload.Errors.Any()) {
-                 return payload;
-             }
+        public async Task<MutationPayload<Vehicle>> CreateVehicle(VehicleDTO dto) {
+            // ensure vehicle lot
+            var vehicleLot = await GetCreateVehicleLot(dto.LotNo);
+
+            // create vehicle entity and validate
+            var payload = await CreateVehicle_Common(dto, vehicleLot);
+
+            // error?
+            if (payload.Errors.Any()) {
+                return payload;
+            }
+
+            // save
             await context.SaveChangesAsync();
             return payload;
-         }
-        public async Task<MutationPayload<Vehicle>> CreateVehicle_Common(VehicleDTO dto) {
+        }
+        public async Task<MutationPayload<Vehicle>> CreateVehicle_Common(VehicleDTO dto, VehicleLot? vehicleLot = null) {
             var modelId = await context.VehicleModels
                 .Where(t => t.Code == dto.ModelCode)
                 .Select(t => t.Id).FirstOrDefaultAsync();
@@ -64,6 +73,7 @@ namespace SKD.VCS.Model {
             vehicle.ModelId = modelId;
             vehicle.LotNo = dto.LotNo ?? "";
             vehicle.KitNo = dto.KitNo ?? "";
+            vehicle.Lot = vehicleLot;
             vehicle.PlannedBuildAt = dto.PlannedBuildAt;
 
             var payload = new MutationPayload<Vehicle>(vehicle);
@@ -90,17 +100,9 @@ namespace SKD.VCS.Model {
                 });
             }
 
-            // ensure vehicle lot
-            var vehicleLot = await context.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
-            if (vehicleLot == null) {
-                vehicleLot = new VehicleLot { LotNo = dto.LotNo };
-                context.VehicleLots.Add(vehicleLot);
-            }
-            vehicle.Lot = vehicleLot;
-       
             // validate
             payload.Errors = await ValidateCreateVehicle<Vehicle>(vehicle);
-           return payload;         
+            return payload;
         }
 
         public async Task<MutationPayload<Vehicle>> ScanLockVehicle(string vin) {
@@ -175,7 +177,7 @@ namespace SKD.VCS.Model {
             // vehicle lot
             if (vehicle.Lot == null) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Lot, "must be linked to vehicle lot"));
-            } 
+            }
 
             return errors;
         }
@@ -198,6 +200,20 @@ namespace SKD.VCS.Model {
         private bool IsNumeric(string str) {
             Int32 n;
             return Int32.TryParse(str, out n);
+        }
+
+        /// <summary>
+        /// Get existing vehice lot or returns a new one
+        /// </summary>
+        private async Task<VehicleLot> GetCreateVehicleLot(string lotNo) {
+            var vehicleLot = await context.VehicleLots
+                .Include(t => t.Vehicles)
+                .FirstOrDefaultAsync(t => t.LotNo == lotNo);
+            if (vehicleLot == null) {
+                vehicleLot = new VehicleLot { LotNo = lotNo };
+                context.VehicleLots.Add(vehicleLot);
+            }
+            return vehicleLot;
         }
     }
 }
