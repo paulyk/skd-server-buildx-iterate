@@ -8,6 +8,6 @@ namespace SKD.VCS.Model {
             Entity = entity;
         }
         public T? Entity { get; set; }
-        public IEnumerable<Error> Errors { get; set; } = new List<Error>();
+        public List<Error> Errors { get; set; } = new List<Error>();
     }
 }

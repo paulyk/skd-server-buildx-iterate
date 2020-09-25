@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace SKD.VCS.Model {
     public class VehicleDTO {
@@ -8,4 +9,9 @@ namespace SKD.VCS.Model {
         public string KitNo { get; set; }
         public DateTime? PlannedBuildAt { get; set;}
     }   
+
+    public class VehicleLotDTO {
+             public string LotNo { get; set; }
+             public List<VehicleDTO> VehicleDTOs { get; set; }
+    }
 }

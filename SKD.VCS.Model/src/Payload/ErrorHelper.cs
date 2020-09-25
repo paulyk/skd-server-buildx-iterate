@@ -2,6 +2,7 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Collections.Generic;
 
 namespace SKD.VCS.Model {
     public class ErrorHelper {
@@ -20,7 +21,7 @@ namespace SKD.VCS.Model {
             // var prop = (PropertyInfo)expr.Member;
 
             return new Error() {
-                Path = new string[] { path },
+                Path = new List<string> { path },
                 Message = msg
             };
         }

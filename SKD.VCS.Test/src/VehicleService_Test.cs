@@ -20,8 +20,7 @@ namespace SKD.VCS.Test {
             // setup
             var service = new VehicleService(ctx);
 
-            var vehicleModel = await ctx.VehicleModels
-                .FirstOrDefaultAsync(t => t.Code == TestVehicleModel_Code);
+            var vehicleModel = await ctx.VehicleModels.FirstOrDefaultAsync();
 
             var dto = new VehicleDTO() {
                 VIN = Util.RandomString(EntityFieldLen.Vehicle_VIN).ToUpper(),
@@ -56,8 +55,7 @@ namespace SKD.VCS.Test {
 
         [Fact]
         public async Task can_add_two_vehicles_to_same_lot() {
-            var vehicleModel = await ctx.VehicleModels
-                .FirstOrDefaultAsync(t => t.Code == TestVehicleModel_Code);
+            var vehicleModel = await ctx.VehicleModels.FirstOrDefaultAsync();
 
             var vehicle_lot_mo = Util.RandomString(EntityFieldLen.Vehicle_LotNo).ToUpper();
             
@@ -110,7 +108,7 @@ namespace SKD.VCS.Test {
             Assert.Equal("Vehicle model not specified", payload.Errors.First().Message);
         }
 
-        private string TestVehicleModel_Code = "FRNG20";
+
 
         private void GenerateSeedData() {
 
@@ -128,7 +126,7 @@ namespace SKD.VCS.Test {
             ctx.Components.AddRange(components);
 
             var vehicleModel_1 = new VehicleModel() {
-                Code = TestVehicleModel_Code,
+                Code = Util.RandomString(EntityFieldLen.VehicleModel_Code).ToUpper(),
                 Name = "Ford Ranger 2.0",
                 ModelComponents = components.Select((component, i) => new VehicleModelComponent() {
                     Component = component,
