@@ -49,13 +49,13 @@ namespace SKD.VCS.Server {
                 .AddTransient<ComponentScanService>();
 
             services.AddGraphQL(sp => SchemaBuilder.New()
+                .AddServices(sp)
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
                 .AddType<VehicleType>()
                 .AddType<VehicleInputType>()
                 .AddType<VehicleModelType>()
                 .AddType<VehicleComponentType>()
-                .AddServices(sp)
                 .Create(), new QueryExecutionOptions { ForceSerialExecution = true });
         }
 
@@ -67,7 +67,7 @@ namespace SKD.VCS.Server {
             app.UseRouting();
             app.UseCors();
 
-            app.UseGraphQL("/gql");
+            app.UseWebSockets().UseGraphQL("/gql");
 
             if (env.IsDevelopment()) {
                 app.Use(next => context => {
