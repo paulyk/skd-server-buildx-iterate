@@ -16,7 +16,7 @@ namespace SKD.VCS.Model {
 
             if (connectionString == null) {
                 throw new Exception($"Default connection string not found for Development");
-            }
+            } 
 
             var optionsBuilder = new DbContextOptionsBuilder<SkdContext>();
             optionsBuilder.UseSqlServer(connectionString); 

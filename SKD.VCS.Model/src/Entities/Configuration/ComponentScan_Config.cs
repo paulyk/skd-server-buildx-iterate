@@ -15,6 +15,7 @@ namespace SKD.VCS.Model {
 
             builder.Property(t => t.Scan1).HasMaxLength(EntityFieldLen.ComponentScan_ScanEntry);
             builder.Property(t => t.Scan2).HasMaxLength(EntityFieldLen.ComponentScan_ScanEntry);
+            builder.Property(t => t.DCWS_ResponseCode).HasMaxLength(EntityFieldLen.ComponentScan_DCWS_ResponseCode);
 
             builder.HasOne(t => t.VehicleComponent)
                 .WithMany(t => t.ComponentScans)
