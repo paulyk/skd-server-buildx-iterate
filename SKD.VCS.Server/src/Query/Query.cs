@@ -56,8 +56,7 @@ namespace SKD.VCS.Server {
         [UseSorting]
         public IQueryable<ComponentScan> GetVehicleComponentScans([Service] SkdContext context) =>
                 context.ComponentScans.AsQueryable();
-
-
+        
         [UsePaging]
         [UseSelection]
         [UseFiltering]
@@ -71,7 +70,7 @@ namespace SKD.VCS.Server {
                         .Include(t => t.VehicleComponents).ThenInclude(t => t.ProductionStation)
                         .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentScans)
                         .Include(t => t.Model)
-                        .FirstOrDefaultAsync(t => t.VIN == vin);
+                .FirstOrDefaultAsync(t => t.VIN == vin);
 
         public async Task<VehicleLot> GetVehicleLotByLotNo([Service] SkdContext context, string lotNo) =>
                 await context.VehicleLots

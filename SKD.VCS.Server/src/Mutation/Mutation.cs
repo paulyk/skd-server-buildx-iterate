@@ -78,10 +78,10 @@ namespace SKD.VCS.Server {
         public async Task<MutationPayload<ComponentScan>> CreateComponentScan(
           [Service] ComponentScanService service,
           [Service] SkdContext ctx,
-          ComponentScanInput input
+          ComponentScanDTO input
         ) {
             var componentScanDTO = new ComponentScanDTO {
-                VehicleComponentId = input.vehicleComponentId,
+                VehicleComponentId = input.VehicleComponentId,
                 Scan1 = input.Scan1,
                 Scan2 = input.Scan2
             };
