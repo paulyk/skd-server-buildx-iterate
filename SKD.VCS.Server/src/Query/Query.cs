@@ -65,12 +65,12 @@ namespace SKD.VCS.Server {
                 context.ProductionStations.AsQueryable();
 
         public async Task<Vehicle> GetVehicleByVIN([Service] SkdContext context, string vin) =>
-                 await context.Vehicles
+                await context.Vehicles
                         .Include(t => t.VehicleComponents).ThenInclude(t => t.Component)
                         .Include(t => t.VehicleComponents).ThenInclude(t => t.ProductionStation)
                         .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentScans)
                         .Include(t => t.Model)
-                .FirstOrDefaultAsync(t => t.VIN == vin);
+                        .FirstOrDefaultAsync(t => t.VIN == vin);
 
         public async Task<VehicleLot> GetVehicleLotByLotNo([Service] SkdContext context, string lotNo) =>
                 await context.VehicleLots
@@ -110,5 +110,11 @@ namespace SKD.VCS.Server {
                 Component = component
             };
         }
+    
+        public async Task<ComponentScan> GetComponentScanById([Service] SkdContext context,Guid id ) => 
+                await context.ComponentScans
+                        .Include(t => t.VehicleComponent).ThenInclude(t =>t.Vehicle)
+                        .FirstOrDefaultAsync(t => t.Id == id);
+        
     }
 }
