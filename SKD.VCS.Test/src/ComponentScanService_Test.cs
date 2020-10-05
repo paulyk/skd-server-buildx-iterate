@@ -119,12 +119,41 @@ namespace SKD.VCS.Test {
             var payload = await service.CreateComponentScan(dto);
 
             var errors = payload.Errors.ToList();
-            var expectedMessage = "scan entry lenth min";
+            var expectedMessage = "scan entry length min";
             var actualMessage = errors[0].Message.Substring(0, expectedMessage.Length);
             Assert.Equal(expectedMessage, actualMessage);
         }
 
         [Fact]
+        public async Task cannot_create_component_scan_for_vehicle_component_if_one_already_exists() {
+            var vehicleComponent = await ctx.VehicleComponents.FirstOrDefaultAsync();
+
+            var dto_1 = new ComponentScanDTO {
+                VehicleComponentId = vehicleComponent.Id,
+                Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
+                Scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)
+            };
+
+            var dto_2 = new ComponentScanDTO {
+                VehicleComponentId = vehicleComponent.Id,
+                Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
+                Scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)
+            };
+
+            var service = new ComponentScanService(ctx);
+            var payload_1 = await service.CreateComponentScan(dto_1);
+
+            Assert.True(payload_1.Errors.Count == 0);
+
+            var payload_2 = await service.CreateComponentScan(dto_2);
+
+            Assert.True(payload_2.Errors.Count > 0);
+
+            var message = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
+            Assert.Equal("Existing scan found", message);
+        }
+
+        // turn off in favor of "existing scan" check
         public async Task cannot_create_component_scan_if_duplicate_scan1_scan2() {
             var vehicleComponent = await ctx.VehicleComponents.FirstOrDefaultAsync();
 
@@ -178,7 +207,7 @@ namespace SKD.VCS.Test {
 
             var after_count = await ctx.ComponentScans.CountAsync();
             Assert.Equal(before_count + 1, after_count);
-            
+
             var componentScan = await ctx.ComponentScans.FirstAsync(t => t.VehicleComponentId == vehicleComponent.Id);
             Assert.Equal(componentScan.Scan1, scan2);
             Assert.True(String.IsNullOrEmpty(componentScan.Scan2));
@@ -196,15 +225,15 @@ namespace SKD.VCS.Test {
 
             var dto = new ComponentScanDTO {
                 VehicleComponentId = vehicleComponent.Id,
-                Scan1 = "",
-                Scan2 = ""
+                Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
+                Scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)
             };
 
             var service = new ComponentScanService(ctx);
             var payload = await service.CreateComponentScan(dto);
 
             var errors = payload.Errors.ToList();
-            Assert.True(errors.Count == 1 && errors[0].Message == "vehilce planned build date required");
+            Assert.True(errors.Count == 1 && errors[0].Message == "vehicle planned build date required");
         }
 
         #region generate seed data         

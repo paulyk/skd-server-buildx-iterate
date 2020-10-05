@@ -59,7 +59,7 @@ namespace SKD.VCS.Model {
                 return errors;
             }
 
-            // scan locked
+            // veheicle scan locked
             if (vehicle.ScanLockedAt != null) {
                 errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehicle scan locked"));
                 return errors;
@@ -67,7 +67,7 @@ namespace SKD.VCS.Model {
 
             // plan build set
             if (vehicle.PlannedBuildAt == null) {
-                errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehilce planned build date required"));
+                errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehicle planned build date required"));
                 return errors;
 
             }
@@ -82,25 +82,40 @@ namespace SKD.VCS.Model {
                 ||
                 scan.Scan2?.Length > 0 && scan.Scan2?.Length < EntityFieldLen.ComponentScan_ScanEntry_Min) {
 
-                errors.Add(ErrorHelper.Create<T>(t => t.Scan1, $"scan entry lenth min {EntityFieldLen.ComponentScan_ScanEntry_Min} characters"));
+                errors.Add(ErrorHelper.Create<T>(t => t.Scan1, $"scan entry length min {EntityFieldLen.ComponentScan_ScanEntry_Min} characters"));
                 return errors;
             }
 
-            // scan lenth
+            // scan length
             if (scan.Scan1?.Length > EntityFieldLen.ComponentScan_ScanEntry || scan.Scan2?.Length > EntityFieldLen.ComponentScan_ScanEntry) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Scan1, $"scan entry length max {EntityFieldLen.ComponentScan_ScanEntry} characters"));
                 return errors;
             }
 
-            // duplicate 
-            var duplicate =  vehicleComponent.ComponentScans.Any(t => 
-                (t.Scan1 == scan.Scan1 && t.Scan2 == scan.Scan2)
-                ||
-                (t.Scan1 == scan.Scan2 && t.Scan2 == scan.Scan1));
-
-            if (duplicate) {
-                errors.Add(new Error("", "duplicate scan"));
+            // existing scan found
+            if (vehicleComponent.ComponentScans.Any(t => t.RemovedAt == null)) {
+                errors.Add(new Error("", "Existing scan found"));
+                return errors;
             }
+
+            /*
+
+                // scan 1 + scan 2 already found 
+                var duplicate =  vehicleComponent.ComponentScans
+                    .Where(t => t.RemovedAt == null)
+                    .Any(t => 
+                        t.Scan1 == scan.Scan1 && t.Scan2 == scan.Scan2
+                        ||
+                        t.Scan1 == scan.Scan2 && t.Scan2 == scan.Scan1
+                    );
+
+                if (duplicate) {
+                    errors.Add(new Error("", "duplicate scan"));
+                }
+
+            */
+
+            
 
             return errors;
         }
