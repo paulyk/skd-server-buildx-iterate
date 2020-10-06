@@ -153,40 +153,6 @@ namespace SKD.VCS.Test {
             Assert.Equal("Existing scan found", message);
         }
 
-        // turn off in favor of "existing scan" check
-        public async Task cannot_create_component_scan_if_duplicate_scan1_scan2() {
-            var vehicleComponent = await ctx.VehicleComponents.FirstOrDefaultAsync();
-
-            var scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry);
-            var scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry);
-
-            var dto = new ComponentScanDTO {
-                VehicleComponentId = vehicleComponent.Id,
-                Scan1 = scan1,
-                Scan2 = scan2
-            };
-
-            var before_count = await ctx.ComponentScans.CountAsync();
-
-            var service = new ComponentScanService(ctx);
-            var payload = await service.CreateComponentScan(dto);
-
-            var after_count = await ctx.ComponentScans.CountAsync();
-            Assert.Equal(before_count + 1, after_count);
-
-            // attmpet to add duplciate
-            var payload2 = await service.CreateComponentScan(dto);
-
-            var afterCount2 = await ctx.ComponentScans.CountAsync();
-            Assert.Equal(before_count + 1, afterCount2);
-
-            var errorCount = payload2.Errors.Count();
-            Assert.Equal(1, errorCount);
-
-            var message = payload2.Errors.Select(t => t.Message).FirstOrDefault();
-            Assert.Equal("duplicate scan", message);
-        }
-
         [Fact]
         public async Task create_component_scan_swaps_if_scan1_empty() {
             var vehicleComponent = await ctx.VehicleComponents.FirstOrDefaultAsync();

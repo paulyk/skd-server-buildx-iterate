@@ -114,29 +114,59 @@ namespace SKD.VCS.Seed {
         private string ProductionStations_JSON = @"
 [
   {
-    'code': 'FRM03',
-    'name': 'FRM03',
+    'code': 'FRM10',
+    'name': 'Front Suspension and Power steering installation',
     'sortOrder': 1
   },
   {
-    'code': 'CHS01',
-    'name': 'CHS01',
-    'sortOrder': 3
-  },
-  {
-    'code': 'CAB02',
-    'name': 'CAB02',
+    'code': 'FRM20',
+    'name': 'Rear Suspension installation',
     'sortOrder': 2
   },
   {
-    'code': 'CHS02',
-    'name': 'CHS02',
+    'code': 'FRM30',
+    'name': 'Engine,Exhaust system and Fuel tank installation',
+    'sortOrder': 3
+  },
+  {
+    'code': 'CAB10',
+    'name': 'Cabin Preparation and Decal part',
     'sortOrder': 4
   },
   {
-    'code': 'CHS03',
-    'name': 'CHS03',
+    'code': 'CAB20',
+    'name': 'Electric wire routing and Instrument Panel installation into cabin',
     'sortOrder': 5
+  },
+  {
+    'code': 'CAB30',
+    'name': 'All the Glass installation',
+    'sortOrder': 6
+  },
+  {
+    'code': 'CAB40',
+    'name': 'Door Panel component part assembly',
+    'sortOrder': 7
+  },
+  {
+    'code': 'FIN10',
+    'name': 'Cabin assemble to Chassis',
+    'sortOrder': 8
+  },
+  {
+    'code': 'FIN20',
+    'name': 'Seat, Floor console and interior part installation.',
+    'sortOrder': 9
+  },
+  {
+    'code': 'FIN30',
+    'name': 'Front and Rear Bumper installation',
+    'sortOrder': 10
+  },
+  {
+    'code': 'FIN40',
+    'name': 'Fluid Filling process',
+    'sortOrder': 11
   }
 ]
       

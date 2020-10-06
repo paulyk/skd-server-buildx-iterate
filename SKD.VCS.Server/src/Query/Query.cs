@@ -60,7 +60,7 @@ namespace SKD.VCS.Server {
                                 .ThenInclude(t => t.Vehicle)
                                 .ThenInclude(t => t.Model)
                         .AsQueryable();
-        
+
         [UsePaging]
         [UseSelection]
         [UseFiltering]
@@ -79,7 +79,7 @@ namespace SKD.VCS.Server {
         public async Task<VehicleLot> GetVehicleLotByLotNo([Service] SkdContext context, string lotNo) =>
                 await context.VehicleLots
                         .Include(t => t.Vehicles).ThenInclude(t => t.Model)
-                        .FirstOrDefaultAsync(t => t.LotNo == lotNo);                        
+                        .FirstOrDefaultAsync(t => t.LotNo == lotNo);
 
         public async Task<VehicleModel> GetVehicleModelById([Service] SkdContext context, Guid id) =>
                 await context.VehicleModels
@@ -114,11 +114,16 @@ namespace SKD.VCS.Server {
                 Component = component
             };
         }
-    
-        public async Task<ComponentScan> GetComponentScanById([Service] SkdContext context,Guid id ) => 
+
+        public async Task<ComponentScan> GetComponentScanById([Service] SkdContext context, Guid id) =>
                 await context.ComponentScans
-                        .Include(t => t.VehicleComponent).ThenInclude(t =>t.Vehicle)
+                        .Include(t => t.VehicleComponent).ThenInclude(t => t.Vehicle)
                         .FirstOrDefaultAsync(t => t.Id == id);
-        
+
+        public async Task<ComponentScan?> GetExistingComponentScan([Service] SkdContext context,Guid vehicleComponentId) =>
+               await context.ComponentScans
+                        .Include(t => t.VehicleComponent)
+                        .FirstOrDefaultAsync(t => t.VehicleComponentId == vehicleComponentId && t.RemovedAt == null);
+
     }
 }
