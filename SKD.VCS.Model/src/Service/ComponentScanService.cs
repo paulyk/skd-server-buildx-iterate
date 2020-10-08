@@ -69,7 +69,6 @@ namespace SKD.VCS.Model {
             if (vehicle.PlannedBuildAt == null) {
                 errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehicle planned build date required"));
                 return errors;
-
             }
 
             // scan 1 || scan 2 set

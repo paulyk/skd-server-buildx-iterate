@@ -18,7 +18,7 @@ namespace SKD.VCS.Model {
 		public static int VehicleModel_Name = 100;	
 		public static int VehicleModel_Type = 4;	
 
-		public static int ComponentScan_ScanEntry_Min = 10;
+		public static int ComponentScan_ScanEntry_Min = 5;
 		public static int ComponentScan_ScanEntry = 100;
 		public static int ComponentScan_DCWS_ResponseCode = 100;
 		public static int CreatedBy = 255;
