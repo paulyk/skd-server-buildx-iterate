@@ -153,25 +153,41 @@ namespace SKD.VCS.Test {
             Assert.Equal("duplicate name", firstError);
         }
 
+
+        [Fact]
+        public async Task cannot_add_vehicle_model_with_duplicate_component_station_entries() {
+            var component = ctx.Components.OrderBy(t => t.Code).First();
+            var station = ctx.ProductionStations.OrderBy(t => t.Code).First();
+
+            var vehilceModel = new VehicleModelDTO {
+                Code = "Model_1",
+                Name = "Model Name",
+                Components = new List<ComponeentStationDTO> {
+                    new ComponeentStationDTO {
+                        ComponentCode = component.Code,
+                        ProductionStationCode = station.Code
+                    },
+                    new ComponeentStationDTO {
+                        ComponentCode = component.Code,
+                        ProductionStationCode = station.Code
+                    },
+                }            
+            };
+            
+            // test
+            var service = new VehicleModelService(ctx);
+            var payload = await service.CreateVehicleModel(vehilceModel);
+
+            // assert
+            var errorCount = payload.Errors.Count();
+         
+            Assert.Equal(1, errorCount);
+
+        }
         private int STATION_COMPONENT_COUNT = 2;
         private void GenerateSeedData() {
-
-            var productionStations = new int[STATION_COMPONENT_COUNT].ToList()
-                .Select((x, i) => new ProductionStation() {
-                    Code = $"STATION_{i + 1}",
-                    Name = $"Station name {i + 1}"
-                });
-
-            ctx.ProductionStations.AddRange(productionStations);
-
-            var components = new int[STATION_COMPONENT_COUNT].ToList()
-                .Select((v, i) => new Component {
-                    Code = $"COMP_{i + 1}",
-                    Name = $"Component name ${i + 1}"
-                }).ToList();
-
-            ctx.Components.AddRange(components);
-            ctx.SaveChanges();
+           Gen_ProductionStations(ctx,"station_1", "station_2");
+           Gen_Components(ctx, "component_1", "component_2");
         }
     }
 }

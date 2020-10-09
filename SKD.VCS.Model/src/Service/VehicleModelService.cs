@@ -77,7 +77,17 @@ namespace SKD.VCS.Model {
                 errors.Add(ErrorHelper.Create<T>(t => t.ModelComponents, "components requird"));
             }
 
-            // validate model code 
+            //  duplicate model code in same production stations
+            var duplicate_component_station_entry = model.ModelComponents.GroupBy(mc => new { mc.Component, mc.ProductionStation })
+                .Select(g => new {
+                    Key = g.Key,
+                    Count = g.Count()
+                }).Any(t => t.Count > 1);
+
+            if (duplicate_component_station_entry) {
+                errors.Add(ErrorHelper.Create<T>(t => t.ModelComponents, "duplicate model component + production station entry found"));
+            }
+
             // validate duplicate code
             // validate duplicate name
 
