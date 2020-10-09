@@ -60,7 +60,7 @@ namespace SKD.VCS.Model {
             }
 
             // veheicle scan locked
-            if (vehicle.ScanLockedAt != null) {
+            if (vehicle.ScanCompleteAt != null) {
                 errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehicle scan locked"));
                 return errors;
             }

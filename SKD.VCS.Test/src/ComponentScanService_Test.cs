@@ -16,12 +16,7 @@ namespace SKD.VCS.Test {
         }
 
         [Fact]
-        public async Task seed_data_correct() {
-            var componentCount = await ctx.Components.CountAsync();
-            Assert.Equal(3, componentCount);
-
-            var stationCount = await ctx.ProductionStations.CountAsync();
-            Assert.Equal(3, stationCount);
+        public async Task seed_data_correct() {         
 
             var modelCount = await ctx.VehicleModels.CountAsync();
             Assert.Equal(1, modelCount);
@@ -67,7 +62,7 @@ namespace SKD.VCS.Test {
         public async Task cannot_create_component_scan_if_vehicle_scan_locked() {
             // setup
             var vehicle = ctx.Vehicles.FirstOrDefault();
-            vehicle.ScanLockedAt = DateTime.UtcNow;
+            vehicle.ScanCompleteAt = DateTime.UtcNow;
             ctx.SaveChanges();
 
             vehicle = ctx.Vehicles
@@ -206,20 +201,21 @@ namespace SKD.VCS.Test {
 
         private void GenerateSeedData() {
             // components
-            Gen_ProductionStations(ctx, 3);
-            Gen_Components(ctx, 3);
+            Gen_ProductionStations(ctx, "station_1", "station_2");
+            Gen_Components(ctx, "component_1", "component_2");
 
             var components = ctx.Components.ToList();
             var productionStations = ctx.ProductionStations.ToList();
 
             var modelCode = "model_1";
-            var modelName = "model_1_name";
             Gen_VehicleModel(
                 ctx,
                 code: modelCode,
-                name: modelName,
-                components,
-                productionStations);
+                component_stations_maps: new List<(string, string)> {
+                    ("component_1", "station_1"),
+                    ("component_2", "station_2"),
+                }
+              );
 
             Gen_Vehicle(
              ctx: ctx,

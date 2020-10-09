@@ -7,7 +7,7 @@ namespace SKD.VCS.Model {
         public string LotNo { get; set; } = "";
         public string KitNo { get; set; } = "";
         public DateTime? PlannedBuildAt { get; set;}
-        public DateTime? ScanLockedAt { get; set; }
+        public DateTime? ScanCompleteAt { get; set; }
 
         public Guid ModelId { get; set; }        
         public virtual VehicleModel Model { get; set; }

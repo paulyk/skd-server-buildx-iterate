@@ -114,7 +114,7 @@ namespace SKD.VCS.Model {
                 return payload;
             }
 
-            vehicle.ScanLockedAt = DateTime.UtcNow;
+            vehicle.ScanCompleteAt = DateTime.UtcNow;
             await context.SaveChangesAsync();
             return payload;
         }

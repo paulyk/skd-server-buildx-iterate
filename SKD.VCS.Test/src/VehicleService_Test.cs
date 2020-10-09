@@ -117,7 +117,7 @@ namespace SKD.VCS.Test {
             // test
             var service = new VehicleService(ctx);
             var paylaod = await service.CreateVhicleLot(vehicleLotDTO);
-            
+
             // assert
             Assert.True(0 == paylaod.Errors.Count());
             var vehicleLot = await ctx.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == lotNo);
@@ -125,7 +125,7 @@ namespace SKD.VCS.Test {
         }
 
         [Fact]
-         public async Task create_vehicle_lot_error_if_vehicle_lot_already_has_vehicles() {
+        public async Task create_vehicle_lot_error_if_vehicle_lot_already_has_vehicles() {
             // setup
             var modelCode = await ctx.VehicleModels.Select(t => t.Code).FirstOrDefaultAsync();
             var lotNo = Util.RandomString(EntityFieldLen.Vehicle_LotNo).ToUpper();
@@ -138,7 +138,7 @@ namespace SKD.VCS.Test {
 
             var vehicleLotDTO_2 = GetNew_VehicleLotDTO(lotNo: lotNo, modelCode: modelCode);
             var paylaod_2 = await service.CreateVhicleLot(vehicleLotDTO_1);
-            
+
             // assert
             Assert.True(0 == paylaod_1.Errors.Count());
             Assert.True(1 == paylaod_2.Errors.Count());
@@ -168,18 +168,8 @@ namespace SKD.VCS.Test {
 
         private void GenerateSeedData() {
 
-            var productionStations = new List<ProductionStation> {
-                new ProductionStation() { Code = "STATION_1", Name = "Station name 1" },
-                new ProductionStation() { Code = "STATION_2", Name = "Station name 2" },
-            };
-            ctx.ProductionStations.AddRange(productionStations);
-
-
-            var components = new List<Component> {
-                new Component() { Code = "COMP_1", Name = "Component name 1" },
-                new Component() { Code = "COMP_2", Name = "Component name 2" },
-            };
-            ctx.Components.AddRange(components);
+            var productionStations = Gen_ProductionStations(ctx, "station_1", "station_2");
+            var components = Gen_Components(ctx, "component_1", "component_2");
 
             var vehicleModel_1 = new VehicleModel() {
                 Code = Util.RandomString(EntityFieldLen.VehicleModel_Code).ToUpper(),

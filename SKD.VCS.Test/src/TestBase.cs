@@ -24,42 +24,41 @@ namespace SKD.VCS.Test {
             return ctx;
         }
 
-        public void Gen_ProductionStations(SkdContext ctx, int count = 2) {
-            var productionStations = (new int[count]).ToList().Select((x, i) => new ProductionStation {
-                Code = $"Station_{i}",
-                Name = $"Station_name_{i}"
+        public List<ProductionStation> Gen_ProductionStations(SkdContext ctx, params string[] codes) {
+            var productionStations = codes.ToList().Select(code => new ProductionStation {
+                Code = code,
+                Name = $"{code} name"
             });
 
             ctx.ProductionStations.AddRange(productionStations);
             ctx.SaveChanges();
+            return ctx.ProductionStations.ToList();
         }
 
-        public void Gen_Components(SkdContext ctx, int count = 2) {
-            var components = (new int[count]).ToList().Select((x, i) => new Component {
-                Code = $"Component_{i}",
-                Name = $"Component_{i}"
+        public List<Component> Gen_Components(SkdContext ctx, params string[] codes) {
+            var components = codes.ToList().Select(code => new Component {
+                Code = code,
+                Name = $"{code} name"
             });
             ctx.Components.AddRange(components);
             ctx.SaveChanges();
+            return ctx.Components.ToList();
         }
+
 
         public void Gen_VehicleModel(SkdContext ctx,
             string code,
-            string name,
-            List<Component> components,
-            List<ProductionStation> productionStations
-            ) {
+            List<(string componentCode, string stationCode)> component_stations_maps
+        ) {
 
-            var modelComponents = components.Zip(productionStations, (component, station) =>
-                    new { Component = component, ProductionStation = station }
-                ).Select(t => new VehicleModelComponent {
-                    Component = t.Component,
-                    ProductionStation = t.ProductionStation
-                }).ToList();
+            var modelComponents = component_stations_maps.Select(map => new VehicleModelComponent {
+                Component = ctx.Components.First(t => t.Code == map.componentCode),
+                ProductionStation = ctx.ProductionStations.First(t => t.Code == map.stationCode)
+            }).ToList();
 
             var vehicleModel = new VehicleModel {
                 Code = code,
-                Name = name,                
+                Name = $"{code} name",
                 ModelComponents = modelComponents
             };
 
@@ -87,12 +86,12 @@ namespace SKD.VCS.Test {
             var vehicleLot = new VehicleLot { LotNo = lotNo };
             ctx.VehicleLots.Add(vehicleLot);
 
-            var vehicle = new Vehicle { 
+            var vehicle = new Vehicle {
                 VIN = vin,
                 Lot = vehicleLot,
                 Model = vehicleModel,
                 PlannedBuildAt = plannedBuildAt,
-                ScanLockedAt = scanLockAt,
+                ScanCompleteAt = scanLockAt,
                 VehicleComponents = vehicleComponents
             };
 
