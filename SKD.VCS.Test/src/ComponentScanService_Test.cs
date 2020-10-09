@@ -16,16 +16,6 @@ namespace SKD.VCS.Test {
         }
 
         [Fact]
-        public async Task seed_data_correct() {         
-
-            var modelCount = await ctx.VehicleModels.CountAsync();
-            Assert.Equal(1, modelCount);
-
-            var vehicleCount = await ctx.Vehicles.CountAsync();
-            Assert.Equal(1, vehicleCount);
-        }
-
-        [Fact]
         public async Task can_create_component_scan() {
             var vehicleComponent = ctx.VehicleComponents.FirstOrDefault();
 
@@ -196,6 +186,8 @@ namespace SKD.VCS.Test {
             var errors = payload.Errors.ToList();
             Assert.True(errors.Count == 1 && errors[0].Message == "vehicle planned build date required");
         }
+
+        
 
         #region generate seed data         
 

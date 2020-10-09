@@ -10,7 +10,7 @@ using SKD.VCS.Model;
 namespace SKD.VCS.Model.src.Migrations
 {
     [DbContext(typeof(SkdContext))]
-    [Migration("20200924042420_Initial")]
+    [Migration("20201009084140_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -68,6 +68,13 @@ namespace SKD.VCS.Model.src.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DCWS_ResponseAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DCWS_ResponseCode")
+                        .HasColumnType("nvarchar(100)")
+                        .HasMaxLength(100);
+
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
 
@@ -81,6 +88,9 @@ namespace SKD.VCS.Model.src.Migrations
 
                     b.Property<Guid>("VehicleComponentId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("VerifiedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -185,7 +195,7 @@ namespace SKD.VCS.Model.src.Migrations
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("ScanLockedAt")
+                    b.Property<DateTime?>("ScanCompleteAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("VIN")

@@ -193,7 +193,7 @@ namespace SKD.VCS.Model.src.Migrations
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("ScanLockedAt")
+                    b.Property<DateTime?>("ScanCompleteAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("VIN")

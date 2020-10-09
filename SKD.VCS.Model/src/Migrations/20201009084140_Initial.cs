@@ -94,7 +94,7 @@ namespace SKD.VCS.Model.src.Migrations
                     LotNo = table.Column<string>(maxLength: 15, nullable: true),
                     KitNo = table.Column<string>(maxLength: 17, nullable: true),
                     PlannedBuildAt = table.Column<DateTime>(nullable: true),
-                    ScanLockedAt = table.Column<DateTime>(nullable: true),
+                    ScanCompleteAt = table.Column<DateTime>(nullable: true),
                     ModelId = table.Column<Guid>(nullable: false),
                     LotId = table.Column<Guid>(nullable: false)
                 },
@@ -193,7 +193,10 @@ namespace SKD.VCS.Model.src.Migrations
                     RemovedAt = table.Column<DateTime>(nullable: true),
                     VehicleComponentId = table.Column<Guid>(nullable: false),
                     Scan1 = table.Column<string>(maxLength: 100, nullable: true),
-                    Scan2 = table.Column<string>(maxLength: 100, nullable: true)
+                    Scan2 = table.Column<string>(maxLength: 100, nullable: true),
+                    DCWS_ResponseCode = table.Column<string>(maxLength: 100, nullable: true),
+                    DCWS_ResponseAt = table.Column<DateTime>(nullable: true),
+                    VerifiedAt = table.Column<DateTime>(nullable: true)
                 },
                 constraints: table =>
                 {
