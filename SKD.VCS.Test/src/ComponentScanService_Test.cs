@@ -109,9 +109,15 @@ namespace SKD.VCS.Test {
             Assert.Equal(expectedMessage, actualMessage);
         }
 
-        // [Fact]
+        [Fact]
         public async Task cannot_create_component_scan_for_vehicle_component_if_one_already_exists() {
-            var vehicleComponent = await ctx.VehicleComponents.FirstOrDefaultAsync();
+            var vehicle = Gen_Vehilce_With_Components(new List<(string, string)> () {
+                ("component_1", "station_1"),
+                ("component_2", "station_2"),
+            });
+
+            var vehicleComponent = vehicle.VehicleComponents
+                .OrderBy(t => t.ProductionStation.SortOrder).First();
 
             var dto_1 = new ComponentScanDTO {
                 VehicleComponentId = vehicleComponent.Id,
@@ -263,13 +269,14 @@ namespace SKD.VCS.Test {
             // scan station 2 first (out of order)
             var paylaod = await scanService.CreateComponentScan(dto_station_2);
             Assert.True(1 == paylaod.Errors.Count);
-            Console.WriteLine(paylaod.Errors[0].Message);
-            Assert.Equal(paylaod.Errors[0].Message, "Missing scan for station_1");
+            var message = paylaod.Errors[0].Message;             
+            Assert.Equal("Missing scan for station_1", message);
         }
 
         private Vehicle Gen_Vehilce_With_Components(
              List<(string componentCode, string stationCode)> component_stations_maps
         ) {
+
             var modelCode = Util.RandomString(EntityFieldLen.VehicleModel_Code);
             Gen_VehicleModel(
                 ctx,

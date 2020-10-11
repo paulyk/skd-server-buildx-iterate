@@ -111,29 +111,11 @@ namespace SKD.VCS.Model {
                 .Select(t => t.ProductionStation.Code).ToList();
 
             if (preceeding_Unscanned_Stations.Any()) {
-                var station_codes = preceeding_Unscanned_Stations.Aggregate((a,b) => a + ", " + b);
+                var station_codes = String.Join(", ",preceeding_Unscanned_Stations);
                  errors.Add(new Error("", $"Missing scan for {station_codes}"));
                 return errors;
             }
-            /*
-
-                // scan 1 + scan 2 already found 
-                var duplicate =  vehicleComponent.ComponentScans
-                    .Where(t => t.RemovedAt == null)
-                    .Any(t => 
-                        t.Scan1 == scan.Scan1 && t.Scan2 == scan.Scan2
-                        ||
-                        t.Scan1 == scan.Scan2 && t.Scan2 == scan.Scan1
-                    );
-
-                if (duplicate) {
-                    errors.Add(new Error("", "duplicate scan"));
-                }
-
-            */
-
-            
-
+           
             return errors;
         }
     }
