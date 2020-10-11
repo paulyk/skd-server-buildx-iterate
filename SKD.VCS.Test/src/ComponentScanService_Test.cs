@@ -49,7 +49,7 @@ namespace SKD.VCS.Test {
         }
 
         [Fact]
-        public async Task cannot_create_component_scan_if_vehicle_scan_locked() {
+        public async Task cannot_create_component_scan_if_vehicle_scan_completed() {
             // setup
             var vehicle = ctx.Vehicles.FirstOrDefault();
             vehicle.ScanCompleteAt = DateTime.UtcNow;
@@ -70,7 +70,7 @@ namespace SKD.VCS.Test {
 
             var errors = payload.Errors.ToList();
 
-            Assert.True(errors.Count == 1 && errors[0].Message == "vehicle scan locked");
+            Assert.True(errors.Count == 1 && errors[0].Message == "vehicle component scan already completed");
         }
 
         [Fact]
@@ -109,7 +109,7 @@ namespace SKD.VCS.Test {
             Assert.Equal(expectedMessage, actualMessage);
         }
 
-        [Fact]
+        // [Fact]
         public async Task cannot_create_component_scan_for_vehicle_component_if_one_already_exists() {
             var vehicleComponent = await ctx.VehicleComponents.FirstOrDefaultAsync();
 
@@ -187,14 +187,111 @@ namespace SKD.VCS.Test {
             Assert.True(errors.Count == 1 && errors[0].Message == "vehicle planned build date required");
         }
 
-        
+        [Fact]
+        public async Task can_create_scan_for_same_component_in_different_stations() {
+            // creat vehicle model with 'component_2' twice, one for each station
+            var vehicle = Gen_Vehilce_With_Components(
+                new List<(string, string)> {
+                    ("component_1", "station_1"),
+                    ("component_2", "station_1"),
+
+                    ("component_3", "station_2"),
+                    ("component_2", "station_2"),
+                }
+            );
+
+            var vehicle_components = vehicle.VehicleComponents
+                .OrderBy(t => t.ProductionStation.SortOrder)
+                .Where(t => t.Component.Code == "component_2").ToList();
+
+            var vehicleComponent_1 = vehicle_components[0];
+            var vehicleComponent_2 = vehicle_components[1];
+
+            var scanService = new ComponentScanService(ctx);
+
+            // create scan for station_1, component_1
+            var dto_1 = new ComponentScanDTO {
+                VehicleComponentId = vehicleComponent_1.Id,
+                Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
+                Scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)
+            };
+
+            var paylaod = await scanService.CreateComponentScan(dto_1);
+            Assert.True(0 == paylaod.Errors.Count);
+
+            // create scan for station_2, component_2
+            var dto_2 = new ComponentScanDTO {
+                VehicleComponentId = vehicleComponent_2.Id,
+                Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
+                Scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)
+            };
+
+            var paylaod_2 = await scanService.CreateComponentScan(dto_2);
+            Assert.True(0 == paylaod_2.Errors.Count);
+        }
+
+        [Fact]
+        public async Task cannot_create_scansz_for_same_component_out_of_order() {
+            // creat vehicle model with 'component_2' twice, one for each station
+            var vehicle = Gen_Vehilce_With_Components(
+                new List<(string, string)> {
+                    ("component_1", "station_1"),
+                    ("component_2", "station_1"),
+
+                    ("component_3", "station_2"),
+                    ("component_2", "station_2"),
+                }
+            );
+
+            var vehicle_components = vehicle.VehicleComponents
+                .OrderBy(t => t.ProductionStation.SortOrder)
+                .Where(t => t.Component.Code == "component_2").ToList();
+
+
+            // deliberately choose second vehicle component to scan frist
+            var vehicleComponent_station_2 = vehicle_components[1];
+
+            var scanService = new ComponentScanService(ctx);
+
+            // create scan for station_2, component_2
+            var dto_station_2 = new ComponentScanDTO {
+                VehicleComponentId = vehicleComponent_station_2.Id,
+                Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
+                Scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)
+            };
+
+            // scan station 2 first (out of order)
+            var paylaod = await scanService.CreateComponentScan(dto_station_2);
+            Assert.True(1 == paylaod.Errors.Count);
+            Console.WriteLine(paylaod.Errors[0].Message);
+            Assert.Equal(paylaod.Errors[0].Message, "Missing scan for station_1");
+        }
+
+        private Vehicle Gen_Vehilce_With_Components(
+             List<(string componentCode, string stationCode)> component_stations_maps
+        ) {
+            var modelCode = Util.RandomString(EntityFieldLen.VehicleModel_Code);
+            Gen_VehicleModel(
+                ctx,
+                code: modelCode,
+                component_stations_maps: component_stations_maps
+              );
+
+            // cretre vehicle based on that model
+            var vin = Util.RandomString(EntityFieldLen.Vehicle_VIN);
+            return Gen_Vehicle(ctx,
+                vin: vin,
+                lotNo: Util.RandomString(EntityFieldLen.Vehicle_LotNo),
+                modelCode: modelCode,
+                plannedBuildAt: DateTime.UtcNow.AddDays(-2));
+        }
 
         #region generate seed data         
 
         private void GenerateSeedData() {
             // components
             Gen_ProductionStations(ctx, "station_1", "station_2");
-            Gen_Components(ctx, "component_1", "component_2");
+            Gen_Components(ctx, "component_1", "component_2", "component_3");
 
             var components = ctx.Components.ToList();
             var productionStations = ctx.ProductionStations.ToList();
@@ -212,6 +309,7 @@ namespace SKD.VCS.Test {
             Gen_Vehicle(
              ctx: ctx,
              vin: Util.RandomString(EntityFieldLen.Vehicle_VIN),
+            lotNo: Util.RandomString(EntityFieldLen.Vehicle_LotNo),
              modelCode: modelCode,
              plannedBuildAt: DateTime.UtcNow.AddDays(-2));
         }

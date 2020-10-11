@@ -25,10 +25,12 @@ namespace SKD.VCS.Test {
         }
 
         public List<ProductionStation> Gen_ProductionStations(SkdContext ctx, params string[] codes) {
-            var productionStations = codes.ToList().Select(code => new ProductionStation {
+            var productionStations = codes.ToList().Select((code,index) => new ProductionStation {
                 Code = code,
-                Name = $"{code} name"
+                Name = $"{code} name",
+                SortOrder = index + 1
             });
+
 
             ctx.ProductionStations.AddRange(productionStations);
             ctx.SaveChanges();
@@ -46,12 +48,13 @@ namespace SKD.VCS.Test {
         }
 
 
-        public void Gen_VehicleModel(SkdContext ctx,
+        public VehicleModel Gen_VehicleModel(SkdContext ctx,
             string code,
             List<(string componentCode, string stationCode)> component_stations_maps
         ) {
 
-            var modelComponents = component_stations_maps.Select(map => new VehicleModelComponent {
+            var modelComponents = component_stations_maps
+            .Select(map => new VehicleModelComponent {
                 Component = ctx.Components.First(t => t.Code == map.componentCode),
                 ProductionStation = ctx.ProductionStations.First(t => t.Code == map.stationCode)
             }).ToList();
@@ -64,10 +67,12 @@ namespace SKD.VCS.Test {
 
             ctx.VehicleModels.Add(vehicleModel);
             ctx.SaveChanges();
+            return vehicleModel;
         }
 
-        public void Gen_Vehicle(SkdContext ctx,
+        public Vehicle Gen_Vehicle(SkdContext ctx,
             string vin,
+            string lotNo,
             string modelCode,
             DateTime? plannedBuildAt = null,
             DateTime? scanLockAt = null
@@ -82,7 +87,6 @@ namespace SKD.VCS.Test {
                 ProductionStationId = mc.ProductionStationId
             }).ToList();
 
-            var lotNo = new String('X', EntityFieldLen.Vehicle_LotNo);
             var vehicleLot = new VehicleLot { LotNo = lotNo };
             ctx.VehicleLots.Add(vehicleLot);
 
@@ -97,6 +101,8 @@ namespace SKD.VCS.Test {
 
             ctx.Vehicles.AddRange(vehicle);
             ctx.SaveChanges();
+
+            return vehicle;
         }
     }
 }

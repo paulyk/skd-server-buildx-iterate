@@ -48,8 +48,10 @@ namespace SKD.VCS.Model {
             var vehicleComponent = scan.VehicleComponent;
 
             var vehicle = vehicleComponent != null
-                ? await context.Vehicles.AsTracking()
-                    .Include(t => t.VehicleComponents)
+                ? await context.Vehicles.AsNoTracking()
+                    .Include(t => t.VehicleComponents).ThenInclude(t => t.Component)
+                    .Include(t => t.VehicleComponents).ThenInclude(t => t.ProductionStation)
+                    .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentScans)
                     .FirstOrDefaultAsync(t => t.Id == vehicleComponent.VehicleId)
                 : null;
 
@@ -61,7 +63,7 @@ namespace SKD.VCS.Model {
 
             // veheicle scan completed
             if (vehicle.ScanCompleteAt != null) {
-                errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehicle scan locked"));
+                errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehicle component scan already completed"));
                 return errors;
             }
 
@@ -91,14 +93,28 @@ namespace SKD.VCS.Model {
                 return errors;
             }
 
-            // existing scan found
+            // cannot add component to vehicle component / unless "override" mode
             if (vehicleComponent.ComponentScans.Any(t => t.RemovedAt == null)) {
                 errors.Add(new Error("", "Existing scan found"));
                 return errors;
             }
-
             
+            // Get any vehicle component with same code in preceeding production stationss
+            var preceedingVehicleComponents = vehicle.VehicleComponents
+                .OrderBy(t => t.ProductionStation.SortOrder)
+                .Where(t => t.Component.Code == vehicleComponent.Component.Code)
+                .Where(t => t.ProductionStation.SortOrder < vehicleComponent.ProductionStation.SortOrder)
+                .ToList();
 
+            var preceeding_Unscanned_Stations = preceedingVehicleComponents
+                .Where(t => !t.ComponentScans.Any(t => t.RemovedAt == null))
+                .Select(t => t.ProductionStation.Code).ToList();
+
+            if (preceeding_Unscanned_Stations.Any()) {
+                var station_codes = preceeding_Unscanned_Stations.Aggregate((a,b) => a + ", " + b);
+                 errors.Add(new Error("", $"Missing scan for {station_codes}"));
+                return errors;
+            }
             /*
 
                 // scan 1 + scan 2 already found 
