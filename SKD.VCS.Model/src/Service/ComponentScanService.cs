@@ -22,16 +22,12 @@ namespace SKD.VCS.Model {
             var componentScan = new ComponentScan {
                 Scan1 = dto.Scan1,
                 Scan2 = dto.Scan2,
-                VehicleComponent = await context.VehicleComponents
-                    .Include(t => t.Vehicle)
-                        .ThenInclude(t => t.VehicleComponents)
-                        .ThenInclude(t => t.ComponentScans)
-                    .FirstOrDefaultAsync(t => t.Id == dto.VehicleComponentId)
+                VehicleComponentId = dto.VehicleComponentId
             };
 
             var payload = new MutationPayload<ComponentScan>(componentScan);
 
-            payload.Errors = await ValidateCreateComponentScan<ComponentScan>(componentScan, allowReplace: dto.Replace ?? false);
+            payload.Errors = await ValidateCreateComponentScan<ComponentScan>(componentScan, replace: dto.Replace ?? false);
             if (payload.Errors.Count() > 0) {
                 return payload;
             }
@@ -42,10 +38,20 @@ namespace SKD.VCS.Model {
             return payload;
         }
 
-        public async Task<List<Error>> ValidateCreateComponentScan<T>(ComponentScan scan, bool allowReplace = false) where T : ComponentScan {
+        public async Task<List<Error>> ValidateCreateComponentScan<T>(ComponentScan scan, bool replace = false) where T : ComponentScan {
             var errors = new List<Error>();
 
-            var vehicleComponent = scan.VehicleComponent;
+            var vehicleComponent = await context.VehicleComponents.AsNoTracking()
+                    .Include(t => t.Component)
+                    .Include(t => t.ProductionStation)
+                    .Include(t => t.ComponentScans)
+                .FirstOrDefaultAsync(t => t.Id == scan.VehicleComponentId);
+
+            // vehicle component id
+            if (vehicleComponent == null) {
+                errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehicle component not found"));
+                return errors;
+            }
 
             var vehicle = vehicleComponent != null
                 ? await context.Vehicles.AsNoTracking()
@@ -55,11 +61,6 @@ namespace SKD.VCS.Model {
                     .FirstOrDefaultAsync(t => t.Id == vehicleComponent.VehicleId)
                 : null;
 
-            // vehicle component id
-            if (vehicleComponent == null) {
-                errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehicle component not found"));
-                return errors;
-            }
 
             // veheicle scan completed
             if (vehicle.ScanCompleteAt != null) {
@@ -93,9 +94,9 @@ namespace SKD.VCS.Model {
                 return errors;
             }
 
-            // cannot add component to vehicle component / unless "override" mode
+            // cannot add component to vehicle component / unless "replace" mode
             if (vehicleComponent.ComponentScans.Any(t => t.RemovedAt == null)) {
-                if (!allowReplace) {
+                if (!replace) {
                     errors.Add(new Error("", "Existing scan found"));
                     return errors;
                 }

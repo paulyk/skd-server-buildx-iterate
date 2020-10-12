@@ -75,7 +75,7 @@ namespace SKD.VCS.Test {
             string lotNo,
             string modelCode,
             DateTime? plannedBuildAt = null,
-            DateTime? scanLockAt = null
+            DateTime? scanCompleteAt = null
             ) {
 
             var vehicleModel = ctx.VehicleModels
@@ -95,7 +95,7 @@ namespace SKD.VCS.Test {
                 Lot = vehicleLot,
                 Model = vehicleModel,
                 PlannedBuildAt = plannedBuildAt,
-                ScanCompleteAt = scanLockAt,
+                ScanCompleteAt = scanCompleteAt,
                 VehicleComponents = vehicleComponents
             };
 
