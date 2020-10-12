@@ -32,8 +32,17 @@ namespace SKD.VCS.Model {
                 return payload;
             }
 
-            // save
+            // Deactivate existing scan if Replace == true
+            if (dto.Replace) {
+                var existintScans = await context.ComponentScans
+                    .Where(t => t.VehicleComponentId == dto.VehicleComponentId && t.RemovedAt == null).ToListAsync();                
+                existintScans.ForEach(t => t.RemovedAt = DateTime.UtcNow);
+            }
+
+            // add             
             context.ComponentScans.Add(componentScan);
+
+            // save
             await context.SaveChangesAsync();
             return payload;
         }

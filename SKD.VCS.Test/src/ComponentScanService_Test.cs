@@ -175,11 +175,9 @@ namespace SKD.VCS.Test {
             var payload_2 = await service.CreateComponentScan(dto_2);
             Assert.True(payload_2.Errors.Count == 0);
 
-            // check that vehilce component 
-            // vehicleComponent = ctx.VehicleComponents
-            //     .Include(t => t.ComponentScans)
-            //     .FirstOrDefault(t => t.Id == vehicleComponent.Id);
-                
+            // should only have one active scan
+            var count = await ctx.ComponentScans.CountAsync(t => t.VehicleComponentId == dto_2.VehicleComponentId && t.RemovedAt == null); 
+            Assert.True(1 == count, "Replacing scan should remove one leaving one.");                        
         }
 
         [Fact]
@@ -275,7 +273,7 @@ namespace SKD.VCS.Test {
         }
 
         [Fact]
-        public async Task cannot_create_scansz_for_same_component_out_of_order() {
+        public async Task cannot_create_scan_for_same_component_out_of_order() {
             // creat vehicle model with 'component_2' twice, one for each station
             var vehicle = Gen_Vehilce_With_Components(
                 new List<(string, string)> {
