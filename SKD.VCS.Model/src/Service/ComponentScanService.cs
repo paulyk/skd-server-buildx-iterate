@@ -27,7 +27,7 @@ namespace SKD.VCS.Model {
 
             var payload = new MutationPayload<ComponentScan>(componentScan);
 
-            payload.Errors = await ValidateCreateComponentScan<ComponentScan>(componentScan, replace: dto.Replace ?? false);
+            payload.Errors = await ValidateCreateComponentScan<ComponentScan>(dto);
             if (payload.Errors.Count() > 0) {
                 return payload;
             }
@@ -38,7 +38,7 @@ namespace SKD.VCS.Model {
             return payload;
         }
 
-        public async Task<List<Error>> ValidateCreateComponentScan<T>(ComponentScan scan, bool replace = false) where T : ComponentScan {
+        public async Task<List<Error>> ValidateCreateComponentScan<T>(ComponentScanDTO scan) where T : ComponentScan {
             var errors = new List<Error>();
 
             var vehicleComponent = await context.VehicleComponents.AsNoTracking()
@@ -96,7 +96,7 @@ namespace SKD.VCS.Model {
 
             // cannot add component to vehicle component / unless "replace" mode
             if (vehicleComponent.ComponentScans.Any(t => t.RemovedAt == null)) {
-                if (!replace) {
+                if (!scan.Replace) {
                     errors.Add(new Error("", "Existing scan found"));
                     return errors;
                 }
