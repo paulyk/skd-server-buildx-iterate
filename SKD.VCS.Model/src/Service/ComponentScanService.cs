@@ -31,7 +31,7 @@ namespace SKD.VCS.Model {
 
             var payload = new MutationPayload<ComponentScan>(componentScan);
 
-            payload.Errors = await ValidateCreateComponentScan<ComponentScan>(componentScan);
+            payload.Errors = await ValidateCreateComponentScan<ComponentScan>(componentScan, allowReplace: dto.Replace ?? false);
             if (payload.Errors.Count() > 0) {
                 return payload;
             }
@@ -42,7 +42,7 @@ namespace SKD.VCS.Model {
             return payload;
         }
 
-        public async Task<List<Error>> ValidateCreateComponentScan<T>(ComponentScan scan) where T : ComponentScan {
+        public async Task<List<Error>> ValidateCreateComponentScan<T>(ComponentScan scan, bool allowReplace = false) where T : ComponentScan {
             var errors = new List<Error>();
 
             var vehicleComponent = scan.VehicleComponent;
@@ -95,10 +95,12 @@ namespace SKD.VCS.Model {
 
             // cannot add component to vehicle component / unless "override" mode
             if (vehicleComponent.ComponentScans.Any(t => t.RemovedAt == null)) {
-                errors.Add(new Error("", "Existing scan found"));
-                return errors;
+                if (!allowReplace) {
+                    errors.Add(new Error("", "Existing scan found"));
+                    return errors;
+                }
             }
-            
+
             // Get any vehicle component with same code in preceeding production stationss
             var preceedingVehicleComponents = vehicle.VehicleComponents
                 .OrderBy(t => t.ProductionStation.SortOrder)
@@ -111,11 +113,11 @@ namespace SKD.VCS.Model {
                 .Select(t => t.ProductionStation.Code).ToList();
 
             if (preceeding_Unscanned_Stations.Any()) {
-                var station_codes = String.Join(", ",preceeding_Unscanned_Stations);
-                 errors.Add(new Error("", $"Missing scan for {station_codes}"));
+                var station_codes = String.Join(", ", preceeding_Unscanned_Stations);
+                errors.Add(new Error("", $"Missing scan for {station_codes}"));
                 return errors;
             }
-           
+
             return errors;
         }
     }

@@ -110,7 +110,7 @@ namespace SKD.VCS.Test {
         }
 
         [Fact]
-        public async Task cannot_create_component_scan_for_vehicle_component_if_one_already_exists() {
+        public async Task cannot_create_vehicle_component_scan_if_one_already_exists() {
             var vehicle = Gen_Vehilce_With_Components(new List<(string, string)> () {
                 ("component_1", "station_1"),
                 ("component_2", "station_2"),
@@ -142,6 +142,44 @@ namespace SKD.VCS.Test {
 
             var message = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
             Assert.Equal("Existing scan found", message);
+        }
+
+        [Fact]
+        public async Task can_replace_existing_component_scan() {
+            var vehicle = Gen_Vehilce_With_Components(new List<(string, string)> () {
+                ("component_1", "station_1"),
+                ("component_2", "station_2"),
+            });
+
+            var vehicleComponent = vehicle.VehicleComponents
+                .OrderBy(t => t.ProductionStation.SortOrder).First();
+
+            var dto_1 = new ComponentScanDTO {
+                VehicleComponentId = vehicleComponent.Id,
+                Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
+                Scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)
+            };
+
+            var dto_2 = new ComponentScanDTO {
+                VehicleComponentId = vehicleComponent.Id,
+                Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
+                Scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
+                Replace = true
+            };
+
+            var service = new ComponentScanService(ctx);
+
+            var payload_1 = await service.CreateComponentScan(dto_1);
+            Assert.True(payload_1.Errors.Count == 0);
+
+            var payload_2 = await service.CreateComponentScan(dto_2);
+            Assert.True(payload_2.Errors.Count == 0);
+
+            // check that vehilce component 
+            // vehicleComponent = ctx.VehicleComponents
+            //     .Include(t => t.ComponentScans)
+            //     .FirstOrDefault(t => t.Id == vehicleComponent.Id);
+                
         }
 
         [Fact]
