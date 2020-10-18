@@ -42,6 +42,7 @@ namespace SKD.VCS.Model {
                 response.ComponentScan.VehicleComponent.ScanVerifiedAt = response.AcceptedAt;
             }
 
+            context.DCWSResponses.Add(payload.Entity);
             await context.SaveChangesAsync();
             return payload;
         }
@@ -55,7 +56,12 @@ namespace SKD.VCS.Model {
                 .FirstOrDefaultAsync(t => t.Id == dto.ComponentScanId);
 
             if (componentScan == null) {
-                errors.Add(new Error("", $"component scan not found for {dto.ComponentScanId}"));
+                errors.Add(new Error("", $"component scan not found for ComponentScanId = {dto.ComponentScanId}"));
+                return errors;
+            }
+
+            if (componentScan.VehicleComponent.RemovedAt != null) {
+                errors.Add(new Error("", $"vehicle component removed for ComponentScanId = {dto.ComponentScanId}"));
                 return errors;
             }
 

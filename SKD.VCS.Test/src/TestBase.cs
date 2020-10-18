@@ -25,7 +25,9 @@ namespace SKD.VCS.Test {
         }
 
         public List<ProductionStation> Gen_ProductionStations(SkdContext ctx, params string[] codes) {
-            var productionStations = codes.ToList().Select((code,index) => new ProductionStation {
+            var stationCodes = codes.Where(code => !ctx.ProductionStations.Any(t => t.Code == code)).ToList();
+            
+            var productionStations = stationCodes.ToList().Select((code,index) => new ProductionStation {
                 Code = code,
                 Name = $"{code} name",
                 SortOrder = index + 1
@@ -37,11 +39,14 @@ namespace SKD.VCS.Test {
             return ctx.ProductionStations.ToList();
         }
 
-        public List<Component> Gen_Components(SkdContext ctx, params string[] codes) {
-            var components = codes.ToList().Select(code => new Component {
+        public List<Component> Gen_Components(SkdContext ctx, params string[] codes) {      
+            var componentCodes = codes.ToList().Where(code => !ctx.Components.Any(t => t.Code == code));
+
+            var components = componentCodes.ToList().Select(code => new Component {
                 Code = code,
                 Name = $"{code} name"
             });
+
             ctx.Components.AddRange(components);
             ctx.SaveChanges();
             return ctx.Components.ToList();
@@ -52,6 +57,12 @@ namespace SKD.VCS.Test {
             string code,
             List<(string componentCode, string stationCode)> component_stations_maps
         ) {
+            Gen_Components(ctx, component_stations_maps.Select(t => t.componentCode).ToArray());
+            Gen_ProductionStations(ctx, component_stations_maps.Select(t => t.stationCode).ToArray());
+            //
+            component_stations_maps.ForEach(item => {
+                var component = ctx.Components.FirstOrDefault(t => t.Code == item.componentCode);
+            });
 
             var modelComponents = component_stations_maps
             .Select(map => new VehicleModelComponent {
@@ -70,6 +81,18 @@ namespace SKD.VCS.Test {
             return vehicleModel;
         }
 
+        public ComponentScan Gen_ComponentScan(SkdContext context, Guid vehicleComponentId) {
+            var vehicleComponent = context.VehicleComponents.FirstOrDefault(t => t.Id == vehicleComponentId);
+            var componentScan = new ComponentScan {
+                VehicleComponentId = vehicleComponentId,
+                Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
+                Scan2 = ""
+            };
+            context.ComponentScans.Add(componentScan);
+            context.SaveChanges();
+            return componentScan;
+        }
+        
         public Vehicle Gen_Vehicle(SkdContext ctx,
             string vin,
             string lotNo,
