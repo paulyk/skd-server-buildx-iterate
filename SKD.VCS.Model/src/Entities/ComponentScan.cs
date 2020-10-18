@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace SKD.VCS.Model {
 
@@ -9,9 +10,9 @@ namespace SKD.VCS.Model {
         public string Scan1 { get; set; } = "";
         public string Scan2 { get; set; } = "";
 
-        public string DCWS_ResponseCode { get; set;}
-        public DateTime? DCWS_ResponseAt { get; set; }
-        public DateTime? VerifiedAt { get; set; }
+        public DateTime? AcceptedAt { get; set; }
+
+        public ICollection<DCWSResponse> DCWSResponses { get; set; } = new List<DCWSResponse>();
 
         public ComponentScan() : base() { }
     }

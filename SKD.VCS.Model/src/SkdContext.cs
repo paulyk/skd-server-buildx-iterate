@@ -11,6 +11,7 @@ namespace SKD.VCS.Model {
         public DbSet<VehicleModel> VehicleModels { get; set; }
         public DbSet<VehicleComponent> VehicleComponents { get; set; }
         public DbSet<ComponentScan> ComponentScans { get; set; }
+        public DbSet<DCWSResponse> DCWSResponses { get; set; }
         public DbSet<VehicleModelComponent> VehicleModelComponents { get; set; }
         public DbSet<ProductionStation> ProductionStations { get; set; }
         
@@ -25,6 +26,7 @@ namespace SKD.VCS.Model {
             builder.ApplyConfiguration(new VehicleComponent_Config());
             builder.ApplyConfiguration(new VehicleModelComponent_Config());
             builder.ApplyConfiguration(new VehicleComponentScan_Config());
+            builder.ApplyConfiguration(new DCWSResponse_Config());
             builder.ApplyConfiguration(new ProductionStation_Config());
         }
     }
