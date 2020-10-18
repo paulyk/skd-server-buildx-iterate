@@ -12,7 +12,5 @@ namespace SKD.VCS.Model {
         public EntityBase() {
             CreatedAt = DateTime.UtcNow;
         }
-
-
     }
 }
