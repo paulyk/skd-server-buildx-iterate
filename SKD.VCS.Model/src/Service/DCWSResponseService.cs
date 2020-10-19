@@ -66,6 +66,19 @@ namespace SKD.VCS.Model {
 
             if (String.IsNullOrEmpty(dto.ResponseCode)) {
                 errors.Add(new Error("ResponseCode", "response code required"));
+                return errors;
+            }
+
+            // skip if duplicate
+            var duplicate  = await context.DCWSResponses
+                .OrderByDescending(t => t.CreatedAt)
+                .FirstOrDefaultAsync(
+                    t => t.ComponentScanId == dto.ComponentScanId && 
+                    t.ResponseCode == dto.ResponseCode &&
+                    t.ErrorMessage == dto.ErrorMessage);
+
+            if (duplicate != null) {
+                errors.Add(new Error("", "duplicate"));
             }
 
             return errors;

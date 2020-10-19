@@ -316,7 +316,7 @@ namespace SKD.VCS.Test {
             var modelCode = Util.RandomString(EntityFieldLen.VehicleModel_Code);
             Gen_VehicleModel(
                 ctx,
-                code: modelCode,
+                modelCode: modelCode,
                 component_stations_maps: component_stations_maps
               );
 
@@ -342,7 +342,7 @@ namespace SKD.VCS.Test {
             var modelCode = "model_1";
             Gen_VehicleModel(
                 ctx,
-                code: modelCode,
+                modelCode: modelCode,
                 component_stations_maps: new List<(string, string)> {
                     ("component_1", "station_1"),
                     ("component_2", "station_2"),

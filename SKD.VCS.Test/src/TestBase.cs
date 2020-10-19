@@ -54,7 +54,7 @@ namespace SKD.VCS.Test {
 
 
         public VehicleModel Gen_VehicleModel(SkdContext ctx,
-            string code,
+            string modelCode,
             List<(string componentCode, string stationCode)> component_stations_maps
         ) {
             Gen_Components(ctx, component_stations_maps.Select(t => t.componentCode).ToArray());
@@ -71,8 +71,8 @@ namespace SKD.VCS.Test {
             }).ToList();
 
             var vehicleModel = new VehicleModel {
-                Code = code,
-                Name = $"{code} name",
+                Code = modelCode,
+                Name = $"{modelCode} name",
                 ModelComponents = modelComponents
             };
 
@@ -93,6 +93,18 @@ namespace SKD.VCS.Test {
             return componentScan;
         }
         
+        public Vehicle Gen_VehicleModel_With_Vehicle(
+            SkdContext ctx,
+            string vin,
+            string lotNo,
+            string modelCode,
+            List<(string componentCode, string stationCode)> component_stations_maps,
+            DateTime? plannedBuildAt = null,
+            DateTime? scanCompleteAt = null) {
+
+            var vehicleModel = Gen_VehicleModel(ctx, modelCode, component_stations_maps);
+            return Gen_Vehicle(ctx, vin, lotNo, modelCode, plannedBuildAt, scanCompleteAt);
+        }        
         public Vehicle Gen_Vehicle(SkdContext ctx,
             string vin,
             string lotNo,
