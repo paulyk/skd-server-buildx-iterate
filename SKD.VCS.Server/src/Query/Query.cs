@@ -59,6 +59,16 @@ namespace SKD.VCS.Server {
                         .Include(t => t.VehicleComponent)
                                 .ThenInclude(t => t.Vehicle)
                                 .ThenInclude(t => t.Model)
+                        .Include(t => t.DCWSResponses)
+                        .AsQueryable();
+
+        [UsePaging]
+        [UseSelection]
+        [UseFiltering]
+        [UseSorting]
+        public IQueryable<DCWSResponse> GetDcwsResponses([Service] SkdContext context) =>
+                context.DCWSResponses
+                        .Include(t => t.ComponentScan).ThenInclude(t => t.VehicleComponent)
                         .AsQueryable();
 
         [UsePaging]
