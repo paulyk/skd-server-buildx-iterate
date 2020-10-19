@@ -51,12 +51,12 @@ namespace SKD.VCS.Server {
             [Service] SkdContext ctx,
             ComponentInput input
         ) {
-            var component = new ComponentDTO {
+            var dto = new ComponentDTO {
                 Id = ToGuid(input.Id != null ? input.Id : ""),
                 Code = input.Code,
                 Name = input.Name
             };
-            return await service1.SaveComponent(component);
+            return await service1.SaveComponent(dto);
         }
 
         /// <summary>
@@ -67,12 +67,12 @@ namespace SKD.VCS.Server {
             [Service] SkdContext ctx,
             ProductionStationInput input
         ) {
-            var productionStation = new ProductionStationDTO {
+            var dto = new ProductionStationDTO {
                 Id = ToGuid(input.Id != null ? input.Id : ""),
                 Code = input.Code,
                 Name = input.Name
             };
-            return await service.SaveProductionStation(productionStation);
+            return await service.SaveProductionStation(dto);
         }
 
         public async Task<MutationPayload<ComponentScan>> CreateComponentScan(
@@ -80,12 +80,25 @@ namespace SKD.VCS.Server {
           [Service] SkdContext ctx,
           ComponentScanDTO input
         ) {
-            var componentScanDTO = new ComponentScanDTO {
+            var dto = new ComponentScanDTO {
                 VehicleComponentId = input.VehicleComponentId,
                 Scan1 = input.Scan1,
                 Scan2 = input.Scan2
             };
-            return await service.CreateComponentScan(componentScanDTO);
+            return await service.CreateComponentScan(dto);
+        }
+
+        public async Task<MutationPayload<DCWSResponse>> CreateDcwsResponse(
+          [Service] DCWSResponseService service,
+          [Service] SkdContext ctx,
+          DCWWResponseDTO input
+        ) {
+            var dto = new DCWWResponseDTO {
+                ComponentScanId = input.ComponentScanId,
+                ResponseCode = input.ResponseCode,
+                ErrorMessage = input.ErrorMessage
+            };
+            return await service.CreateDCWSResponse(dto);
         }
 
         private Guid ToGuid(string str) {

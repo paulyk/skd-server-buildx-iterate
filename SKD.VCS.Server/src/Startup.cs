@@ -45,6 +45,7 @@ namespace SKD.VCS.Server {
                 .AddTransient<VehicleService>()
                 .AddTransient<VehicleModelService>()
                 .AddTransient<ComponentService>()
+                .AddTransient<DCWSResponseService>()
                 .AddTransient<ProductionStationService>()
                 .AddTransient<ComponentScanService>();
 
