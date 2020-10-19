@@ -10,6 +10,10 @@ using Microsoft.EntityFrameworkCore;
 namespace SKD.VCS.Model {
 
     public class DCWSResponseService {
+
+        private readonly ICollection<string> ComponentSavedReponseCodes = new List<string> {
+            "NONE", "REPAIR", "KNOWNBAD", "CHARACTERIZATIONMISSING", "CHARACTERIZATIONERROR"
+        };
         private readonly SkdContext context;
 
         public DCWSResponseService(SkdContext ctx) {
@@ -24,9 +28,7 @@ namespace SKD.VCS.Model {
                 ComponentScan = await context.ComponentScans
                     .Include(t => t.VehicleComponent)
                     .FirstOrDefaultAsync(t => t.Id == dto.ComponentScanId),
-                AcceptedAt = dto.Accepted 
-                    ? DateTime.UtcNow
-                    : (DateTime?)null
+                DcwsSuccessfulSave = IsDcwsSuccessfulSaveResonseCode(dto.ResponseCode)
             };
             var payload = new MutationPayload<DCWSResponse>(response);
             payload.Errors = await ValidateDCWSResponse<DCWWResponseDTO>(dto);
@@ -35,12 +37,9 @@ namespace SKD.VCS.Model {
                 return payload;
             }
 
-            // if accepted update component scan
-            if (payload.Entity?.AcceptedAt != null) {
-                // update denormalized values
-                response.ComponentScan.AcceptedAt = response.AcceptedAt;
-                response.ComponentScan.VehicleComponent.ScanVerifiedAt = response.AcceptedAt;
-            }
+            // update denormalized values
+            response.ComponentScan.AcceptedAt = response.DcwsSuccessfulSave ? DateTime.UtcNow : (DateTime?)null;
+            response.ComponentScan.VehicleComponent.ScanVerifiedAt = response.DcwsSuccessfulSave ? DateTime.UtcNow : (DateTime?)null;
 
             context.DCWSResponses.Add(payload.Entity);
             await context.SaveChangesAsync();
@@ -70,6 +69,10 @@ namespace SKD.VCS.Model {
             }
 
             return errors;
+        }
+
+        bool IsDcwsSuccessfulSaveResonseCode(string responseCode) {
+            return ComponentSavedReponseCodes.Any(code => code.ToLower() == responseCode.ToLower());
         }
     }
 }

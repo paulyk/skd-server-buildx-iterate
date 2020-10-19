@@ -33,8 +33,7 @@ namespace SKD.VCS.Test {
             var dto = new DCWWResponseDTO {
                 ComponentScanId = componentScan.Id,
                 ResponseCode = "NONE",
-                ErrorMessage = "",
-                Accepted = true 
+                ErrorMessage = ""
             };
             var payload = await service.CreateDCWSResponse(dto);
             // assert

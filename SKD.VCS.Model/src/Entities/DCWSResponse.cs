@@ -9,7 +9,6 @@ namespace SKD.VCS.Model {
         public Guid ComponentScanId { get; set;}
         public ComponentScan ComponentScan { get; set; }
 
-        public DateTime? AcceptedAt { get; set; }
-        public DateTime? RejectedAt { get; set; }
+        public bool DcwsSuccessfulSave { get; set; }
     }
 }
