@@ -19,32 +19,52 @@ namespace SKD.VCS.Model {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<VehicleLot>> CreateVhicleLot(VehicleLotDTO vehicleLotDTO) {
-            var vehicleLot = await GetCreateVehicleLot(vehicleLotDTO.LotNo);
-            var vehicleLotPayload = new MutationPayload<VehicleLot>(vehicleLot);
+        public async Task<MutationPayload<VehicleLot>> CreateVhicleLot(VehicleLotDTO dto) {
+            var vehicleLot = new VehicleLot { LotNo = dto.LotNo };
+            var payload = new MutationPayload<VehicleLot>(vehicleLot);
 
-            // error if vehicle lot already has vehicles
-            if (vehicleLot.Vehicles.Any()) {
-                vehicleLotPayload.Errors.Add(ErrorHelper.Create<VehicleLot>(t => t.LotNo, "Duplicate vehicle lot"));
-                return vehicleLotPayload;
+            payload.Errors = await ValidateCreateVehicleLot(dto);
+
+            if (payload.Errors.Any()) {
+                return payload;
             }
 
             // create vehicle records and add to vehicleLot.Vehicles
-            foreach (var vehicleDTO in vehicleLotDTO.VehicleDTOs) {
+            foreach (var vehicleDTO in dto.VehicleDTOs) {
                 var vehiclePayload = await CreateVehicle_Common(vehicleDTO, vehicleLot);
                 if (vehiclePayload.Errors.Any()) {
-                    vehicleLotPayload.Errors.AddRange(vehiclePayload.Errors);
+                    payload.Errors.AddRange(vehiclePayload.Errors);
                     break;
                 }
                 vehicleLot.Vehicles.Add(vehiclePayload.Entity);
             }
-            if (vehicleLotPayload.Errors.Any()) {
-                return vehicleLotPayload;
+            if (payload.Errors.Any()) {
+                return payload;
             }
 
             // persist
             await context.SaveChangesAsync();
-            return vehicleLotPayload;
+            return payload;
+        }       
+
+        public async Task<List<Error>> ValidateCreateVehicleLot(VehicleLotDTO dto) {
+            var errors = new List<Error>();
+
+            if (await context.VehicleLots.AnyAsync(t => t.LotNo == dto.LotNo)) {
+                errors.Add(new Error("LotNo", "duplicate vehicle lot"));
+                return errors;
+            }
+
+            // duplicate vin
+            var dupVins = dto.VehicleDTOs.GroupBy(t => t.VIN).Where(g => g.Count() > 1);
+                
+        
+            if (dupVins.Any()) {
+                errors.Add(new Error("", "duplicate vin in vehicle lot"));
+                return errors;
+            }
+
+            return errors;
         }
 
         public async Task<MutationPayload<Vehicle>> CreateVehicle(VehicleDTO dto) {

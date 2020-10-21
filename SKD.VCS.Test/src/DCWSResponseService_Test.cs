@@ -79,7 +79,7 @@ namespace SKD.VCS.Test {
             var payload_2 = await service.CreateDCWSResponse(dto);
             Assert.True(payload_2.Errors.Count() == 1, "should have one error");
             var errorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
-            Assert.Equal(errorMessage, "duplicate");
+            Assert.True(errorMessage == "duplicate");
         }
     }
 }
