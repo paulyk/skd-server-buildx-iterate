@@ -101,6 +101,14 @@ namespace SKD.VCS.Server {
             return await service.CreateDCWSResponse(dto);
         }
 
+           public async Task<MutationPayload<Shipment>> CreateShipment(
+          [Service] ShipmentService service,
+          [Service] SkdContext ctx,
+          ShipmentDTO input
+        ) {
+            return await service.CreateShipment(input);
+        }
+
         private Guid ToGuid(string str) {
             Guid gOut;
             Guid.TryParse(str, out gOut);

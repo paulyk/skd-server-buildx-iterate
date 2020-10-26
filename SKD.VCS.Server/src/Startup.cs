@@ -47,7 +47,8 @@ namespace SKD.VCS.Server {
                 .AddTransient<ComponentService>()
                 .AddTransient<DCWSResponseService>()
                 .AddTransient<ProductionStationService>()
-                .AddTransient<ComponentScanService>();
+                .AddTransient<ComponentScanService>()
+                .AddTransient<ShipmentService>();
 
             services.AddGraphQL(sp => SchemaBuilder.New()
                 .AddServices(sp)
