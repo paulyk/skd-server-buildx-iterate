@@ -150,8 +150,8 @@ namespace SKD.VCS.Test {
             // assert
             Assert.True(1 == payload.Errors.Count());
             var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
-            Console.WriteLine(errorMessage);
-            Assert.True(errorMessage.StartsWith("duplicate vin in vehicle lot"));
+            var expected = "duplicate vin in vehicle lot";
+            Assert.Equal(expected, errorMessage.Substring(expected.Length));
         }
 
         [Fact]
