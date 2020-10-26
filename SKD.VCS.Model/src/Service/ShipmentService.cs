@@ -34,12 +34,7 @@ namespace SKD.VCS.Model {
                 }).ToList()
             };
 
-
             var payload = new MutationPayload<Shipment>(shipment);
-
-
-
-
 
             payload.Errors = await ValidateShipmentDTO<ShipmentDTO>(dto);
             if (payload.Errors.Count > 0) {
@@ -56,23 +51,29 @@ namespace SKD.VCS.Model {
 
             var duplicate = await context.Shipments.AnyAsync(t => t.ShipSequenceNo == dto.ShipSequenceNo);
             if (duplicate) {
-                errors.Add(new Error("", "duplicate shpment sequence number"));
+                errors.Add(new Error("", "duplicate shipment sequence number"));
                 return errors;
             }
 
             // shipment dto must have lot + invoice + parts
             if (!dto.Lots.Any()) {
-                errors.Add(new Error("", "shpment must have lots"));
+                errors.Add(new Error("", "shipment must have lots"));
                 return errors;
             }
 
             if (dto.Lots.Any(t => t.Invoices.Count() == 0)) {
-                errors.Add(new Error("", "shpment lots must have invoices"));
+                errors.Add(new Error("", "shipment lots must have invoices"));
                 return errors;
             }
 
             if (dto.Lots.Any(t => t.Invoices.Any(u => u.Parts.Count() == 0))) {
-                errors.Add(new Error("", "shpment invoices must have parts"));
+                errors.Add(new Error("", "shipment invoices must have parts"));
+                return errors;
+            }
+
+            // quantity >= 0
+            if (dto.Lots.Any(t => t.Invoices.Any(u => u.Parts.Any(p => p.Quantity <= 0)))) {
+                errors.Add(new Error("", "shipment part quanty cannot be <= 0"));
                 return errors;
             }
 

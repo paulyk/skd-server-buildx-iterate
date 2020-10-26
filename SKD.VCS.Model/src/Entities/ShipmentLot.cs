@@ -5,7 +5,7 @@ namespace SKD.VCS.Model {
     public class ShipmentLot : EntityBase {
 
         public string LotNo { get; set; }
-        public int ShipmentId { get; set; }
+        public Guid ShipmentId { get; set; }
         public Shipment Shipment { get; set; }
         public ICollection<ShipmentInvoice> Invoices { get; set; } = new List<ShipmentInvoice>();
     }
