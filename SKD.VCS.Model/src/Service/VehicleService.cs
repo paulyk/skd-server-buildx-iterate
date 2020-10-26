@@ -56,11 +56,12 @@ namespace SKD.VCS.Model {
             }
 
             // duplicate vin
-            var dupVins = dto.VehicleDTOs.GroupBy(t => t.VIN).Where(g => g.Count() > 1);
-                
+            var duplicateVINs = dto.VehicleDTOs.GroupBy(t => t.VIN).Where(g => g.Count() > 1);
+            
         
-            if (dupVins.Any()) {
-                errors.Add(new Error("", "duplicate vin in vehicle lot"));
+            if (duplicateVINs.Any()) {
+                var vins = String.Join(", ", duplicateVINs.Select(g => g.Key));
+                errors.Add(new Error("", $"duplicate vin in vehicle lot {vins}"));
                 return errors;
             }
 
