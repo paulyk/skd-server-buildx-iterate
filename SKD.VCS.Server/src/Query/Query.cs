@@ -69,7 +69,7 @@ namespace SKD.VCS.Server {
         public IQueryable<DCWSResponse> GetDcwsResponses([Service] SkdContext context) =>
                 context.DCWSResponses
                         .Include(t => t.ComponentScan).ThenInclude(t => t.VehicleComponent)
-                        .AsQueryable();
+                        .AsQueryable();                                
 
         [UsePaging]
         [UseSelection]
@@ -78,6 +78,18 @@ namespace SKD.VCS.Server {
         public IQueryable<ProductionStation> GetProductionStations([Service] SkdContext context) =>
                 context.ProductionStations.AsQueryable();
 
+        [UsePaging]
+        [UseSelection]
+        [UseFiltering]
+        [UseSorting]
+        public IQueryable<Shipment> GetShipments([Service] SkdContext context) =>
+                context.Shipments.AsQueryable();
+
+        public async Task<Shipment> GetShipmentDetailById([Service] SkdContext context, Guid id) =>
+                await context.Shipments
+                        .Include(t => t.Lots).ThenInclude(t => t.Invoices).ThenInclude(t => t.Parts)
+                        .FirstOrDefaultAsync(t => t.Id == id);
+                                              
         public async Task<Vehicle> GetVehicleByVIN([Service] SkdContext context, string vin) =>
                 await context.Vehicles
                         .Include(t => t.VehicleComponents).ThenInclude(t => t.Component)
