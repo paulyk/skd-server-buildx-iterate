@@ -18,7 +18,7 @@ namespace SKD.VCS.Model {
 
         public async Task<MutationPayload<Shipment>> CreateShipment(ShipmentDTO dto) {
             var shipment = new Shipment() {
-                ShipSequenceNo = dto.ShipSequenceNo,
+                SequenceNo = dto.SequenceNo,
                 Lots = dto.Lots.Select(lotDTO => new ShipmentLot {
                     LotNo = lotDTO.LotNo,
                     Invoices = lotDTO.Invoices.Select(invoiceDTO => new ShipmentInvoice {
@@ -49,7 +49,7 @@ namespace SKD.VCS.Model {
         public async Task<List<Error>> ValidateShipmentDTO<T>(ShipmentDTO dto) where T : ShipmentDTO {
             var errors = new List<Error>();
 
-            var duplicate = await context.Shipments.AnyAsync(t => t.ShipSequenceNo == dto.ShipSequenceNo);
+            var duplicate = await context.Shipments.AnyAsync(t => t.SequenceNo == dto.SequenceNo);
             if (duplicate) {
                 errors.Add(new Error("", "duplicate shipment sequence number"));
                 return errors;

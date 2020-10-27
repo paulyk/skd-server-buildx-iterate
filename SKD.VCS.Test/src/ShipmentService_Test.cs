@@ -18,7 +18,7 @@ namespace SKD.VCS.Test {
         private async Task can_create_shipment() {
             // setup
             var dto = new ShipmentDTO() {
-                ShipSequenceNo = "0001",
+                SequenceNo = "0001",
                 Lots = new List<ShipmentLotDTO> {
                     new ShipmentLotDTO {
                         LotNo = "1234",
@@ -54,7 +54,7 @@ namespace SKD.VCS.Test {
          private async Task cannot_create_shipment_with_no_pards() {
             // setup
             var dto = new ShipmentDTO() {
-                ShipSequenceNo = "0001",
+                SequenceNo = "0001",
                 Lots = new List<ShipmentLotDTO> {
                     new ShipmentLotDTO {
                         LotNo = "1234",
@@ -84,7 +84,7 @@ namespace SKD.VCS.Test {
          private async Task cannot_create_shipment_invoice_with_no_parts() {
             // setup
             var dto = new ShipmentDTO() {
-                ShipSequenceNo = "0001",
+                SequenceNo = "0001",
                 Lots = new List<ShipmentLotDTO> {
                     new ShipmentLotDTO {
                         LotNo = "1234",
@@ -114,7 +114,7 @@ namespace SKD.VCS.Test {
         private async Task cannot_create_shipment_lot_with_no_invoices() {
             // setup
             var dto = new ShipmentDTO() {
-                ShipSequenceNo = "0001",
+                SequenceNo = "0001",
                 Lots = new List<ShipmentLotDTO> {
                     new ShipmentLotDTO {
                         LotNo = "1234",

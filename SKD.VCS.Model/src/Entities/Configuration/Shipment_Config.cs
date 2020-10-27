@@ -10,9 +10,9 @@ namespace SKD.VCS.Model {
             builder.HasKey(t => t.Id);
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
 
-            builder.HasIndex(t => t.ShipSequenceNo); // not unique
+            builder.HasIndex(t => t.SequenceNo); // not unique
 
-            builder.Property(t => t.ShipSequenceNo)
+            builder.Property(t => t.SequenceNo)
                 .IsRequired()
                 .HasMaxLength(EntityFieldLen.Shipment_SequenceNo);
 

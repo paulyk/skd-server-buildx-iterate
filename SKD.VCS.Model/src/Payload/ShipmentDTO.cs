@@ -5,7 +5,7 @@ namespace SKD.VCS.Model {
 
 
     public class ShipmentDTO {
-        public string ShipSequenceNo { get; set; } = "";
+        public string SequenceNo { get; set; } = "";
         public ICollection<ShipmentLotDTO> Lots { get; set; } = new List<ShipmentLotDTO>();
 
     }
