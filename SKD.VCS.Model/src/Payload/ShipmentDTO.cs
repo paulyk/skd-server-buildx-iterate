@@ -16,7 +16,7 @@ namespace SKD.VCS.Model {
     }
 
     public class ShipmentInvoiceDTO {
-        public string InnvoiceNo { get; set; }
+        public string InvoiceNo { get; set; }
         public DateTime ShipDate { get; set; }
 
         public ICollection<ShipmentPartDTO> Parts { get; set; } = new List<ShipmentPartDTO>();

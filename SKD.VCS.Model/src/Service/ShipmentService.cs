@@ -22,7 +22,7 @@ namespace SKD.VCS.Model {
                 Lots = dto.Lots.Select(lotDTO => new ShipmentLot {
                     LotNo = lotDTO.LotNo,
                     Invoices = lotDTO.Invoices.Select(invoiceDTO => new ShipmentInvoice {
-                        InnvoiceNo = invoiceDTO.InnvoiceNo,
+                        InvoiceNo = invoiceDTO.InvoiceNo,
                         ShipDate = invoiceDTO.ShipDate,
                         Parts = invoiceDTO.Parts.Select(partDTO => new ShipmentPart {
                             PartNo = partDTO.PartNo,

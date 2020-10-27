@@ -5,7 +5,7 @@ namespace SKD.VCS.Model {
     public class ShipmentLot_Config : IEntityTypeConfiguration<ShipmentLot> {
         public void Configure(EntityTypeBuilder<ShipmentLot> builder) {
 
-            builder.ToTable("shipment_log");
+            builder.ToTable("shipment_lot");
 
             builder.HasKey(t => t.Id);
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();

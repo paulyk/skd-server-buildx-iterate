@@ -24,7 +24,7 @@ namespace SKD.VCS.Test {
                         LotNo = "1234",
                         Invoices = new List<ShipmentInvoiceDTO> {
                             new ShipmentInvoiceDTO {
-                                InnvoiceNo = "001",
+                                InvoiceNo = "001",
                                 Parts = new List<ShipmentPartDTO> {
                                     new ShipmentPartDTO {
                                         PartNo = "0001",
@@ -60,7 +60,7 @@ namespace SKD.VCS.Test {
                         LotNo = "1234",
                         Invoices = new List<ShipmentInvoiceDTO> {
                             new ShipmentInvoiceDTO {
-                                InnvoiceNo = "001",
+                                InvoiceNo = "001",
                                 Parts = new List<ShipmentPartDTO>()                                  
                             }
                         }
@@ -90,7 +90,7 @@ namespace SKD.VCS.Test {
                         LotNo = "1234",
                         Invoices = new List<ShipmentInvoiceDTO> {
                             new ShipmentInvoiceDTO {
-                                InnvoiceNo = "001",
+                                InvoiceNo = "001",
                                 Parts = new List<ShipmentPartDTO>()                                  
                             }
                         }

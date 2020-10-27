@@ -34,9 +34,9 @@ namespace SKD.VCS.Model {
             builder.ApplyConfiguration(new DCWSResponse_Config());
             builder.ApplyConfiguration(new ProductionStation_Config());
             builder.ApplyConfiguration(new Shipment_Config());
+            builder.ApplyConfiguration(new ShipmentLot_Config());
             builder.ApplyConfiguration(new ShipmentInvoice_Config());
-            builder.ApplyConfiguration(new ProductionStation_Config());
-            builder.ApplyConfiguration(new ProductionStation_Config());
+            builder.ApplyConfiguration(new ShipmentPart_Config());
         }
     }
 }
