@@ -10,7 +10,7 @@ namespace SKD.VCS.Model {
             builder.HasKey(t => t.Id);
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
 
-            builder.HasIndex(t => t.LotNo).IsUnique();
+            builder.HasIndex(t => t.LotNo);
 
             builder.Property(t => t.LotNo)
                 .IsRequired()
