@@ -24,17 +24,6 @@ namespace SKD.VCS.Server {
             return await service.CreateVhicleLot(input);
         }
 
-        /// <summary>
-        /// Create a vehicle entry
-        /// </summary>
-        public async Task<MutationPayload<Vehicle>> CreateVehicle(
-            [Service] VehicleService service,
-            [Service] SkdContext ctx,
-            VehicleDTO input
-        ) {
-            return await service.CreateVehicle(input);
-        }
-
         public async Task<MutationPayload<VehicleModel>> CreateVehicleModel(
             [Service] VehicleModelService service,
             [Service] SkdContext ctx,

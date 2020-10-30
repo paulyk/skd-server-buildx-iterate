@@ -68,22 +68,7 @@ namespace SKD.VCS.Model {
             return errors;
         }
 
-        public async Task<MutationPayload<Vehicle>> CreateVehicle(VehicleDTO dto) {
-            // ensure vehicle lot
-            var vehicleLot = await GetCreateVehicleLot(dto.LotNo);
 
-            // create vehicle entity and validate
-            var payload = await CreateVehicle_Common(dto, vehicleLot);
-
-            // error?
-            if (payload.Errors.Any()) {
-                return payload;
-            }
-
-            // save
-            await context.SaveChangesAsync();
-            return payload;
-        }
         public async Task<MutationPayload<Vehicle>> CreateVehicle_Common(VehicleDTO dto, VehicleLot? vehicleLot = null) {
             var modelId = await context.VehicleModels
                 .Where(t => t.Code == dto.ModelCode)
