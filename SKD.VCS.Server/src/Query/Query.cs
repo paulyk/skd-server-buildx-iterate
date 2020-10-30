@@ -87,6 +87,7 @@ namespace SKD.VCS.Server {
 
         public async Task<Shipment> GetShipmentDetailById([Service] SkdContext context, Guid id) =>
                 await context.Shipments
+                        .Include(t => t.ProductionPlant)
                         .Include(t => t.Lots).ThenInclude(t => t.Invoices).ThenInclude(t => t.Parts)
                         .FirstOrDefaultAsync(t => t.Id == id);
                                               

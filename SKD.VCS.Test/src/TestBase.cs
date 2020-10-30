@@ -24,10 +24,20 @@ namespace SKD.VCS.Test {
             return ctx;
         }
 
+        public ProductionPlant Gen_ProductionPlant(SkdContext ctx, string code) {
+            var productionPlant = new ProductionPlant {
+                Code = code,
+                Name = code
+            };
+
+            ctx.ProductionPlants.Add(productionPlant);
+            ctx.SaveChanges();
+            return productionPlant;
+        }
         public List<ProductionStation> Gen_ProductionStations(SkdContext ctx, params string[] codes) {
             var stationCodes = codes.Where(code => !ctx.ProductionStations.Any(t => t.Code == code)).ToList();
-            
-            var productionStations = stationCodes.ToList().Select((code,index) => new ProductionStation {
+
+            var productionStations = stationCodes.ToList().Select((code, index) => new ProductionStation {
                 Code = code,
                 Name = $"{code} name",
                 SortOrder = index + 1
@@ -39,7 +49,7 @@ namespace SKD.VCS.Test {
             return ctx.ProductionStations.ToList();
         }
 
-        public List<Component> Gen_Components(SkdContext ctx, params string[] codes) {      
+        public List<Component> Gen_Components(SkdContext ctx, params string[] codes) {
             var componentCodes = codes.ToList().Where(code => !ctx.Components.Any(t => t.Code == code));
 
             var components = componentCodes.ToList().Select(code => new Component {
@@ -92,7 +102,7 @@ namespace SKD.VCS.Test {
             context.SaveChanges();
             return componentScan;
         }
-        
+
         public Vehicle Gen_VehicleModel_With_Vehicle(
             SkdContext ctx,
             string vin,
@@ -104,7 +114,7 @@ namespace SKD.VCS.Test {
 
             var vehicleModel = Gen_VehicleModel(ctx, modelCode, component_stations_maps);
             return Gen_Vehicle(ctx, vin, lotNo, modelCode, plannedBuildAt, scanCompleteAt);
-        }        
+        }
         public Vehicle Gen_Vehicle(SkdContext ctx,
             string vin,
             string lotNo,

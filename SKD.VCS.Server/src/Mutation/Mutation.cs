@@ -90,13 +90,19 @@ namespace SKD.VCS.Server {
             return await service.CreateDCWSResponse(dto);
         }
 
-           public async Task<MutationPayload<Shipment>> CreateShipment(
-          [Service] ShipmentService service,
-          [Service] SkdContext ctx,
-          ShipmentDTO input
-        ) {
-            return await service.CreateShipment(input);
-        }
+        public async Task<MutationPayload<Shipment>> CreateShipment(
+            [Service] ShipmentService service,
+            [Service] SkdContext ctx,
+            ShipmentDTO input
+        ) => await service.CreateShipment(input);
+            
+
+   public async Task<MutationPayload<ProductionPlant>> CreateProductionPlant(
+            [Service] ProductionPlantService service,
+            [Service] SkdContext ctx,
+            ProductionPlantDTO input
+        ) => await service.CreateProductionPlant(input);
+            
 
         private Guid ToGuid(string str) {
             Guid gOut;

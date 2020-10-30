@@ -17,8 +17,12 @@ namespace SKD.VCS.Test {
         [Fact]
         private async Task can_create_shipment() {
             // setup
+            var plantCode = "HD001";
+            Gen_ProductionPlant(ctx, plantCode);
+
             var dto = new ShipmentDTO() {
                 SequenceNo = "0001",
+                ProductionPlantCode = plantCode,
                 Lots = new List<ShipmentLotDTO> {
                     new ShipmentLotDTO {
                         LotNo = "1234",
@@ -39,7 +43,6 @@ namespace SKD.VCS.Test {
                 }
             };
 
-
             var before_count = ctx.ShipmentParts.Count();
             // test
             var shipmentService = new ShipmentService(ctx);
@@ -51,17 +54,21 @@ namespace SKD.VCS.Test {
         }
 
         [Fact]
-         private async Task cannot_create_shipment_with_no_pards() {
+        private async Task cannot_create_shipment_with_no_pards() {
             // setup
+            var plantCode = "HD001";
+            Gen_ProductionPlant(ctx, plantCode);
+
             var dto = new ShipmentDTO() {
                 SequenceNo = "0001",
+                ProductionPlantCode = plantCode,
                 Lots = new List<ShipmentLotDTO> {
                     new ShipmentLotDTO {
                         LotNo = "1234",
                         Invoices = new List<ShipmentInvoiceDTO> {
                             new ShipmentInvoiceDTO {
                                 InvoiceNo = "001",
-                                Parts = new List<ShipmentPartDTO>()                                  
+                                Parts = new List<ShipmentPartDTO>()
                             }
                         }
                     }
@@ -80,18 +87,22 @@ namespace SKD.VCS.Test {
             Assert.Equal(expectedError, errorMessage);
         }
 
-         [Fact]
-         private async Task cannot_create_shipment_invoice_with_no_parts() {
+        [Fact]
+        private async Task cannot_create_shipment_invoice_with_no_parts() {
             // setup
+            var plantCode = "HD001";
+            Gen_ProductionPlant(ctx, plantCode);
+
             var dto = new ShipmentDTO() {
                 SequenceNo = "0001",
+                ProductionPlantCode = plantCode,
                 Lots = new List<ShipmentLotDTO> {
                     new ShipmentLotDTO {
                         LotNo = "1234",
                         Invoices = new List<ShipmentInvoiceDTO> {
                             new ShipmentInvoiceDTO {
                                 InvoiceNo = "001",
-                                Parts = new List<ShipmentPartDTO>()                                  
+                                Parts = new List<ShipmentPartDTO>()
                             }
                         }
                     }
@@ -112,13 +123,17 @@ namespace SKD.VCS.Test {
 
         [Fact]
         private async Task cannot_create_shipment_lot_with_no_invoices() {
+            var plantCode = "HD001";
+            Gen_ProductionPlant(ctx, plantCode);
+
             // setup
             var dto = new ShipmentDTO() {
                 SequenceNo = "0001",
+                ProductionPlantCode = plantCode,
                 Lots = new List<ShipmentLotDTO> {
                     new ShipmentLotDTO {
                         LotNo = "1234",
-                        Invoices = new List<ShipmentInvoiceDTO>() 
+                        Invoices = new List<ShipmentInvoiceDTO>()
                     }
                 }
             };

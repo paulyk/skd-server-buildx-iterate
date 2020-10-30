@@ -19,6 +19,7 @@ namespace SKD.VCS.Model {
         public async Task<MutationPayload<Shipment>> CreateShipment(ShipmentDTO dto) {
             var shipment = new Shipment() {
                 SequenceNo = dto.SequenceNo,
+                ProductionPlant = await context.ProductionPlants.FirstOrDefaultAsync(t => t.Code == dto.ProductionPlantCode),
                 Lots = dto.Lots.Select(lotDTO => new ShipmentLot {
                     LotNo = lotDTO.LotNo,
                     Invoices = lotDTO.Invoices.Select(invoiceDTO => new ShipmentInvoice {
@@ -53,6 +54,12 @@ namespace SKD.VCS.Model {
             if (duplicate) {
                 errors.Add(new Error("", "duplicate shipment sequence number"));
                 return errors;
+            }
+
+            // production plant
+            var productionPlantExists = await context.ProductionPlants.AnyAsync(t => t.Code == dto.ProductionPlantCode);
+            if (!productionPlantExists) {
+                errors.Add(new Error("productionPlantCode", $"production plant not found for code: {dto.ProductionPlantCode}"));
             }
 
             // shipment dto must have lot + invoice + parts
