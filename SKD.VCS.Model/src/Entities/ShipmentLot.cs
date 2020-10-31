@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 namespace SKD.VCS.Model {
     public class ShipmentLot : EntityBase {
-
         public string LotNo { get; set; }
         public Guid ShipmentId { get; set; }
         public Shipment Shipment { get; set; }

@@ -24,6 +24,11 @@ namespace SKD.VCS.Model {
             builder.HasMany(t => t.Shipments)
                 .WithOne(t => t.ProductionPlant)
                 .HasForeignKey(t => t.ProductionPlantId);                         
+
+            builder.HasMany(t => t.Boms)
+                .WithOne(t => t.ProductionPlant)
+                .HasForeignKey(t => t.ProductionPlantId);
+                
         }
     }
 }

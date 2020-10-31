@@ -5,5 +5,6 @@ namespace SKD.VCS.Model {
         public string Code { get; set; }
         public string Name { get; set; }
         public ICollection<Shipment> Shipments { get; set; } = new List<Shipment>();
+        public ICollection<Bom> Boms { get; set; } = new List<Bom>();
     }
 }
