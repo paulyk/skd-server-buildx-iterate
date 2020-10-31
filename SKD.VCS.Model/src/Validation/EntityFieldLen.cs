@@ -40,8 +40,6 @@ namespace SKD.VCS.Model {
 		public static int Shipment_CustomerPartDesc = 30;
 
         public static int Bom_SequenceNo = 4;
-        public static int BomLot_LotNo = 15;
-        public static int BomPart_KitNo = 2;
         public static int BomPart_PartNo = 30;
         public static int BomPart_PartDesc = 34;
     }

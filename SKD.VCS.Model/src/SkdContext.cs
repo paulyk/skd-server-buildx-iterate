@@ -22,9 +22,8 @@ namespace SKD.VCS.Model {
         public DbSet<ShipmentInvoice> ShipmentInvoices { get; set; }
         public DbSet<ShipmentPart> ShipmentParts { get; set; }
 
-        public DbSet<Bom> Boms { get; set; }
-        public DbSet<BomLot> BomLots { get; set; }
-        public DbSet<BomPart> BomParts { get; set; }
+        public DbSet<BomSummary> BomSummaries { get; set; }
+        public DbSet<BomSummaryPart> BomSummaryParts { get; set; }
 
         public SkdContext(DbContextOptions options) : base(options) { }
 
@@ -46,9 +45,8 @@ namespace SKD.VCS.Model {
             builder.ApplyConfiguration(new ShipmentInvoice_Config());
             builder.ApplyConfiguration(new ShipmentPart_Config());
             //
-            builder.ApplyConfiguration(new Bom_Config());
-            builder.ApplyConfiguration(new BomLot_Config());
-            builder.ApplyConfiguration(new BomPart_Config());
+            builder.ApplyConfiguration(new BomSummary_Config());
+            builder.ApplyConfiguration(new BomSummaryPart_Config());
         }
     }
 }

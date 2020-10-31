@@ -2,8 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace SKD.VCS.Model {
-    public class BomPart_Config : IEntityTypeConfiguration<BomPart> {
-        public void Configure(EntityTypeBuilder<BomPart> builder) {
+    public class BomSummaryPart_Config : IEntityTypeConfiguration<BomSummaryPart> {
+        public void Configure(EntityTypeBuilder<BomSummaryPart> builder) {
             builder.ToTable("bom_part");
 
             builder.HasKey(t => t.Id);
@@ -11,14 +11,13 @@ namespace SKD.VCS.Model {
 
             builder.HasIndex(t => t.PartNo);
 
-            builder.Property(t => t.KitNo).IsRequired().HasMaxLength(EntityFieldLen.BomPart_KitNo);
             builder.Property(t => t.PartNo).IsRequired().HasMaxLength(EntityFieldLen.BomPart_PartNo);
             builder.Property(t => t.PartDesc).IsRequired().HasMaxLength(EntityFieldLen.BomPart_PartDesc);
             builder.Property(t => t.Quantity).IsRequired();
 
-            builder.HasOne(t => t.BomLot)
+            builder.HasOne(t => t.BomSummary)
                 .WithMany(t => t.Parts)
-                .HasForeignKey(t => t.BomLotId);
+                .HasForeignKey(t => t.BomSummaryId);
 
         }
     }
