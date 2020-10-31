@@ -78,6 +78,12 @@ namespace SKD.VCS.Model {
                 return errors;
             }
 
+            if (dto.Lots.Any(t => t.Invoices.Any(u => u.Parts.Any(p => String.IsNullOrEmpty(p.PartNo))))) {
+                errors.Add(new Error("", "shipment partNo cannot be empty"));
+                return errors;
+            }
+
+
             // quantity >= 0
             if (dto.Lots.Any(t => t.Invoices.Any(u => u.Parts.Any(p => p.Quantity <= 0)))) {
                 errors.Add(new Error("", "shipment part quanty cannot be <= 0"));
