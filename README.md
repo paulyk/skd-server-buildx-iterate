@@ -61,9 +61,16 @@ dotnet ef migrations remove --project SKD.VCS.Model
 
 ```bash
 dotnet ef database update --project SKD.VCS.Model
+dotnet ef database update --connection your_connection_string
 ```
 
 ### Revert to specific migration 
 ```
 dotnet ef database update Migration_Name  --project SKD.VCS.Model
+dotnet ef database update Migration_Name --connection your_connection_string
+```
+
+### List migrations
+```
+dotnet ef migrations list --project SKD.VCS.Model
 ```

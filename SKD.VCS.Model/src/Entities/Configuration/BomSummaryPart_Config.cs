@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace SKD.VCS.Model {
     public class BomSummaryPart_Config : IEntityTypeConfiguration<BomSummaryPart> {
         public void Configure(EntityTypeBuilder<BomSummaryPart> builder) {
-            builder.ToTable("bom_part");
+            builder.ToTable("bom_summary_part");
 
             builder.HasKey(t => t.Id);
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
