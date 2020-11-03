@@ -147,5 +147,17 @@ namespace SKD.VCS.Server {
                         .Include(t => t.VehicleComponent)
                         .FirstOrDefaultAsync(t => t.VehicleComponentId == vehicleComponentId && t.RemovedAt == null);
 
+        [UsePaging]
+        [UseSelection]
+        [UseFiltering]
+        [UseSorting]
+        public IQueryable<BomSummary> GetBomSummaries([Service] SkdContext context) =>
+                context.BomSummaries.AsQueryable();
+
+        public async Task<BomSummary> GetBomSummaryById([Service] SkdContext context, Guid id) =>
+                await context.BomSummaries
+                        .Include(t => t.Parts)
+                        .FirstOrDefaultAsync(t => t.Id == id);
+
     }
 }
