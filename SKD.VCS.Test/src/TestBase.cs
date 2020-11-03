@@ -24,16 +24,6 @@ namespace SKD.VCS.Test {
             return ctx;
         }
 
-        public ProductionPlant Gen_ProductionPlant(SkdContext ctx, string code) {
-            var productionPlant = new ProductionPlant {
-                Code = code,
-                Name = code
-            };
-
-            ctx.ProductionPlants.Add(productionPlant);
-            ctx.SaveChanges();
-            return productionPlant;
-        }
         public List<ProductionStation> Gen_ProductionStations(SkdContext ctx, params string[] codes) {
             var stationCodes = codes.Where(code => !ctx.ProductionStations.Any(t => t.Code == code)).ToList();
 

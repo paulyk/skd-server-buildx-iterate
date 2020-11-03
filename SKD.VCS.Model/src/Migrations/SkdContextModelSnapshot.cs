@@ -29,8 +29,8 @@ namespace SKD.VCS.Model.src.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("ProductionPlantId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<bool>("LotPartQuantitiesMatchShipment")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
@@ -41,8 +41,6 @@ namespace SKD.VCS.Model.src.Migrations
                         .HasMaxLength(4);
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ProductionPlantId");
 
                     b.HasIndex("SequenceNo");
 
@@ -61,6 +59,14 @@ namespace SKD.VCS.Model.src.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("LotNo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(15)")
+                        .HasMaxLength(15);
+
+                    b.Property<bool>("MatcheShipmentLotPartQuantity")
+                        .HasColumnType("bit");
 
                     b.Property<string>("PartDesc")
                         .IsRequired()
@@ -83,6 +89,9 @@ namespace SKD.VCS.Model.src.Migrations
                     b.HasIndex("BomSummaryId");
 
                     b.HasIndex("PartNo");
+
+                    b.HasIndex("LotNo", "PartNo")
+                        .IsUnique();
 
                     b.ToTable("bom_summary_part");
                 });
@@ -196,40 +205,6 @@ namespace SKD.VCS.Model.src.Migrations
                     b.ToTable("dcws_response");
                 });
 
-            modelBuilder.Entity("SKD.VCS.Model.ProductionPlant", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasMaxLength(36);
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(10)")
-                        .HasMaxLength(10);
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(100)")
-                        .HasMaxLength(100);
-
-                    b.Property<DateTime?>("RemovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Code")
-                        .IsUnique();
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("production_plant");
-                });
-
             modelBuilder.Entity("SKD.VCS.Model.ProductionStation", b =>
                 {
                     b.Property<Guid>("Id")
@@ -276,9 +251,6 @@ namespace SKD.VCS.Model.src.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("ProductionPlantId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
 
@@ -288,8 +260,6 @@ namespace SKD.VCS.Model.src.Migrations
                         .HasMaxLength(4);
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ProductionPlantId");
 
                     b.HasIndex("SequenceNo");
 
@@ -614,15 +584,6 @@ namespace SKD.VCS.Model.src.Migrations
                     b.ToTable("vehicle_model_component");
                 });
 
-            modelBuilder.Entity("SKD.VCS.Model.BomSummary", b =>
-                {
-                    b.HasOne("SKD.VCS.Model.ProductionPlant", "ProductionPlant")
-                        .WithMany("BomSummaries")
-                        .HasForeignKey("ProductionPlantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("SKD.VCS.Model.BomSummaryPart", b =>
                 {
                     b.HasOne("SKD.VCS.Model.BomSummary", "BomSummary")
@@ -646,15 +607,6 @@ namespace SKD.VCS.Model.src.Migrations
                     b.HasOne("SKD.VCS.Model.ComponentScan", "ComponentScan")
                         .WithMany("DCWSResponses")
                         .HasForeignKey("ComponentScanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("SKD.VCS.Model.Shipment", b =>
-                {
-                    b.HasOne("SKD.VCS.Model.ProductionPlant", "ProductionPlant")
-                        .WithMany("Shipments")
-                        .HasForeignKey("ProductionPlantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

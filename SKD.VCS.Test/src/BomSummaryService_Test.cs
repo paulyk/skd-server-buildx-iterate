@@ -15,16 +15,47 @@ namespace SKD.VCS.Test {
         }
 
         [Fact]
-        private async Task can_create_bom_summary() {
+        private async Task cannot_create_bom_summary_with_duplicate_lot_and_part() {
             // setup
-            var plantCode = "HD001";
-            Gen_ProductionPlant(ctx, plantCode);
+            var lotNo = Util.RandomString(EntityFieldLen.BomPart_LotNo);
 
             var dto = new BomSummaryDTO() {
                 SequenceNo = "0001",
-                ProductionPlantCode = plantCode,
                 Parts = new List<BomSummaryPartDTO> {
                     new BomSummaryPartDTO {
+                        LotNo = lotNo,
+                        PartNo = "0001",
+                        PartDesc = "part 1",
+                        Quantity = 1
+                    },
+                    new BomSummaryPartDTO {
+                        LotNo = lotNo,
+                        PartNo = "0001",
+                        PartDesc = "part 1",
+                        Quantity = 3
+                    }
+                }
+            };
+
+            var before_count = ctx.BomSummaryParts.Count();
+            // test
+            var bomService = new BomSummaryService(ctx);
+            var payload = await bomService.CreateBomSummary(dto);
+
+            // assert
+            var expectedError = "bom summary cannot have duplicate Lot + Part numbers";
+            var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
+            errorMessage = (errorMessage ?? "").Substring(0, expectedError.Length);
+            Assert.Equal(expectedError, errorMessage);
+        }
+
+        private async Task can_create_bom_summary() {
+            // setup
+            var dto = new BomSummaryDTO() {
+                SequenceNo = "0001",
+                Parts = new List<BomSummaryPartDTO> {
+                    new BomSummaryPartDTO {
+                        LotNo = Util.RandomString(EntityFieldLen.BomPart_LotNo),
                         PartNo = "0001",
                         PartDesc = "part 1",
                         Quantity = 1
@@ -43,46 +74,12 @@ namespace SKD.VCS.Test {
         }
 
         [Fact]
-        private async Task cannot_create_bom_summary_if_production_plant_code_not_found() {
-            // setup
-            var plantCode = Util.RandomString(EntityFieldLen.ProductionPlant_Code);
-            Gen_ProductionPlant(ctx, plantCode);
-
-            var dto = new BomSummaryDTO() {
-                SequenceNo = "0001",
-                ProductionPlantCode = Util.RandomString(EntityFieldLen.ProductionPlant_Code),
-                Parts = new List<BomSummaryPartDTO> {
-                    new BomSummaryPartDTO {
-                        PartNo = "0001",
-                        PartDesc = "part 1",
-                        Quantity = 1
-                    }
-                }
-            };
-
-            // test
-            var bomService = new BomSummaryService(ctx);
-            var payload = await bomService.CreateBomSummary(dto);
-
-            // assert
-            var expectedError = "production plant not found for code";
-            var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
-            errorMessage = (errorMessage ?? "").Substring(0, expectedError.Length);
-            Assert.Equal(expectedError, errorMessage);
-        }
-
-        [Fact]
         private async Task cannot_create_bom_summary_with_no_pards() {
             // setup
-            var plantCode = "HD001";
-            Gen_ProductionPlant(ctx, plantCode);
-
             var dto = new BomSummaryDTO() {
                 SequenceNo = "0001",
-                ProductionPlantCode = plantCode,
                 Parts = new List<BomSummaryPartDTO>()
             };
-
 
             var before_count = ctx.BomSummaryParts.Count();
             // test

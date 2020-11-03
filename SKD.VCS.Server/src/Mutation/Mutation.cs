@@ -96,13 +96,6 @@ namespace SKD.VCS.Server {
             ShipmentDTO input
         ) => await service.CreateShipment(input);
 
-
-        public async Task<MutationPayload<ProductionPlant>> CreateProductionPlant(
-                 [Service] ProductionPlantService service,
-                 [Service] SkdContext ctx,
-                 ProductionPlantDTO input
-        ) => await service.CreateProductionPlant(input);
-
         public async Task<MutationPayload<BomSummary>> CreateBomSummary(
                   [Service] BomSummaryService service,
                   [Service] SkdContext ctx,

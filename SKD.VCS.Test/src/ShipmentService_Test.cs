@@ -17,12 +17,9 @@ namespace SKD.VCS.Test {
         [Fact]
         private async Task can_create_shipment() {
             // setup
-            var plantCode = "HD001";
-            Gen_ProductionPlant(ctx, plantCode);
 
             var dto = new ShipmentDTO() {
                 SequenceNo = "0001",
-                ProductionPlantCode = plantCode,
                 Lots = new List<ShipmentLotDTO> {
                     new ShipmentLotDTO {
                         LotNo = "1234",
@@ -56,12 +53,8 @@ namespace SKD.VCS.Test {
         [Fact]
         private async Task cannot_create_shipment_with_no_pards() {
             // setup
-            var plantCode = "HD001";
-            Gen_ProductionPlant(ctx, plantCode);
-
             var dto = new ShipmentDTO() {
                 SequenceNo = "0001",
-                ProductionPlantCode = plantCode,
                 Lots = new List<ShipmentLotDTO> {
                     new ShipmentLotDTO {
                         LotNo = "1234",
@@ -90,12 +83,8 @@ namespace SKD.VCS.Test {
         [Fact]
         private async Task cannot_create_shipment_invoice_with_no_parts() {
             // setup
-            var plantCode = "HD001";
-            Gen_ProductionPlant(ctx, plantCode);
-
             var dto = new ShipmentDTO() {
                 SequenceNo = "0001",
-                ProductionPlantCode = plantCode,
                 Lots = new List<ShipmentLotDTO> {
                     new ShipmentLotDTO {
                         LotNo = "1234",
@@ -123,13 +112,9 @@ namespace SKD.VCS.Test {
 
         [Fact]
         private async Task cannot_create_shipment_lot_with_no_invoices() {
-            var plantCode = "HD001";
-            Gen_ProductionPlant(ctx, plantCode);
-
             // setup
             var dto = new ShipmentDTO() {
                 SequenceNo = "0001",
-                ProductionPlantCode = plantCode,
                 Lots = new List<ShipmentLotDTO> {
                     new ShipmentLotDTO {
                         LotNo = "1234",

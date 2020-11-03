@@ -15,8 +15,6 @@ namespace SKD.VCS.Model {
         public DbSet<VehicleModelComponent> VehicleModelComponents { get; set; }
         public DbSet<ProductionStation> ProductionStations { get; set; }
         
-        public DbSet<ProductionPlant> ProductionPlants { get; set; }
-        //
         public DbSet<Shipment> Shipments { get; set; }
         public DbSet<ShipmentLot> ShipmentLots { get; set; }
         public DbSet<ShipmentInvoice> ShipmentInvoices { get; set; }
@@ -37,7 +35,6 @@ namespace SKD.VCS.Model {
             builder.ApplyConfiguration(new VehicleModelComponent_Config());
             builder.ApplyConfiguration(new VehicleComponentScan_Config());
             builder.ApplyConfiguration(new DCWSResponse_Config());
-            builder.ApplyConfiguration(new ProductionPlant_Config());
             builder.ApplyConfiguration(new ProductionStation_Config());
             //
             builder.ApplyConfiguration(new Shipment_Config());

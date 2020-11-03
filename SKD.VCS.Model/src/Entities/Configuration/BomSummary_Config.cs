@@ -20,10 +20,6 @@ namespace SKD.VCS.Model {
                 .WithOne(t => t.BomSummary)
                 .HasForeignKey(t => t.BomSummaryId);     
 
-            builder.HasOne(t => t.ProductionPlant)       
-                .WithMany(t => t.BomSummaries)
-                .HasForeignKey(t => t.ProductionPlantId);
-
         }
     }
 

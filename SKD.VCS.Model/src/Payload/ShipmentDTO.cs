@@ -6,7 +6,6 @@ namespace SKD.VCS.Model {
 
     public class ShipmentDTO {
         public string SequenceNo { get; set; } = "";
-        public string ProductionPlantCode { get; set; }
         public ICollection<ShipmentLotDTO> Lots { get; set; } = new List<ShipmentLotDTO>();
 
     }

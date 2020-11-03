@@ -19,8 +19,8 @@ namespace SKD.VCS.Model {
         public async Task<MutationPayload<BomSummary>> CreateBomSummary(BomSummaryDTO dto) {
             var bomSummary = new BomSummary() {
                 SequenceNo = dto.SequenceNo,
-                ProductionPlant = await context.ProductionPlants.FirstOrDefaultAsync(t => t.Code == dto.ProductionPlantCode),
                 Parts = dto.Parts.Select(partDTO => new BomSummaryPart {
+                    LotNo = partDTO.LotNo,
                     PartNo = partDTO.PartNo,
                     PartDesc = partDTO.PartDesc,
                     Quantity = partDTO.Quantity
@@ -48,15 +48,21 @@ namespace SKD.VCS.Model {
                 return errors;
             }
 
-            // production plant
-            var productionPlantExists = await context.ProductionPlants.AnyAsync(t => t.Code == dto.ProductionPlantCode);
-            if (!productionPlantExists) {
-                errors.Add(new Error("productionPlantCode", $"production plant not found for code: {dto.ProductionPlantCode}"));
-            }
-
-
             if (!dto.Parts.Any()) {
                 errors.Add(new Error("", "bom summary must have parts"));
+                return errors;
+            }
+
+            // duplicate lotNo + Part
+            var duplicateLotParts = dto.Parts.GroupBy(t => new { t.LotNo, t.PartNo})
+                .Any(g => g.Count() > 1);
+            if (duplicateLotParts) {
+                errors.Add(new Error("", "bom summary cannot have duplicate Lot + Part numbers"));
+                return errors;
+            }
+
+            if (dto.Parts.Any(t => string.IsNullOrEmpty(t.LotNo))) {
+                errors.Add(new Error("", "bom summary parts must have lot number"));
                 return errors;
             }
 
