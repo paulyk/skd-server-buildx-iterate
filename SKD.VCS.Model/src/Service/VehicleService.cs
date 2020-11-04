@@ -50,24 +50,40 @@ namespace SKD.VCS.Model {
         public async Task<List<Error>> ValidateCreateVehicleLot(VehicleLotDTO dto) {
             var errors = new List<Error>();
 
+            if (!dto.VehicleDTOs.Any()) {
+                errors.Add(new Error("", "no vehicles found in lot"));
+                return errors;
+            }
+
             if (await context.VehicleLots.AnyAsync(t => t.LotNo == dto.LotNo)) {
                 errors.Add(new Error("LotNo", "duplicate vehicle lot"));
                 return errors;
             }
 
             // duplicate vin
-            var duplicateVINs = dto.VehicleDTOs.GroupBy(t => t.VIN).Where(g => g.Count() > 1);
-            
-        
+            var duplicateVINs = dto.VehicleDTOs.GroupBy(t => t.VIN).Where(g => g.Count() > 1);        
             if (duplicateVINs.Any()) {
                 var vins = String.Join(", ", duplicateVINs.Select(g => g.Key));
                 errors.Add(new Error("", $"duplicate vin in vehicle lot {vins}"));
                 return errors;
             }
 
+            var modelCodeCount = dto.VehicleDTOs.GroupBy(t => t.ModelCode).Count();
+            if (modelCodeCount > 1) {
+                errors.Add(new Error("", "Vehicle lot vehicles must have the same model code"));
+                return errors;
+            }
+
+            // model code exits
+            var modelCode = dto.VehicleDTOs.Select(t => t.ModelCode).FirstOrDefault();
+            var existingModelCode = await context.VehicleModels.FirstOrDefaultAsync(t => t.Code == modelCode);
+            if (existingModelCode == null) {
+                errors.Add(new Error("", $"vehicle model not found: {modelCode}"));
+                return errors;
+            }
+
             return errors;
         }
-
 
         public async Task<MutationPayload<Vehicle>> CreateVehicle_Common(VehicleDTO dto, VehicleLot? vehicleLot = null) {
             var modelId = await context.VehicleModels

@@ -21,7 +21,7 @@ namespace SKD.VCS.Test {
             var modelCode = await ctx.VehicleModels.Select(t => t.Code).FirstOrDefaultAsync();
             var lotNo = Util.RandomString(EntityFieldLen.Vehicle_LotNo).ToUpper();
 
-            var vin_numbers = new string[] { 
+            var vin_numbers = new string[] {
                 Util.RandomString(EntityFieldLen.Vehicle_VIN).ToUpper(),
                 Util.RandomString(EntityFieldLen.Vehicle_VIN).ToUpper(),
             };
@@ -38,13 +38,35 @@ namespace SKD.VCS.Test {
         }
 
         [Fact]
+        public async Task cannot_create_vehicle_lot_with_no_vehicles() {
+            // setup
+            var modelCode = await ctx.VehicleModels.Select(t => t.Code).FirstOrDefaultAsync();
+            var lotNo = Util.RandomString(EntityFieldLen.Vehicle_LotNo).ToUpper();
+
+            var vin_num = Util.RandomString(EntityFieldLen.Vehicle_VIN).ToUpper();
+            var vin_numbers = new string[] { };
+            var vehicleLotDTO = GetNew_VehicleLotDTO(lotNo: lotNo, modelCode: modelCode, vin_numbers);
+
+            // test
+            var service = new VehicleService(ctx);
+            var payload = await service.CreateVhicleLot(vehicleLotDTO);
+
+            // assert
+            Assert.True(1 == payload.Errors.Count());
+            var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
+            var expected = "no vehicles found in lot";
+            var actual = errorMessage.Substring(0, expected.Length);
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
         public async Task cannot_create_vehicle_lot_with_duplicate_vins() {
             // setup
             var modelCode = await ctx.VehicleModels.Select(t => t.Code).FirstOrDefaultAsync();
             var lotNo = Util.RandomString(EntityFieldLen.Vehicle_LotNo).ToUpper();
 
             var vin_num = Util.RandomString(EntityFieldLen.Vehicle_VIN).ToUpper();
-            var vin_numbers = new string[] { 
+            var vin_numbers = new string[] {
                 Util.RandomString(EntityFieldLen.Vehicle_VIN).ToUpper(),
                 vin_num,
                 vin_num
@@ -63,6 +85,33 @@ namespace SKD.VCS.Test {
             Assert.Equal(expected, actual);
         }
 
+
+        [Fact]
+        public async Task cannot_create_vehicle_lot_if_model_code_does_not_exists() {
+            // setup
+            var modelCode = await ctx.VehicleModels.Select(t => t.Code).FirstOrDefaultAsync();
+            var lotNo = Util.RandomString(EntityFieldLen.Vehicle_LotNo).ToUpper();
+
+            var vin_num = Util.RandomString(EntityFieldLen.Vehicle_VIN).ToUpper();
+            var vin_numbers = new string[] {
+                Util.RandomString(EntityFieldLen.Vehicle_VIN).ToUpper(),
+                vin_num            };
+
+            var nonExistendModelCode = Util.RandomString(EntityFieldLen.VehicleModel_Code);
+            var vehicleLotDTO = GetNew_VehicleLotDTO(lotNo: lotNo, modelCode: nonExistendModelCode, vin_numbers);
+
+            // test
+            var service = new VehicleService(ctx);
+            var payload = await service.CreateVhicleLot(vehicleLotDTO);
+
+            // assert
+            Assert.True(1 == payload.Errors.Count());
+            var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
+            var expected = "vehicle model not found";
+            var actual = errorMessage.Substring(0, expected.Length);
+            Assert.Equal(expected, actual);
+        }
+
         [Fact]
         public async Task create_vehicle_lot_error_if_vehicle_lot_already_has_vehicles() {
             // setup
@@ -72,7 +121,7 @@ namespace SKD.VCS.Test {
             // test
             var service = new VehicleService(ctx);
 
-            var vin_numbers = new string[] { 
+            var vin_numbers = new string[] {
                 Util.RandomString(EntityFieldLen.Vehicle_VIN).ToUpper(),
                 Util.RandomString(EntityFieldLen.Vehicle_VIN).ToUpper(),
             };
@@ -90,7 +139,7 @@ namespace SKD.VCS.Test {
             Assert.Equal("duplicate vehicle lot", message);
         }
 
-        private VehicleLotDTO GetNew_VehicleLotDTO(string lotNo, string modelCode,params string[] vins) {
+        private VehicleLotDTO GetNew_VehicleLotDTO(string lotNo, string modelCode, params string[] vins) {
             return new VehicleLotDTO {
                 LotNo = lotNo,
                 VehicleDTOs = vins.Select(vin => new VehicleDTO {
@@ -99,7 +148,7 @@ namespace SKD.VCS.Test {
                     LotNo = lotNo,
                     KitNo = Util.RandomString(EntityFieldLen.Vehicle_KitNo)
                 }).ToList()
-            };            
+            };
         }
 
         private void GenerateSeedData() {
