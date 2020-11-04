@@ -85,34 +85,37 @@ namespace SKD.VCS.Server {
         public IQueryable<Shipment> GetShipments([Service] SkdContext context) =>
                 context.Shipments.AsQueryable();
 
-        public async Task<Shipment> GetShipmentDetailById([Service] SkdContext context, Guid id) =>
+        public async Task<Shipment?> GetShipmentDetailById([Service] SkdContext context, Guid id) =>
                 await context.Shipments
                         .Include(t => t.Lots).ThenInclude(t => t.Invoices).ThenInclude(t => t.Parts)
                         .FirstOrDefaultAsync(t => t.Id == id);
 
-        public async Task<Vehicle> GetVehicleByVIN([Service] SkdContext context, string vin) =>
-                await context.Vehicles
+        public async Task<Vehicle?> GetVehicleByVIN([Service] SkdContext context, string vin) {
+                var result = await context.Vehicles
                         .Include(t => t.VehicleComponents).ThenInclude(t => t.Component)
                         .Include(t => t.VehicleComponents).ThenInclude(t => t.ProductionStation)
                         .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentScans)
                         .Include(t => t.Model)
                         .FirstOrDefaultAsync(t => t.VIN == vin);
 
-        public async Task<VehicleLot> GetVehicleLotByLotNo([Service] SkdContext context, string lotNo) =>
+                return result;
+        }
+
+        public async Task<VehicleLot?> GetVehicleLotByLotNo([Service] SkdContext context, string lotNo) =>
                 await context.VehicleLots
                         .Include(t => t.Vehicles).ThenInclude(t => t.Model)
                         .FirstOrDefaultAsync(t => t.LotNo == lotNo);
 
-        public async Task<VehicleModel> GetVehicleModelById([Service] SkdContext context, Guid id) =>
+        public async Task<VehicleModel?> GetVehicleModelById([Service] SkdContext context, Guid id) =>
                 await context.VehicleModels
                         .Include(t => t.ModelComponents).ThenInclude(t => t.Component)
                         .Include(t => t.ModelComponents).ThenInclude(t => t.ProductionStation)
                         .FirstOrDefaultAsync(t => t.Id == id);
 
-        public async Task<Component> GetComponentById([Service] SkdContext context, Guid id) =>
+        public async Task<Component?> GetComponentById([Service] SkdContext context, Guid id) =>
                  await context.Components.FirstOrDefaultAsync(t => t.Id == id);
 
-        public async Task<VehicleComponent> GetVehicleComponentByVinAndComponent([Service] SkdContext context, string vin, string componentCode) =>
+        public async Task<VehicleComponent?> GetVehicleComponentByVinAndComponent([Service] SkdContext context, string vin, string componentCode) =>
                  await context.VehicleComponents
                         .Include(t => t.Vehicle)
                         .Include(t => t.Component)
@@ -137,7 +140,7 @@ namespace SKD.VCS.Server {
             };
         }
 
-        public async Task<ComponentScan> GetComponentScanById([Service] SkdContext context, Guid id) =>
+        public async Task<ComponentScan?> GetComponentScanById([Service] SkdContext context, Guid id) =>
                 await context.ComponentScans
                         .Include(t => t.VehicleComponent).ThenInclude(t => t.Vehicle)
                         .FirstOrDefaultAsync(t => t.Id == id);
@@ -158,7 +161,7 @@ namespace SKD.VCS.Server {
                     PartsCount = t.Parts.Count(),        
                 }).AsQueryable();
 
-        public async Task<BomSummary> GetBomSummaryById([Service] SkdContext context, Guid id) =>
+        public async Task<BomSummary?> GetBomSummaryById([Service] SkdContext context, Guid id) =>
                 await context.BomSummaries
                         .Include(t => t.Parts)
                         .FirstOrDefaultAsync(t => t.Id == id);
