@@ -69,7 +69,7 @@ namespace SKD.VCS.Server {
         public IQueryable<DCWSResponse> GetDcwsResponses([Service] SkdContext context) =>
                 context.DCWSResponses
                         .Include(t => t.ComponentScan).ThenInclude(t => t.VehicleComponent)
-                        .AsQueryable();                                
+                        .AsQueryable();
 
         [UsePaging]
         [UseSelection]
@@ -89,7 +89,7 @@ namespace SKD.VCS.Server {
                 await context.Shipments
                         .Include(t => t.Lots).ThenInclude(t => t.Invoices).ThenInclude(t => t.Parts)
                         .FirstOrDefaultAsync(t => t.Id == id);
-                                              
+
         public async Task<Vehicle> GetVehicleByVIN([Service] SkdContext context, string vin) =>
                 await context.Vehicles
                         .Include(t => t.VehicleComponents).ThenInclude(t => t.Component)
@@ -142,17 +142,21 @@ namespace SKD.VCS.Server {
                         .Include(t => t.VehicleComponent).ThenInclude(t => t.Vehicle)
                         .FirstOrDefaultAsync(t => t.Id == id);
 
-        public async Task<ComponentScan?> GetExistingComponentScan([Service] SkdContext context,Guid vehicleComponentId) =>
+        public async Task<ComponentScan?> GetExistingComponentScan([Service] SkdContext context, Guid vehicleComponentId) =>
                await context.ComponentScans
                         .Include(t => t.VehicleComponent)
                         .FirstOrDefaultAsync(t => t.VehicleComponentId == vehicleComponentId && t.RemovedAt == null);
 
         [UsePaging]
-        [UseSelection]
-        [UseFiltering]
         [UseSorting]
-        public IQueryable<BomSummary> GetBomSummaries([Service] SkdContext context) =>
-                context.BomSummaries.AsQueryable();
+        public IQueryable<BomSummaryListDTO> GetBomSummaryList([Service] SkdContext context) =>
+                context.BomSummaries.Select(t => new BomSummaryListDTO {
+                    Id = t.Id,
+                    SequenceNo = t.SequenceNo,
+                    CreatedAt = t.CreatedAt,
+                    LotPartQuantitiesMatchShipment = t.LotPartQuantitiesMatchShipment,
+                    PartsCount = t.Parts.Count(),        
+                }).AsQueryable();
 
         public async Task<BomSummary> GetBomSummaryById([Service] SkdContext context, Guid id) =>
                 await context.BomSummaries
