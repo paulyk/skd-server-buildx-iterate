@@ -55,7 +55,8 @@ namespace SKD.VCS.Test {
 
         public VehicleModel Gen_VehicleModel(SkdContext ctx,
             string modelCode,
-            List<(string componentCode, string stationCode)> component_stations_maps
+            List<(string componentCode,
+            string stationCode)> component_stations_maps
         ) {
             Gen_Components(ctx, component_stations_maps.Select(t => t.componentCode).ToArray());
             Gen_ProductionStations(ctx, component_stations_maps.Select(t => t.stationCode).ToArray());
@@ -138,6 +139,16 @@ namespace SKD.VCS.Test {
             ctx.SaveChanges();
 
             return vehicle;
+        }
+
+        public string Gen_LotNo() {
+            return Util.RandomString(EntityFieldLen.Vehicle_LotNo).ToUpper();
+        }
+        public string Gen_KitNo() {
+            return Util.RandomString(EntityFieldLen.Vehicle_KitNo).ToUpper();
+        }
+        public string Gen_Vin() {
+            return Util.RandomString(EntityFieldLen.Vehicle_VIN).ToUpper();
         }
     }
 }

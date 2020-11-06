@@ -45,10 +45,16 @@ namespace SKD.VCS.Model {
             // persist
             await context.SaveChangesAsync();
             return payload;
-        }       
+        }
 
         public async Task<List<Error>> ValidateCreateVehicleLot(VehicleLotDTO dto) {
             var errors = new List<Error>();
+
+            var existingLot = await context.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
+            if (existingLot != null) {
+                errors.Add(new Error("lotNo", "duplicate vehicle lot"));
+                return errors;
+            }
 
             if (!dto.VehicleDTOs.Any()) {
                 errors.Add(new Error("", "no vehicles found in lot"));
@@ -61,7 +67,7 @@ namespace SKD.VCS.Model {
             }
 
             // duplicate vin
-            var duplicateVINs = dto.VehicleDTOs.GroupBy(t => t.VIN).Where(g => g.Count() > 1);        
+            var duplicateVINs = dto.VehicleDTOs.GroupBy(t => t.VIN).Where(g => g.Count() > 1);
             if (duplicateVINs.Any()) {
                 var vins = String.Join(", ", duplicateVINs.Select(g => g.Key));
                 errors.Add(new Error("", $"duplicate vin in vehicle lot {vins}"));
