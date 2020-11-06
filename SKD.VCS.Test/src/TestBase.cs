@@ -150,5 +150,9 @@ namespace SKD.VCS.Test {
         public string Gen_Vin() {
             return Util.RandomString(EntityFieldLen.Vehicle_VIN).ToUpper();
         }
+        public string Gen_ComponentCode() {
+            return Util.RandomString(EntityFieldLen.Component_Code).ToUpper();
+        }
+
     }
 }

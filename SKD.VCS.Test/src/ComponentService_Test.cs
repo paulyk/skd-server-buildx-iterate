@@ -12,7 +12,7 @@ namespace SKD.VCS.Test {
         private SkdContext ctx;
         public ComponentServiceTest() {
             ctx = GetAppDbContext();
-            GenerateSeedData();
+            // GenerateSeedData();
         }
 
         [Fact]
@@ -36,16 +36,17 @@ namespace SKD.VCS.Test {
         [Fact]
         private async Task can_update_component() {
             // setup
-            var service = new ComponentService(ctx);
+            Gen_Components(ctx, Gen_ComponentCode(), Gen_ComponentCode());
+
             var component = await ctx.Components.FirstOrDefaultAsync();
 
             var before_CreatedAt = component.CreatedAt;
             var before_ComponentCount = await ctx.Components.CountAsync();
 
-            var newCode = Util.RandomString(EntityFieldLen.Component_Code);
-            var newName = Util.RandomString(EntityFieldLen.Component_Name);
+            var newCode = Gen_ComponentCode();
+            var newName = Gen_ComponentCode() + "name";
             // test
-            await Task.Delay(1000);
+            var service = new ComponentService(ctx);
             var payload = await service.SaveComponent(new ComponentDTO {
                 Id = component.Id,
                 Code = newCode,
@@ -67,7 +68,7 @@ namespace SKD.VCS.Test {
         [Fact]
         private async Task validate_component_warns_duplicate_code() {
             // setup
-            var service = new ComponentService(ctx);
+            Gen_Components(ctx, Gen_ComponentCode(), Gen_ComponentCode());
 
             var existingComponent = await ctx.Components.FirstAsync();
 
@@ -77,6 +78,7 @@ namespace SKD.VCS.Test {
             };
 
             // test
+            var service = new ComponentService(ctx);
             var errors = await service.ValidateCreateComponent<Component>(component);
 
             // assert
@@ -108,10 +110,13 @@ namespace SKD.VCS.Test {
 
         [Fact]
         private async Task can_modify_componetn_code() {
-            var service = new ComponentService(ctx);
+            // setup
+            Gen_Components(ctx, Gen_ComponentCode(), Gen_ComponentCode());
             var component = await ctx.Components.FirstOrDefaultAsync();
 
             var newCode = Util.RandomString(EntityFieldLen.Component_Code).ToString();
+            // test
+            var service = new ComponentService(ctx);
             var payload = await service.SaveComponent(new ComponentDTO {
                 Id = component.Id,
                 Code = newCode,
@@ -185,16 +190,6 @@ namespace SKD.VCS.Test {
             var errorCount = payload.Errors.Count();
             Assert.Equal(1, errorCount);
             Assert.Equal("duplicate name", payload.Errors.First().Message);
-        }
-
-        private void GenerateSeedData() {
-            var components = new List<Component>() {
-                new Component() { Code = "COMP1", Name = "Component name 1" },
-                new Component() { Code = "COMP2", Name = "Component name 2" }
-            };
-
-            ctx.Components.AddRange(components);
-            ctx.SaveChanges();
         }
     }
 }
