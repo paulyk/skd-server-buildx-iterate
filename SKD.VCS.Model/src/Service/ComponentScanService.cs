@@ -70,19 +70,6 @@ namespace SKD.VCS.Model {
                     .FirstOrDefaultAsync(t => t.Id == vehicleComponent.VehicleId)
                 : null;
 
-
-            // veheicle scan completed
-            if (vehicle.ScanCompleteAt != null) {
-                errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehicle component scan already completed"));
-                return errors;
-            }
-
-            // plan build set
-            if (vehicle.PlannedBuildAt == null) {
-                errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehicle planned build date required"));
-                return errors;
-            }
-
             // scan 1 || scan 2 set
             if (string.IsNullOrEmpty(scan.Scan1) && string.IsNullOrEmpty(scan.Scan2)) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Scan1, "scan1 and or scan2 required"));

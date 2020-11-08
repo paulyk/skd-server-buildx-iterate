@@ -17,12 +17,12 @@ namespace SKD.VCS.Test {
         [Fact]
         public async Task can_create_dcws_response() {
             // setup
-            var vehicle = Gen_VehicleModel_With_Vehicle(
+            var vehicle = Gen_Vehicle_And_Model(
                 ctx,
-                vin: Util.RandomString(EntityFieldLen.Vehicle_VIN),
-
-                lotNo: Util.RandomString(EntityFieldLen.Vehicle_LotNo),
-                modelCode: Util.RandomString(EntityFieldLen.VehicleModel_Code),
+                vin: Gen_Vin(),
+                kitNo: Gen_KitNo(),
+                lotNo: Gen_LotNo(),
+                modelCode: Gen_VehicleModel_Code(),
                 component_stations_maps: new List<(string, string)> {
                 ("component_1", "station_1")
             });
@@ -54,12 +54,12 @@ namespace SKD.VCS.Test {
         [Fact]
         public async Task cannot_create_duplicate_dcws_response_code() {
 
-            var vehicle = Gen_VehicleModel_With_Vehicle(
+            var vehicle = Gen_Vehicle_And_Model(
                 ctx,
-                vin: Util.RandomString(EntityFieldLen.Vehicle_VIN),
-
-                lotNo: Util.RandomString(EntityFieldLen.Vehicle_LotNo),
-                modelCode: Util.RandomString(EntityFieldLen.VehicleModel_Code),
+                vin: Gen_Vin(),
+                kitNo: Gen_KitNo(),
+                lotNo: Gen_LotNo(),
+                modelCode: Gen_VehicleModel_Code(),
                 component_stations_maps: new List<(string, string)> {
                             ("component_1", "station_1")
             });

@@ -92,6 +92,7 @@ namespace SKD.VCS.Server {
 
         public async Task<Vehicle?> GetVehicleByVIN([Service] SkdContext context, string vin) {
                 var result = await context.Vehicles
+                        .Include(t => t.Lot)
                         .Include(t => t.VehicleComponents).ThenInclude(t => t.Component)
                         .Include(t => t.VehicleComponents).ThenInclude(t => t.ProductionStation)
                         .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentScans)

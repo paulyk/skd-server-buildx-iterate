@@ -48,30 +48,31 @@ namespace SKD.VCS.Test {
             Assert.True(errors.Count == 1 && errors[0].Message == "vehicle component not found");
         }
 
-        [Fact]
-        public async Task cannot_create_component_scan_if_vehicle_scan_completed() {
-            // setup
-            var vehicle = ctx.Vehicles.FirstOrDefault();
-            vehicle.ScanCompleteAt = DateTime.UtcNow;
-            ctx.SaveChanges();
+        // todo 
+        // [Fact]
+        // public async Task cannot_create_component_scan_if_build_completed() {
+        //     // setup
+        //     var vehicle = ctx.Vehicles.FirstOrDefault();
+        //     vehicle.TimeLine.buildCompletedAt = DateTime.UtcNow;
+        //     ctx.SaveChanges();
 
-            vehicle = ctx.Vehicles
-                .Include(t => t.VehicleComponents)
-                .First(t => t.Id == vehicle.Id);
+        //     vehicle = ctx.Vehicles
+        //         .Include(t => t.VehicleComponents)
+        //         .First(t => t.Id == vehicle.Id);
 
-            var dto = new ComponentScanDTO {
-                VehicleComponentId = vehicle.VehicleComponents.First().Id,
-                Scan1 = Util.RandomString(12),
-                Scan2 = ""
-            };
+        //     var dto = new ComponentScanDTO {
+        //         VehicleComponentId = vehicle.VehicleComponents.First().Id,
+        //         Scan1 = Util.RandomString(12),
+        //         Scan2 = ""
+        //     };
 
-            var service = new ComponentScanService(ctx);
-            var payload = await service.CreateComponentScan(dto);
+        //     var service = new ComponentScanService(ctx);
+        //     var payload = await service.CreateComponentScan(dto);
 
-            var errors = payload.Errors.ToList();
+        //     var errors = payload.Errors.ToList();
 
-            Assert.True(errors.Count == 1 && errors[0].Message == "vehicle component scan already completed");
-        }
+        //     Assert.True(errors.Count == 1 && errors[0].Message == "vehicle component scan already completed");
+        // }
 
         [Fact]
         public async Task cannot_create_component_scan_if_scan1_scan2_empty() {
@@ -111,10 +112,12 @@ namespace SKD.VCS.Test {
 
         [Fact]
         public async Task cannot_create_vehicle_component_scan_if_one_already_exists() {
-            var vehicle = Gen_Vehilce_With_Components(new List<(string, string)> () {
-                ("component_1", "station_1"),
-                ("component_2", "station_2"),
-            });
+            var vehicle = Gen_Vehicle_Amd_Model_From_Components(
+                ctx,
+                new List<(string, string)>() {
+                    ("component_1", "station_1"),
+                    ("component_2", "station_2"),
+                });
 
             var vehicleComponent = vehicle.VehicleComponents
                 .OrderBy(t => t.ProductionStation.SortOrder).First();
@@ -146,10 +149,12 @@ namespace SKD.VCS.Test {
 
         [Fact]
         public async Task can_replace_existing_component_scan() {
-            var vehicle = Gen_Vehilce_With_Components(new List<(string, string)> () {
-                ("component_1", "station_1"),
-                ("component_2", "station_2"),
-            });
+            var vehicle = Gen_Vehicle_Amd_Model_From_Components(
+                ctx, 
+                new List<(string, string)>() {
+                    ("component_1", "station_1"),
+                    ("component_2", "station_2"),
+                });
 
             var vehicleComponent = vehicle.VehicleComponents
                 .OrderBy(t => t.ProductionStation.SortOrder).First();
@@ -176,8 +181,8 @@ namespace SKD.VCS.Test {
             Assert.True(payload_2.Errors.Count == 0);
 
             // should only have one active scan
-            var count = await ctx.ComponentScans.CountAsync(t => t.VehicleComponentId == dto_2.VehicleComponentId && t.RemovedAt == null); 
-            Assert.True(1 == count, "Replacing scan should remove one leaving one.");                        
+            var count = await ctx.ComponentScans.CountAsync(t => t.VehicleComponentId == dto_2.VehicleComponentId && t.RemovedAt == null);
+            Assert.True(1 == count, "Replacing scan should remove one leaving one.");
         }
 
         [Fact]
@@ -206,33 +211,34 @@ namespace SKD.VCS.Test {
             Assert.True(String.IsNullOrEmpty(componentScan.Scan2));
         }
 
-        [Fact]
-        public async Task cannot_create_component_scan_if_no_planned_build_date() {
-            var vehicleComponent = await ctx.VehicleComponents
-                .Include(t => t.Vehicle)
-                .FirstOrDefaultAsync();
+        // [Fact]
+        // public async Task cannot_create_component_scan_if_no_planned_build_date() {
+        //     var vehicleComponent = await ctx.VehicleComponents
+        //         .Include(t => t.Vehicle)
+        //         .FirstOrDefaultAsync();
 
-            var vehicle = vehicleComponent.Vehicle;
-            vehicle.PlannedBuildAt = null;
-            await ctx.SaveChangesAsync();
+        //     var vehicle = vehicleComponent.Vehicle;
+        //     vehicle.Timeline.PlannedBuildAt = null;
+        //     await ctx.SaveChangesAsync();
 
-            var dto = new ComponentScanDTO {
-                VehicleComponentId = vehicleComponent.Id,
-                Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
-                Scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)
-            };
+        //     var dto = new ComponentScanDTO {
+        //         VehicleComponentId = vehicleComponent.Id,
+        //         Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
+        //         Scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)
+        //     };
 
-            var service = new ComponentScanService(ctx);
-            var payload = await service.CreateComponentScan(dto);
+        //     var service = new ComponentScanService(ctx);
+        //     var payload = await service.CreateComponentScan(dto);
 
-            var errors = payload.Errors.ToList();
-            Assert.True(errors.Count == 1 && errors[0].Message == "vehicle planned build date required");
-        }
+        //     var errors = payload.Errors.ToList();
+        //     Assert.True(errors.Count == 1 && errors[0].Message == "vehicle planned build date required");
+        // }
 
         [Fact]
         public async Task can_create_scan_for_same_component_in_different_stations() {
             // creat vehicle model with 'component_2' twice, one for each station
-            var vehicle = Gen_Vehilce_With_Components(
+            var vehicle = Gen_Vehicle_Amd_Model_From_Components(
+                ctx,
                 new List<(string, string)> {
                     ("component_1", "station_1"),
                     ("component_2", "station_1"),
@@ -275,11 +281,11 @@ namespace SKD.VCS.Test {
         [Fact]
         public async Task cannot_create_scan_for_same_component_out_of_order() {
             // creat vehicle model with 'component_2' twice, one for each station
-            var vehicle = Gen_Vehilce_With_Components(
+            var vehicle = Gen_Vehicle_Amd_Model_From_Components(
+                ctx,
                 new List<(string, string)> {
                     ("component_1", "station_1"),
                     ("component_2", "station_1"),
-
                     ("component_3", "station_2"),
                     ("component_2", "station_2"),
                 }
@@ -289,11 +295,9 @@ namespace SKD.VCS.Test {
                 .OrderBy(t => t.ProductionStation.SortOrder)
                 .Where(t => t.Component.Code == "component_2").ToList();
 
-
             // deliberately choose second vehicle component to scan frist
             var vehicleComponent_station_2 = vehicle_components[1];
 
-            var scanService = new ComponentScanService(ctx);
 
             // create scan for station_2, component_2
             var dto_station_2 = new ComponentScanDTO {
@@ -302,32 +306,16 @@ namespace SKD.VCS.Test {
                 Scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)
             };
 
-            // scan station 2 first (out of order)
+            // test
+            var scanService = new ComponentScanService(ctx);
             var paylaod = await scanService.CreateComponentScan(dto_station_2);
+
+            // assert
             Assert.True(1 == paylaod.Errors.Count);
-            var message = paylaod.Errors[0].Message;             
+            var message = paylaod.Errors[0].Message;
             Assert.Equal("Missing scan for station_1", message);
         }
 
-        private Vehicle Gen_Vehilce_With_Components(
-             List<(string componentCode, string stationCode)> component_stations_maps
-        ) {
-
-            var modelCode = Util.RandomString(EntityFieldLen.VehicleModel_Code);
-            Gen_VehicleModel(
-                ctx,
-                modelCode: modelCode,
-                component_stations_maps: component_stations_maps
-              );
-
-            // cretre vehicle based on that model
-            var vin = Util.RandomString(EntityFieldLen.Vehicle_VIN);
-            return Gen_Vehicle(ctx,
-                vin: vin,
-                lotNo: Util.RandomString(EntityFieldLen.Vehicle_LotNo),
-                modelCode: modelCode,
-                plannedBuildAt: DateTime.UtcNow.AddDays(-2));
-        }
 
         #region generate seed data         
 
@@ -349,12 +337,13 @@ namespace SKD.VCS.Test {
                 }
               );
 
-            Gen_Vehicle(
-             ctx: ctx,
-             vin: Util.RandomString(EntityFieldLen.Vehicle_VIN),
-            lotNo: Util.RandomString(EntityFieldLen.Vehicle_LotNo),
-             modelCode: modelCode,
-             plannedBuildAt: DateTime.UtcNow.AddDays(-2));
+            Gen_Vehicle_From_Model(
+                ctx: ctx,
+                vin: Gen_Vin(),
+                kitNo: Gen_KitNo(),
+                lotNo: Gen_LotNo(),
+                modelCode: modelCode);
+
         }
         #endregion
     }

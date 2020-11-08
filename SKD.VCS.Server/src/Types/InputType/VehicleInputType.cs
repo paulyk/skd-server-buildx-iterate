@@ -3,10 +3,9 @@ using SKD.VCS.Model;
 
 namespace SKD.VCS.Server {
 
-    public class VehicleInputType : InputObjectType<VehicleDTO> {
-        protected override void Configure(IInputObjectTypeDescriptor<VehicleDTO> descriptor) {
+    public class VehicleInputType : InputObjectType<VehicleKitDTO> {
+        protected override void Configure(IInputObjectTypeDescriptor<VehicleKitDTO> descriptor) {
             base.Configure(descriptor);
-            descriptor.Field(t => t.VIN).Name("vin");
         }
     }
 }

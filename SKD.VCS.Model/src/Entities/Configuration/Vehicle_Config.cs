@@ -10,15 +10,11 @@ namespace SKD.VCS.Model {
             builder.HasKey(t => t.Id);
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
 
-            builder.HasIndex(t => t.VIN).IsUnique();
-            builder.HasIndex(t => t.LotNo);
+            builder.HasIndex(t => t.KitNo).IsUnique();
+            builder.HasIndex(t => t.VIN);
 
-            builder.Property(t => t.LotNo).HasMaxLength(EntityFieldLen.Vehicle_LotNo);
-            builder.Property(t => t.KitNo).HasMaxLength(EntityFieldLen.Vehicle_KitNo);
-
-            builder.Property(t => t.VIN)
-                .IsRequired()
-                .HasMaxLength(EntityFieldLen.Vehicle_VIN);
+            builder.Property(t => t.KitNo).IsRequired().HasMaxLength(EntityFieldLen.Vehicle_KitNo);
+            builder.Property(t => t.VIN).HasMaxLength(EntityFieldLen.Vehicle_VIN);
 
             // relationships
             builder.HasOne(t => t.Model)

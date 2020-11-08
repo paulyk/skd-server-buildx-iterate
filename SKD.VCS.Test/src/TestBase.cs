@@ -60,10 +60,6 @@ namespace SKD.VCS.Test {
         ) {
             Gen_Components(ctx, component_stations_maps.Select(t => t.componentCode).ToArray());
             Gen_ProductionStations(ctx, component_stations_maps.Select(t => t.stationCode).ToArray());
-            //
-            component_stations_maps.ForEach(item => {
-                var component = ctx.Components.FirstOrDefault(t => t.Code == item.componentCode);
-            });
 
             var modelComponents = component_stations_maps
             .Select(map => new VehicleModelComponent {
@@ -94,24 +90,23 @@ namespace SKD.VCS.Test {
             return componentScan;
         }
 
-        public Vehicle Gen_VehicleModel_With_Vehicle(
+        public Vehicle Gen_Vehicle_And_Model(
             SkdContext ctx,
             string vin,
+            string kitNo,
             string lotNo,
             string modelCode,
-            List<(string componentCode, string stationCode)> component_stations_maps,
-            DateTime? plannedBuildAt = null,
-            DateTime? scanCompleteAt = null) {
-
+            List<(string componentCode, string stationCode)> component_stations_maps
+        ) {
             var vehicleModel = Gen_VehicleModel(ctx, modelCode, component_stations_maps);
-            return Gen_Vehicle(ctx, vin, lotNo, modelCode, plannedBuildAt, scanCompleteAt);
+            return Gen_Vehicle_From_Model(ctx, vin, kitNo, lotNo, modelCode);
         }
-        public Vehicle Gen_Vehicle(SkdContext ctx,
+
+        public Vehicle Gen_Vehicle_From_Model(SkdContext ctx,
             string vin,
+            string kitNo,
             string lotNo,
-            string modelCode,
-            DateTime? plannedBuildAt = null,
-            DateTime? scanCompleteAt = null
+            string modelCode
             ) {
 
             var vehicleModel = ctx.VehicleModels
@@ -129,9 +124,8 @@ namespace SKD.VCS.Test {
             var vehicle = new Vehicle {
                 VIN = vin,
                 Lot = vehicleLot,
+                KitNo = kitNo,
                 Model = vehicleModel,
-                PlannedBuildAt = plannedBuildAt,
-                ScanCompleteAt = scanCompleteAt,
                 VehicleComponents = vehicleComponents
             };
 
@@ -141,11 +135,36 @@ namespace SKD.VCS.Test {
             return vehicle;
         }
 
+        public Vehicle Gen_Vehicle_Amd_Model_From_Components(
+            SkdContext ctx,
+            List<(string componentCode, string stationCode)> component_stations_maps
+        ) {
+
+            var modelCode = Util.RandomString(EntityFieldLen.VehicleModel_Code);
+            Gen_VehicleModel(
+                ctx,
+                modelCode: modelCode,
+                component_stations_maps: component_stations_maps
+              );
+
+            // cretre vehicle based on that model
+            var vehicle =  Gen_Vehicle_From_Model(ctx,
+                vin: Gen_Vin(),    
+                kitNo: Gen_KitNo(),            
+                lotNo: Gen_LotNo(),
+                modelCode: modelCode);
+            return vehicle;
+        }
+
+
         public string Gen_LotNo() {
             return Util.RandomString(EntityFieldLen.Vehicle_LotNo).ToUpper();
         }
         public string Gen_KitNo() {
             return Util.RandomString(EntityFieldLen.Vehicle_KitNo).ToUpper();
+        }
+        public string Gen_VehicleModel_Code() {
+            return Util.RandomString(EntityFieldLen.VehicleModel_Code).ToUpper();
         }
         public string Gen_Vin() {
             return Util.RandomString(EntityFieldLen.Vehicle_VIN).ToUpper();
@@ -156,6 +175,5 @@ namespace SKD.VCS.Test {
         public string Gen_ProductionStationCode() {
             return Util.RandomString(EntityFieldLen.ProductionStation_Code).ToUpper();
         }
-
     }
 }
