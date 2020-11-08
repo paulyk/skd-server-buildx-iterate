@@ -19,7 +19,7 @@ namespace SKD.VCS.Model {
             var vehicleModel = new VehicleModel {
                 Code = dto.Code,
                 Name = dto.Name,
-                ModelComponents = dto.Components.Select(mc => {
+                ModelComponents = dto.ComponentStationDTOs.Select(mc => {
                     var component = context.Components.FirstOrDefault(t => t.Code == mc.ComponentCode);
                     var station = context.ProductionStations.FirstOrDefault(t => t.Code == mc.ProductionStationCode);
                     return new VehicleModelComponent {
@@ -78,20 +78,18 @@ namespace SKD.VCS.Model {
             }
 
             //  duplicate model code in same production stations
-            var duplicate_component_station_entry = model.ModelComponents.GroupBy(mc => new { mc.Component, mc.ProductionStation })
+            var duplicate_component_station_entries = model.ModelComponents
+                .GroupBy(mc => new { mc.Component, mc.ProductionStation })
                 .Select(g => new {
                     Key = g.Key,
                     Count = g.Count()
-                }).Any(t => t.Count > 1);
+                }).Where(t => t.Count > 1).ToList();
 
-            if (duplicate_component_station_entry) {
-                errors.Add(ErrorHelper.Create<T>(t => t.ModelComponents, "duplicate model component + production station entry found"));
+            if (duplicate_component_station_entries.Count > 0) {
+                var entries = duplicate_component_station_entries.Select(t => $"{t.Key.Component.Code}:{t.Key.ProductionStation.Code}");
+                errors.Add(ErrorHelper.Create<T>(t => t.ModelComponents, $"duplicate component + production station entries {String.Join(", ",entries)}"));
             }
 
-            // validate duplicate code
-            // validate duplicate name
-
-            // validate each component
 
             return errors;
         }

@@ -5,7 +5,7 @@ namespace SKD.VCS.Model {
     public class VehicleModelDTO {
         public string Code { get; set; }
         public string Name { get; set; }
-        public ICollection<ComponeentStationDTO> Components { get; set; } = new List<ComponeentStationDTO>();
+        public ICollection<ComponeentStationDTO> ComponentStationDTOs { get; set; } = new List<ComponeentStationDTO>();
     }
 
     public class ComponeentStationDTO {

@@ -45,7 +45,7 @@ namespace SKD.VCS.Test {
             var components = componentCodes.ToList().Select(code => new Component {
                 Code = code,
                 Name = $"{code} name"
-            });
+            }).ToList();
 
             ctx.Components.AddRange(components);
             ctx.SaveChanges();
@@ -152,6 +152,9 @@ namespace SKD.VCS.Test {
         }
         public string Gen_ComponentCode() {
             return Util.RandomString(EntityFieldLen.Component_Code).ToUpper();
+        }
+        public string Gen_ProductionStationCode() {
+            return Util.RandomString(EntityFieldLen.ProductionStation_Code).ToUpper();
         }
 
     }

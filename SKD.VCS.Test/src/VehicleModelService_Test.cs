@@ -13,23 +13,26 @@ namespace SKD.VCS.Test {
         private SkdContext ctx;
         public VehicleModelServiceTest() {
             ctx = GetAppDbContext();
-            GenerateSeedData();
         }
 
         [Fact]
         public async Task can_create_vehicle_model() {
             // setup
-            var components = await ctx.Components.ToListAsync();
-            var productionStations = await ctx.ProductionStations.ToListAsync();
+            var componentCode = "component_1";
+            var stationCode = "station_1";
+            Gen_Components(ctx, componentCode);
+            Gen_ProductionStations(ctx, stationCode);
+
 
             var vehicleModel = new VehicleModelDTO {
                 Code = Util.RandomString(EntityFieldLen.VehicleModel_Code),
                 Name = Util.RandomString(EntityFieldLen.VehicleModel_Name),
-                Components = new int[STATION_COMPONENT_COUNT].ToList()
-                    .Select((v, i) => new ComponeentStationDTO {
-                        ComponentCode = components[i].Code,
-                        ProductionStationCode = productionStations[i].Code
-                    }).ToList()
+                ComponentStationDTOs = new List<ComponeentStationDTO> {
+                    new ComponeentStationDTO {
+                        ComponentCode = componentCode,
+                        ProductionStationCode = stationCode,
+                    }
+                }
             };
 
             // test
@@ -68,10 +71,8 @@ namespace SKD.VCS.Test {
         [Fact]
         public async Task cannot_add_duplicate_vehicle_model_code() {
             // setup
-            var service = new VehicleModelService(ctx);
-
-            var components = await ctx.Components.ToListAsync();
-            var productionStations = await ctx.ProductionStations.ToListAsync();
+            Gen_Components(ctx, "component_1");
+            Gen_ProductionStations(ctx, "station_1");
 
             var modelCode = Util.RandomString(EntityFieldLen.VehicleModel_Code);
             var modelName = Util.RandomString(EntityFieldLen.VehicleModel_Name);
@@ -79,24 +80,30 @@ namespace SKD.VCS.Test {
             var model_1 = new VehicleModelDTO {
                 Code = modelCode,
                 Name = modelName,
-                Components = new int[STATION_COMPONENT_COUNT].ToList()
-                    .Select((v, i) => new ComponeentStationDTO {
-                        ComponentCode = components[i].Code,
-                        ProductionStationCode = productionStations[i].Code
-                    }).ToList()
+                ComponentStationDTOs = new List<ComponeentStationDTO> {
+                    new ComponeentStationDTO {
+                        ComponentCode = "component_1",
+                        ProductionStationCode = "station_1"
+                    }
+                }
             };
-            await service.CreateVehicleModel(model_1);
 
-            // test
             var model_2 = new VehicleModelDTO {
                 Code = modelCode,
                 Name = Util.RandomString(EntityFieldLen.VehicleModel_Name),
-                Components = new int[STATION_COMPONENT_COUNT].ToList()
-                    .Select((v, i) => new ComponeentStationDTO {
-                        ComponentCode = components[i].Code,
-                        ProductionStationCode = productionStations[i].Code
-                    }).ToList()
+                ComponentStationDTOs = new List<ComponeentStationDTO> {
+                    new ComponeentStationDTO {
+                        ComponentCode = "component_1",
+                        ProductionStationCode = "station_1"
+                    }
+                }
             };
+
+
+            // test
+            var service = new VehicleModelService(ctx);
+            await service.CreateVehicleModel(model_1);
+
             var payload = await service.CreateVehicleModel(model_2);
 
             var errorCount = payload.Errors.Count();
@@ -112,7 +119,8 @@ namespace SKD.VCS.Test {
         [Fact]
         public async Task cannot_add_duplicate_vehicle_model_name() {
             // setup
-            var service = new VehicleModelService(ctx);
+            Gen_Components(ctx, "component_1");
+            Gen_ProductionStations(ctx, "station_1");
 
             var components = await ctx.Components.ToListAsync();
             var productionStations = await ctx.ProductionStations.ToListAsync();
@@ -123,24 +131,29 @@ namespace SKD.VCS.Test {
             var model_1 = new VehicleModelDTO {
                 Code = modelCode,
                 Name = modelName,
-                Components = new int[STATION_COMPONENT_COUNT].ToList()
-                    .Select((v, i) => new ComponeentStationDTO {
-                        ComponentCode = components[i].Code,
-                        ProductionStationCode = productionStations[i].Code
-                    }).ToList()
+                ComponentStationDTOs = new List<ComponeentStationDTO> {
+                    new ComponeentStationDTO {
+                        ComponentCode = "component_1",
+                        ProductionStationCode = "station_1"
+                    }
+                }
             };
-            await service.CreateVehicleModel(model_1);
 
-            // test
             var model_2 = new VehicleModelDTO {
                 Code = Util.RandomString(EntityFieldLen.VehicleModel_Code),
                 Name = modelName,
-                Components = new int[STATION_COMPONENT_COUNT].ToList()
-                    .Select((v, i) => new ComponeentStationDTO {
-                        ComponentCode = components[i].Code,
-                        ProductionStationCode = productionStations[i].Code
-                    }).ToList()
+                ComponentStationDTOs = new List<ComponeentStationDTO> {
+                    new ComponeentStationDTO {
+                        ComponentCode = "component_1",
+                        ProductionStationCode = "station_1"
+                    }
+                }
             };
+
+            // test
+            var service = new VehicleModelService(ctx);
+            await service.CreateVehicleModel(model_1);
+
             var payload = await service.CreateVehicleModel(model_2);
 
             var errorCount = payload.Errors.Count();
@@ -156,13 +169,17 @@ namespace SKD.VCS.Test {
 
         [Fact]
         public async Task cannot_add_vehicle_model_with_duplicate_component_station_entries() {
+            // setup
+            Gen_Components(ctx, "component_1", "component_2");
+            Gen_ProductionStations(ctx, "station_1", "station_2");
+
             var component = ctx.Components.OrderBy(t => t.Code).First();
             var station = ctx.ProductionStations.OrderBy(t => t.Code).First();
 
             var vehilceModel = new VehicleModelDTO {
                 Code = "Model_1",
                 Name = "Model Name",
-                Components = new List<ComponeentStationDTO> {
+                ComponentStationDTOs = new List<ComponeentStationDTO> {
                     new ComponeentStationDTO {
                         ComponentCode = component.Code,
                         ProductionStationCode = station.Code
@@ -171,23 +188,19 @@ namespace SKD.VCS.Test {
                         ComponentCode = component.Code,
                         ProductionStationCode = station.Code
                     },
-                }            
+                }
             };
-            
+
             // test
             var service = new VehicleModelService(ctx);
             var payload = await service.CreateVehicleModel(vehilceModel);
 
             // assert
             var errorCount = payload.Errors.Count();
-         
             Assert.Equal(1, errorCount);
-
-        }
-        private int STATION_COMPONENT_COUNT = 2;
-        private void GenerateSeedData() {
-           Gen_ProductionStations(ctx,"station_1", "station_2");
-           Gen_Components(ctx, "component_1", "component_2");
+            var expectedErrorMessage = "duplicate component + production station entries";
+            var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
+            Assert.Equal(expectedErrorMessage, errorMessage.Substring(0, expectedErrorMessage.Length));
         }
     }
 }
