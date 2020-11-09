@@ -19,7 +19,7 @@ namespace SKD.VCS.Model {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<VehicleLot>> CreateVhicleLot(VehicleLotDTO dto) {
+        public async Task<MutationPayload<VehicleLot>> CreateVehicleLot(VehicleLotDTO dto) {
             var vehicleLot = new VehicleLot { LotNo = dto.LotNo };
             var payload = new MutationPayload<VehicleLot>(vehicleLot);
             payload.Errors = await ValidateCreateVehicleLot(dto);
@@ -28,7 +28,7 @@ namespace SKD.VCS.Model {
             }
 
             // create vehicle records and add to vehicleLot.Vehicles
-            foreach (var vehicleDTO in dto.VehicleDTOs) {
+            foreach (var vehicleDTO in dto.Kits) {
                 var vehiclePayload = await CreateVehicleKit(vehicleDTO);
                 if (vehiclePayload.Errors.Any()) {
                     payload.Errors.AddRange(vehiclePayload.Errors);
@@ -46,6 +46,71 @@ namespace SKD.VCS.Model {
             return payload;
         }
 
+        public async Task<MutationPayload<VehicleLot>> AssingVehicleKitVin(VehicleKitVinDTO dto) {
+            var vehicleLot = await context.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
+            var payload = new MutationPayload<VehicleLot>(null);
+            payload.Errors = await ValidateAssignVehicleLotVin(dto);
+            if (payload.Errors.Count() > 0) {
+                return payload;
+            }
+
+            // assign vind
+            vehicleLot.Vehicles.ToList().ForEach(vehicle => {
+                var vin = dto.Kits.First(t => t.KitNo == vehicle.KitNo).VIN;
+                vehicle.VIN = vin;
+            });
+            await context.SaveChangesAsync();
+            return payload;
+        }
+
+        public async Task<List<Error>> ValidateAssignVehicleLotVin(VehicleKitVinDTO dto) {
+            var errors = new List<Error>();
+
+            var vehicleLot = await context.VehicleLots
+                .Include(t => t.Vehicles)
+                .FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
+
+            if (vehicleLot == null) {
+                errors.Add(new Error("lotNo", "vehicle lot not found"));
+                return errors;
+            }
+
+            if (vehicleLot.RemovedAt != null) {
+                errors.Add(new Error("lotNo", "vehicle lot marked removed"));
+                return errors;
+            }
+
+            // any vins alread assigned
+            if (vehicleLot.Vehicles.Any(t => t.VIN?.Length > 0)) {
+                errors.Add(new Error("lotNo", "vehicle lot VINs already assigned"));
+                return errors;
+            }
+
+            // kitNos not foound
+            var kitNos = dto.Kits.Select(t => t.KitNo).ToList();
+            var kitNosNotInLot = vehicleLot.Vehicles
+                .Where(t => !kitNos.Any(kitNo => kitNo == t.KitNo))
+                .Select(t => t.KitNo);
+
+            if (kitNosNotInLot.Any()) {                
+                errors.Add(new Error("", $"kitNos not found in lot {String.Join(", ", kitNosNotInLot)}"));
+                return errors;
+            }
+
+            // valid vins
+            var validator = new Validator();
+            var invalidVins = dto.Kits
+                .Select(t => t.VIN)
+                .Where(vin => !validator.ValidVIN(vin))
+                .ToList();
+
+            if (invalidVins.Any()) {
+                errors.Add(new Error("", $"invalid VINs found in lot {String.Join(", ", invalidVins)}"));
+                return errors;
+            }
+
+            return errors;
+        }
         public async Task<List<Error>> ValidateCreateVehicleLot(VehicleLotDTO dto) {
             var errors = new List<Error>();
 
@@ -55,7 +120,7 @@ namespace SKD.VCS.Model {
                 return errors;
             }
 
-            if (!dto.VehicleDTOs.Any()) {
+            if (!dto.Kits.Any()) {
                 errors.Add(new Error("", "no vehicles found in lot"));
                 return errors;
             }
@@ -66,21 +131,21 @@ namespace SKD.VCS.Model {
             }
 
             // duplicate kitNo
-            var duplicateKits = dto.VehicleDTOs.GroupBy(t => t.KitNo).Where(g => g.Count() > 1);
+            var duplicateKits = dto.Kits.GroupBy(t => t.KitNo).Where(g => g.Count() > 1);
             if (duplicateKits.Any()) {
                 var kitNos = String.Join(", ", duplicateKits.Select(g => g.Key));
                 errors.Add(new Error("", $"duplicate kitNo in vehicle lot {kitNos}"));
                 return errors;
             }
 
-            var modelCodeCount = dto.VehicleDTOs.GroupBy(t => t.ModelCode).Count();
+            var modelCodeCount = dto.Kits.GroupBy(t => t.ModelCode).Count();
             if (modelCodeCount > 1) {
                 errors.Add(new Error("", "Vehicle lot vehicles must have the same model code"));
                 return errors;
             }
 
             // model code exits
-            var modelCode = dto.VehicleDTOs.Select(t => t.ModelCode).FirstOrDefault();
+            var modelCode = dto.Kits.Select(t => t.ModelCode).FirstOrDefault();
             var existingModelCode = await context.VehicleModels.FirstOrDefaultAsync(t => t.Code == modelCode);
             if (existingModelCode == null) {
                 errors.Add(new Error("", $"vehicle model not found: {modelCode}"));
@@ -90,7 +155,7 @@ namespace SKD.VCS.Model {
             return errors;
         }
 
-        public async Task<MutationPayload<Vehicle>> CreateVehicleKit(VehicleKitDTO dto) {
+        public async Task<MutationPayload<Vehicle>> CreateVehicleKit(VehicleLotDTO.Kit dto) {
             var modelId = await context.VehicleModels
                 .Where(t => t.Code == dto.ModelCode)
                 .Select(t => t.Id).FirstOrDefaultAsync();
@@ -127,7 +192,7 @@ namespace SKD.VCS.Model {
             payload.Errors = await ValidateCreateVehicleKit<Vehicle>(vehicle);
             return payload;
         }
-    
+
         public async Task<List<Error>> ValidateCreateVehicleKit<T>(T vehicle) where T : Vehicle {
             var errors = new List<Error>();
             var validator = new Validator();

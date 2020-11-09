@@ -21,7 +21,7 @@ namespace SKD.VCS.Server {
             [Service] SkdContext ctx,
             VehicleLotDTO input
         ) {
-            return await service.CreateVhicleLot(input);
+            return await service.CreateVehicleLot(input);
         }
 
         public async Task<MutationPayload<VehicleModel>> CreateVehicleModel(
@@ -30,6 +30,14 @@ namespace SKD.VCS.Server {
             VehicleModelDTO input
         ) {
             return await service.CreateVehicleModel(input);
+        }
+
+            public async Task<MutationPayload<VehicleLot>> AssignVehicleKitVin(
+            [Service] VehicleService service,
+            [Service] SkdContext ctx,
+            VehicleKitVinDTO input
+        ) {
+            return await service.AssingVehicleKitVin(input);
         }
 
         /// <summary>

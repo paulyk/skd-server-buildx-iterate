@@ -56,8 +56,8 @@ namespace SKD.VCS.Server {
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
                 .AddType<VehicleType>()
-                .AddType<VehicleInputType>()
                 .AddType<ComponentScanInputType>()
+                .AddType<KitVinDtoType>()
                 .AddType<VehicleModelType>()
                 .AddType<VehicleComponentType>()
                 .Create(), new QueryExecutionOptions { ForceSerialExecution = true });

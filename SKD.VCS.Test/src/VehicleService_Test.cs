@@ -19,18 +19,18 @@ namespace SKD.VCS.Test {
         public async Task can_create_vehicle_lot() {
             // setup
             var modelCode = Gen_VehicleModel_Code();
-            var model =  Gen_VehicleModel(ctx, modelCode, new List<(string, string)> {
+            var model = Gen_VehicleModel(ctx, modelCode, new List<(string, string)> {
                 ("component_1", "station_1"),
                 ("component_2", "station_2")
             });
             var lotNo = Gen_LotNo();
             var kitNos = new List<string> { Gen_KitNo(), Gen_KitNo() };
             var vehicleLotDTO = Gen_VehicleLot_DTO(lotNo, modelCode, kitNos);
-            
+
             var before_count = await ctx.VehicleLots.CountAsync();
             // test
             var service = new VehicleService(ctx);
-            var paylaod = await service.CreateVhicleLot(vehicleLotDTO);
+            var paylaod = await service.CreateVehicleLot(vehicleLotDTO);
             var after_count = await ctx.VehicleLots.CountAsync();
 
             // assert
@@ -51,7 +51,7 @@ namespace SKD.VCS.Test {
 
             // test
             var service = new VehicleService(ctx);
-            var payload = await service.CreateVhicleLot(vehicleLotDTO);
+            var payload = await service.CreateVehicleLot(vehicleLotDTO);
 
             // assert
             Assert.True(1 == payload.Errors.Count());
@@ -65,7 +65,7 @@ namespace SKD.VCS.Test {
         public async Task cannot_create_vehicle_lot_with_duplicate_kitNos() {
             // setup
             var modelCode = Gen_VehicleModel_Code();
-            var model =  Gen_VehicleModel(ctx, modelCode, new List<(string, string)> {
+            var model = Gen_VehicleModel(ctx, modelCode, new List<(string, string)> {
                 ("component_1", "station_1"),
                 ("component_2", "station_2")
             });
@@ -74,10 +74,10 @@ namespace SKD.VCS.Test {
             var kitNo = Gen_KitNo();
             var kitNos = new List<string> { kitNo, kitNo };
             var vehicleLotDTO = Gen_VehicleLot_DTO(lotNo: lotNo, modelCode: modelCode, kitNos);
-           
+
             // test
             var service = new VehicleService(ctx);
-            var payload = await service.CreateVhicleLot(vehicleLotDTO);
+            var payload = await service.CreateVehicleLot(vehicleLotDTO);
 
             // assert
             Assert.True(1 == payload.Errors.Count());
@@ -92,14 +92,14 @@ namespace SKD.VCS.Test {
         public async Task cannot_create_vehicle_lot_if_model_code_does_not_exists() {
             // setup
             var lotNo = Util.RandomString(EntityFieldLen.Vehicle_LotNo).ToUpper();
-            var kitNos = new List<string> { Gen_KitNo(), Gen_KitNo()}; 
+            var kitNos = new List<string> { Gen_KitNo(), Gen_KitNo() };
 
             var nonExistendModelCode = Util.RandomString(EntityFieldLen.VehicleModel_Code);
             var vehicleLotDTO = Gen_VehicleLot_DTO(lotNo: lotNo, modelCode: nonExistendModelCode, kitNos);
 
             // test
             var service = new VehicleService(ctx);
-            var payload = await service.CreateVhicleLot(vehicleLotDTO);
+            var payload = await service.CreateVehicleLot(vehicleLotDTO);
 
             // assert
             Assert.True(1 == payload.Errors.Count());
@@ -113,44 +113,81 @@ namespace SKD.VCS.Test {
         public async Task cannot_create_duplicate_vehicle_lot() {
             // setup
             var modelCode = Gen_VehicleModel_Code();
-            var model = Gen_VehicleModel(ctx, modelCode, new List<(string,string)> {
+            var model = Gen_VehicleModel(ctx, modelCode, new List<(string, string)> {
                 ("component_1", "station_1")
             });
             var lotNo = Gen_LotNo();
 
-            var kitNos = new List<string> { Gen_KitNo(), Gen_KitNo()};
+            var kitNos = new List<string> { Gen_KitNo(), Gen_KitNo() };
             var dto = Gen_VehicleLot_DTO(lotNo: lotNo, modelCode: modelCode, kitNos);
 
             // test
             var service = new VehicleService(ctx);
             try {
-            var payload = await service.CreateVhicleLot(dto);
+                var payload = await service.CreateVehicleLot(dto);
 
-            Assert.True(0 == payload.Errors.Count());
+                Assert.True(0 == payload.Errors.Count());
 
-            var payload_2 = await service.CreateVhicleLot(dto);
-            Assert.True(1 == payload_2.Errors.Count());
+                var payload_2 = await service.CreateVehicleLot(dto);
+                Assert.True(1 == payload_2.Errors.Count());
 
-            // assert
-            var message = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
-            Assert.Equal("duplicate vehicle lot", message);
-            } catch(Exception ex) {
+                // assert
+                var message = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
+                Assert.Equal("duplicate vehicle lot", message);
+            } catch (Exception ex) {
                 Console.WriteLine(ex.Message);
                 var inner = ex.InnerException;
                 while (inner != null) {
-                    Console.WriteLine(inner.Message);;
+                    Console.WriteLine(inner.Message); ;
                     inner = inner.InnerException;
                 }
             }
         }
 
+        [Fact]
+        public async Task can_assing_vehicle_kit_vins() {
+            // setup
+            var lotNo = Gen_LotNo();
+            var modelCode = Gen_VehicleModel_Code();
+            var modelNo = Gen_VehicleModel(
+                ctx,
+                modelCode,
+                component_stations_maps: new List<(string, string)> {
+                    ("comp_1", "stat_1")
+                });
+
+            var vehicleLotDto = Gen_VehicleLot_DTO(
+                lotNo,
+                modelCode,
+                new List<string> { Gen_KitNo(), Gen_KitNo() }
+             );
+
+            var service = new VehicleService(ctx);
+            var payload = await service.CreateVehicleLot(vehicleLotDto);
+            var errorCount = payload.Errors.Count();
+            Assert.Equal(0, errorCount);
+
+            // assing vins
+            var kitVinDto = new VehicleKitVinDTO {
+                LotNo = lotNo,
+                Kits = vehicleLotDto.Kits.Select(t => new KitVinDTO {
+                    KitNo = t.KitNo,
+                    VIN = Gen_Vin()
+                }).ToList()
+            };
+
+            var payload_2 = await service.AssingVehicleKitVin(kitVinDto);
+            var errorCount_2 = payload_2.Errors.Count();
+            Assert.Equal(0, errorCount_2);
+        }
+
         private VehicleLotDTO Gen_VehicleLot_DTO(
-            string lotNo, 
-            string modelCode,  
+            string lotNo,
+            string modelCode,
             List<string> kitNos) {
             return new VehicleLotDTO {
                 LotNo = lotNo,
-                VehicleDTOs = kitNos.Select(kitNo => new VehicleKitDTO {
+                Kits = kitNos.Select(kitNo => new VehicleLotDTO.Kit {
                     KitNo = kitNo,
                     ModelCode = modelCode,
                 }).ToList()
