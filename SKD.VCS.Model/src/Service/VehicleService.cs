@@ -92,12 +92,25 @@ namespace SKD.VCS.Model {
                 return errors;
             }
 
+            // duplicate kitNos in payload
+            var duplicateKitNos = dto.Kits
+                .GroupBy(t => t.KitNo)
+                .Where(g => g.Count() > 1)
+                .SelectMany(g => g.ToList())
+                .Select(t => t.KitNo)
+                .Distinct();                
+
+            if (duplicateKitNos.Count() > 0) {
+                errors.Add(new Error("lotNo", $"duplicate kitNo(s) in payload: {String.Join(", ",duplicateKitNos)}"));
+                return errors;
+            }
+
             // kitNos not foound
             var dto_kitNos = dto.Kits.OrderBy(t => t.KitNo).Select(t => t.KitNo).ToList();
             var vehicleLot_Kits = vehicleLot.Vehicles.OrderBy(t => t.KitNo).Select(t => t.KitNo).ToList();
             var kits_not_in_vehicleLot = dto_kitNos.Where(dto_kitNo => !vehicleLot_Kits.Any(vehicleKitNo => vehicleKitNo == dto_kitNo));
-                
-            if (kits_not_in_vehicleLot.Any()) {                
+
+            if (kits_not_in_vehicleLot.Any()) {
                 errors.Add(new Error("", $"kit numbers not found in lot {String.Join(", ", kits_not_in_vehicleLot)}"));
                 return errors;
             }

@@ -184,7 +184,7 @@ namespace SKD.VCS.Test {
             // test
             var service = new VehicleService(ctx);
             var payload_2 = await service.AssingVehicleKitVin(kitVinDto);
-            var payload_3= await service.AssingVehicleKitVin(kitVinDto);
+            var payload_3 = await service.AssingVehicleKitVin(kitVinDto);
 
             // assert
             var errorMessage = payload_3.Errors.Select(t => t.Message).FirstOrDefault();
@@ -213,12 +213,42 @@ namespace SKD.VCS.Test {
             // assert
             var expectedError = "kit numbers not found in lot";
             var errorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
-            errorMessage = errorMessage.Substring(0,expectedError.Length);
+            errorMessage = errorMessage.Substring(0, expectedError.Length);
             Assert.Equal(expectedError, errorMessage);
 
         }
 
-        private async  Task<VehicleLot> Gen_Vehicle_Lot(string lotNo) {
+        [Fact]
+        public async Task cannot_assing_vehicle_lot_with_duplicate_kits_in_payload() {
+            // setup
+            var lotNo = Gen_LotNo();
+            var vehicleLot = await Gen_Vehicle_Lot(lotNo);
+
+            var kitNo = Gen_KitNo();
+            var kitVinDto = new VehicleKitVinDTO {
+                LotNo = lotNo,
+                Kits = vehicleLot.Vehicles.Select(t => new KitVinDTO {
+                    KitNo = kitNo,
+                    VIN = Gen_Vin()
+                }).ToList()
+            };
+
+            // test
+            var service = new VehicleService(ctx);
+            var payload_2 = await service.AssingVehicleKitVin(kitVinDto);
+
+            // assert
+            var expectedError = "duplicate kitNo(s) in payload";
+            var errorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
+            errorMessage = errorMessage.Substring(0, expectedError.Length);
+            Assert.Equal(expectedError, errorMessage);
+        }
+        private async Task<VehicleLot> Gen_Vehicle_Lot(string lotNo, params string[] kitNos) {
+
+            kitNos = kitNos.Length > 0 
+                ? kitNos : 
+                new string[] { Gen_KitNo(), Gen_KitNo() };
+
             var modelCode = Gen_VehicleModel_Code();
             var modelNo = Gen_VehicleModel(
                 ctx,
@@ -230,7 +260,7 @@ namespace SKD.VCS.Test {
             var vehicleLotDto = Gen_VehicleLot_DTO(
                 lotNo,
                 modelCode,
-                new List<string> { Gen_KitNo(), Gen_KitNo() }
+                kitNos.ToList()
              );
 
             var service = new VehicleService(ctx);
