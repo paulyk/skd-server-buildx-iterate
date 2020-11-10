@@ -90,7 +90,19 @@ namespace SKD.VCS.Server {
                         .Include(t => t.Lots).ThenInclude(t => t.Invoices).ThenInclude(t => t.Parts)
                         .FirstOrDefaultAsync(t => t.Id == id);
 
-        public async Task<Vehicle?> GetVehicleByVIN([Service] SkdContext context, string vin) {
+        public async Task<Vehicle?> GetVehicleById([Service] SkdContext context, Guid id) {
+                var result = await context.Vehicles
+                        .Include(t => t.Lot)
+                        .Include(t => t.VehicleComponents).ThenInclude(t => t.Component)
+                        .Include(t => t.VehicleComponents).ThenInclude(t => t.ProductionStation)
+                        .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentScans)
+                        .Include(t => t.Model)
+                        .FirstOrDefaultAsync(t => t.Id == id);
+
+                return result;
+        }
+
+        public async Task<Vehicle?> GetVehicleByVin([Service] SkdContext context, string vin) {
                 var result = await context.Vehicles
                         .Include(t => t.Lot)
                         .Include(t => t.VehicleComponents).ThenInclude(t => t.Component)
