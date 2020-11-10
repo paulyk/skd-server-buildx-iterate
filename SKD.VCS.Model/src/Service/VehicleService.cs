@@ -71,7 +71,7 @@ namespace SKD.VCS.Model {
                 .FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
 
             if (vehicleLot == null) {
-                errors.Add(new Error("lotNo", "vehicle lot not found"));
+                errors.Add(new Error("lotNo", $"vehicle lot not found: {dto.LotNo}"));
                 return errors;
             }
 
@@ -86,14 +86,19 @@ namespace SKD.VCS.Model {
                 return errors;
             }
 
-            // kitNos not foound
-            var kitNos = dto.Kits.Select(t => t.KitNo).ToList();
-            var kitNosNotInLot = vehicleLot.Vehicles
-                .Where(t => !kitNos.Any(kitNo => kitNo == t.KitNo))
-                .Select(t => t.KitNo);
+            // kit count
+            if (vehicleLot.Vehicles.Count() != dto.Kits.Count) {
+                errors.Add(new Error("lotNo", $"number of kits {dto.Kits.Count} doesn't match number of kits in lot {vehicleLot.Vehicles.Count}"));
+                return errors;
+            }
 
-            if (kitNosNotInLot.Any()) {                
-                errors.Add(new Error("", $"kitNos not found in lot {String.Join(", ", kitNosNotInLot)}"));
+            // kitNos not foound
+            var dto_kitNos = dto.Kits.OrderBy(t => t.KitNo).Select(t => t.KitNo).ToList();
+            var vehicleLot_Kits = vehicleLot.Vehicles.OrderBy(t => t.KitNo).Select(t => t.KitNo).ToList();
+            var kits_not_in_vehicleLot = dto_kitNos.Where(dto_kitNo => !vehicleLot_Kits.Any(vehicleKitNo => vehicleKitNo == dto_kitNo));
+                
+            if (kits_not_in_vehicleLot.Any()) {                
+                errors.Add(new Error("", $"kit numbers not found in lot {String.Join(", ", kits_not_in_vehicleLot)}"));
                 return errors;
             }
 

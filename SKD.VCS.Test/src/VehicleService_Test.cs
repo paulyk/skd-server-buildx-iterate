@@ -12,7 +12,6 @@ namespace SKD.VCS.Test {
         private SkdContext ctx;
         public VehicleServiceTest() {
             ctx = GetAppDbContext();
-            // GenerateSeedData();
         }
 
         [Fact]
@@ -148,6 +147,78 @@ namespace SKD.VCS.Test {
         public async Task can_assing_vehicle_kit_vins() {
             // setup
             var lotNo = Gen_LotNo();
+            var vehicleLot = await Gen_Vehicle_Lot(lotNo);
+
+            var kitVinDto = new VehicleKitVinDTO {
+                LotNo = lotNo,
+                Kits = vehicleLot.Vehicles.Select(t => new KitVinDTO {
+                    KitNo = t.KitNo,
+                    VIN = Gen_Vin()
+                }).ToList()
+            };
+
+            // test
+            var service = new VehicleService(ctx);
+            var payload_2 = await service.AssingVehicleKitVin(kitVinDto);
+
+            // assert
+            var errorCount_2 = payload_2.Errors.Count();
+            Assert.Equal(0, errorCount_2);
+        }
+
+
+        [Fact]
+        public async Task cannot_assing_vehicle_lot_vins_if_vins_already_assigned() {
+            // setup
+            var lotNo = Gen_LotNo();
+            var vehicleLot = await Gen_Vehicle_Lot(lotNo);
+
+            var kitVinDto = new VehicleKitVinDTO {
+                LotNo = lotNo,
+                Kits = vehicleLot.Vehicles.Select(t => new KitVinDTO {
+                    KitNo = t.KitNo,
+                    VIN = Gen_Vin()
+                }).ToList()
+            };
+
+            // test
+            var service = new VehicleService(ctx);
+            var payload_2 = await service.AssingVehicleKitVin(kitVinDto);
+            var payload_3= await service.AssingVehicleKitVin(kitVinDto);
+
+            // assert
+            var errorMessage = payload_3.Errors.Select(t => t.Message).FirstOrDefault();
+            var expectedError = "vehicle lot VINs already assigned";
+            Assert.Equal(expectedError, errorMessage);
+        }
+
+        [Fact]
+        public async Task cannot_assing_vehicle_lot_vins_kits_not_found() {
+            // setup
+            var lotNo = Gen_LotNo();
+            var vehicleLot = await Gen_Vehicle_Lot(lotNo);
+
+            var kitVinDto = new VehicleKitVinDTO {
+                LotNo = lotNo,
+                Kits = vehicleLot.Vehicles.Select(t => new KitVinDTO {
+                    KitNo = Gen_KitNo(), // generate a kit not thats different
+                    VIN = Gen_Vin()
+                }).ToList()
+            };
+
+            // test
+            var service = new VehicleService(ctx);
+            var payload_2 = await service.AssingVehicleKitVin(kitVinDto);
+
+            // assert
+            var expectedError = "kit numbers not found in lot";
+            var errorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
+            errorMessage = errorMessage.Substring(0,expectedError.Length);
+            Assert.Equal(expectedError, errorMessage);
+
+        }
+
+        private async  Task<VehicleLot> Gen_Vehicle_Lot(string lotNo) {
             var modelCode = Gen_VehicleModel_Code();
             var modelNo = Gen_VehicleModel(
                 ctx,
@@ -164,21 +235,10 @@ namespace SKD.VCS.Test {
 
             var service = new VehicleService(ctx);
             var payload = await service.CreateVehicleLot(vehicleLotDto);
-            var errorCount = payload.Errors.Count();
-            Assert.Equal(0, errorCount);
-
-            // assing vins
-            var kitVinDto = new VehicleKitVinDTO {
-                LotNo = lotNo,
-                Kits = vehicleLotDto.Kits.Select(t => new KitVinDTO {
-                    KitNo = t.KitNo,
-                    VIN = Gen_Vin()
-                }).ToList()
-            };
-
-            var payload_2 = await service.AssingVehicleKitVin(kitVinDto);
-            var errorCount_2 = payload_2.Errors.Count();
-            Assert.Equal(0, errorCount_2);
+            var vehicleLot = await ctx.VehicleLots
+                .Include(t => t.Vehicles)
+                .FirstOrDefaultAsync(t => t.LotNo == lotNo);
+            return vehicleLot;
         }
 
         private VehicleLotDTO Gen_VehicleLot_DTO(
