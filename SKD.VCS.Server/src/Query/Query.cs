@@ -113,6 +113,17 @@ namespace SKD.VCS.Server {
 
                 return result;
         }
+        public async Task<Vehicle?> GetVehicleByVinOrKitNo([Service] SkdContext context, string vinOrKitNo) {
+                var result = await context.Vehicles
+                        .Include(t => t.Lot)
+                        .Include(t => t.VehicleComponents).ThenInclude(t => t.Component)
+                        .Include(t => t.VehicleComponents).ThenInclude(t => t.ProductionStation)
+                        .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentScans)
+                        .Include(t => t.Model)
+                        .FirstOrDefaultAsync(t => t.VIN== vinOrKitNo || t.KitNo == vinOrKitNo);
+
+                return result;
+        }
 
         public async Task<VehicleLot?> GetVehicleLotByLotNo([Service] SkdContext context, string lotNo) =>
                 await context.VehicleLots
