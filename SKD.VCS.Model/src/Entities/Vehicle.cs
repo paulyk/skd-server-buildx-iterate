@@ -12,6 +12,9 @@ namespace SKD.VCS.Model {
         public Guid LotId { get; set; }        
         public virtual VehicleLot Lot { get; set; }
 
+        public Guid VehicleTimelineId { get; set; }
+        public VehicleTimeline Timeline { get; set; }
+
         public virtual ICollection<VehicleComponent> VehicleComponents { get; set; } = new List<VehicleComponent>();
     }
 }

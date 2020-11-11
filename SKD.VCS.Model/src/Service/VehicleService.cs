@@ -63,6 +63,35 @@ namespace SKD.VCS.Model {
             return payload;
         }
 
+        public async Task<MutationPayload<VehicleTimeline>> UpdateVehicleTimeline(VehicleTimelineDTO dto) {
+            var payload = new MutationPayload<VehicleTimeline>(null);
+            payload.Errors = await ValidateUpdateVehicleTimeline(dto);
+            if (payload.Errors.Count > 0 ) {
+                return payload;
+            }
+
+            var vehicle = await context.Vehicles
+                .Include(t => t.Timeline)
+                .FirstOrDefaultAsync(t => t.VIN == dto.VIN);
+
+            if (vehicle.Timeline == null) {
+                vehicle.Timeline = new VehicleTimeline();
+            }
+
+            // update
+            vehicle.Timeline.CustomReceivedAt = dto.CustomReceivedAt;
+            vehicle.Timeline.PlanBuildAt = dto.PlanBuildAt;
+            vehicle.Timeline.BuildCompletedAt = dto.BuildCompletedAt;
+            vehicle.Timeline.GateRleaseAt = dto.GateRleaseAt;
+            vehicle.Timeline.WholeStateAt = dto.WholeStateAt;
+            // importan modified date set
+            vehicle.Timeline.ModifiedAt = DateTime.UtcNow;
+
+            payload.Entity = vehicle.Timeline;
+            await context.SaveChangesAsync();
+            return payload;
+        }
+
         public async Task<List<Error>> ValidateAssignVehicleLotVin(VehicleKitVinDTO dto) {
             var errors = new List<Error>();
 
@@ -98,10 +127,10 @@ namespace SKD.VCS.Model {
                 .Where(g => g.Count() > 1)
                 .SelectMany(g => g.ToList())
                 .Select(t => t.KitNo)
-                .Distinct();                
+                .Distinct();
 
             if (duplicateKitNos.Count() > 0) {
-                errors.Add(new Error("lotNo", $"duplicate kitNo(s) in payload: {String.Join(", ",duplicateKitNos)}"));
+                errors.Add(new Error("lotNo", $"duplicate kitNo(s) in payload: {String.Join(", ", duplicateKitNos)}"));
                 return errors;
             }
 
@@ -261,5 +290,16 @@ namespace SKD.VCS.Model {
             return errors;
         }
 
+        public async Task<List<Error>> ValidateUpdateVehicleTimeline(VehicleTimelineDTO dto) {
+            var errors = new List<Error>();
+
+            var vehicle = await context.Vehicles.Include(t => t.Timeline).FirstOrDefaultAsync(t => t.VIN == dto.VIN);
+            if (vehicle == null) {
+                errors.Add(new Error("VIN", $"vehicle not found for vin: {dto.VIN}"));
+                return errors;
+            }
+
+            return errors;
+        }
     }
 }
