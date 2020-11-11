@@ -243,6 +243,93 @@ namespace SKD.VCS.Test {
             errorMessage = errorMessage.Substring(0, expectedError.Length);
             Assert.Equal(expectedError, errorMessage);
         }
+        
+        
+        [Fact]
+        public async Task can_set_timline_custom_received_at() {
+            // setup
+            var vehicle = Gen_Vehicle_And_Model(
+                ctx,
+                vin: Gen_Vin(),
+                kitNo: Gen_KitNo(),
+                lotNo: Gen_LotNo(),
+                modelCode: Gen_VehicleModel_Code(),
+                new List<(string, string)> { 
+                    ("component_1", "station_1")
+                }
+            );
+            
+            var customReleasedDate = new DateTime(2020, 11, 1);
+            var dto = new VehicleTimelineDTO {
+                DateType = TimelineDateType.CustomReceived,
+                VIN = vehicle.VIN,
+                Date = customReleasedDate,
+            };
+
+            // test
+            var service = new VehicleService(ctx);
+            var paylaod = await service.UpdateVehicleTimeline(dto);
+
+            // assert
+            var timeline = ctx.VehicleTimelines.FirstOrDefault(t => t.Vehicle.VIN == vehicle.VIN);
+            Assert.NotNull(timeline);
+
+            Assert.Equal(customReleasedDate, timeline.CustomReceivedAt);
+            Assert.Null( timeline.PlanBuildAt);
+            Assert.Null( timeline.BuildCompletedAt);
+            Assert.Null( timeline.GateRleaseAt);
+            Assert.Null( timeline.WholeStateAt);
+
+            Assert.Equal(DateTime.UtcNow.Date, timeline.ModifiedAt.Date);
+        }
+        
+        [Fact]
+        public async Task can_set_timline_plan_build_at() {
+            // setup
+            var vehicle = Gen_Vehicle_And_Model(
+                ctx,
+                vin: Gen_Vin(),
+                kitNo: Gen_KitNo(),
+                lotNo: Gen_LotNo(),
+                modelCode: Gen_VehicleModel_Code(),
+                new List<(string, string)> { 
+                    ("component_1", "station_1")
+                }
+            );
+            
+            var customReleasedDate = new DateTime(2020, 11, 1);
+            var planBuidDate = customReleasedDate.AddDays(1);
+
+            var dto_custom_received = new VehicleTimelineDTO {
+                DateType = TimelineDateType.CustomReceived,
+                VIN = vehicle.VIN,
+                Date = customReleasedDate
+            };
+
+            var dto_custom_plan_build = new VehicleTimelineDTO {
+                DateType = TimelineDateType.PlanBuild,
+                VIN = vehicle.VIN,
+                Date = customReleasedDate.AddDays(1)
+            };
+
+            // test
+            var service = new VehicleService(ctx);
+            var paylaod_1 = await service.UpdateVehicleTimeline(dto_custom_received);
+            var paylaod_2 = await service.UpdateVehicleTimeline(dto_custom_plan_build);
+
+            // assert
+            var timeline = ctx.VehicleTimelines.FirstOrDefault(t => t.Vehicle.VIN == vehicle.VIN);
+            Assert.NotNull(timeline);
+
+            Assert.Equal(customReleasedDate, timeline.CustomReceivedAt);
+            Assert.Equal(planBuidDate, timeline.PlanBuildAt);
+            Assert.Null(timeline.BuildCompletedAt);
+            Assert.Null( timeline.GateRleaseAt);
+            Assert.Null( timeline.WholeStateAt);
+
+            Assert.Equal(DateTime.UtcNow.Date, timeline.ModifiedAt.Date);
+        }
+        
         private async Task<VehicleLot> Gen_Vehicle_Lot(string lotNo, params string[] kitNos) {
 
             kitNos = kitNos.Length > 0 

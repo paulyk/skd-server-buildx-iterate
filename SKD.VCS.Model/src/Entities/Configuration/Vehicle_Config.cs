@@ -31,7 +31,7 @@ namespace SKD.VCS.Model {
 
             builder.HasOne(t => t.Timeline)
                 .WithOne(t => t.Vehicle)
-                .HasForeignKey<VehicleTimeline>(t => t.Vehicle);
+                .HasForeignKey<VehicleTimeline>(t => t.VehicleId);
         }
     }
 }

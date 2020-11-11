@@ -66,7 +66,7 @@ namespace SKD.VCS.Model {
         public async Task<MutationPayload<VehicleTimeline>> UpdateVehicleTimeline(VehicleTimelineDTO dto) {
             var payload = new MutationPayload<VehicleTimeline>(null);
             payload.Errors = await ValidateUpdateVehicleTimeline(dto);
-            if (payload.Errors.Count > 0 ) {
+            if (payload.Errors.Count > 0) {
                 return payload;
             }
 
@@ -79,11 +79,23 @@ namespace SKD.VCS.Model {
             }
 
             // update
-            vehicle.Timeline.CustomReceivedAt = dto.CustomReceivedAt;
-            vehicle.Timeline.PlanBuildAt = dto.PlanBuildAt;
-            vehicle.Timeline.BuildCompletedAt = dto.BuildCompletedAt;
-            vehicle.Timeline.GateRleaseAt = dto.GateRleaseAt;
-            vehicle.Timeline.WholeStateAt = dto.WholeStateAt;
+            switch (dto.DateType) {
+                case TimelineDateType.CustomReceived:
+                    vehicle.Timeline.CustomReceivedAt = dto.Date;
+                    break;
+                case TimelineDateType.PlanBuild:
+                    vehicle.Timeline.PlanBuildAt = dto.Date;
+                    break;
+                case TimelineDateType.BuildCompleted:
+                    vehicle.Timeline.BuildCompletedAt = dto.Date;
+                    break;
+                case TimelineDateType.GateRelease:
+                    vehicle.Timeline.GateRleaseAt = dto.Date;
+                    break;
+                case TimelineDateType.WholeSate:
+                    vehicle.Timeline.WholeStateAt = dto.Date;
+                    break;
+            }
             // importan modified date set
             vehicle.Timeline.ModifiedAt = DateTime.UtcNow;
 
@@ -296,6 +308,32 @@ namespace SKD.VCS.Model {
             var vehicle = await context.Vehicles.Include(t => t.Timeline).FirstOrDefaultAsync(t => t.VIN == dto.VIN);
             if (vehicle == null) {
                 errors.Add(new Error("VIN", $"vehicle not found for vin: {dto.VIN}"));
+                return errors;
+            }
+
+            // short circuit of timeline not yet set
+            if (vehicle.Timeline == null) {
+                return errors;
+            }
+
+            var timeline = vehicle.Timeline;
+
+
+            if (dto.DateType == TimelineDateType.PlanBuild) {
+                if (timeline.CustomReceivedAt == (DateTime?)null) {
+                    errors.Add(new Error("Date", "custom received required before plan build date"));
+                } else if (dto.Date <= timeline.CustomReceivedAt) {
+                    errors.Add(new Error("Date", "plan build cannot come before custom received date"));
+                }
+                return errors;
+            }
+
+            if (dto.DateType == TimelineDateType.BuildCompleted) {
+                if (timeline.PlanBuildAt == (DateTime?)null) {
+                    errors.Add(new Error("Date", "plan build required before build completed"));
+                } else if (dto.Date <= timeline.PlanBuildAt) {
+                    errors.Add(new Error("Date", "plan build cannot come before build complete"));
+                }
                 return errors;
             }
 

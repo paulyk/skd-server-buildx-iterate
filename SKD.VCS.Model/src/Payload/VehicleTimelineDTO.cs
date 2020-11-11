@@ -2,12 +2,18 @@ using System;
 
 namespace  SKD.VCS.Model
 {
+
+    public enum TimelineDateType {
+        CustomReceived,
+        PlanBuild,
+        BuildCompleted,
+        GateRelease,
+        WholeSate
+    
+    }
     public class VehicleTimelineDTO {
+        public TimelineDateType DateType { get; set; }
         public string VIN {get; set; }
-        public DateTime? CustomReceivedAt { get; set; }
-        public DateTime? PlanBuildAt { get; set; }
-        public DateTime? BuildCompletedAt { get; set; }
-        public DateTime? GateRleaseAt { get; set; }
-        public DateTime? WholeStateAt { get; set; }
+        public DateTime? Date { get; set; }
     }
 }
