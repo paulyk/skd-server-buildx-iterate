@@ -261,7 +261,7 @@ namespace SKD.VCS.Test {
             
             var customReleasedDate = new DateTime(2020, 11, 1);
             var dto = new VehicleTimelineDTO {
-                DateType = TimelineDateType.CustomReceived,
+                DateType = TimelineOption.CUSTOM_RECEIVED,
                 VIN = vehicle.VIN,
                 Date = customReleasedDate,
             };
@@ -301,13 +301,13 @@ namespace SKD.VCS.Test {
             var planBuidDate = customReleasedDate.AddDays(1);
 
             var dto_custom_received = new VehicleTimelineDTO {
-                DateType = TimelineDateType.CustomReceived,
+                DateType = TimelineOption.CUSTOM_RECEIVED,
                 VIN = vehicle.VIN,
                 Date = customReleasedDate
             };
 
             var dto_custom_plan_build = new VehicleTimelineDTO {
-                DateType = TimelineDateType.PlanBuild,
+                DateType = TimelineOption.PLAN_BUILD,
                 VIN = vehicle.VIN,
                 Date = customReleasedDate.AddDays(1)
             };

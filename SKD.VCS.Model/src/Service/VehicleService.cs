@@ -80,19 +80,19 @@ namespace SKD.VCS.Model {
 
             // update
             switch (dto.DateType) {
-                case TimelineDateType.CustomReceived:
+                case TimelineOption.CUSTOM_RECEIVED:
                     vehicle.Timeline.CustomReceivedAt = dto.Date;
                     break;
-                case TimelineDateType.PlanBuild:
+                case TimelineOption.PLAN_BUILD:
                     vehicle.Timeline.PlanBuildAt = dto.Date;
                     break;
-                case TimelineDateType.BuildCompleted:
+                case TimelineOption.BUILD_COMPLETED:
                     vehicle.Timeline.BuildCompletedAt = dto.Date;
                     break;
-                case TimelineDateType.GateRelease:
+                case TimelineOption.GATE_RELEASE:
                     vehicle.Timeline.GateRleaseAt = dto.Date;
                     break;
-                case TimelineDateType.WholeSate:
+                case TimelineOption.WHOLESALE:
                     vehicle.Timeline.WholeStateAt = dto.Date;
                     break;
             }
@@ -319,19 +319,19 @@ namespace SKD.VCS.Model {
             var timeline = vehicle.Timeline;
 
 
-            if (dto.DateType == TimelineDateType.PlanBuild) {
+            if (dto.DateType == TimelineOption.PLAN_BUILD) {
                 if (timeline.CustomReceivedAt == (DateTime?)null) {
                     errors.Add(new Error("Date", "custom received required before plan build date"));
-                } else if (dto.Date <= timeline.CustomReceivedAt) {
+                } else if (dto.Date <= timeline.CustomReceivedAt.Value) {
                     errors.Add(new Error("Date", "plan build cannot come before custom received date"));
                 }
                 return errors;
             }
 
-            if (dto.DateType == TimelineDateType.BuildCompleted) {
+            if (dto.DateType == TimelineOption.BUILD_COMPLETED) {
                 if (timeline.PlanBuildAt == (DateTime?)null) {
                     errors.Add(new Error("Date", "plan build required before build completed"));
-                } else if (dto.Date <= timeline.PlanBuildAt) {
+                } else if (dto.Date <= timeline.PlanBuildAt.Value) {
                     errors.Add(new Error("Date", "plan build cannot come before build complete"));
                 }
                 return errors;

@@ -32,13 +32,22 @@ namespace SKD.VCS.Server {
             return await service.CreateVehicleModel(input);
         }
 
-            public async Task<MutationPayload<VehicleLot>> AssignVehicleKitVin(
+        public async Task<MutationPayload<VehicleLot>> AssignVehicleKitVin(
             [Service] VehicleService service,
             [Service] SkdContext ctx,
             VehicleKitVinDTO input
         ) {
             return await service.AssingVehicleKitVin(input);
         }
+
+        public async Task<MutationPayload<VehicleTimeline>> UpdateVehicleTimeline(
+            [Service] VehicleService service,
+            [Service] SkdContext ctx,
+            VehicleTimelineDTO input
+        ) {
+            return await service.UpdateVehicleTimeline(input);
+        }
+
 
         /// <summary>
         /// Create or update a component
