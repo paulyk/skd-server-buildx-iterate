@@ -227,7 +227,7 @@ namespace SKD.VCS.Model {
             var payload = new MutationPayload<Vehicle>(vehicle);
 
             // ensure vehicle.Model set
-            if (vehicle.ModelId != null && vehicle.ModelId != Guid.Empty) {
+            if (vehicle.ModelId != Guid.Empty) {
                 vehicle.Model = await context.VehicleModels
                     .Include(t => t.ModelComponents).ThenInclude(t => t.Component)
                     .Include(t => t.ModelComponents).ThenInclude(t => t.ProductionStation)
