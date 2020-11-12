@@ -1,11 +1,13 @@
 # Please refer https://aka.ms/HTTPSinContainer on how to setup an https developer certificate for your ASP .NET Core service.
+
 version: '3.4'
 
 services:
-  skdvcs:
-    image: skdvcs
+  skdvcsserver:
+    image: skdvcsserver
     build:
       context: .
       dockerfile: SKD.VCS.Server/Dockerfile
     ports:
-      - 80
+      - 5100
+      - 5101

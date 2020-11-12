@@ -15,16 +15,16 @@ namespace SKD.VCS.Model.src.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "3.1.3")
+                .UseIdentityColumns()
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                .HasAnnotation("ProductVersion", "5.0.0");
 
             modelBuilder.Entity("SKD.VCS.Model.BomSummary", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasMaxLength(36);
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -37,8 +37,8 @@ namespace SKD.VCS.Model.src.Migrations
 
                     b.Property<string>("SequenceNo")
                         .IsRequired()
-                        .HasColumnType("nvarchar(4)")
-                        .HasMaxLength(4);
+                        .HasMaxLength(4)
+                        .HasColumnType("nvarchar(4)");
 
                     b.HasKey("Id");
 
@@ -51,8 +51,8 @@ namespace SKD.VCS.Model.src.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasMaxLength(36);
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("BomSummaryId")
                         .HasColumnType("uniqueidentifier");
@@ -62,21 +62,21 @@ namespace SKD.VCS.Model.src.Migrations
 
                     b.Property<string>("LotNo")
                         .IsRequired()
-                        .HasColumnType("nvarchar(15)")
-                        .HasMaxLength(15);
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
 
                     b.Property<bool>("MatcheShipmentLotPartQuantity")
                         .HasColumnType("bit");
 
                     b.Property<string>("PartDesc")
                         .IsRequired()
-                        .HasColumnType("nvarchar(34)")
-                        .HasMaxLength(34);
+                        .HasMaxLength(34)
+                        .HasColumnType("nvarchar(34)");
 
                     b.Property<string>("PartNo")
                         .IsRequired()
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
@@ -100,13 +100,13 @@ namespace SKD.VCS.Model.src.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasMaxLength(36);
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Code")
                         .IsRequired()
-                        .HasColumnType("nvarchar(10)")
-                        .HasMaxLength(10);
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -116,8 +116,8 @@ namespace SKD.VCS.Model.src.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(100)")
-                        .HasMaxLength(100);
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
@@ -137,8 +137,8 @@ namespace SKD.VCS.Model.src.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasMaxLength(36);
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("AcceptedAt")
                         .HasColumnType("datetime2");
@@ -150,12 +150,12 @@ namespace SKD.VCS.Model.src.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Scan1")
-                        .HasColumnType("nvarchar(100)")
-                        .HasMaxLength(100);
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Scan2")
-                        .HasColumnType("nvarchar(100)")
-                        .HasMaxLength(100);
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<Guid>("VehicleComponentId")
                         .HasColumnType("uniqueidentifier");
@@ -175,8 +175,8 @@ namespace SKD.VCS.Model.src.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasMaxLength(36);
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("ComponentScanId")
                         .HasColumnType("uniqueidentifier");
@@ -188,15 +188,15 @@ namespace SKD.VCS.Model.src.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("ErrorMessage")
-                        .HasColumnType("nvarchar(1000)")
-                        .HasMaxLength(1000);
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ResponseCode")
-                        .HasColumnType("nvarchar(50)")
-                        .HasMaxLength(50);
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
@@ -209,13 +209,13 @@ namespace SKD.VCS.Model.src.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasMaxLength(36);
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Code")
                         .IsRequired()
-                        .HasColumnType("nvarchar(100)")
-                        .HasMaxLength(100);
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -245,8 +245,8 @@ namespace SKD.VCS.Model.src.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasMaxLength(36);
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -256,8 +256,8 @@ namespace SKD.VCS.Model.src.Migrations
 
                     b.Property<string>("SequenceNo")
                         .IsRequired()
-                        .HasColumnType("nvarchar(4)")
-                        .HasMaxLength(4);
+                        .HasMaxLength(4)
+                        .HasColumnType("nvarchar(4)");
 
                     b.HasKey("Id");
 
@@ -270,16 +270,16 @@ namespace SKD.VCS.Model.src.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasMaxLength(36);
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("InvoiceNo")
                         .IsRequired()
-                        .HasColumnType("nvarchar(11)")
-                        .HasMaxLength(11);
+                        .HasMaxLength(11)
+                        .HasColumnType("nvarchar(11)");
 
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
@@ -304,16 +304,16 @@ namespace SKD.VCS.Model.src.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasMaxLength(36);
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("LotNo")
                         .IsRequired()
-                        .HasColumnType("nvarchar(15)")
-                        .HasMaxLength(15);
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
 
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
@@ -334,25 +334,25 @@ namespace SKD.VCS.Model.src.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasMaxLength(36);
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("CustomerPartDesc")
                         .IsRequired()
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("CustomerPartNo")
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("PartNo")
                         .IsRequired()
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
@@ -376,16 +376,16 @@ namespace SKD.VCS.Model.src.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasMaxLength(36);
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(320)")
-                        .HasMaxLength(320);
+                        .HasMaxLength(320)
+                        .HasColumnType("nvarchar(320)");
 
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
@@ -402,16 +402,16 @@ namespace SKD.VCS.Model.src.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasMaxLength(36);
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("KitNo")
                         .IsRequired()
-                        .HasColumnType("nvarchar(17)")
-                        .HasMaxLength(17);
+                        .HasMaxLength(17)
+                        .HasColumnType("nvarchar(17)");
 
                     b.Property<Guid>("LotId")
                         .HasColumnType("uniqueidentifier");
@@ -423,8 +423,8 @@ namespace SKD.VCS.Model.src.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("VIN")
-                        .HasColumnType("nvarchar(17)")
-                        .HasMaxLength(17);
+                        .HasMaxLength(17)
+                        .HasColumnType("nvarchar(17)");
 
                     b.HasKey("Id");
 
@@ -444,8 +444,8 @@ namespace SKD.VCS.Model.src.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasMaxLength(36);
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("ComponentId")
                         .HasColumnType("uniqueidentifier");
@@ -481,15 +481,15 @@ namespace SKD.VCS.Model.src.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasMaxLength(36);
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("LotNo")
-                        .HasColumnType("nvarchar(15)")
-                        .HasMaxLength(15);
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
 
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
@@ -507,21 +507,21 @@ namespace SKD.VCS.Model.src.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasMaxLength(36);
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Code")
                         .IsRequired()
-                        .HasColumnType("nvarchar(11)")
-                        .HasMaxLength(11);
+                        .HasMaxLength(11)
+                        .HasColumnType("nvarchar(11)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(100)")
-                        .HasMaxLength(100);
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
@@ -544,8 +544,8 @@ namespace SKD.VCS.Model.src.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasMaxLength(36);
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("ComponentId")
                         .HasColumnType("uniqueidentifier");
@@ -578,8 +578,8 @@ namespace SKD.VCS.Model.src.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasMaxLength(36);
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("BuildCompletedAt")
                         .HasColumnType("datetime2");
@@ -623,6 +623,8 @@ namespace SKD.VCS.Model.src.Migrations
                         .HasForeignKey("BomSummaryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("BomSummary");
                 });
 
             modelBuilder.Entity("SKD.VCS.Model.ComponentScan", b =>
@@ -632,6 +634,8 @@ namespace SKD.VCS.Model.src.Migrations
                         .HasForeignKey("VehicleComponentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("VehicleComponent");
                 });
 
             modelBuilder.Entity("SKD.VCS.Model.DCWSResponse", b =>
@@ -641,6 +645,8 @@ namespace SKD.VCS.Model.src.Migrations
                         .HasForeignKey("ComponentScanId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("ComponentScan");
                 });
 
             modelBuilder.Entity("SKD.VCS.Model.ShipmentInvoice", b =>
@@ -650,6 +656,8 @@ namespace SKD.VCS.Model.src.Migrations
                         .HasForeignKey("ShipmentLotId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("ShipmentLot");
                 });
 
             modelBuilder.Entity("SKD.VCS.Model.ShipmentLot", b =>
@@ -659,6 +667,8 @@ namespace SKD.VCS.Model.src.Migrations
                         .HasForeignKey("ShipmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Shipment");
                 });
 
             modelBuilder.Entity("SKD.VCS.Model.ShipmentPart", b =>
@@ -668,6 +678,8 @@ namespace SKD.VCS.Model.src.Migrations
                         .HasForeignKey("ShipmentInvoiceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("ShipmentInvoice");
                 });
 
             modelBuilder.Entity("SKD.VCS.Model.Vehicle", b =>
@@ -683,6 +695,10 @@ namespace SKD.VCS.Model.src.Migrations
                         .HasForeignKey("ModelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Lot");
+
+                    b.Navigation("Model");
                 });
 
             modelBuilder.Entity("SKD.VCS.Model.VehicleComponent", b =>
@@ -704,6 +720,12 @@ namespace SKD.VCS.Model.src.Migrations
                         .HasForeignKey("VehicleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Component");
+
+                    b.Navigation("ProductionStation");
+
+                    b.Navigation("Vehicle");
                 });
 
             modelBuilder.Entity("SKD.VCS.Model.VehicleModelComponent", b =>
@@ -725,6 +747,12 @@ namespace SKD.VCS.Model.src.Migrations
                         .HasForeignKey("VehicleModelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Component");
+
+                    b.Navigation("ProductionStation");
+
+                    b.Navigation("VehicleModel");
                 });
 
             modelBuilder.Entity("SKD.VCS.Model.VehicleTimeline", b =>
@@ -734,6 +762,71 @@ namespace SKD.VCS.Model.src.Migrations
                         .HasForeignKey("SKD.VCS.Model.VehicleTimeline", "VehicleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Vehicle");
+                });
+
+            modelBuilder.Entity("SKD.VCS.Model.BomSummary", b =>
+                {
+                    b.Navigation("Parts");
+                });
+
+            modelBuilder.Entity("SKD.VCS.Model.Component", b =>
+                {
+                    b.Navigation("VehicleComponents");
+
+                    b.Navigation("VehicleModelComponents");
+                });
+
+            modelBuilder.Entity("SKD.VCS.Model.ComponentScan", b =>
+                {
+                    b.Navigation("DCWSResponses");
+                });
+
+            modelBuilder.Entity("SKD.VCS.Model.ProductionStation", b =>
+                {
+                    b.Navigation("ModelComponents");
+
+                    b.Navigation("VehicleComponents");
+                });
+
+            modelBuilder.Entity("SKD.VCS.Model.Shipment", b =>
+                {
+                    b.Navigation("Lots");
+                });
+
+            modelBuilder.Entity("SKD.VCS.Model.ShipmentInvoice", b =>
+                {
+                    b.Navigation("Parts");
+                });
+
+            modelBuilder.Entity("SKD.VCS.Model.ShipmentLot", b =>
+                {
+                    b.Navigation("Invoices");
+                });
+
+            modelBuilder.Entity("SKD.VCS.Model.Vehicle", b =>
+                {
+                    b.Navigation("Timeline");
+
+                    b.Navigation("VehicleComponents");
+                });
+
+            modelBuilder.Entity("SKD.VCS.Model.VehicleComponent", b =>
+                {
+                    b.Navigation("ComponentScans");
+                });
+
+            modelBuilder.Entity("SKD.VCS.Model.VehicleLot", b =>
+                {
+                    b.Navigation("Vehicles");
+                });
+
+            modelBuilder.Entity("SKD.VCS.Model.VehicleModel", b =>
+                {
+                    b.Navigation("ModelComponents");
+
+                    b.Navigation("Vehicles");
                 });
 #pragma warning restore 612, 618
         }

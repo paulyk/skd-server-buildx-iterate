@@ -45,7 +45,7 @@
                 "build"
             ],
             "dockerBuild": {
-                "tag": "skdvcsserver:dev",
+                "tag": "skdserver:dev",
                 "target": "base",
                 "dockerfile": "${workspaceFolder}/SKD.VCS.Server/Dockerfile",
                 "context": "${workspaceFolder}",
@@ -62,7 +62,7 @@
                 "build"
             ],
             "dockerBuild": {
-                "tag": "skdvcsserver:latest",
+                "tag": "skdserver:latest",
                 "dockerfile": "${workspaceFolder}/SKD.VCS.Server/Dockerfile",
                 "context": "${workspaceFolder}",
                 "pull": true

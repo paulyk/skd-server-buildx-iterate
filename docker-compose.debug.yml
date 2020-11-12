@@ -32,4 +32,4 @@ services:
       - '9301:1433'
 
 volumes:
-  mssql_volume:         
+  mssql_volume:
