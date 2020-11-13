@@ -47,14 +47,14 @@ namespace SKD.VCS.Model {
         }
 
         public async Task<MutationPayload<VehicleLot>> AssingVehicleKitVin(VehicleKitVinDTO dto) {
-            var vehicleLot = await context.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
             var payload = new MutationPayload<VehicleLot>(null);
             payload.Errors = await ValidateAssignVehicleLotVin(dto);
             if (payload.Errors.Count() > 0) {
                 return payload;
             }
 
-            // assign vind
+            // assign vin
+            var vehicleLot = await context.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
             vehicleLot.Vehicles.ToList().ForEach(vehicle => {
                 var vin = dto.Kits.First(t => t.KitNo == vehicle.KitNo).VIN;
                 vehicle.VIN = vin;
@@ -82,7 +82,7 @@ namespace SKD.VCS.Model {
                         timelieEvent.RemovedAt = DateTime.UtcNow;
                     }
                 });
-            
+
             // create timeline event and add to vehicle
             var newTimelineEvent = new VehicleTimelineEvent {
                 EventType = await context.VehicleTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == dto.EventTypeCode),
@@ -114,11 +114,46 @@ namespace SKD.VCS.Model {
                 return errors;
             }
 
-            // any vins alread assigned
-            if (vehicleLot.Vehicles.Any(t => t.VIN?.Length > 0)) {
-                errors.Add(new Error("lotNo", "vehicle lot VINs already assigned"));
+            // invalid VIN(s)
+            var validator = new Validator();
+            var invalidVins = dto.Kits
+                .Select(t => t.VIN)
+                .Where(vin => !validator.ValidVIN(vin))
+                .ToList();
+
+            if (invalidVins.Any()) {
+                errors.Add(new Error("", $"invalid VINs found in lot {String.Join(", ", invalidVins)}"));
                 return errors;
             }
+
+            // duplicatev vins
+            var duplicate_vins = new List<string>();
+            dto.Kits.ToList().ForEach(async kit => {
+                var existing = await context.Vehicles.AnyAsync(t => t.VIN == kit.VIN);
+                if (existing) {
+                    duplicate_vins.Add(kit.VIN);
+                }
+            });
+
+            if (duplicate_vins.Any()) {
+                errors.Add(new Error("", $"duplicate VIN(s) found {String.Join(", ", duplicate_vins)}"));
+                return errors;
+            }
+
+            // Wehicles with matching kit numbers not found
+            var kit_numbers_not_found = new List<string>();
+            dto.Kits.ToList().ForEach(async kit => {
+                var exists = await context.Vehicles.AnyAsync(t => t.KitNo == kit.KitNo);
+                if (!exists) {
+                    kit_numbers_not_found.Add(kit.KitNo);
+                }
+            });
+
+            if (kit_numbers_not_found.Any()) {
+                errors.Add(new Error("", $"kit numbers not found {String.Join(", ", kit_numbers_not_found)}"));
+                return errors;
+            }
+
 
             // kit count
             if (vehicleLot.Vehicles.Count() != dto.Kits.Count) {
@@ -136,28 +171,6 @@ namespace SKD.VCS.Model {
 
             if (duplicateKitNos.Count() > 0) {
                 errors.Add(new Error("lotNo", $"duplicate kitNo(s) in payload: {String.Join(", ", duplicateKitNos)}"));
-                return errors;
-            }
-
-            // kitNos not foound
-            var dto_kitNos = dto.Kits.OrderBy(t => t.KitNo).Select(t => t.KitNo).ToList();
-            var vehicleLot_Kits = vehicleLot.Vehicles.OrderBy(t => t.KitNo).Select(t => t.KitNo).ToList();
-            var kits_not_in_vehicleLot = dto_kitNos.Where(dto_kitNo => !vehicleLot_Kits.Any(vehicleKitNo => vehicleKitNo == dto_kitNo));
-
-            if (kits_not_in_vehicleLot.Any()) {
-                errors.Add(new Error("", $"kit numbers not found in lot {String.Join(", ", kits_not_in_vehicleLot)}"));
-                return errors;
-            }
-
-            // valid vins
-            var validator = new Validator();
-            var invalidVins = dto.Kits
-                .Select(t => t.VIN)
-                .Where(vin => !validator.ValidVIN(vin))
-                .ToList();
-
-            if (invalidVins.Any()) {
-                errors.Add(new Error("", $"invalid VINs found in lot {String.Join(", ", invalidVins)}"));
                 return errors;
             }
 
@@ -299,12 +312,26 @@ namespace SKD.VCS.Model {
             var errors = new List<Error>();
 
             var vehicle = await context.Vehicles
-                .Include(t => t.TimelineEvents)
+                .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .FirstOrDefaultAsync(t => t.VIN == dto.VIN);
             if (vehicle == null) {
                 errors.Add(new Error("VIN", $"vehicle not found for vin: {dto.VIN}"));
                 return errors;
-            }            
+            }
+
+            // duplicate 
+            var duplicate = vehicle.TimelineEvents
+                .OrderByDescending(t => t.CreatedAt)
+                .Where(t => t.RemovedAt == null)
+                .Where(t => t.EventType.Code == dto.EventTypeCode)
+                .Where(t => t.EventDate == dto.EventDate)
+                .FirstOrDefault();
+
+            if (duplicate != null) {
+                var dateStr = dto.EventDate.ToShortDateString();
+                errors.Add(new Error("VIN", $"duplicate vehicle timeline event: {dto.EventTypeCode} {dateStr} "));
+                return errors;
+            }
 
             return errors;
         }

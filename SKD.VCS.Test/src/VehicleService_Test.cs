@@ -86,7 +86,6 @@ namespace SKD.VCS.Test {
             Assert.Equal(expected, actual);
         }
 
-
         [Fact]
         public async Task cannot_create_vehicle_lot_if_model_code_does_not_exists() {
             // setup
@@ -166,9 +165,8 @@ namespace SKD.VCS.Test {
             Assert.Equal(0, errorCount_2);
         }
 
-
         [Fact]
-        public async Task cannot_assing_vehicle_lot_vins_if_vins_already_assigned() {
+        public async Task cannot_assing_vehicle_kit_vins_if_vins_already_assigned() {
             // setup
             var lotNo = Gen_LotNo();
             var vehicleLot = await Gen_Vehicle_Lot(lotNo);
@@ -188,8 +186,8 @@ namespace SKD.VCS.Test {
 
             // assert
             var errorMessage = payload_3.Errors.Select(t => t.Message).FirstOrDefault();
-            var expectedError = "vehicle lot VINs already assigned";
-            Assert.Equal(expectedError, errorMessage);
+            var expectedError = "duplicate VIN(s) found";
+            Assert.Equal(expectedError, errorMessage.Substring(0, expectedError.Length));
         }
 
         [Fact]
@@ -211,7 +209,7 @@ namespace SKD.VCS.Test {
             var payload_2 = await service.AssingVehicleKitVin(kitVinDto);
 
             // assert
-            var expectedError = "kit numbers not found in lot";
+            var expectedError = "kit numbers not found";
             var errorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
             errorMessage = errorMessage.Substring(0, expectedError.Length);
             Assert.Equal(expectedError, errorMessage);
@@ -222,13 +220,16 @@ namespace SKD.VCS.Test {
         public async Task cannot_assing_vehicle_lot_with_duplicate_kits_in_payload() {
             // setup
             var lotNo = Gen_LotNo();
-            var vehicleLot = await Gen_Vehicle_Lot(lotNo);
 
-            var kitNo = Gen_KitNo();
+            var kitNo1 = Gen_KitNo();
+            var kitNo2 = Gen_KitNo();
+
+            var vehicleLot = await Gen_Vehicle_Lot(lotNo, kitNo1, kitNo2);
+
             var kitVinDto = new VehicleKitVinDTO {
                 LotNo = lotNo,
                 Kits = vehicleLot.Vehicles.Select(t => new KitVinDTO {
-                    KitNo = kitNo,
+                    KitNo = kitNo1,
                     VIN = Gen_Vin()
                 }).ToList()
             };
@@ -243,7 +244,6 @@ namespace SKD.VCS.Test {
             errorMessage = errorMessage.Substring(0, expectedError.Length);
             Assert.Equal(expectedError, errorMessage);
         }
-
 
         [Fact]
         public async Task can_create_vehicle_timeline_events() {
@@ -292,7 +292,7 @@ namespace SKD.VCS.Test {
 
         [Fact]
         public async Task create_vehicle_timline_event_removes_prior_events_of_the_same_type() {
-               // setup
+            // setup
             Gen_VehicleTimelineEventTypes(ctx);
             var vehicle = Gen_Vehicle_And_Model(
                 ctx,
@@ -306,7 +306,7 @@ namespace SKD.VCS.Test {
             );
 
             var before_count = ctx.VehicleTimelineEvents.Count();
-            
+
             var originalDate = new DateTime(2020, 11, 28);
             var newDate = new DateTime(2020, 11, 30);
 
@@ -337,6 +337,50 @@ namespace SKD.VCS.Test {
 
             Assert.Equal(originalEntry.EventDate, originalDate);
             Assert.Equal(newDate, latestEntry.EventDate);
+        }
+
+        [Fact]
+        public async Task cannot_add_duplicate_vehicle_timline_event_if_same_type_and_date() {
+            // setup
+            Gen_VehicleTimelineEventTypes(ctx);
+            var vehicle = Gen_Vehicle_And_Model(
+                ctx,
+                vin: Gen_Vin(),
+                kitNo: Gen_KitNo(),
+                lotNo: Gen_LotNo(),
+                modelCode: Gen_VehicleModel_Code(),
+                new List<(string, string)> {
+                    ("component_1", "station_1")
+                }
+            );
+
+            var originalDate = new DateTime(2020, 11, 28);
+            var newDate = new DateTime(2020, 11, 30);
+
+            var dto = new VehicleTimelineEventDTO {
+                VIN = vehicle.VIN,
+                EventTypeCode = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
+                EventDate = originalDate
+            };
+            var dto2 = new VehicleTimelineEventDTO {
+                VIN = vehicle.VIN,
+                EventTypeCode = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
+                EventDate = newDate
+            };
+
+            // test
+            var service = new VehicleService(ctx);
+            await service.CreateVehicleTimelineEvent(dto);
+            await service.CreateVehicleTimelineEvent(dto2);
+            var payload = await service.CreateVehicleTimelineEvent(dto2);
+
+            // assert
+            var after_count = ctx.VehicleTimelineEvents.Count();
+            Assert.Equal(2, after_count);
+            var errorsMessage = payload.Errors.Select(t => t.Message).First();
+            var expectedMessage = "duplicate vehicle timeline event";
+
+            Assert.Equal(expectedMessage, errorsMessage.Substring(0, expectedMessage.Length));
         }
         private async Task<VehicleLot> Gen_Vehicle_Lot(string lotNo, params string[] kitNos) {
 
