@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace SKD.VCS.Model.src.Migrations
+namespace SKD.VCS.Model.srx.Migrations
 {
     public partial class Initial : Migration
     {
@@ -110,6 +110,22 @@ namespace SKD.VCS.Model.src.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_vehicle_model", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "vehicle_timeline_event_type",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", maxLength: 36, nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Sequecne = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RemovedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_vehicle_timeline_event_type", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -279,25 +295,27 @@ namespace SKD.VCS.Model.src.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "vehicle_timeline",
+                name: "vehicle_timeline_event",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", maxLength: 36, nullable: false),
-                    CustomReceivedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    PlanBuildAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    BuildCompletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    GateRleaseAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    WholeStateAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    ModifiedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    VehicleTimelineEventTypeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     VehicleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EventDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     RemovedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_vehicle_timeline", x => x.Id);
+                    table.PrimaryKey("PK_vehicle_timeline_event", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_vehicle_timeline_vehicle_VehicleId",
+                        name: "FK_vehicle_timeline_event_vehicle_timeline_event_type_VehicleTimelineEventTypeId",
+                        column: x => x.VehicleTimelineEventTypeId,
+                        principalTable: "vehicle_timeline_event_type",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_vehicle_timeline_event_vehicle_VehicleId",
                         column: x => x.VehicleId,
                         principalTable: "vehicle",
                         principalColumn: "Id",
@@ -555,9 +573,24 @@ namespace SKD.VCS.Model.src.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_vehicle_timeline_VehicleId",
-                table: "vehicle_timeline",
-                column: "VehicleId",
+                name: "IX_vehicle_timeline_event_CreatedAt",
+                table: "vehicle_timeline_event",
+                column: "CreatedAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_vehicle_timeline_event_VehicleId",
+                table: "vehicle_timeline_event",
+                column: "VehicleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_vehicle_timeline_event_VehicleTimelineEventTypeId",
+                table: "vehicle_timeline_event",
+                column: "VehicleTimelineEventTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_vehicle_timeline_event_type_Code",
+                table: "vehicle_timeline_event_type",
+                column: "Code",
                 unique: true);
         }
 
@@ -579,7 +612,7 @@ namespace SKD.VCS.Model.src.Migrations
                 name: "vehicle_model_component");
 
             migrationBuilder.DropTable(
-                name: "vehicle_timeline");
+                name: "vehicle_timeline_event");
 
             migrationBuilder.DropTable(
                 name: "bom_summary");
@@ -589,6 +622,9 @@ namespace SKD.VCS.Model.src.Migrations
 
             migrationBuilder.DropTable(
                 name: "shipment_invoice");
+
+            migrationBuilder.DropTable(
+                name: "vehicle_timeline_event_type");
 
             migrationBuilder.DropTable(
                 name: "vehicle_component");

@@ -43,5 +43,8 @@ namespace SKD.VCS.Model {
         public static int BomPart_LotNo = 15;
         public static int BomPart_PartNo = 30;
         public static int BomPart_PartDesc = 34;
+
+        public static int Event_Code = 30;
+        public static int Event_Description = 200;
     }
 }

@@ -97,7 +97,7 @@ namespace SKD.VCS.Server {
                         .Include(t => t.VehicleComponents).ThenInclude(t => t.ProductionStation)
                         .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentScans)
                         .Include(t => t.Model)
-                        .Include(t => t.Timeline)
+                        .Include(t => t.TimelineEvents)
                         .FirstOrDefaultAsync(t => t.Id == id);
 
                 return result;
@@ -110,7 +110,7 @@ namespace SKD.VCS.Server {
                         .Include(t => t.VehicleComponents).ThenInclude(t => t.ProductionStation)
                         .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentScans)
                         .Include(t => t.Model)
-                        .Include(t => t.Timeline)
+                        .Include(t => t.TimelineEvents)
                         .FirstOrDefaultAsync(t => t.VIN == vin);
 
                 return result;
@@ -122,7 +122,7 @@ namespace SKD.VCS.Server {
                         .Include(t => t.VehicleComponents).ThenInclude(t => t.ProductionStation)
                         .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentScans)
                         .Include(t => t.Model)
-                        .Include(t => t.Timeline)
+                        .Include(t => t.TimelineEvents)
                         .FirstOrDefaultAsync(t => t.VIN== vinOrKitNo || t.KitNo == vinOrKitNo);
 
                 return result;

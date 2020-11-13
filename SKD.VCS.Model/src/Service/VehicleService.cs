@@ -63,43 +63,36 @@ namespace SKD.VCS.Model {
             return payload;
         }
 
-        public async Task<MutationPayload<VehicleTimeline>> UpdateVehicleTimeline(VehicleTimelineDTO dto) {
-            var payload = new MutationPayload<VehicleTimeline>(null);
-            payload.Errors = await ValidateUpdateVehicleTimeline(dto);
+        public async Task<MutationPayload<VehicleTimelineEvent>> CreateVehicleTimelineEvent(VehicleTimelineEventDTO dto) {
+            var payload = new MutationPayload<VehicleTimelineEvent>(null);
+            payload.Errors = await ValidateCreateVehicleTimelineEvent(dto);
             if (payload.Errors.Count > 0) {
                 return payload;
             }
 
             var vehicle = await context.Vehicles
-                .Include(t => t.Timeline)
+                .Include(t => t.TimelineEvents)
                 .FirstOrDefaultAsync(t => t.VIN == dto.VIN);
 
-            if (vehicle.Timeline == null) {
-                vehicle.Timeline = new VehicleTimeline();
-            }
+            // mark other timeline events of the same type as removed for this vehicle
+            vehicle.TimelineEvents
+                .Where(t => t.EventType.Code == dto.EventTypeCode)
+                .ToList().ForEach(timelieEvent => {
+                    if (timelieEvent.RemovedAt == null) {
+                        timelieEvent.RemovedAt = DateTime.UtcNow;
+                    }
+                });
+            
+            // create timeline event and add to vehicle
+            var newTimelineEvent = new VehicleTimelineEvent {
+                EventType = await context.VehicleTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == dto.EventTypeCode),
+                EventDate = dto.EventDate,
+            };
 
-            // update
-            switch (dto.DateType) {
-                case TimelineOption.CUSTOM_RECEIVED:
-                    vehicle.Timeline.CustomReceivedAt = dto.Date;
-                    break;
-                case TimelineOption.PLAN_BUILD:
-                    vehicle.Timeline.PlanBuildAt = dto.Date;
-                    break;
-                case TimelineOption.BUILD_COMPLETED:
-                    vehicle.Timeline.BuildCompletedAt = dto.Date;
-                    break;
-                case TimelineOption.GATE_RELEASE:
-                    vehicle.Timeline.GateRleaseAt = dto.Date;
-                    break;
-                case TimelineOption.WHOLESALE:
-                    vehicle.Timeline.WholeStateAt = dto.Date;
-                    break;
-            }
-            // importan modified date set
-            vehicle.Timeline.ModifiedAt = DateTime.UtcNow;
+            vehicle.TimelineEvents.Add(newTimelineEvent);
 
-            payload.Entity = vehicle.Timeline;
+            // save
+            payload.Entity = newTimelineEvent;
             await context.SaveChangesAsync();
             return payload;
         }
@@ -302,40 +295,16 @@ namespace SKD.VCS.Model {
             return errors;
         }
 
-        public async Task<List<Error>> ValidateUpdateVehicleTimeline(VehicleTimelineDTO dto) {
+        public async Task<List<Error>> ValidateCreateVehicleTimelineEvent(VehicleTimelineEventDTO dto) {
             var errors = new List<Error>();
 
-            var vehicle = await context.Vehicles.Include(t => t.Timeline).FirstOrDefaultAsync(t => t.VIN == dto.VIN);
+            var vehicle = await context.Vehicles
+                .Include(t => t.TimelineEvents)
+                .FirstOrDefaultAsync(t => t.VIN == dto.VIN);
             if (vehicle == null) {
                 errors.Add(new Error("VIN", $"vehicle not found for vin: {dto.VIN}"));
                 return errors;
-            }
-
-            // short circuit of timeline not yet set
-            if (vehicle.Timeline == null) {
-                return errors;
-            }
-
-            var timeline = vehicle.Timeline;
-
-
-            if (dto.DateType == TimelineOption.PLAN_BUILD) {
-                if (timeline.CustomReceivedAt == (DateTime?)null) {
-                    errors.Add(new Error("Date", "custom received required before plan build date"));
-                } else if (dto.Date <= timeline.CustomReceivedAt.Value) {
-                    errors.Add(new Error("Date", "plan build cannot come before custom received date"));
-                }
-                return errors;
-            }
-
-            if (dto.DateType == TimelineOption.BUILD_COMPLETED) {
-                if (timeline.PlanBuildAt == (DateTime?)null) {
-                    errors.Add(new Error("Date", "plan build required before build completed"));
-                } else if (dto.Date <= timeline.PlanBuildAt.Value) {
-                    errors.Add(new Error("Date", "plan build cannot come before build complete"));
-                }
-                return errors;
-            }
+            }            
 
             return errors;
         }

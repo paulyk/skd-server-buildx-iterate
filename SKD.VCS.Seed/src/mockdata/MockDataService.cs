@@ -13,7 +13,7 @@ namespace SKD.VCS.Seed {
             this.ctx = ctx;
         }
 
-        public async Task GenerateMockData() {
+        public async Task GenerateReferencekData() {
 
             // drop & create
             var dbService = new DbService(ctx);
@@ -29,6 +29,7 @@ namespace SKD.VCS.Seed {
             var seedData = new MockData(seedDataPath);
 
             var generator = new MockDataGenerator(ctx);
+            await generator.Seed_VehicleTimelineVentType();
             await generator.Seed_Components(seedData.Component_MockData);
             await generator.Seed_ProductionStations(seedData.ProductionStation_MockData);
         }

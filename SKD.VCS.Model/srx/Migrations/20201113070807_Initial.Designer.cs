@@ -7,10 +7,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SKD.VCS.Model;
 
-namespace SKD.VCS.Model.src.Migrations
+namespace SKD.VCS.Model.srx.Migrations
 {
     [DbContext(typeof(SkdContext))]
-    [Migration("20201112114924_Initial")]
+    [Migration("20201113070807_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -576,29 +576,17 @@ namespace SKD.VCS.Model.src.Migrations
                     b.ToTable("vehicle_model_component");
                 });
 
-            modelBuilder.Entity("SKD.VCS.Model.VehicleTimeline", b =>
+            modelBuilder.Entity("SKD.VCS.Model.VehicleTimelineEvent", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(36)
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("BuildCompletedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("CustomReceivedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("GateRleaseAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("PlanBuildAt")
+                    b.Property<DateTime>("EventDate")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("RemovedAt")
@@ -607,15 +595,52 @@ namespace SKD.VCS.Model.src.Migrations
                     b.Property<Guid>("VehicleId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("WholeStateAt")
-                        .HasColumnType("datetime2");
+                    b.Property<Guid>("VehicleTimelineEventTypeId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("VehicleId")
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("VehicleId");
+
+                    b.HasIndex("VehicleTimelineEventTypeId");
+
+                    b.ToTable("vehicle_timeline_event");
+                });
+
+            modelBuilder.Entity("SKD.VCS.Model.VehicleTimelineEventType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("RemovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Sequecne")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("vehicle_timeline");
+                    b.ToTable("vehicle_timeline_event_type");
                 });
 
             modelBuilder.Entity("SKD.VCS.Model.BomSummaryPart", b =>
@@ -757,13 +782,21 @@ namespace SKD.VCS.Model.src.Migrations
                     b.Navigation("VehicleModel");
                 });
 
-            modelBuilder.Entity("SKD.VCS.Model.VehicleTimeline", b =>
+            modelBuilder.Entity("SKD.VCS.Model.VehicleTimelineEvent", b =>
                 {
                     b.HasOne("SKD.VCS.Model.Vehicle", "Vehicle")
-                        .WithOne("Timeline")
-                        .HasForeignKey("SKD.VCS.Model.VehicleTimeline", "VehicleId")
+                        .WithMany("TimelineEvents")
+                        .HasForeignKey("VehicleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("SKD.VCS.Model.VehicleTimelineEventType", "EventType")
+                        .WithMany()
+                        .HasForeignKey("VehicleTimelineEventTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EventType");
 
                     b.Navigation("Vehicle");
                 });
@@ -809,7 +842,7 @@ namespace SKD.VCS.Model.src.Migrations
 
             modelBuilder.Entity("SKD.VCS.Model.Vehicle", b =>
                 {
-                    b.Navigation("Timeline");
+                    b.Navigation("TimelineEvents");
 
                     b.Navigation("VehicleComponents");
                 });

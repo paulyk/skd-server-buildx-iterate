@@ -92,10 +92,10 @@ namespace SKD.VCS.Server {
             app.UseEndpoints(endpoints => {
 
                 if (_env.IsDevelopment()) {
-                    endpoints.MapPost("/gen_mock_data", async (context) => {
+                    endpoints.MapPost("/gen_ref_data", async (context) => {
                         var ctx = context.RequestServices.GetService<SkdContext>();
                         var service = new MockDataService(ctx);
-                        await service.GenerateMockData();
+                        await service.GenerateReferencekData();
                         context.Response.StatusCode = 200;
                     });
 

@@ -6,7 +6,8 @@ namespace SKD.VCS.Model {
     public class SkdContext : DbContext {
         public DbSet<User> Users { get; set; }
         public DbSet<Vehicle> Vehicles { get; set; }
-        public DbSet<VehicleTimeline> VehicleTimelines { get; set; }
+        public DbSet<VehicleTimelineEvent> VehicleTimelineEvents { get; set; }
+        public DbSet<VehicleTimelineEventType> VehicleTimelineEventTypes { get; set; }
         public DbSet<VehicleLot> VehicleLots { get; set; }
         public DbSet<Component> Components { get; set; }
         public DbSet<VehicleModel> VehicleModels { get; set; }
@@ -30,12 +31,13 @@ namespace SKD.VCS.Model {
             builder.ApplyConfiguration(new Component_Config());
             builder.ApplyConfiguration(new User_Config());
             builder.ApplyConfiguration(new Vehicle_Config());
-            builder.ApplyConfiguration(new VehicleTimeline_Config());
             builder.ApplyConfiguration(new VehicleLot_Config());
             builder.ApplyConfiguration(new VehicleModel_Config());
             builder.ApplyConfiguration(new VehicleComponent_Config());
             builder.ApplyConfiguration(new VehicleModelComponent_Config());
             builder.ApplyConfiguration(new VehicleComponentScan_Config());
+            builder.ApplyConfiguration(new VehicleTimelineEventType_Config());
+            builder.ApplyConfiguration(new VehicleTimelineEvent_Config());
             builder.ApplyConfiguration(new DCWSResponse_Config());
             builder.ApplyConfiguration(new ProductionStation_Config());
             //

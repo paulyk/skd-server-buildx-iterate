@@ -156,6 +156,34 @@ namespace SKD.VCS.Test {
             return vehicle;
         }
 
+        public void Gen_VehicleTimelineEventTypes(SkdContext ctx) {
+              var eventTypes = new List<VehicleTimelineEventType> {
+                new VehicleTimelineEventType {
+                    Code = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
+                },
+                new VehicleTimelineEventType {
+                    Code = TimeLineEventType.PLAN_BUILD.ToString(),
+                },
+                new VehicleTimelineEventType {
+                    Code = TimeLineEventType.BULD_COMPLETED.ToString(),
+                },
+                new VehicleTimelineEventType {
+                    Code = TimeLineEventType.GATE_RELEASED.ToString(),
+                },
+                new VehicleTimelineEventType {
+                    Code = TimeLineEventType.WHOLE_SALE.ToString(),
+                },
+            };
+
+            var sequence = 1;
+            eventTypes.ForEach(eventType => {
+                eventType.Description = eventType.Code;
+                eventType.Sequecne = sequence++;
+            });
+
+            ctx.VehicleTimelineEventTypes.AddRange(eventTypes);
+            ctx.SaveChanges();
+        }
 
         public string Gen_LotNo() {
             return Util.RandomString(EntityFieldLen.Vehicle_LotNo).ToUpper();

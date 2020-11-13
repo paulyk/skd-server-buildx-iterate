@@ -243,97 +243,105 @@ namespace SKD.VCS.Test {
             errorMessage = errorMessage.Substring(0, expectedError.Length);
             Assert.Equal(expectedError, errorMessage);
         }
-        
-        
+
+
         [Fact]
-        public async Task can_set_timline_custom_received_at() {
+        public async Task can_create_vehicle_timeline_events() {
             // setup
+            Gen_VehicleTimelineEventTypes(ctx);
             var vehicle = Gen_Vehicle_And_Model(
                 ctx,
                 vin: Gen_Vin(),
                 kitNo: Gen_KitNo(),
                 lotNo: Gen_LotNo(),
                 modelCode: Gen_VehicleModel_Code(),
-                new List<(string, string)> { 
+                new List<(string, string)> {
                     ("component_1", "station_1")
                 }
             );
-            
-            var customReleasedDate = new DateTime(2020, 11, 1);
-            var dto = new VehicleTimelineDTO {
-                DateType = TimelineOption.CUSTOM_RECEIVED,
-                VIN = vehicle.VIN,
-                Date = customReleasedDate,
+
+            var timelineEvents = new List<(string eventTypeCode, DateTime eventDate)>() {
+                (TimeLineEventType.CUSTOM_RECEIVED.ToString(), new DateTime(2020, 11, 1)),
+                (TimeLineEventType.PLAN_BUILD.ToString(), new DateTime(2020, 11, 8)),
+                (TimeLineEventType.BULD_COMPLETED.ToString(), new DateTime(2020, 11, 22)),
+                (TimeLineEventType.GATE_RELEASED.ToString(), new DateTime(2020, 11, 26)),
+                (TimeLineEventType.WHOLE_SALE.ToString(), new DateTime(2020, 11, 30)),
             };
 
             // test
             var service = new VehicleService(ctx);
-            var paylaod = await service.UpdateVehicleTimeline(dto);
+            var payloads = new List<MutationPayload<VehicleTimelineEvent>>();
+
+            var before_count = ctx.VehicleTimelineEvents.Count();
+
+            foreach (var entry in timelineEvents) {
+                var dto = new VehicleTimelineEventDTO {
+                    VIN = vehicle.VIN,
+                    EventTypeCode = entry.eventTypeCode,
+                    EventDate = entry.eventDate,
+                };
+                var payload = await service.CreateVehicleTimelineEvent(dto);
+                payloads.Add(payload);
+            }
 
             // assert
-            var timeline = ctx.VehicleTimelines.FirstOrDefault(t => t.Vehicle.VIN == vehicle.VIN);
-            Assert.NotNull(timeline);
-
-            Assert.Equal(customReleasedDate, timeline.CustomReceivedAt);
-            Assert.Null( timeline.PlanBuildAt);
-            Assert.Null( timeline.BuildCompletedAt);
-            Assert.Null( timeline.GateRleaseAt);
-            Assert.Null( timeline.WholeStateAt);
-
-            Assert.Equal(DateTime.UtcNow.Date, timeline.ModifiedAt.Date);
+            var after_count = ctx.VehicleTimelineEvents.Count();
+            Assert.Equal(0, before_count);
+            Assert.Equal(timelineEvents.Count, after_count);
         }
-        
+
         [Fact]
-        public async Task can_set_timline_plan_build_at() {
-            // setup
+        public async Task create_vehicle_timline_event_removes_prior_events_of_the_same_type() {
+               // setup
+            Gen_VehicleTimelineEventTypes(ctx);
             var vehicle = Gen_Vehicle_And_Model(
                 ctx,
                 vin: Gen_Vin(),
                 kitNo: Gen_KitNo(),
                 lotNo: Gen_LotNo(),
                 modelCode: Gen_VehicleModel_Code(),
-                new List<(string, string)> { 
+                new List<(string, string)> {
                     ("component_1", "station_1")
                 }
             );
+
+            var before_count = ctx.VehicleTimelineEvents.Count();
             
-            var customReleasedDate = new DateTime(2020, 11, 1);
-            var planBuidDate = customReleasedDate.AddDays(1);
+            var originalDate = new DateTime(2020, 11, 28);
+            var newDate = new DateTime(2020, 11, 30);
 
-            var dto_custom_received = new VehicleTimelineDTO {
-                DateType = TimelineOption.CUSTOM_RECEIVED,
+            var dto = new VehicleTimelineEventDTO {
                 VIN = vehicle.VIN,
-                Date = customReleasedDate
+                EventTypeCode = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
+                EventDate = originalDate
+            };
+            var dto2 = new VehicleTimelineEventDTO {
+                VIN = vehicle.VIN,
+                EventTypeCode = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
+                EventDate = newDate
             };
 
-            var dto_custom_plan_build = new VehicleTimelineDTO {
-                DateType = TimelineOption.PLAN_BUILD,
-                VIN = vehicle.VIN,
-                Date = customReleasedDate.AddDays(1)
-            };
-
-            // test
             var service = new VehicleService(ctx);
-            var paylaod_1 = await service.UpdateVehicleTimeline(dto_custom_received);
-            var paylaod_2 = await service.UpdateVehicleTimeline(dto_custom_plan_build);
+            // test
+            await service.CreateVehicleTimelineEvent(dto);
+            await service.CreateVehicleTimelineEvent(dto2);
+
+            var after_count = ctx.VehicleTimelineEvents.Count();
 
             // assert
-            var timeline = ctx.VehicleTimelines.FirstOrDefault(t => t.Vehicle.VIN == vehicle.VIN);
-            Assert.NotNull(timeline);
+            Assert.Equal(0, before_count);
+            Assert.Equal(2, after_count);
 
-            Assert.Equal(customReleasedDate, timeline.CustomReceivedAt);
-            Assert.Equal(planBuidDate, timeline.PlanBuildAt);
-            Assert.Null(timeline.BuildCompletedAt);
-            Assert.Null( timeline.GateRleaseAt);
-            Assert.Null( timeline.WholeStateAt);
+            var originalEntry = ctx.VehicleTimelineEvents.FirstOrDefault(t => t.Vehicle.VIN == vehicle.VIN && t.RemovedAt != null);
+            var latestEntry = ctx.VehicleTimelineEvents.FirstOrDefault(t => t.Vehicle.VIN == vehicle.VIN && t.RemovedAt == null);
 
-            Assert.Equal(DateTime.UtcNow.Date, timeline.ModifiedAt.Date);
+            Assert.Equal(originalEntry.EventDate, originalDate);
+            Assert.Equal(newDate, latestEntry.EventDate);
         }
-        
         private async Task<VehicleLot> Gen_Vehicle_Lot(string lotNo, params string[] kitNos) {
 
-            kitNos = kitNos.Length > 0 
-                ? kitNos : 
+            kitNos = kitNos.Length > 0
+                ? kitNos :
                 new string[] { Gen_KitNo(), Gen_KitNo() };
 
             var modelCode = Gen_VehicleModel_Code();

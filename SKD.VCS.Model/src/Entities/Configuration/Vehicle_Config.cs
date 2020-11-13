@@ -29,9 +29,9 @@ namespace SKD.VCS.Model {
                 .WithOne(t => t.Vehicle)
                 .HasForeignKey(t => t.VehicleId);
 
-            builder.HasOne(t => t.Timeline)
+            builder.HasMany(t => t.TimelineEvents)
                 .WithOne(t => t.Vehicle)
-                .HasForeignKey<VehicleTimeline>(t => t.VehicleId);
+                .HasForeignKey(t => t.VehicleId);
         }
     }
 }
