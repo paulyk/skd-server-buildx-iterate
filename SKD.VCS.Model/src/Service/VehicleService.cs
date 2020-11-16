@@ -87,6 +87,7 @@ namespace SKD.VCS.Model {
             var newTimelineEvent = new VehicleTimelineEvent {
                 EventType = await context.VehicleTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == dto.EventTypeCode),
                 EventDate = dto.EventDate,
+                EventNote = dto.EventNote
             };
 
             vehicle.TimelineEvents.Add(newTimelineEvent);

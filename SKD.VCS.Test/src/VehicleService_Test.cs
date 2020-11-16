@@ -291,6 +291,53 @@ namespace SKD.VCS.Test {
         }
 
         [Fact]
+        public async Task create_vehicle_timeline_event_with_note() {
+            // setup
+            Gen_VehicleTimelineEventTypes(ctx);
+            var vehicle = Gen_Vehicle_And_Model(
+                ctx,
+                vin: Gen_Vin(),
+                kitNo: Gen_KitNo(),
+                lotNo: Gen_LotNo(),
+                modelCode: Gen_VehicleModel_Code(),
+                new List<(string, string)> {
+                    ("component_1", "station_1")
+                }
+            );
+
+            var eventNote = "DLR_9977";
+
+            var timelineEventItems = new List<(string eventTypeCode, DateTime eventDate, string eventNode)>() {
+                (TimeLineEventType.GATE_RELEASED.ToString(), new DateTime(2020, 11, 26), eventNote),
+                (TimeLineEventType.WHOLE_SALE.ToString(), new DateTime(2020, 11, 30), eventNote),
+            };
+
+            // test
+            var service = new VehicleService(ctx);
+            var payloads = new List<MutationPayload<VehicleTimelineEvent>>();
+
+            foreach (var entry in timelineEventItems) {
+                var dto = new VehicleTimelineEventDTO {
+                    VIN = vehicle.VIN,
+                    EventTypeCode = entry.eventTypeCode,
+                    EventDate = entry.eventDate,
+                    EventNote = entry.eventNode
+                };
+                var payload = await service.CreateVehicleTimelineEvent(dto);
+                payloads.Add(payload);
+            }
+
+            // assert
+            var timelineEvents = ctx.VehicleTimelineEvents.ToList();
+
+            Assert.Equal(timelineEventItems.Count, timelineEvents.Count);
+
+            timelineEvents.ForEach(entry => {
+                Assert.Equal(eventNote, entry.EventNote);
+            });
+        }
+
+        [Fact]
         public async Task create_vehicle_timline_event_removes_prior_events_of_the_same_type() {
             // setup
             Gen_VehicleTimelineEventTypes(ctx);
@@ -382,6 +429,9 @@ namespace SKD.VCS.Test {
 
             Assert.Equal(expectedMessage, errorsMessage.Substring(0, expectedMessage.Length));
         }
+        
+        
+        
         private async Task<VehicleLot> Gen_Vehicle_Lot(string lotNo, params string[] kitNos) {
 
             kitNos = kitNos.Length > 0

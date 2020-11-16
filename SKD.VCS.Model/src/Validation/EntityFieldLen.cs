@@ -46,5 +46,6 @@ namespace SKD.VCS.Model {
 
         public static int Event_Code = 30;
         public static int Event_Description = 200;
+        public static int Event_Note = 200;
     }
 }
