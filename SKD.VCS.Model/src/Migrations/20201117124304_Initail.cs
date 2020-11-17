@@ -1,9 +1,9 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace SKD.VCS.Model.srx.Migrations
+namespace SKD.VCS.Model.src.Migrations
 {
-    public partial class Initial : Migration
+    public partial class Initail : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -300,8 +300,9 @@ namespace SKD.VCS.Model.srx.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", maxLength: 36, nullable: false),
                     VehicleTimelineEventTypeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    VehicleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     EventDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EventNote = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    VehicleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     RemovedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },

@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SKD.VCS.Model;
 
-namespace SKD.VCS.Model.srx.Migrations
+namespace SKD.VCS.Model.src.Migrations
 {
     [DbContext(typeof(SkdContext))]
-    [Migration("20201113070807_Initial")]
-    partial class Initial
+    [Migration("20201117124304_Initail")]
+    partial class Initail
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -588,6 +588,10 @@ namespace SKD.VCS.Model.srx.Migrations
 
                     b.Property<DateTime>("EventDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("EventNote")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");

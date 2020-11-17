@@ -494,7 +494,8 @@ namespace SKD.VCS.Test {
             Assert.Equal(0, errorCount);
 
             var payload_2 = await service.CreateVehicleLotTimelineEvent(dto);
-            Assert.Equal(1, payload_2.Errors.Count);
+            var errorCount_2 = payload_2.Errors.Count();
+            Assert.Equal(1, errorCount_2);
 
             var errorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
             var expectedMessage  = "duplicate vehicle timeline event";

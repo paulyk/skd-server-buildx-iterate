@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SKD.VCS.Model;
 
-namespace SKD.VCS.Model.srx.Migrations
+namespace SKD.VCS.Model.src.Migrations
 {
     [DbContext(typeof(SkdContext))]
     partial class SkdContextModelSnapshot : ModelSnapshot
@@ -586,6 +586,10 @@ namespace SKD.VCS.Model.srx.Migrations
 
                     b.Property<DateTime>("EventDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("EventNote")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");

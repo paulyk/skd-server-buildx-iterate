@@ -19,7 +19,7 @@ namespace SKD.VCS.Seed {
             var dbService = new DbService(ctx);
             await dbService.MigrateDb();
 
-            if (await ctx.Vehicles.CountAsync() > 0) {
+            if (await ctx.VehicleTimelineEventTypes.CountAsync() > 0) {
                 // already seeded
                 return;
             }

@@ -131,6 +131,9 @@ namespace SKD.VCS.Server {
         public async Task<VehicleLot?> GetVehicleLotByLotNo([Service] SkdContext context, string lotNo) =>
                 await context.VehicleLots
                         .Include(t => t.Vehicles).ThenInclude(t => t.Model)
+                        .Include(t => t.Vehicles)
+                                .ThenInclude(t => t.TimelineEvents)
+                                .ThenInclude(t => t.EventType)
                         .FirstOrDefaultAsync(t => t.LotNo == lotNo);
 
         public async Task<VehicleModel?> GetVehicleModelById([Service] SkdContext context, Guid id) =>
