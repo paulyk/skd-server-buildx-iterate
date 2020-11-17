@@ -429,9 +429,77 @@ namespace SKD.VCS.Test {
 
             Assert.Equal(expectedMessage, errorsMessage.Substring(0, expectedMessage.Length));
         }
-        
-        
-        
+
+        [Fact]
+        public async Task can_create_vehicle_timeline_event_by_lot() {
+            // setup
+            Gen_VehicleTimelineEventTypes(ctx);
+            //
+            var lotNo = Gen_LotNo();
+            var kitNos = new string[] { Gen_KitNo(), Gen_KitNo() };
+            var vehicleLot = Gen_Vehicle_Lot(lotNo, kitNos);
+
+            var eventDate = new DateTime(2020, 11, 30);
+            var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
+            var dto = new VehicleLotTimelineEventDTO {
+                LotNo = lotNo,
+                EventTypeCode = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
+                EventDate = eventDate,
+                EventNote = eventNote
+            };
+
+            // test
+            var service = new VehicleService(ctx);
+            var payload = await service.CreateVehicleLotTimelineEvent(dto);
+
+            var errorCount = payload.Errors.Count;
+            Assert.Equal(0, errorCount);
+
+            var timelineEvents = ctx.VehicleTimelineEvents.Where(t => t.Vehicle.Lot.LotNo == dto.LotNo)
+                .Include(t => t.Vehicle)
+                .Include(t => t.EventType).ToList();
+
+            var timelineEventCount = timelineEvents.Count();
+            Assert.Equal(2, timelineEventCount);
+
+            foreach (var timelineEvent in timelineEvents) {
+                Assert.Equal(eventDate, timelineEvent.EventDate);
+                Assert.Equal(eventNote, timelineEvent.EventNote);
+            }
+        }
+
+        [Fact]
+        public async Task cannot_create_vehicle_timeline_event_by_lot_with_dupliate_date() {
+            // setup
+            Gen_VehicleTimelineEventTypes(ctx);
+            //
+            var lotNo = Gen_LotNo();
+            var kitNos = new string[] { Gen_KitNo(), Gen_KitNo() };
+            var vehicleLot = Gen_Vehicle_Lot(lotNo, kitNos);
+
+            var eventDate = new DateTime(2020, 11, 30);
+            var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
+            var dto = new VehicleLotTimelineEventDTO {
+                LotNo = lotNo,
+                EventTypeCode = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
+                EventDate = eventDate,
+                EventNote = eventNote
+            };
+
+            // test
+            var service = new VehicleService(ctx);
+            var payload = await service.CreateVehicleLotTimelineEvent(dto);
+
+            var errorCount = payload.Errors.Count;
+            Assert.Equal(0, errorCount);
+
+            var payload_2 = await service.CreateVehicleLotTimelineEvent(dto);
+            Assert.Equal(1, payload_2.Errors.Count);
+
+            var errorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
+            var expectedMessage  = "duplicate vehicle timeline event";
+            Assert.Equal(expectedMessage, errorMessage.Substring(0, expectedMessage.Length));
+        }
         private async Task<VehicleLot> Gen_Vehicle_Lot(string lotNo, params string[] kitNos) {
 
             kitNos = kitNos.Length > 0

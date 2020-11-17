@@ -98,6 +98,47 @@ namespace SKD.VCS.Model {
             return payload;
         }
 
+        public async Task<MutationPayload<VehicleLot>> CreateVehicleLotTimelineEvent(VehicleLotTimelineEventDTO dto) {
+            var payload = new MutationPayload<VehicleLot>(null);
+            payload.Errors = await ValidateCreateVehicleLotTimelineEvent(dto);
+            if (payload.Errors.Count > 0) {
+                return payload;
+            }
+
+            var vehicleLot = await context.VehicleLots
+                .Include(t => t.Vehicles)
+                    .ThenInclude(t => t.TimelineEvents)
+                    .ThenInclude(t => t.EventType)
+                .FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
+
+            foreach (var vehicle in vehicleLot.Vehicles) {
+
+                // mark other timeline events of the same type as removed for this vehicle
+                vehicle.TimelineEvents
+                    .Where(t => t.EventType.Code == dto.EventTypeCode)
+                    .ToList().ForEach(timelieEvent => {
+                        if (timelieEvent.RemovedAt == null) {
+                            timelieEvent.RemovedAt = DateTime.UtcNow;
+                        }
+                    });
+
+                // create timeline event and add to vehicle
+                var newTimelineEvent = new VehicleTimelineEvent {
+                    EventType = await context.VehicleTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == dto.EventTypeCode),
+                    EventDate = dto.EventDate,
+                    EventNote = dto.EventNote
+                };
+
+                vehicle.TimelineEvents.Add(newTimelineEvent);
+
+            }
+
+            // // save
+            payload.Entity = vehicleLot;
+            await context.SaveChangesAsync();
+            return payload;
+        }
+
         public async Task<List<Error>> ValidateAssignVehicleLotVin(VehicleKitVinDTO dto) {
             var errors = new List<Error>();
 
@@ -331,6 +372,35 @@ namespace SKD.VCS.Model {
             if (duplicate != null) {
                 var dateStr = dto.EventDate.ToShortDateString();
                 errors.Add(new Error("VIN", $"duplicate vehicle timeline event: {dto.EventTypeCode} {dateStr} "));
+                return errors;
+            }
+
+            return errors;
+        }
+
+        public async Task<List<Error>> ValidateCreateVehicleLotTimelineEvent(VehicleLotTimelineEventDTO dto) {
+            var errors = new List<Error>();
+
+            var vehicleLot = await context.VehicleLots
+                .Include(t => t.Vehicles).ThenInclude(t => t.TimelineEvents).ThenInclude(t => t.EventType)
+                .FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
+
+            if (vehicleLot == null) {
+                errors.Add(new Error("VIN", $"vehicle lot not found for lotNo: {dto.LotNo}"));
+                return errors;
+            }
+
+            // duplicate 
+            var duplicateTimelineEventsFound = vehicleLot.Vehicles.SelectMany(t => t.TimelineEvents)
+                .OrderByDescending(t => t.CreatedAt)
+                .Where(t => t.RemovedAt == null)
+                .Where(t => t.EventType.Code == dto.EventTypeCode)
+                .Where(t => t.EventDate == dto.EventDate)
+                .Any();
+
+            if (duplicateTimelineEventsFound) {
+                var dateStr = dto.EventDate.ToShortDateString();
+                errors.Add(new Error("VIN", $"duplicate vehicle timeline event: {dto.LotNo}, Type: {dto.EventTypeCode} Date: {dateStr} "));
                 return errors;
             }
 
