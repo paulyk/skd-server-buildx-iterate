@@ -28,7 +28,6 @@ namespace SKD.VCS.Server {
         public IQueryable<Vehicle> GetVehicles([Service] SkdContext context) =>
                  context.Vehicles.AsQueryable();
 
-
         [UsePaging]
         [UseSelection]
         [UseFiltering]
@@ -102,19 +101,6 @@ namespace SKD.VCS.Server {
 
             return result;
         }
-
-        public async Task<Vehicle?> GetVehicleByVin([Service] SkdContext context, string vin) {
-            var result = await context.Vehicles
-                    .Include(t => t.Lot)
-                    .Include(t => t.VehicleComponents).ThenInclude(t => t.Component)
-                    .Include(t => t.VehicleComponents).ThenInclude(t => t.ProductionStation)
-                    .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentScans)
-                    .Include(t => t.Model)
-                    .Include(t => t.TimelineEvents)
-                    .FirstOrDefaultAsync(t => t.VIN == vin);
-
-            return result;
-        }
         public async Task<Vehicle?> GetVehicleByVinOrKitNo([Service] SkdContext context, string vinOrKitNo) {
             var result = await context.Vehicles
                     .Include(t => t.Lot)
@@ -126,6 +112,46 @@ namespace SKD.VCS.Server {
                     .FirstOrDefaultAsync(t => t.VIN == vinOrKitNo || t.KitNo == vinOrKitNo);
 
             return result;
+        }
+
+        public async Task<VehicleTimelineDTO?> GetVehicleTimeline([Service] SkdContext context, string vinOrKitNo) {
+            var vehicle = await context.Vehicles
+                    .Include(t => t.TimelineEvents)
+                    .Include(t => t.Lot)
+                    .FirstOrDefaultAsync(t => t.VIN == vinOrKitNo || t.KitNo == vinOrKitNo);
+
+            if (vehicle == null) {
+                return (VehicleTimelineDTO?)null;
+            }
+
+            var timelineEventTypes = await context.VehicleTimelineEventTypes.Where(t => t.RemovedAt == null).ToListAsync();
+
+            var dto = new VehicleTimelineDTO {
+                VIN = vehicle.VIN,
+                KitNo = vehicle.KitNo,
+                LotNo = vehicle.Lot.LotNo,
+                TimelineItems = timelineEventTypes.OrderBy(evtType => evtType.Sequecne).Select(evtType => {
+                    var timelineEvent = vehicle.TimelineEvents
+                        .Where(vt => vt.EventType.Code == evtType.Code)
+                        .Where(vt => vt.RemovedAt == null)
+                        .FirstOrDefault();
+
+                    return timelineEvent != null
+                        ? new TimelineEventDTO {
+                            EventDate = timelineEvent.EventDate,
+                            EventNote = timelineEvent.EventNote,
+                            EventType = timelineEvent.EventType.Code,
+                            CreatedAt = timelineEvent.CreatedAt,
+                            Sequence = evtType.Sequecne
+                        }
+                        : new TimelineEventDTO {
+                            EventType = evtType.Code,
+                            Sequence = evtType.Sequecne
+                        };
+                }).ToList()
+            };
+
+            return dto;
         }
 
         public async Task<VehicleLot?> GetVehicleLotByLotNo([Service] SkdContext context, string lotNo) =>

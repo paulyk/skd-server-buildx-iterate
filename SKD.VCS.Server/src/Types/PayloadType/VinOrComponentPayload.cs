@@ -1,6 +1,5 @@
 using SKD.VCS.Model;
 
-
 namespace SKD.VCS.Server {
     public class VehicleOrComponentDTO {
         public string Code { get; set; } = "";
