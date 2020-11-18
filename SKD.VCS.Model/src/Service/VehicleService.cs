@@ -115,7 +115,7 @@ namespace SKD.VCS.Model {
 
                 // mark other timeline events of the same type as removed for this vehicle
                 vehicle.TimelineEvents
-                    .Where(t => t.EventType.Code == dto.EventTypeCode)
+                    .Where(t => t.EventType.Code == dto.EventType.ToString())
                     .ToList().ForEach(timelieEvent => {
                         if (timelieEvent.RemovedAt == null) {
                             timelieEvent.RemovedAt = DateTime.UtcNow;
@@ -124,7 +124,7 @@ namespace SKD.VCS.Model {
 
                 // create timeline event and add to vehicle
                 var newTimelineEvent = new VehicleTimelineEvent {
-                    EventType = await context.VehicleTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == dto.EventTypeCode),
+                    EventType = await context.VehicleTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == dto.EventType.ToString()),
                     EventDate = dto.EventDate,
                     EventNote = dto.EventNote
                 };
@@ -394,13 +394,13 @@ namespace SKD.VCS.Model {
             var duplicateTimelineEventsFound = vehicleLot.Vehicles.SelectMany(t => t.TimelineEvents)
                 .OrderByDescending(t => t.CreatedAt)
                 .Where(t => t.RemovedAt == null)
-                .Where(t => t.EventType.Code == dto.EventTypeCode)
+                .Where(t => t.EventType.Code == dto.EventType.ToString())
                 .Where(t => t.EventDate == dto.EventDate)
                 .Any();
 
             if (duplicateTimelineEventsFound) {
                 var dateStr = dto.EventDate.ToShortDateString();
-                errors.Add(new Error("VIN", $"duplicate vehicle timeline event: {dto.LotNo}, Type: {dto.EventTypeCode} Date: {dateStr} "));
+                errors.Add(new Error("VIN", $"duplicate vehicle timeline event: {dto.LotNo}, Type: {dto.EventType.ToString()} Date: {dateStr} "));
                 return errors;
             }
 

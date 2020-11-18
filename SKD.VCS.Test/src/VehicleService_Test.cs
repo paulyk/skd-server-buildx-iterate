@@ -443,7 +443,7 @@ namespace SKD.VCS.Test {
             var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
             var dto = new VehicleLotTimelineEventDTO {
                 LotNo = lotNo,
-                EventTypeCode = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
+                EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = eventDate,
                 EventNote = eventNote
             };
@@ -481,7 +481,7 @@ namespace SKD.VCS.Test {
             var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
             var dto = new VehicleLotTimelineEventDTO {
                 LotNo = lotNo,
-                EventTypeCode = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
+                EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = eventDate,
                 EventNote = eventNote
             };

@@ -91,41 +91,41 @@ namespace SKD.VCS.Server {
                         .FirstOrDefaultAsync(t => t.Id == id);
 
         public async Task<Vehicle?> GetVehicleById([Service] SkdContext context, Guid id) {
-                var result = await context.Vehicles
-                        .Include(t => t.Lot)
-                        .Include(t => t.VehicleComponents).ThenInclude(t => t.Component)
-                        .Include(t => t.VehicleComponents).ThenInclude(t => t.ProductionStation)
-                        .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentScans)
-                        .Include(t => t.Model)
-                        .Include(t => t.TimelineEvents)
-                        .FirstOrDefaultAsync(t => t.Id == id);
+            var result = await context.Vehicles
+                    .Include(t => t.Lot)
+                    .Include(t => t.VehicleComponents).ThenInclude(t => t.Component)
+                    .Include(t => t.VehicleComponents).ThenInclude(t => t.ProductionStation)
+                    .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentScans)
+                    .Include(t => t.Model)
+                    .Include(t => t.TimelineEvents)
+                    .FirstOrDefaultAsync(t => t.Id == id);
 
-                return result;
+            return result;
         }
 
         public async Task<Vehicle?> GetVehicleByVin([Service] SkdContext context, string vin) {
-                var result = await context.Vehicles
-                        .Include(t => t.Lot)
-                        .Include(t => t.VehicleComponents).ThenInclude(t => t.Component)
-                        .Include(t => t.VehicleComponents).ThenInclude(t => t.ProductionStation)
-                        .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentScans)
-                        .Include(t => t.Model)
-                        .Include(t => t.TimelineEvents)
-                        .FirstOrDefaultAsync(t => t.VIN == vin);
+            var result = await context.Vehicles
+                    .Include(t => t.Lot)
+                    .Include(t => t.VehicleComponents).ThenInclude(t => t.Component)
+                    .Include(t => t.VehicleComponents).ThenInclude(t => t.ProductionStation)
+                    .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentScans)
+                    .Include(t => t.Model)
+                    .Include(t => t.TimelineEvents)
+                    .FirstOrDefaultAsync(t => t.VIN == vin);
 
-                return result;
+            return result;
         }
         public async Task<Vehicle?> GetVehicleByVinOrKitNo([Service] SkdContext context, string vinOrKitNo) {
-                var result = await context.Vehicles
-                        .Include(t => t.Lot)                        
-                        .Include(t => t.VehicleComponents).ThenInclude(t => t.Component)
-                        .Include(t => t.VehicleComponents).ThenInclude(t => t.ProductionStation)
-                        .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentScans)
-                        .Include(t => t.Model)
-                        .Include(t => t.TimelineEvents)
-                        .FirstOrDefaultAsync(t => t.VIN== vinOrKitNo || t.KitNo == vinOrKitNo);
+            var result = await context.Vehicles
+                    .Include(t => t.Lot)
+                    .Include(t => t.VehicleComponents).ThenInclude(t => t.Component)
+                    .Include(t => t.VehicleComponents).ThenInclude(t => t.ProductionStation)
+                    .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentScans)
+                    .Include(t => t.Model)
+                    .Include(t => t.TimelineEvents)
+                    .FirstOrDefaultAsync(t => t.VIN == vinOrKitNo || t.KitNo == vinOrKitNo);
 
-                return result;
+            return result;
         }
 
         public async Task<VehicleLot?> GetVehicleLotByLotNo([Service] SkdContext context, string lotNo) =>
@@ -135,6 +135,47 @@ namespace SKD.VCS.Server {
                                 .ThenInclude(t => t.TimelineEvents)
                                 .ThenInclude(t => t.EventType)
                         .FirstOrDefaultAsync(t => t.LotNo == lotNo);
+
+        public async Task<VehicleLotOverviewDTO?> GetVehicleLotOverview([Service] SkdContext context, string lotNo) {
+            var vehicleLot = await context.VehicleLots
+                .Include(t => t.Vehicles).ThenInclude(t => t.TimelineEvents).ThenInclude(t => t.EventType)
+                .Include(t => t.Vehicles).ThenInclude(t => t.Model)
+                .FirstOrDefaultAsync(t => t.LotNo == lotNo);
+
+            if (vehicleLot == null) {
+                return (VehicleLotOverviewDTO?)null;
+            }
+
+            var vehicle = vehicleLot.Vehicles.First();
+            var timelineEvents = vehicleLot.Vehicles.SelectMany(t => t.TimelineEvents);
+
+            var customReceivedEvent = vehicle.TimelineEvents
+                .FirstOrDefault(t => t.EventType.Code == TimeLineEventType.CUSTOM_RECEIVED.ToString());
+
+
+            return new VehicleLotOverviewDTO {
+                Id = vehicleLot.Id,
+                LotNo = vehicleLot.LotNo,
+                ModelCode = vehicle.Model.Code,
+                ModelName = vehicle.Model.Name,
+                CreatedAt = vehicleLot.CreatedAt,
+                CustomReceived = customReceivedEvent != null
+                        ? new TimelineEventDTO {
+                            EventType = customReceivedEvent.EventType.Code,
+                            EventDate = customReceivedEvent.EventDate,
+                            EventNote = customReceivedEvent.EventNote,
+                            CreatedAt = customReceivedEvent.CreatedAt,
+                            RemovedAt = customReceivedEvent.RemovedAt
+                        }
+                        : (TimelineEventDTO?)null
+            };
+        }
+
+        public async Task<List<Vehicle>> GetVehiclesByLot([Service] SkdContext context, string lotNo) =>
+                 await context.Vehicles.Where(t => t.Lot.LotNo == lotNo)
+                        .Include(t => t.Model)
+                        .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
+                        .ToListAsync();
 
         public async Task<VehicleModel?> GetVehicleModelById([Service] SkdContext context, Guid id) =>
                 await context.VehicleModels
@@ -188,7 +229,7 @@ namespace SKD.VCS.Server {
                     SequenceNo = t.SequenceNo,
                     CreatedAt = t.CreatedAt,
                     LotPartQuantitiesMatchShipment = t.LotPartQuantitiesMatchShipment,
-                    PartsCount = t.Parts.Count(),        
+                    PartsCount = t.Parts.Count(),
                 }).AsQueryable();
 
         public async Task<BomSummary?> GetBomSummaryById([Service] SkdContext context, Guid id) =>
