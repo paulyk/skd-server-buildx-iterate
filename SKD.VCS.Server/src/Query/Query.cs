@@ -133,24 +133,24 @@ namespace SKD.VCS.Server {
                 KitNo = vehicle.KitNo,
                 LotNo = vehicle.Lot.LotNo,
                 TimelineItems = timelineEventTypes.Select(evtType => {
-                        var timelineEvent = vehicle.TimelineEvents
-                            .Where(vt => vt.EventType.Code == evtType.Code)
-                            .Where(vt => vt.RemovedAt == null)
-                            .FirstOrDefault();
+                    var timelineEvent = vehicle.TimelineEvents
+                        .Where(vt => vt.EventType.Code == evtType.Code)
+                        .Where(vt => vt.RemovedAt == null)
+                        .FirstOrDefault();
 
-                        return timelineEvent != null
-                            ? new TimelineEventDTO {
-                                EventDate = timelineEvent.EventDate,
-                                EventNote = timelineEvent.EventNote,
-                                EventType = timelineEvent.EventType.Code,
-                                CreatedAt = timelineEvent.CreatedAt,
-                                Sequence = evtType.Sequecne
-                            }
-                            : new TimelineEventDTO {
-                                EventType = evtType.Code,
-                                Sequence = evtType.Sequecne
-                            };
-                    }).ToList()
+                    return timelineEvent != null
+                        ? new TimelineEventDTO {
+                            EventDate = timelineEvent.EventDate,
+                            EventNote = timelineEvent.EventNote,
+                            EventType = timelineEvent.EventType.Code,
+                            CreatedAt = timelineEvent.CreatedAt,
+                            Sequence = evtType.Sequecne
+                        }
+                        : new TimelineEventDTO {
+                            EventType = evtType.Code,
+                            Sequence = evtType.Sequecne
+                        };
+                }).ToList()
             };
 
             return dto;
@@ -178,6 +178,8 @@ namespace SKD.VCS.Server {
             var timelineEvents = vehicleLot.Vehicles.SelectMany(t => t.TimelineEvents);
 
             var customReceivedEvent = vehicle.TimelineEvents
+                .OrderByDescending(t => t.CreatedAt)
+                .Where(t => t.RemovedAt == null)
                 .FirstOrDefault(t => t.EventType.Code == TimeLineEventType.CUSTOM_RECEIVED.ToString());
 
             return new VehicleLotOverviewDTO {
@@ -186,15 +188,13 @@ namespace SKD.VCS.Server {
                 ModelCode = vehicle.Model.Code,
                 ModelName = vehicle.Model.Name,
                 CreatedAt = vehicleLot.CreatedAt,
-                CustomReceived = customReceivedEvent != null
-                        ? new TimelineEventDTO {
-                            EventType = customReceivedEvent.EventType.Code,
-                            EventDate = customReceivedEvent.EventDate,
-                            EventNote = customReceivedEvent.EventNote,
-                            CreatedAt = customReceivedEvent.CreatedAt,
-                            RemovedAt = customReceivedEvent.RemovedAt
-                        }
-                        : (TimelineEventDTO?)null
+                CustomReceived = new TimelineEventDTO {
+                    EventType = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
+                    EventDate = customReceivedEvent != null ? customReceivedEvent.EventDate : (DateTime?)null,
+                    EventNote = customReceivedEvent != null ? customReceivedEvent.EventNote : null,
+                    CreatedAt = customReceivedEvent != null ? customReceivedEvent.CreatedAt : (DateTime?)null,
+                    RemovedAt = customReceivedEvent != null ? customReceivedEvent.RemovedAt : (DateTime?)null
+                }
             };
         }
 

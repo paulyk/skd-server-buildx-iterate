@@ -397,9 +397,9 @@ namespace SKD.VCS.Model {
                 .Where(t => t.RemovedAt == null)
                 .Where(t => t.EventType.Code == dto.EventType.ToString())
                 .Where(t => t.EventDate == dto.EventDate)
-                .Any();
+                .ToList();
 
-            if (duplicateTimelineEventsFound) {
+            if (duplicateTimelineEventsFound.Count > 0) {
                 var dateStr = dto.EventDate.ToShortDateString();
                 errors.Add(new Error("VIN", $"duplicate vehicle timeline event: {dto.LotNo}, Type: {dto.EventType.ToString()} Date: {dateStr} "));
                 return errors;
