@@ -54,7 +54,10 @@ namespace SKD.VCS.Model {
             }
 
             // assign vin
-            var vehicleLot = await context.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
+            var vehicleLot = await context.VehicleLots
+                .Include(t => t.Vehicles)
+                .FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
+
             vehicleLot.Vehicles.ToList().ForEach(vehicle => {
                 var vin = dto.Kits.First(t => t.KitNo == vehicle.KitNo).VIN;
                 vehicle.VIN = vin;
@@ -142,7 +145,7 @@ namespace SKD.VCS.Model {
         public async Task<List<Error>> ValidateAssignVehicleLotVin(VehicleKitVinDTO dto) {
             var errors = new List<Error>();
 
-            var vehicleLot = await context.VehicleLots
+            var vehicleLot = await context.VehicleLots.AsNoTracking()
                 .Include(t => t.Vehicles)
                 .FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
 
@@ -170,12 +173,12 @@ namespace SKD.VCS.Model {
 
             // duplicatev vins
             var duplicate_vins = new List<string>();
-            dto.Kits.ToList().ForEach(async kit => {
-                var existing = await context.Vehicles.AnyAsync(t => t.VIN == kit.VIN);
+            foreach (var kit in dto.Kits) {
+                var existing = await context.Vehicles.AsNoTracking().AnyAsync(t => t.VIN == kit.VIN);
                 if (existing) {
                     duplicate_vins.Add(kit.VIN);
                 }
-            });
+            }
 
             if (duplicate_vins.Any()) {
                 errors.Add(new Error("", $"duplicate VIN(s) found {String.Join(", ", duplicate_vins)}"));
@@ -184,18 +187,16 @@ namespace SKD.VCS.Model {
 
             // Wehicles with matching kit numbers not found
             var kit_numbers_not_found = new List<string>();
-            dto.Kits.ToList().ForEach(async kit => {
-                var exists = await context.Vehicles.AnyAsync(t => t.KitNo == kit.KitNo);
+            foreach (var kit in dto.Kits) {
+                var exists = await context.Vehicles.AsNoTracking().AnyAsync(t => t.KitNo == kit.KitNo);
                 if (!exists) {
                     kit_numbers_not_found.Add(kit.KitNo);
                 }
-            });
-
+            }
             if (kit_numbers_not_found.Any()) {
                 errors.Add(new Error("", $"kit numbers not found {String.Join(", ", kit_numbers_not_found)}"));
                 return errors;
             }
-
 
             // kit count
             if (vehicleLot.Vehicles.Count() != dto.Kits.Count) {
@@ -221,7 +222,7 @@ namespace SKD.VCS.Model {
         public async Task<List<Error>> ValidateCreateVehicleLot(VehicleLotDTO dto) {
             var errors = new List<Error>();
 
-            var existingLot = await context.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
+            var existingLot = await context.VehicleLots.AsNoTracking().FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
             if (existingLot != null) {
                 errors.Add(new Error("lotNo", "duplicate vehicle lot"));
                 return errors;
@@ -253,7 +254,7 @@ namespace SKD.VCS.Model {
 
             // model code exits
             var modelCode = dto.Kits.Select(t => t.ModelCode).FirstOrDefault();
-            var existingModelCode = await context.VehicleModels.FirstOrDefaultAsync(t => t.Code == modelCode);
+            var existingModelCode = await context.VehicleModels.AsNoTracking().FirstOrDefaultAsync(t => t.Code == modelCode);
             if (existingModelCode == null) {
                 errors.Add(new Error("", $"vehicle model not found: {modelCode}"));
                 return errors;
@@ -353,7 +354,7 @@ namespace SKD.VCS.Model {
         public async Task<List<Error>> ValidateCreateVehicleTimelineEvent(VehicleTimelineEventDTO dto) {
             var errors = new List<Error>();
 
-            var vehicle = await context.Vehicles
+            var vehicle = await context.Vehicles.AsNoTracking()
                 .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .FirstOrDefaultAsync(t => t.VIN == dto.VIN);
             if (vehicle == null) {
@@ -381,7 +382,7 @@ namespace SKD.VCS.Model {
         public async Task<List<Error>> ValidateCreateVehicleLotTimelineEvent(VehicleLotTimelineEventDTO dto) {
             var errors = new List<Error>();
 
-            var vehicleLot = await context.VehicleLots
+            var vehicleLot = await context.VehicleLots.AsNoTracking()
                 .Include(t => t.Vehicles).ThenInclude(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
 
