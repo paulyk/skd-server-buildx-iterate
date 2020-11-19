@@ -74,12 +74,12 @@ namespace SKD.VCS.Model {
             }
 
             var vehicle = await context.Vehicles
-                .Include(t => t.TimelineEvents)
+                .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .FirstOrDefaultAsync(t => t.VIN == dto.VIN);
 
             // mark other timeline events of the same type as removed for this vehicle
             vehicle.TimelineEvents
-                .Where(t => t.EventType.Code == dto.EventTypeCode)
+                .Where(t => t.EventType.Code == dto.EventType.ToString())
                 .ToList().ForEach(timelieEvent => {
                     if (timelieEvent.RemovedAt == null) {
                         timelieEvent.RemovedAt = DateTime.UtcNow;
@@ -88,7 +88,7 @@ namespace SKD.VCS.Model {
 
             // create timeline event and add to vehicle
             var newTimelineEvent = new VehicleTimelineEvent {
-                EventType = await context.VehicleTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == dto.EventTypeCode),
+                EventType = await context.VehicleTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == dto.EventType.ToString()),
                 EventDate = dto.EventDate,
                 EventNote = dto.EventNote
             };
@@ -366,13 +366,13 @@ namespace SKD.VCS.Model {
             var duplicate = vehicle.TimelineEvents
                 .OrderByDescending(t => t.CreatedAt)
                 .Where(t => t.RemovedAt == null)
-                .Where(t => t.EventType.Code == dto.EventTypeCode)
+                .Where(t => t.EventType.Code == dto.EventType.ToString())
                 .Where(t => t.EventDate == dto.EventDate)
                 .FirstOrDefault();
 
             if (duplicate != null) {
                 var dateStr = dto.EventDate.ToShortDateString();
-                errors.Add(new Error("VIN", $"duplicate vehicle timeline event: {dto.EventTypeCode} {dateStr} "));
+                errors.Add(new Error("VIN", $"duplicate vehicle timeline event: {dto.EventType.ToString()} {dateStr} "));
                 return errors;
             }
 

@@ -277,7 +277,7 @@ namespace SKD.VCS.Test {
             foreach (var entry in timelineEvents) {
                 var dto = new VehicleTimelineEventDTO {
                     VIN = vehicle.VIN,
-                    EventTypeCode = entry.eventTypeCode,
+                    EventType = Enum.Parse<TimeLineEventType>(entry.eventTypeCode),
                     EventDate = entry.eventDate,
                 };
                 var payload = await service.CreateVehicleTimelineEvent(dto);
@@ -319,7 +319,7 @@ namespace SKD.VCS.Test {
             foreach (var entry in timelineEventItems) {
                 var dto = new VehicleTimelineEventDTO {
                     VIN = vehicle.VIN,
-                    EventTypeCode = entry.eventTypeCode,
+                    EventType =Enum.Parse<TimeLineEventType>(entry.eventTypeCode),
                     EventDate = entry.eventDate,
                     EventNote = entry.eventNode
                 };
@@ -359,12 +359,12 @@ namespace SKD.VCS.Test {
 
             var dto = new VehicleTimelineEventDTO {
                 VIN = vehicle.VIN,
-                EventTypeCode = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
+                EventType= TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = originalDate
             };
             var dto2 = new VehicleTimelineEventDTO {
                 VIN = vehicle.VIN,
-                EventTypeCode = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
+                EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = newDate
             };
 
@@ -406,12 +406,12 @@ namespace SKD.VCS.Test {
 
             var dto = new VehicleTimelineEventDTO {
                 VIN = vehicle.VIN,
-                EventTypeCode = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
+                EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = originalDate
             };
             var dto2 = new VehicleTimelineEventDTO {
                 VIN = vehicle.VIN,
-                EventTypeCode = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
+                EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = newDate
             };
 
