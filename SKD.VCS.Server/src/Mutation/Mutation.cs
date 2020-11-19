@@ -47,7 +47,7 @@ namespace SKD.VCS.Server {
             return await service.CreateVehicleTimelineEvent(input);
         }
 
-        public async Task<MutationPayload<VehicleLot>> CreateVehicleLotTimelineEvent(
+        public async Task<MutationPayload<VehicleLot>> j(
             [Service] VehicleService service,
             [Service] SkdContext ctx,
             VehicleLotTimelineEventDTO input

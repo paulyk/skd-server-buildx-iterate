@@ -116,7 +116,7 @@ namespace SKD.VCS.Server {
 
         public async Task<VehicleTimelineDTO?> GetVehicleTimeline([Service] SkdContext context, string vinOrKitNo) {
             var vehicle = await context.Vehicles.AsNoTracking()
-                    .Include(t => t.TimelineEvents)
+                    .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                     .Include(t => t.Lot)
                     .FirstOrDefaultAsync(t => t.VIN == vinOrKitNo || t.KitNo == vinOrKitNo);
 
@@ -124,31 +124,33 @@ namespace SKD.VCS.Server {
                 return (VehicleTimelineDTO?)null;
             }
 
-            var timelineEventTypes = await context.VehicleTimelineEventTypes.AsNoTracking().Where(t => t.RemovedAt == null).ToListAsync();
+            var timelineEventTypes = await context.VehicleTimelineEventTypes.AsNoTracking()
+                .OrderBy(t => t.Sequecne)
+                .Where(t => t.RemovedAt == null).ToListAsync();
 
             var dto = new VehicleTimelineDTO {
                 VIN = vehicle.VIN,
                 KitNo = vehicle.KitNo,
                 LotNo = vehicle.Lot.LotNo,
-                TimelineItems = timelineEventTypes.OrderBy(evtType => evtType.Sequecne).Select(evtType => {
-                    var timelineEvent = vehicle.TimelineEvents
-                        .Where(vt => vt.EventType.Code == evtType.Code)
-                        .Where(vt => vt.RemovedAt == null)
-                        .FirstOrDefault();
+                TimelineItems = timelineEventTypes.Select(evtType => {
+                        var timelineEvent = vehicle.TimelineEvents
+                            .Where(vt => vt.EventType.Code == evtType.Code)
+                            .Where(vt => vt.RemovedAt == null)
+                            .FirstOrDefault();
 
-                    return timelineEvent != null
-                        ? new TimelineEventDTO {
-                            EventDate = timelineEvent.EventDate,
-                            EventNote = timelineEvent.EventNote,
-                            EventType = timelineEvent.EventType.Code,
-                            CreatedAt = timelineEvent.CreatedAt,
-                            Sequence = evtType.Sequecne
-                        }
-                        : new TimelineEventDTO {
-                            EventType = evtType.Code,
-                            Sequence = evtType.Sequecne
-                        };
-                }).ToList()
+                        return timelineEvent != null
+                            ? new TimelineEventDTO {
+                                EventDate = timelineEvent.EventDate,
+                                EventNote = timelineEvent.EventNote,
+                                EventType = timelineEvent.EventType.Code,
+                                CreatedAt = timelineEvent.CreatedAt,
+                                Sequence = evtType.Sequecne
+                            }
+                            : new TimelineEventDTO {
+                                EventType = evtType.Code,
+                                Sequence = evtType.Sequecne
+                            };
+                    }).ToList()
             };
 
             return dto;
