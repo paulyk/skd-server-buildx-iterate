@@ -59,7 +59,6 @@ namespace SKD.VCS.Server {
                 .AddType<ComponentScanInputType>()
                 .AddType<KitVinDtoType>()
                 .AddType<VehicleTimelineDTOType>()
-                .AddType<VehicleTimelineEventDTOType>()
                 .AddType<VehicleModelType>()
                 .AddType<VehicleComponentType>()
                 .Create(), new QueryExecutionOptions { ForceSerialExecution = true });

@@ -75,7 +75,7 @@ namespace SKD.VCS.Model {
 
             var vehicle = await context.Vehicles
                 .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
-                .FirstOrDefaultAsync(t => t.VIN == dto.VIN);
+                .FirstOrDefaultAsync(t => t.KitNo == dto.KitNo);
 
             // mark other timeline events of the same type as removed for this vehicle
             vehicle.TimelineEvents
@@ -356,9 +356,9 @@ namespace SKD.VCS.Model {
 
             var vehicle = await context.Vehicles.AsNoTracking()
                 .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
-                .FirstOrDefaultAsync(t => t.VIN == dto.VIN);
+                .FirstOrDefaultAsync(t => t.KitNo == dto.KitNo);
             if (vehicle == null) {
-                errors.Add(new Error("VIN", $"vehicle not found for vin: {dto.VIN}"));
+                errors.Add(new Error("VIN", $"vehicle not found for vin: {dto.KitNo}"));
                 return errors;
             }
 

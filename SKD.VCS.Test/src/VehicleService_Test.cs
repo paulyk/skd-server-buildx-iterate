@@ -276,7 +276,7 @@ namespace SKD.VCS.Test {
 
             foreach (var entry in timelineEvents) {
                 var dto = new VehicleTimelineEventDTO {
-                    VIN = vehicle.VIN,
+                    KitNo = vehicle.KitNo,
                     EventType = Enum.Parse<TimeLineEventType>(entry.eventTypeCode),
                     EventDate = entry.eventDate,
                 };
@@ -318,7 +318,7 @@ namespace SKD.VCS.Test {
 
             foreach (var entry in timelineEventItems) {
                 var dto = new VehicleTimelineEventDTO {
-                    VIN = vehicle.VIN,
+                    KitNo = vehicle.KitNo,
                     EventType =Enum.Parse<TimeLineEventType>(entry.eventTypeCode),
                     EventDate = entry.eventDate,
                     EventNote = entry.eventNode
@@ -358,12 +358,12 @@ namespace SKD.VCS.Test {
             var newDate = new DateTime(2020, 11, 30);
 
             var dto = new VehicleTimelineEventDTO {
-                VIN = vehicle.VIN,
+                KitNo = vehicle.KitNo,
                 EventType= TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = originalDate
             };
             var dto2 = new VehicleTimelineEventDTO {
-                VIN = vehicle.VIN,
+                KitNo = vehicle.KitNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = newDate
             };
@@ -405,12 +405,12 @@ namespace SKD.VCS.Test {
             var newDate = new DateTime(2020, 11, 30);
 
             var dto = new VehicleTimelineEventDTO {
-                VIN = vehicle.VIN,
+                KitNo = vehicle.KitNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = originalDate
             };
             var dto2 = new VehicleTimelineEventDTO {
-                VIN = vehicle.VIN,
+                KitNo = vehicle.KitNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = newDate
             };
