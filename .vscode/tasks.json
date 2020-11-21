@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/SKD.VCS.Seed/SKD.VCS.Seed.csproj",
+                "${workspaceFolder}/SKD.Seed/SKD.Seed.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/SKD.VCS.Seed/SKD.VCS.Seed.csproj",
+                "${workspaceFolder}/SKD.Seed/SKD.Seed.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -32,7 +32,7 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/SKD.VCS.Seed/SKD.VCS.Seed.csproj",
+                "${workspaceFolder}/SKD.Seed/SKD.Seed.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -47,12 +47,12 @@
             "dockerBuild": {
                 "tag": "skdserver:dev",
                 "target": "base",
-                "dockerfile": "${workspaceFolder}/SKD.VCS.Server/Dockerfile",
+                "dockerfile": "${workspaceFolder}/SKD.Server/Dockerfile",
                 "context": "${workspaceFolder}",
                 "pull": true
             },
             "netCore": {
-                "appProject": "${workspaceFolder}/SKD.VCS.Server/SKD.VCS.Server.csproj"
+                "appProject": "${workspaceFolder}/SKD.Server/SKD.Server.csproj"
             }
         },
         {
@@ -63,12 +63,12 @@
             ],
             "dockerBuild": {
                 "tag": "skdserver:latest",
-                "dockerfile": "${workspaceFolder}/SKD.VCS.Server/Dockerfile",
+                "dockerfile": "${workspaceFolder}/SKD.Server/Dockerfile",
                 "context": "${workspaceFolder}",
                 "pull": true
             },
             "netCore": {
-                "appProject": "${workspaceFolder}/SKD.VCS.Server/SKD.VCS.Server.csproj"
+                "appProject": "${workspaceFolder}/SKD.Server/SKD.Server.csproj"
             }
         },
         {
@@ -79,7 +79,7 @@
             ],
             "dockerRun": {},
             "netCore": {
-                "appProject": "${workspaceFolder}/SKD.VCS.Server/SKD.VCS.Server.csproj",
+                "appProject": "${workspaceFolder}/SKD.Server/SKD.Server.csproj",
                 "enableDebugging": true
             }
         },
@@ -91,7 +91,7 @@
             ],
             "dockerRun": {},
             "netCore": {
-                "appProject": "${workspaceFolder}/SKD.VCS.Server/SKD.VCS.Server.csproj"
+                "appProject": "${workspaceFolder}/SKD.Server/SKD.Server.csproj"
             }
         }
     ]

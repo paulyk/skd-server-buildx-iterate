@@ -4,7 +4,7 @@
 
 ## run
 ```
-dotnet run --project SKD.VCS.Server
+dotnet run --project SKD.Server
 ```
 
 ## dev database and connections string
@@ -29,7 +29,7 @@ Mkake sure your `appsettings.json` connection string matches
 
 ```
 docker-compose  -f docker-compose.dev.yml up -d
-dotnet run --project SKD.VCS.Server
+dotnet run --project SKD.Server
 ```
 
 ## seed with mock data
@@ -50,27 +50,27 @@ dotnet tool update --global dotnet-ef
 ### Add migrations
 
 ```bash
-dotnet ef migrations add <igration-name> -o src/Migrations  --project SKD.VCS.Model 
+dotnet ef migrations add <igration-name> -o src/Migrations  --project SKD.Model 
 ```
 
 ### Remove migratins
 ```
-dotnet ef migrations remove --project SKD.VCS.Model
+dotnet ef migrations remove --project SKD.Model
 ```
 ### Update database
 
 ```bash
-dotnet ef database update --project SKD.VCS.Model
+dotnet ef database update --project SKD.Model
 dotnet ef database update --connection your_connection_string
 ```
 
 ### Revert to specific migration 
 ```
-dotnet ef database update Migration_Name  --project SKD.VCS.Model
+dotnet ef database update Migration_Name  --project SKD.Model
 dotnet ef database update Migration_Name --connection your_connection_string
 ```
 
 ### List migrations
 ```
-dotnet ef migrations list --project SKD.VCS.Model
+dotnet ef migrations list --project SKD.Model
 ```

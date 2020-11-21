@@ -5,24 +5,24 @@
    "version": "0.2.0",
    "configurations": [
     {
-        "name": "SKD.VCS.Seed",
+        "name": "SKD.Seed",
         "type": "coreclr",
         "request": "launch",
         "preLaunchTask": "build",
-        "program": "${workspaceFolder}/SKD.VCS.Seed/bin/Debug/net5/SKD.VCS.Seed.dll",
+        "program": "${workspaceFolder}/SKD.Seed/bin/Debug/net5/SKD.Seed.dll",
         "args": [],
-        "cwd": "${workspaceFolder}/SKD.VCS.Seed",
+        "cwd": "${workspaceFolder}/SKD.Seed",
         "console": "internalConsole",
         "stopAtEntry": false
     },
     {
-        "name": "SKD.VCS.Server",
+        "name": "SKD.Server",
         "type": "coreclr",
         "request": "launch",
         "preLaunchTask": "build",
-        "program": "${workspaceFolder}/SKD.VCS.Server/bin/Debug/net5.0/SKD.VCS.Server.dll",
+        "program": "${workspaceFolder}/SKD.Server/bin/Debug/net5.0/SKD.Server.dll",
         "args": [],
-        "cwd": "${workspaceFolder}/SKD.VCS.Server",
+        "cwd": "${workspaceFolder}/SKD.Server",
         "console": "internalConsole",
         "stopAtEntry": false
     },
@@ -38,7 +38,7 @@
         "request": "launch",
         "preLaunchTask": "docker-run: debug",
         "netCore": {
-            "appProject": "${workspaceFolder}/SKD.VCS.Server/SKD.VCS.Server.csproj"
+            "appProject": "${workspaceFolder}/SKD.Server/SKD.Server.csproj"
         }
     }
 ]

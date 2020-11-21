@@ -6,7 +6,7 @@ services:
     image: skdvcs
     build:
       context: .
-      dockerfile: SKD.VCS.Server/Dockerfile
+      dockerfile: SKD.Server/Dockerfile
     ports:
       - 5100:80
       - 5101:443
