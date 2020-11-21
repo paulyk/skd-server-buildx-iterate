@@ -29,7 +29,7 @@ namespace SKD.Model {
 
             // create vehicle records and add to vehicleLot.Vehicles
             foreach (var vehicleDTO in dto.Kits) {
-                var vehiclePayload = await CreateVehicleKit(vehicleDTO);
+                var vehiclePayload = await CreateVehicleFromKitDTO(vehicleDTO);
                 if (vehiclePayload.Errors.Any()) {
                     payload.Errors.AddRange(vehiclePayload.Errors);
                     break;
@@ -40,8 +40,15 @@ namespace SKD.Model {
                 return payload;
             }
 
+            // ensure plant code
+            var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == dto.PlantCode);
+            if (plant == null) {
+                plant = new Plant { Code = dto.PlantCode, Name = dto.PlantCode };
+                context.Plants.Add(plant);
+            }
+            plant.VehicleLots.Add(vehicleLot);
+
             // persist
-            context.VehicleLots.Add(vehicleLot);
             await context.SaveChangesAsync();
             return payload;
         }
@@ -149,6 +156,7 @@ namespace SKD.Model {
                 .Include(t => t.Vehicles)
                 .FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
 
+            // lotNO
             if (vehicleLot == null) {
                 errors.Add(new Error("lotNo", $"vehicle lot not found: {dto.LotNo}"));
                 return errors;
@@ -228,6 +236,18 @@ namespace SKD.Model {
                 return errors;
             }
 
+            // valid lotNo legnth
+            if (dto.LotNo.Length != EntityFieldLen.Vehicle_LotNo) {
+                errors.Add(new Error("lotNo", $"lotNo must be ${EntityFieldLen.Vehicle_LotNo} characters"));
+                return errors;
+            }
+
+            // plant code
+            if (dto.PlantCode.Length != EntityFieldLen.Plant_Code) {
+                errors.Add(new Error("plantCode", $"plantCode must be ${EntityFieldLen.Plant_Code} characters"));
+                return errors;
+            }
+
             if (!dto.Kits.Any()) {
                 errors.Add(new Error("", "no vehicles found in lot"));
                 return errors;
@@ -263,14 +283,14 @@ namespace SKD.Model {
             return errors;
         }
 
-        public async Task<MutationPayload<Vehicle>> CreateVehicleKit(VehicleLotDTO.Kit dto) {
+        public async Task<MutationPayload<Vehicle>> CreateVehicleFromKitDTO(VehicleLotDTO.Kit dto) {
             var modelId = await context.VehicleModels
                 .Where(t => t.Code == dto.ModelCode)
                 .Select(t => t.Id).FirstOrDefaultAsync();
 
             var vehicle = new Vehicle {
                 ModelId = modelId,
-                KitNo = dto.KitNo,
+                KitNo = dto.KitNo
             };
 
             var payload = new MutationPayload<Vehicle>(vehicle);

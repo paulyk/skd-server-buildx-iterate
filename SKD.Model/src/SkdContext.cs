@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 namespace SKD.Model {
     public class SkdContext : DbContext {
         public DbSet<User> Users { get; set; }
+
+        public DbSet<Plant> Plants { get; set; }
         public DbSet<Vehicle> Vehicles { get; set; }
         public DbSet<VehicleTimelineEvent> VehicleTimelineEvents { get; set; }
         public DbSet<VehicleTimelineEventType> VehicleTimelineEventTypes { get; set; }
@@ -30,6 +32,7 @@ namespace SKD.Model {
         protected override void OnModelCreating(ModelBuilder builder) {
             builder.ApplyConfiguration(new Component_Config());
             builder.ApplyConfiguration(new User_Config());
+            builder.ApplyConfiguration(new Plant_Config());
             builder.ApplyConfiguration(new Vehicle_Config());
             builder.ApplyConfiguration(new VehicleLot_Config());
             builder.ApplyConfiguration(new VehicleModel_Config());

@@ -23,8 +23,9 @@ namespace SKD.Test {
                 ("component_2", "station_2")
             });
             var lotNo = Gen_LotNo();
+            var plantCode = Gen_PlantCode();
             var kitNos = new List<string> { Gen_KitNo(), Gen_KitNo() };
-            var vehicleLotDTO = Gen_VehicleLot_DTO(lotNo, modelCode, kitNos);
+            var vehicleLotDTO = Gen_VehicleLot_DTO(lotNo, plantCode, modelCode, kitNos);
 
             var before_count = await ctx.VehicleLots.CountAsync();
             // test
@@ -34,6 +35,9 @@ namespace SKD.Test {
 
             // assert
             Assert.Equal(before_count + 1, after_count);
+
+            var plant = await ctx.Plants.FirstOrDefaultAsync(t => t.Code == plantCode);
+            Assert.NotNull(plant);
         }
 
         [Fact]
@@ -46,7 +50,7 @@ namespace SKD.Test {
 
             var lotNo = Util.RandomString(EntityFieldLen.Vehicle_LotNo).ToUpper();
             var kitNos = new List<string> { };
-            var vehicleLotDTO = Gen_VehicleLot_DTO(lotNo: lotNo, modelCode: modelCode, kitNos);
+            var vehicleLotDTO = Gen_VehicleLot_DTO(lotNo, Gen_PlantCode(), modelCode, kitNos);
 
             // test
             var service = new VehicleService(ctx);
@@ -72,7 +76,7 @@ namespace SKD.Test {
 
             var kitNo = Gen_KitNo();
             var kitNos = new List<string> { kitNo, kitNo };
-            var vehicleLotDTO = Gen_VehicleLot_DTO(lotNo: lotNo, modelCode: modelCode, kitNos);
+            var vehicleLotDTO = Gen_VehicleLot_DTO(lotNo, Gen_PlantCode(), modelCode, kitNos);
 
             // test
             var service = new VehicleService(ctx);
@@ -93,7 +97,7 @@ namespace SKD.Test {
             var kitNos = new List<string> { Gen_KitNo(), Gen_KitNo() };
 
             var nonExistendModelCode = Util.RandomString(EntityFieldLen.VehicleModel_Code);
-            var vehicleLotDTO = Gen_VehicleLot_DTO(lotNo: lotNo, modelCode: nonExistendModelCode, kitNos);
+            var vehicleLotDTO = Gen_VehicleLot_DTO(lotNo, Gen_PlantCode(), nonExistendModelCode, kitNos);
 
             // test
             var service = new VehicleService(ctx);
@@ -117,7 +121,7 @@ namespace SKD.Test {
             var lotNo = Gen_LotNo();
 
             var kitNos = new List<string> { Gen_KitNo(), Gen_KitNo() };
-            var dto = Gen_VehicleLot_DTO(lotNo: lotNo, modelCode: modelCode, kitNos);
+            var dto = Gen_VehicleLot_DTO(lotNo, Gen_PlantCode(), modelCode, kitNos);
 
             // test
             var service = new VehicleService(ctx);
@@ -319,7 +323,7 @@ namespace SKD.Test {
             foreach (var entry in timelineEventItems) {
                 var dto = new VehicleTimelineEventDTO {
                     KitNo = vehicle.KitNo,
-                    EventType =Enum.Parse<TimeLineEventType>(entry.eventTypeCode),
+                    EventType = Enum.Parse<TimeLineEventType>(entry.eventTypeCode),
                     EventDate = entry.eventDate,
                     EventNote = entry.eventNode
                 };
@@ -359,7 +363,7 @@ namespace SKD.Test {
 
             var dto = new VehicleTimelineEventDTO {
                 KitNo = vehicle.KitNo,
-                EventType= TimeLineEventType.CUSTOM_RECEIVED,
+                EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = originalDate
             };
             var dto2 = new VehicleTimelineEventDTO {
@@ -498,7 +502,7 @@ namespace SKD.Test {
             Assert.Equal(1, errorCount_2);
 
             var errorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
-            var expectedMessage  = "duplicate vehicle timeline event";
+            var expectedMessage = "duplicate vehicle timeline event";
             Assert.Equal(expectedMessage, errorMessage.Substring(0, expectedMessage.Length));
         }
         private async Task<VehicleLot> Gen_Vehicle_Lot(string lotNo, params string[] kitNos) {
@@ -517,6 +521,7 @@ namespace SKD.Test {
 
             var vehicleLotDto = Gen_VehicleLot_DTO(
                 lotNo,
+                Gen_PlantCode(),
                 modelCode,
                 kitNos.ToList()
              );
@@ -531,10 +536,12 @@ namespace SKD.Test {
 
         private VehicleLotDTO Gen_VehicleLot_DTO(
             string lotNo,
+            string plantCode,
             string modelCode,
             List<string> kitNos) {
             return new VehicleLotDTO {
                 LotNo = lotNo,
+                PlantCode = plantCode,
                 Kits = kitNos.Select(kitNo => new VehicleLotDTO.Kit {
                     KitNo = kitNo,
                     ModelCode = modelCode,

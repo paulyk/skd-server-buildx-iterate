@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SKD.Model;
 
-namespace SKD.Model.src.Migrations
+namespace SKD.Model.Migrations
 {
     [DbContext(typeof(SkdContext))]
-    partial class SkdContextModelSnapshot : ModelSnapshot
+    [Migration("20201121113726_Intial")]
+    partial class Intial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -203,6 +205,36 @@ namespace SKD.Model.src.Migrations
                     b.HasIndex("ComponentScanId");
 
                     b.ToTable("dcws_response");
+                });
+
+            modelBuilder.Entity("SKD.Model.Plant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("RemovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("plant");
                 });
 
             modelBuilder.Entity("SKD.Model.ProductionStation", b =>
@@ -491,6 +523,9 @@ namespace SKD.Model.src.Migrations
                         .HasMaxLength(15)
                         .HasColumnType("nvarchar(15)");
 
+                    b.Property<Guid>("PlantId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
 
@@ -499,6 +534,8 @@ namespace SKD.Model.src.Migrations
                     b.HasIndex("LotNo")
                         .IsUnique()
                         .HasFilter("[LotNo] IS NOT NULL");
+
+                    b.HasIndex("PlantId");
 
                     b.ToTable("vehicle_lot");
                 });
@@ -757,6 +794,17 @@ namespace SKD.Model.src.Migrations
                     b.Navigation("Vehicle");
                 });
 
+            modelBuilder.Entity("SKD.Model.VehicleLot", b =>
+                {
+                    b.HasOne("SKD.Model.Plant", "Plant")
+                        .WithMany("VehicleLots")
+                        .HasForeignKey("PlantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Plant");
+                });
+
             modelBuilder.Entity("SKD.Model.VehicleModelComponent", b =>
                 {
                     b.HasOne("SKD.Model.Component", "Component")
@@ -818,6 +866,11 @@ namespace SKD.Model.src.Migrations
             modelBuilder.Entity("SKD.Model.ComponentScan", b =>
                 {
                     b.Navigation("DCWSResponses");
+                });
+
+            modelBuilder.Entity("SKD.Model.Plant", b =>
+                {
+                    b.Navigation("VehicleLots");
                 });
 
             modelBuilder.Entity("SKD.Model.ProductionStation", b =>

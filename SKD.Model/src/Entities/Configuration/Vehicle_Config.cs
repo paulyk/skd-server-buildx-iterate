@@ -32,6 +32,7 @@ namespace SKD.Model {
             builder.HasMany(t => t.TimelineEvents)
                 .WithOne(t => t.Vehicle)
                 .HasForeignKey(t => t.VehicleId);
+
         }
     }
 }

@@ -109,6 +109,12 @@ namespace SKD.Test {
             string modelCode
             ) {
 
+            // plant
+            var plantCode = Gen_PlantCode();
+            var plant = new Plant { Code = plantCode };
+            ctx.Plants.Add(plant);
+
+            // model
             var vehicleModel = ctx.VehicleModels
                 .Include(t => t.ModelComponents)
                 .FirstOrDefault(t => t.Code == modelCode);
@@ -118,7 +124,7 @@ namespace SKD.Test {
                 ProductionStationId = mc.ProductionStationId
             }).ToList();
 
-            var vehicleLot = new VehicleLot { LotNo = lotNo };
+            var vehicleLot = new VehicleLot { LotNo = lotNo, Plant = plant };
             ctx.VehicleLots.Add(vehicleLot);
 
             var vehicle = new Vehicle {
@@ -148,16 +154,16 @@ namespace SKD.Test {
               );
 
             // cretre vehicle based on that model
-            var vehicle =  Gen_Vehicle_From_Model(ctx,
-                vin: Gen_Vin(),    
-                kitNo: Gen_KitNo(),            
+            var vehicle = Gen_Vehicle_From_Model(ctx,
+                vin: Gen_Vin(),
+                kitNo: Gen_KitNo(),
                 lotNo: Gen_LotNo(),
                 modelCode: modelCode);
             return vehicle;
         }
 
         public void Gen_VehicleTimelineEventTypes(SkdContext ctx) {
-              var eventTypes = new List<VehicleTimelineEventType> {
+            var eventTypes = new List<VehicleTimelineEventType> {
                 new VehicleTimelineEventType {
                     Code = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
                 },
@@ -203,5 +209,9 @@ namespace SKD.Test {
         public string Gen_ProductionStationCode() {
             return Util.RandomString(EntityFieldLen.ProductionStation_Code).ToUpper();
         }
+        public string Gen_PlantCode() {
+            return Util.RandomString(EntityFieldLen.Plant_Code).ToUpper();
+        }
+
     }
 }

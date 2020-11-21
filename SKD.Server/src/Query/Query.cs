@@ -168,6 +168,7 @@ namespace SKD.Server {
             var vehicleLot = await context.VehicleLots.AsNoTracking()
                 .Include(t => t.Vehicles).ThenInclude(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .Include(t => t.Vehicles).ThenInclude(t => t.Model)
+                .Include(t => t.Plant)
                 .FirstOrDefaultAsync(t => t.LotNo == lotNo);
 
             if (vehicleLot == null) {
@@ -185,6 +186,7 @@ namespace SKD.Server {
             return new VehicleLotOverviewDTO {
                 Id = vehicleLot.Id,
                 LotNo = vehicleLot.LotNo,
+                PlantCode = vehicleLot.Plant.Code,
                 ModelCode = vehicle.Model.Code,
                 ModelName = vehicle.Model.Name,
                 CreatedAt = vehicleLot.CreatedAt,

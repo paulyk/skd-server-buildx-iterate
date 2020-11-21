@@ -10,8 +10,8 @@ namespace SKD.Model {
         public static int ProductionStation_Code = 15;
         public static int ProductionStation_Name = 100;
 
-        public static int ProductionPlant_Code = 10;
-        public static int ProductionPlant_Name = 100;
+        public static int Plant_Code = 5;
+        public static int Plant_Name = 100;
 
         public static int Vehicle_VIN = 17;
         public static int Vehicle_LotNo = 15;

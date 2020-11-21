@@ -147,18 +147,25 @@ namespace SKD.Test {
         public void can_add_vehicle() {
             using (var ctx = GetAppDbContext()) {
                 // setup
+
+                // model
                 var vehicleModel = new VehicleModel() {
                     Code = new String('X', EntityFieldLen.VehicleModel_Code),
                     Name = new String('X', EntityFieldLen.VehicleModel_Name),
                     Type = new String('X', EntityFieldLen.VehicleModel_Type),
                 };
-
                 ctx.VehicleModels.Add(vehicleModel);
 
+                // plant
+                var plant = new Plant { Code = Gen_PlantCode() };
+                ctx.Plants.Add(plant);
+
+                // lot
                 var lotNo = new String('X', EntityFieldLen.Vehicle_LotNo);
-                var vehicleLot = new VehicleLot { LotNo = lotNo };
+                var vehicleLot = new VehicleLot { LotNo = lotNo, Plant = plant };
                 ctx.VehicleLots.Add(vehicleLot);
 
+                // vehicle 
                 var vehicle = new Vehicle() {
                     VIN = new String('X', EntityFieldLen.Vehicle_VIN),
                     Lot = vehicleLot,

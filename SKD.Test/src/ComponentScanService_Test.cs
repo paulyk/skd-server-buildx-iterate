@@ -341,6 +341,7 @@ namespace SKD.Test {
                 ctx: ctx,
                 vin: Gen_Vin(),
                 kitNo: Gen_KitNo(),
+                
                 lotNo: Gen_LotNo(),
                 modelCode: modelCode);
 

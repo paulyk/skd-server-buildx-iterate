@@ -5,8 +5,8 @@ namespace SKD.Model {
 
     public class VehicleLotDTO {
         public string LotNo { get; init; }
+        public string PlantCode { get; set; }
         public List<Kit> Kits { get; init; }
-
 
         public class Kit {
             public string KitNo { get; init; }

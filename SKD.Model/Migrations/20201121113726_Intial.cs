@@ -1,9 +1,9 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace SKD.Model.src.Migrations
+namespace SKD.Model.Migrations
 {
-    public partial class Initail : Migration
+    public partial class Intial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -36,6 +36,21 @@ namespace SKD.Model.src.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_component", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "plant",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", maxLength: 36, nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(5)", maxLength: 5, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RemovedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_plant", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -80,20 +95,6 @@ namespace SKD.Model.src.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_user", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "vehicle_lot",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", maxLength: 36, nullable: false),
-                    LotNo = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    RemovedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_vehicle_lot", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -154,6 +155,27 @@ namespace SKD.Model.src.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "vehicle_lot",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", maxLength: 36, nullable: false),
+                    LotNo = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: true),
+                    PlantId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RemovedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_vehicle_lot", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_vehicle_lot_plant_PlantId",
+                        column: x => x.PlantId,
+                        principalTable: "plant",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "shipment_lot",
                 columns: table => new
                 {
@@ -170,35 +192,6 @@ namespace SKD.Model.src.Migrations
                         name: "FK_shipment_lot_shipment_ShipmentId",
                         column: x => x.ShipmentId,
                         principalTable: "shipment",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "vehicle",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", maxLength: 36, nullable: false),
-                    VIN = table.Column<string>(type: "nvarchar(17)", maxLength: 17, nullable: true),
-                    KitNo = table.Column<string>(type: "nvarchar(17)", maxLength: 17, nullable: false),
-                    ModelId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    LotId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    RemovedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_vehicle", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_vehicle_vehicle_lot_LotId",
-                        column: x => x.LotId,
-                        principalTable: "vehicle_lot",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_vehicle_vehicle_model_ModelId",
-                        column: x => x.ModelId,
-                        principalTable: "vehicle_model",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -232,6 +225,35 @@ namespace SKD.Model.src.Migrations
                     table.ForeignKey(
                         name: "FK_vehicle_model_component_vehicle_model_VehicleModelId",
                         column: x => x.VehicleModelId,
+                        principalTable: "vehicle_model",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "vehicle",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", maxLength: 36, nullable: false),
+                    VIN = table.Column<string>(type: "nvarchar(17)", maxLength: 17, nullable: true),
+                    KitNo = table.Column<string>(type: "nvarchar(17)", maxLength: 17, nullable: false),
+                    ModelId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    LotId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RemovedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_vehicle", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_vehicle_vehicle_lot_LotId",
+                        column: x => x.LotId,
+                        principalTable: "vehicle_lot",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_vehicle_vehicle_model_ModelId",
+                        column: x => x.ModelId,
                         principalTable: "vehicle_model",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -447,6 +469,12 @@ namespace SKD.Model.src.Migrations
                 column: "ComponentScanId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_plant_Code",
+                table: "plant",
+                column: "Code",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_production_station_Code",
                 table: "production_station",
                 column: "Code",
@@ -544,6 +572,11 @@ namespace SKD.Model.src.Migrations
                 column: "LotNo",
                 unique: true,
                 filter: "[LotNo] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_vehicle_lot_PlantId",
+                table: "vehicle_lot",
+                column: "PlantId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_vehicle_model_Code",
@@ -650,6 +683,9 @@ namespace SKD.Model.src.Migrations
 
             migrationBuilder.DropTable(
                 name: "vehicle_model");
+
+            migrationBuilder.DropTable(
+                name: "plant");
         }
     }
 }
