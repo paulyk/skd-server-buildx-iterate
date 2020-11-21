@@ -165,7 +165,7 @@ namespace SKD.Server {
                         .FirstOrDefaultAsync(t => t.LotNo == lotNo);
 
         public async Task<VehicleLotOverviewDTO?> GetVehicleLotOverview([Service] SkdContext context, string lotNo) {
-            var vehicleLot = await context.VehicleLots.AsNoTracking()
+            var vehicleLot = await context.VehicleLots.OrderBy(t => t.LotNo).AsNoTracking()
                 .Include(t => t.Vehicles).ThenInclude(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .Include(t => t.Vehicles).ThenInclude(t => t.Model)
                 .Include(t => t.Plant)
@@ -201,7 +201,7 @@ namespace SKD.Server {
         }
 
         public async Task<List<Vehicle>> GetVehiclesByLot([Service] SkdContext context, string lotNo) =>
-                 await context.Vehicles.AsNoTracking()
+                 await context.Vehicles.OrderBy(t => t.Lot).AsNoTracking()
                     .Where(t => t.Lot.LotNo == lotNo)
                         .Include(t => t.Model)
                         .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)

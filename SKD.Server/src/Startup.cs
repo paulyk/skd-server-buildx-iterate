@@ -37,7 +37,8 @@ namespace SKD.Server {
 
             services.AddDbContext<SkdContext>(options => {
                 var connectionString = Configuration.GetConnectionString("Default");
-                options.UseSqlServer(connectionString);
+                options.UseSqlServer(connectionString, 
+                b => b.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery));
             }, ServiceLifetime.Transient);
 
             services
