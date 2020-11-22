@@ -1,9 +1,8 @@
 using System;
 
 namespace SKD.Model {
-     public class ProductionStationDTO {
-        public Guid Id { get; set; }
+    public class ProductionPlantInput {
         public string Code { get; set; }
         public string Name { get; set; }
-    }
+    }   
 }

@@ -19,7 +19,7 @@ namespace SKD.Test {
         public async Task can_create_component_scan() {
             var vehicleComponent = ctx.VehicleComponents.FirstOrDefault();
 
-            var dto = new ComponentScanDTO {
+            var dto = new ComponentScanInput {
                 VehicleComponentId = vehicleComponent.Id,
                 Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
                 Scan2 = ""
@@ -35,7 +35,7 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_create_component_scan_if_vehicleComponentId_not_found() {
 
-            var dto = new ComponentScanDTO {
+            var dto = new ComponentScanInput {
                 VehicleComponentId = Guid.NewGuid(),
                 Scan1 = Util.RandomString(12),
                 Scan2 = ""
@@ -78,7 +78,7 @@ namespace SKD.Test {
         public async Task cannot_create_component_scan_if_scan1_scan2_empty() {
             var vehicleComponent = await ctx.VehicleComponents.FirstOrDefaultAsync();
 
-            var dto = new ComponentScanDTO {
+            var dto = new ComponentScanInput {
                 VehicleComponentId = vehicleComponent.Id,
                 Scan1 = "",
                 Scan2 = ""
@@ -95,7 +95,7 @@ namespace SKD.Test {
         public async Task cannot_create_component_scan_if_less_than_min_length() {
             var vehicleComponent = await ctx.VehicleComponents.FirstOrDefaultAsync();
 
-            var dto = new ComponentScanDTO {
+            var dto = new ComponentScanInput {
                 VehicleComponentId = vehicleComponent.Id,
                 Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry_Min - 1),
                 Scan2 = ""
@@ -122,13 +122,13 @@ namespace SKD.Test {
             var vehicleComponent = vehicle.VehicleComponents
                 .OrderBy(t => t.ProductionStation.SortOrder).First();
 
-            var dto_1 = new ComponentScanDTO {
+            var dto_1 = new ComponentScanInput {
                 VehicleComponentId = vehicleComponent.Id,
                 Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
                 Scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)
             };
 
-            var dto_2 = new ComponentScanDTO {
+            var dto_2 = new ComponentScanInput {
                 VehicleComponentId = vehicleComponent.Id,
                 Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
                 Scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)
@@ -159,13 +159,13 @@ namespace SKD.Test {
             var vehicleComponent = vehicle.VehicleComponents
                 .OrderBy(t => t.ProductionStation.SortOrder).First();
 
-            var dto_1 = new ComponentScanDTO {
+            var dto_1 = new ComponentScanInput {
                 VehicleComponentId = vehicleComponent.Id,
                 Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
                 Scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)
             };
 
-            var dto_2 = new ComponentScanDTO {
+            var dto_2 = new ComponentScanInput {
                 VehicleComponentId = vehicleComponent.Id,
                 Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
                 Scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
@@ -192,7 +192,7 @@ namespace SKD.Test {
             var scan1 = "";
             var scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry);
 
-            var dto = new ComponentScanDTO {
+            var dto = new ComponentScanInput {
                 VehicleComponentId = vehicleComponent.Id,
                 Scan1 = scan1,
                 Scan2 = scan2
@@ -258,7 +258,7 @@ namespace SKD.Test {
             var scanService = new ComponentScanService(ctx);
 
             // create scan for station_1, component_1
-            var dto_1 = new ComponentScanDTO {
+            var dto_1 = new ComponentScanInput {
                 VehicleComponentId = vehicleComponent_1.Id,
                 Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
                 Scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)
@@ -268,7 +268,7 @@ namespace SKD.Test {
             Assert.True(0 == paylaod.Errors.Count);
 
             // create scan for station_2, component_2
-            var dto_2 = new ComponentScanDTO {
+            var dto_2 = new ComponentScanInput {
                 VehicleComponentId = vehicleComponent_2.Id,
                 Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
                 Scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)
@@ -300,7 +300,7 @@ namespace SKD.Test {
 
 
             // create scan for station_2, component_2
-            var dto_station_2 = new ComponentScanDTO {
+            var dto_station_2 = new ComponentScanInput {
                 VehicleComponentId = vehicleComponent_station_2.Id,
                 Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
                 Scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)

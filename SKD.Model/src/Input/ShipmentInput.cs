@@ -6,16 +6,16 @@ namespace SKD.Model {
 
     public class ShipmentDTO {
         public string SequenceNo { get; set; } = "";
-        public ICollection<ShipmentLotDTO> Lots { get; set; } = new List<ShipmentLotDTO>();
+        public ICollection<ShipmentLotInput> Lots { get; set; } = new List<ShipmentLotInput>();
 
     }
 
-    public class ShipmentLotDTO {
+    public class ShipmentLotInput {
         public string LotNo { get; set; }
-        public ICollection<ShipmentInvoiceDTO> Invoices { get; set; } = new List<ShipmentInvoiceDTO>();
+        public ICollection<ShipmentInvoiceInput> Invoices { get; set; } = new List<ShipmentInvoiceInput>();
     }
 
-    public class ShipmentInvoiceDTO {
+    public class ShipmentInvoiceInput {
         public string InvoiceNo { get; set; }
         public DateTime ShipDate { get; set; }
 

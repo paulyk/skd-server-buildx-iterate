@@ -16,7 +16,7 @@ namespace SKD.Model {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<BomSummary>> CreateBomSummary(BomSummaryDTO dto) {
+        public async Task<MutationPayload<BomSummary>> CreateBomSummary(BomSummaryInput dto) {
             var bomSummary = new BomSummary() {
                 SequenceNo = dto.SequenceNo,
                 Parts = dto.Parts.Select(partDTO => new BomSummaryPart {
@@ -29,7 +29,7 @@ namespace SKD.Model {
 
             var payload = new MutationPayload<BomSummary>(bomSummary);
 
-            payload.Errors = await ValidateBomDTO<BomSummaryDTO>(dto);
+            payload.Errors = await ValidateBomDTO<BomSummaryInput>(dto);
             if (payload.Errors.Count > 0) {
                 return payload;
             }
@@ -39,7 +39,7 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<List<Error>> ValidateBomDTO<T>(BomSummaryDTO dto) where T : BomSummaryDTO {
+        public async Task<List<Error>> ValidateBomDTO<T>(BomSummaryInput dto) where T : BomSummaryInput {
             var errors = new List<Error>();
 
             var duplicate = await context.BomSummaries.AnyAsync(t => t.SequenceNo == dto.SequenceNo);

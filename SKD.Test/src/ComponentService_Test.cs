@@ -18,7 +18,7 @@ namespace SKD.Test {
         [Fact]
         private async Task can_save_new_component() {
             var service = new ComponentService(ctx);
-            var componentDTO = new ComponentDTO() {
+            var componentDTO = new ComponentInput() {
                 Code = Util.RandomString(EntityFieldLen.Component_Code),
                 Name = Util.RandomString(EntityFieldLen.Component_Name)
             };
@@ -47,7 +47,7 @@ namespace SKD.Test {
             var newName = Gen_ComponentCode() + "name";
             // test
             var service = new ComponentService(ctx);
-            var payload = await service.SaveComponent(new ComponentDTO {
+            var payload = await service.SaveComponent(new ComponentInput {
                 Id = component.Id,
                 Code = newCode,
                 Name = newName
@@ -96,10 +96,10 @@ namespace SKD.Test {
             var componentService = new ComponentService(ctx);
 
             // first
-            await componentService.SaveComponent(new ComponentDTO {
+            await componentService.SaveComponent(new ComponentInput {
                 Code = "AA", Name = "AA Name"
             });
-            await componentService.SaveComponent(new ComponentDTO {
+            await componentService.SaveComponent(new ComponentInput {
                 Code = "BB", Name = "BB Name"
             });
 
@@ -117,7 +117,7 @@ namespace SKD.Test {
             var newCode = Util.RandomString(EntityFieldLen.Component_Code).ToString();
             // test
             var service = new ComponentService(ctx);
-            var payload = await service.SaveComponent(new ComponentDTO {
+            var payload = await service.SaveComponent(new ComponentInput {
                 Id = component.Id,
                 Code = newCode,
                 Name = component.Name
@@ -133,7 +133,7 @@ namespace SKD.Test {
             var service = new ComponentService(ctx);
             var before_count = ctx.Components.Count();
 
-            var dto = new ComponentDTO {
+            var dto = new ComponentInput {
                 Code = Util.RandomString(EntityFieldLen.Component_Code),
                 Name = Util.RandomString(EntityFieldLen.Component_Name),
             };
@@ -154,7 +154,7 @@ namespace SKD.Test {
 
             // setup
 
-            var dto = new ComponentDTO {
+            var dto = new ComponentInput {
                 Code = Util.RandomString(EntityFieldLen.Component_Code),
                 Name = Util.RandomString(EntityFieldLen.Component_Name),
             };
@@ -176,14 +176,14 @@ namespace SKD.Test {
             var componentService = new ComponentService(ctx);
 
             // first
-            await componentService.SaveComponent(new ComponentDTO {
+            await componentService.SaveComponent(new ComponentInput {
                 Code = "AA", Name = "AA Name"
             });
             var count = ctx.Components.Count();
             Assert.Equal(before_count + 1, count);
 
             // try add with duplicate name
-            var payload = await componentService.SaveComponent(new ComponentDTO {
+            var payload = await componentService.SaveComponent(new ComponentInput {
                 Code = "BB", Name = "AA Name"
             });
 

@@ -24,11 +24,11 @@ namespace SKD.Test {
             Gen_ProductionStations(ctx, stationCode);
 
 
-            var vehicleModel = new VehicleModelDTO {
+            var vehicleModel = new VehicleModelInput {
                 Code = Util.RandomString(EntityFieldLen.VehicleModel_Code),
                 Name = Util.RandomString(EntityFieldLen.VehicleModel_Name),
-                ComponentStationDTOs = new List<ComponeentStationDTO> {
-                    new ComponeentStationDTO {
+                ComponentStationDTOs = new List<ComponeentStationInput> {
+                    new ComponeentStationInput {
                         ComponentCode = componentCode,
                         ProductionStationCode = stationCode,
                     }
@@ -54,7 +54,7 @@ namespace SKD.Test {
             var service = new VehicleModelService(ctx);
             var before_count = await ctx.VehicleModels.CountAsync();
 
-            var model_1 = new VehicleModelDTO {
+            var model_1 = new VehicleModelInput {
                 Code = Util.RandomString(EntityFieldLen.VehicleModel_Code),
                 Name = Util.RandomString(EntityFieldLen.VehicleModel_Name)
             };
@@ -77,22 +77,22 @@ namespace SKD.Test {
             var modelCode = Util.RandomString(EntityFieldLen.VehicleModel_Code);
             var modelName = Util.RandomString(EntityFieldLen.VehicleModel_Name);
 
-            var model_1 = new VehicleModelDTO {
+            var model_1 = new VehicleModelInput {
                 Code = modelCode,
                 Name = modelName,
-                ComponentStationDTOs = new List<ComponeentStationDTO> {
-                    new ComponeentStationDTO {
+                ComponentStationDTOs = new List<ComponeentStationInput> {
+                    new ComponeentStationInput {
                         ComponentCode = "component_1",
                         ProductionStationCode = "station_1"
                     }
                 }
             };
 
-            var model_2 = new VehicleModelDTO {
+            var model_2 = new VehicleModelInput {
                 Code = modelCode,
                 Name = Util.RandomString(EntityFieldLen.VehicleModel_Name),
-                ComponentStationDTOs = new List<ComponeentStationDTO> {
-                    new ComponeentStationDTO {
+                ComponentStationDTOs = new List<ComponeentStationInput> {
+                    new ComponeentStationInput {
                         ComponentCode = "component_1",
                         ProductionStationCode = "station_1"
                     }
@@ -128,22 +128,22 @@ namespace SKD.Test {
             var modelCode = Util.RandomString(EntityFieldLen.VehicleModel_Code);
             var modelName = Util.RandomString(EntityFieldLen.VehicleModel_Name);
 
-            var model_1 = new VehicleModelDTO {
+            var model_1 = new VehicleModelInput {
                 Code = modelCode,
                 Name = modelName,
-                ComponentStationDTOs = new List<ComponeentStationDTO> {
-                    new ComponeentStationDTO {
+                ComponentStationDTOs = new List<ComponeentStationInput> {
+                    new ComponeentStationInput {
                         ComponentCode = "component_1",
                         ProductionStationCode = "station_1"
                     }
                 }
             };
 
-            var model_2 = new VehicleModelDTO {
+            var model_2 = new VehicleModelInput {
                 Code = Util.RandomString(EntityFieldLen.VehicleModel_Code),
                 Name = modelName,
-                ComponentStationDTOs = new List<ComponeentStationDTO> {
-                    new ComponeentStationDTO {
+                ComponentStationDTOs = new List<ComponeentStationInput> {
+                    new ComponeentStationInput {
                         ComponentCode = "component_1",
                         ProductionStationCode = "station_1"
                     }
@@ -176,15 +176,15 @@ namespace SKD.Test {
             var component = ctx.Components.OrderBy(t => t.Code).First();
             var station = ctx.ProductionStations.OrderBy(t => t.Code).First();
 
-            var vehilceModel = new VehicleModelDTO {
+            var vehilceModel = new VehicleModelInput {
                 Code = "Model_1",
                 Name = "Model Name",
-                ComponentStationDTOs = new List<ComponeentStationDTO> {
-                    new ComponeentStationDTO {
+                ComponentStationDTOs = new List<ComponeentStationInput> {
+                    new ComponeentStationInput {
                         ComponentCode = component.Code,
                         ProductionStationCode = station.Code
                     },
-                    new ComponeentStationDTO {
+                    new ComponeentStationInput {
                         ComponentCode = component.Code,
                         ProductionStationCode = station.Code
                     },

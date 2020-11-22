@@ -12,7 +12,7 @@ namespace SKD.Model {
 
         public ComponentScanService(SkdContext ctx) => this.context = ctx;
 
-        public async Task<MutationPayload<ComponentScan>> CreateComponentScan(ComponentScanDTO dto) {
+        public async Task<MutationPayload<ComponentScan>> CreateComponentScan(ComponentScanInput dto) {
             // swap if scan1 empty
             if (dto.Scan1.Trim().Length == 0) {
                 dto.Scan1 = dto.Scan2;
@@ -47,7 +47,7 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<List<Error>> ValidateCreateComponentScan<T>(ComponentScanDTO scan) where T : ComponentScan {
+        public async Task<List<Error>> ValidateCreateComponentScan<T>(ComponentScanInput scan) where T : ComponentScan {
             var errors = new List<Error>();
 
             var vehicleComponent = await context.VehicleComponents.AsNoTracking()

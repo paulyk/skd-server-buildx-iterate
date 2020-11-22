@@ -19,16 +19,16 @@ namespace SKD.Test {
             // setup
             var lotNo = Util.RandomString(EntityFieldLen.BomPart_LotNo);
 
-            var dto = new BomSummaryDTO() {
+            var dto = new BomSummaryInput() {
                 SequenceNo = "0001",
-                Parts = new List<BomSummaryPartDTO> {
-                    new BomSummaryPartDTO {
+                Parts = new List<BomSummaryPartInput> {
+                    new BomSummaryPartInput {
                         LotNo = lotNo,
                         PartNo = "0001",
                         PartDesc = "part 1",
                         Quantity = 1
                     },
-                    new BomSummaryPartDTO {
+                    new BomSummaryPartInput {
                         LotNo = lotNo,
                         PartNo = "0001",
                         PartDesc = "part 1",
@@ -51,10 +51,10 @@ namespace SKD.Test {
 
         private async Task can_create_bom_summary() {
             // setup
-            var dto = new BomSummaryDTO() {
+            var dto = new BomSummaryInput() {
                 SequenceNo = "0001",
-                Parts = new List<BomSummaryPartDTO> {
-                    new BomSummaryPartDTO {
+                Parts = new List<BomSummaryPartInput> {
+                    new BomSummaryPartInput {
                         LotNo = Util.RandomString(EntityFieldLen.BomPart_LotNo),
                         PartNo = "0001",
                         PartDesc = "part 1",
@@ -76,9 +76,9 @@ namespace SKD.Test {
         [Fact]
         private async Task cannot_create_bom_summary_with_no_pards() {
             // setup
-            var dto = new BomSummaryDTO() {
+            var dto = new BomSummaryInput() {
                 SequenceNo = "0001",
-                Parts = new List<BomSummaryPartDTO>()
+                Parts = new List<BomSummaryPartInput>()
             };
 
             var before_count = ctx.BomSummaryParts.Count();

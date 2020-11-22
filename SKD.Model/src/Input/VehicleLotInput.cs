@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SKD.Model {
 
-    public class VehicleLotDTO {
+    public class VehicleLotInput {
         public string LotNo { get; init; }
         public string PlantCode { get; set; }
         public List<Kit> Kits { get; init; }

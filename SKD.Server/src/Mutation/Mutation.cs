@@ -18,7 +18,7 @@ namespace SKD.Server {
         public async Task<MutationPayload<VehicleLot>> CreateVehicleLot(
             [Service] VehicleService service,
             [Service] SkdContext ctx,
-            VehicleLotDTO input
+            VehicleLotInput input
         ) {
             return await service.CreateVehicleLot(input);
         }
@@ -26,7 +26,7 @@ namespace SKD.Server {
         public async Task<MutationPayload<VehicleModel>> CreateVehicleModel(
             [Service] VehicleModelService service,
             [Service] SkdContext ctx,
-            VehicleModelDTO input
+            VehicleModelInput input
         ) {
             return await service.CreateVehicleModel(input);
         }
@@ -34,7 +34,7 @@ namespace SKD.Server {
         public async Task<MutationPayload<VehicleLot>> AssignVehicleKitVin(
             [Service] VehicleService service,
             [Service] SkdContext ctx,
-            VehicleKitVinDTO input
+            VehicleKitVinInput input
         ) {
             return await service.AssingVehicleKitVin(input);
         }
@@ -42,7 +42,7 @@ namespace SKD.Server {
         public async Task<MutationPayload<VehicleTimelineEvent>> CreateVehicleTimelineEvent(
             [Service] VehicleService service,
             [Service] SkdContext ctx,
-            VehicleTimelineEventDTO input
+            VehicleTimelineEventInput input
         ) {
             return await service.CreateVehicleTimelineEvent(input);
         }
@@ -50,7 +50,7 @@ namespace SKD.Server {
         public async Task<MutationPayload<VehicleLot>> CreateVehicleLotTimelineEvent(
             [Service] VehicleService service,
             [Service] SkdContext ctx,
-            VehicleLotTimelineEventDTO input
+            VehicleLotTimelineEventInput input
         ) {
             return await service.CreateVehicleLotTimelineEvent(input);
         }
@@ -63,7 +63,7 @@ namespace SKD.Server {
             [Service] SkdContext ctx,
             ComponentInput input
         ) {
-            var dto = new ComponentDTO {
+            var dto = new Model.ComponentInput {
                 Id = ToGuid(input.Id != null ? input.Id : ""),
                 Code = input.Code,
                 Name = input.Name
@@ -79,7 +79,7 @@ namespace SKD.Server {
             [Service] SkdContext ctx,
             ProductionStationInput input
         ) {
-            var dto = new ProductionStationDTO {
+            var dto = new Model.ProductionStationInput {
                 Id = ToGuid(input.Id != null ? input.Id : ""),
                 Code = input.Code,
                 Name = input.Name
@@ -90,9 +90,9 @@ namespace SKD.Server {
         public async Task<MutationPayload<ComponentScan>> CreateComponentScan(
           [Service] ComponentScanService service,
           [Service] SkdContext ctx,
-          ComponentScanDTO input
+          ComponentScanInput input
         ) {
-            var dto = new ComponentScanDTO {
+            var dto = new ComponentScanInput {
                 VehicleComponentId = input.VehicleComponentId,
                 Scan1 = input.Scan1,
                 Scan2 = input.Scan2
@@ -103,9 +103,9 @@ namespace SKD.Server {
         public async Task<MutationPayload<DCWSResponse>> CreateDcwsResponse(
           [Service] DCWSResponseService service,
           [Service] SkdContext ctx,
-          DCWWResponseDTO input
+          DCWWResponseInput input
         ) {
-            var dto = new DCWWResponseDTO {
+            var dto = new DCWWResponseInput {
                 ComponentScanId = input.ComponentScanId,
                 ResponseCode = input.ResponseCode,
                 ErrorMessage = input.ErrorMessage
@@ -122,7 +122,7 @@ namespace SKD.Server {
         public async Task<MutationPayload<BomSummary>> CreateBomSummary(
                   [Service] BomSummaryService service,
                   [Service] SkdContext ctx,
-                  BomSummaryDTO input
+                  BomSummaryInput input
         ) => await service.CreateBomSummary(input);
 
         private Guid ToGuid(string str) {

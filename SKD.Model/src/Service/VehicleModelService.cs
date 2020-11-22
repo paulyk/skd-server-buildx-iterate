@@ -15,7 +15,7 @@ namespace SKD.Model {
         public VehicleModelService(SkdContext ctx) {
             this.context = ctx;
         }
-        public async Task<MutationPayload<VehicleModel>> CreateVehicleModel(VehicleModelDTO dto) {
+        public async Task<MutationPayload<VehicleModel>> CreateVehicleModel(VehicleModelInput dto) {
             var vehicleModel = new VehicleModel {
                 Code = dto.Code,
                 Name = dto.Name,

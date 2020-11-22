@@ -20,11 +20,11 @@ namespace SKD.Test {
 
             var dto = new ShipmentDTO() {
                 SequenceNo = "0001",
-                Lots = new List<ShipmentLotDTO> {
-                    new ShipmentLotDTO {
+                Lots = new List<ShipmentLotInput> {
+                    new ShipmentLotInput {
                         LotNo = "1234",
-                        Invoices = new List<ShipmentInvoiceDTO> {
-                            new ShipmentInvoiceDTO {
+                        Invoices = new List<ShipmentInvoiceInput> {
+                            new ShipmentInvoiceInput {
                                 InvoiceNo = "001",
                                 Parts = new List<ShipmentPartDTO> {
                                     new ShipmentPartDTO {
@@ -55,11 +55,11 @@ namespace SKD.Test {
             // setup
             var dto = new ShipmentDTO() {
                 SequenceNo = "0001",
-                Lots = new List<ShipmentLotDTO> {
-                    new ShipmentLotDTO {
+                Lots = new List<ShipmentLotInput> {
+                    new ShipmentLotInput {
                         LotNo = "1234",
-                        Invoices = new List<ShipmentInvoiceDTO> {
-                            new ShipmentInvoiceDTO {
+                        Invoices = new List<ShipmentInvoiceInput> {
+                            new ShipmentInvoiceInput {
                                 InvoiceNo = "001",
                                 Parts = new List<ShipmentPartDTO>()
                             }
@@ -85,11 +85,11 @@ namespace SKD.Test {
             // setup
             var dto = new ShipmentDTO() {
                 SequenceNo = "0001",
-                Lots = new List<ShipmentLotDTO> {
-                    new ShipmentLotDTO {
+                Lots = new List<ShipmentLotInput> {
+                    new ShipmentLotInput {
                         LotNo = "1234",
-                        Invoices = new List<ShipmentInvoiceDTO> {
-                            new ShipmentInvoiceDTO {
+                        Invoices = new List<ShipmentInvoiceInput> {
+                            new ShipmentInvoiceInput {
                                 InvoiceNo = "001",
                                 Parts = new List<ShipmentPartDTO>()
                             }
@@ -115,10 +115,10 @@ namespace SKD.Test {
             // setup
             var dto = new ShipmentDTO() {
                 SequenceNo = "0001",
-                Lots = new List<ShipmentLotDTO> {
-                    new ShipmentLotDTO {
+                Lots = new List<ShipmentLotInput> {
+                    new ShipmentLotInput {
                         LotNo = "1234",
-                        Invoices = new List<ShipmentInvoiceDTO>()
+                        Invoices = new List<ShipmentInvoiceInput>()
                     }
                 }
             };

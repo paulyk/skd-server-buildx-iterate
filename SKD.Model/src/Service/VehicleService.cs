@@ -19,7 +19,7 @@ namespace SKD.Model {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<VehicleLot>> CreateVehicleLot(VehicleLotDTO dto) {
+        public async Task<MutationPayload<VehicleLot>> CreateVehicleLot(VehicleLotInput dto) {
             var vehicleLot = new VehicleLot { LotNo = dto.LotNo };
             var payload = new MutationPayload<VehicleLot>(vehicleLot);
             payload.Errors = await ValidateCreateVehicleLot(dto);
@@ -53,7 +53,7 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<MutationPayload<VehicleLot>> AssingVehicleKitVin(VehicleKitVinDTO dto) {
+        public async Task<MutationPayload<VehicleLot>> AssingVehicleKitVin(VehicleKitVinInput dto) {
             var payload = new MutationPayload<VehicleLot>(null);
             payload.Errors = await ValidateAssignVehicleLotVin(dto);
             if (payload.Errors.Count() > 0) {
@@ -73,7 +73,7 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<MutationPayload<VehicleTimelineEvent>> CreateVehicleTimelineEvent(VehicleTimelineEventDTO dto) {
+        public async Task<MutationPayload<VehicleTimelineEvent>> CreateVehicleTimelineEvent(VehicleTimelineEventInput dto) {
             var payload = new MutationPayload<VehicleTimelineEvent>(null);
             payload.Errors = await ValidateCreateVehicleTimelineEvent(dto);
             if (payload.Errors.Count > 0) {
@@ -108,7 +108,7 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<MutationPayload<VehicleLot>> CreateVehicleLotTimelineEvent(VehicleLotTimelineEventDTO dto) {
+        public async Task<MutationPayload<VehicleLot>> CreateVehicleLotTimelineEvent(VehicleLotTimelineEventInput dto) {
             var payload = new MutationPayload<VehicleLot>(null);
             payload.Errors = await ValidateCreateVehicleLotTimelineEvent(dto);
             if (payload.Errors.Count > 0) {
@@ -149,7 +149,7 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<List<Error>> ValidateAssignVehicleLotVin(VehicleKitVinDTO dto) {
+        public async Task<List<Error>> ValidateAssignVehicleLotVin(VehicleKitVinInput dto) {
             var errors = new List<Error>();
 
             var vehicleLot = await context.VehicleLots.AsNoTracking()
@@ -227,7 +227,7 @@ namespace SKD.Model {
 
             return errors;
         }
-        public async Task<List<Error>> ValidateCreateVehicleLot(VehicleLotDTO dto) {
+        public async Task<List<Error>> ValidateCreateVehicleLot(VehicleLotInput dto) {
             var errors = new List<Error>();
 
             var existingLot = await context.VehicleLots.AsNoTracking().FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
@@ -283,7 +283,7 @@ namespace SKD.Model {
             return errors;
         }
 
-        public async Task<MutationPayload<Vehicle>> CreateVehicleFromKitDTO(VehicleLotDTO.Kit dto) {
+        public async Task<MutationPayload<Vehicle>> CreateVehicleFromKitDTO(VehicleLotInput.Kit dto) {
             var modelId = await context.VehicleModels
                 .Where(t => t.Code == dto.ModelCode)
                 .Select(t => t.Id).FirstOrDefaultAsync();
@@ -371,7 +371,7 @@ namespace SKD.Model {
             return errors;
         }
 
-        public async Task<List<Error>> ValidateCreateVehicleTimelineEvent(VehicleTimelineEventDTO dto) {
+        public async Task<List<Error>> ValidateCreateVehicleTimelineEvent(VehicleTimelineEventInput dto) {
             var errors = new List<Error>();
 
             var vehicle = await context.Vehicles.AsNoTracking()
@@ -399,7 +399,7 @@ namespace SKD.Model {
             return errors;
         }
 
-        public async Task<List<Error>> ValidateCreateVehicleLotTimelineEvent(VehicleLotTimelineEventDTO dto) {
+        public async Task<List<Error>> ValidateCreateVehicleLotTimelineEvent(VehicleLotTimelineEventInput dto) {
             var errors = new List<Error>();
 
             var vehicleLot = await context.VehicleLots.AsNoTracking()

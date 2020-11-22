@@ -17,7 +17,7 @@ namespace SKD.Test {
         [Fact]
         private async Task can_save_new_production_station() {
             var service = new ProductionStationService(ctx);
-            var productionStationDTO = new ProductionStationDTO() {
+            var productionStationDTO = new ProductionStationInput() {
                 Code = Util.RandomString(EntityFieldLen.ProductionStation_Code),
                 Name = Util.RandomString(EntityFieldLen.ProductionStation_Name)
             };
@@ -34,7 +34,7 @@ namespace SKD.Test {
         [Fact]
         private async Task can_update_new_production_station() {
             var service = new ProductionStationService(ctx);
-            var productionStationDTO = new ProductionStationDTO() {
+            var productionStationDTO = new ProductionStationInput() {
                 Code = Util.RandomString(EntityFieldLen.ProductionStation_Code),
                 Name = Util.RandomString(EntityFieldLen.ProductionStation_Name)
             };
@@ -50,7 +50,7 @@ namespace SKD.Test {
             var newCode = Util.RandomString(EntityFieldLen.ProductionStation_Code);
             var newName = Util.RandomString(EntityFieldLen.ProductionStation_Name);
 
-            var updatedPayload = await service.SaveProductionStation(new ProductionStationDTO {
+            var updatedPayload = await service.SaveProductionStation(new ProductionStationInput {
                 Id = payload.Entity.Id,
                 Code = newCode,
                 Name = newName
@@ -72,7 +72,7 @@ namespace SKD.Test {
             var name = Util.RandomString(EntityFieldLen.ProductionStation_Name).ToString();
 
             var count_1 = ctx.ProductionStations.Count();
-            var payload = await service.SaveProductionStation(new ProductionStationDTO {
+            var payload = await service.SaveProductionStation(new ProductionStationInput {
                 Code = code,
                 Name = name
             });
@@ -81,7 +81,7 @@ namespace SKD.Test {
             Assert.Equal(count_1 + 1, count_2);
 
             // insert again
-            var payload2 = await service.SaveProductionStation(new ProductionStationDTO {
+            var payload2 = await service.SaveProductionStation(new ProductionStationInput {
                 Code = code,
                 Name = name
             });

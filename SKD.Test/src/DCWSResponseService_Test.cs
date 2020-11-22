@@ -32,7 +32,7 @@ namespace SKD.Test {
 
             // act
             var service = new DCWSResponseService(ctx);
-            var dto = new DCWWResponseDTO {
+            var dto = new DCWWResponseInput {
                 ComponentScanId = componentScan.Id,
                 ResponseCode = "NONE",
                 ErrorMessage = ""
@@ -68,7 +68,7 @@ namespace SKD.Test {
             var componentScan = Gen_ComponentScan(ctx, vehicleComponent.Id);
 
             var service = new DCWSResponseService(ctx);
-            var dto = new DCWWResponseDTO {
+            var dto = new DCWWResponseInput {
                 ComponentScanId = componentScan.Id,
                 ResponseCode = "NONE",
                 ErrorMessage = ""

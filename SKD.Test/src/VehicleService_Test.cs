@@ -152,9 +152,9 @@ namespace SKD.Test {
             var lotNo = Gen_LotNo();
             var vehicleLot = await Gen_Vehicle_Lot(lotNo);
 
-            var kitVinDto = new VehicleKitVinDTO {
+            var kitVinDto = new VehicleKitVinInput {
                 LotNo = lotNo,
-                Kits = vehicleLot.Vehicles.Select(t => new KitVinDTO {
+                Kits = vehicleLot.Vehicles.Select(t => new KitVinInput {
                     KitNo = t.KitNo,
                     VIN = Gen_Vin()
                 }).ToList()
@@ -175,9 +175,9 @@ namespace SKD.Test {
             var lotNo = Gen_LotNo();
             var vehicleLot = await Gen_Vehicle_Lot(lotNo);
 
-            var kitVinDto = new VehicleKitVinDTO {
+            var kitVinDto = new VehicleKitVinInput {
                 LotNo = lotNo,
-                Kits = vehicleLot.Vehicles.Select(t => new KitVinDTO {
+                Kits = vehicleLot.Vehicles.Select(t => new KitVinInput {
                     KitNo = t.KitNo,
                     VIN = Gen_Vin()
                 }).ToList()
@@ -200,9 +200,9 @@ namespace SKD.Test {
             var lotNo = Gen_LotNo();
             var vehicleLot = await Gen_Vehicle_Lot(lotNo);
 
-            var kitVinDto = new VehicleKitVinDTO {
+            var kitVinDto = new VehicleKitVinInput {
                 LotNo = lotNo,
-                Kits = vehicleLot.Vehicles.Select(t => new KitVinDTO {
+                Kits = vehicleLot.Vehicles.Select(t => new KitVinInput {
                     KitNo = Gen_KitNo(), // generate a kit not thats different
                     VIN = Gen_Vin()
                 }).ToList()
@@ -230,9 +230,9 @@ namespace SKD.Test {
 
             var vehicleLot = await Gen_Vehicle_Lot(lotNo, kitNo1, kitNo2);
 
-            var kitVinDto = new VehicleKitVinDTO {
+            var kitVinDto = new VehicleKitVinInput {
                 LotNo = lotNo,
-                Kits = vehicleLot.Vehicles.Select(t => new KitVinDTO {
+                Kits = vehicleLot.Vehicles.Select(t => new KitVinInput {
                     KitNo = kitNo1,
                     VIN = Gen_Vin()
                 }).ToList()
@@ -279,7 +279,7 @@ namespace SKD.Test {
             var before_count = ctx.VehicleTimelineEvents.Count();
 
             foreach (var entry in timelineEvents) {
-                var dto = new VehicleTimelineEventDTO {
+                var dto = new VehicleTimelineEventInput {
                     KitNo = vehicle.KitNo,
                     EventType = Enum.Parse<TimeLineEventType>(entry.eventTypeCode),
                     EventDate = entry.eventDate,
@@ -321,7 +321,7 @@ namespace SKD.Test {
             var payloads = new List<MutationPayload<VehicleTimelineEvent>>();
 
             foreach (var entry in timelineEventItems) {
-                var dto = new VehicleTimelineEventDTO {
+                var dto = new VehicleTimelineEventInput {
                     KitNo = vehicle.KitNo,
                     EventType = Enum.Parse<TimeLineEventType>(entry.eventTypeCode),
                     EventDate = entry.eventDate,
@@ -361,12 +361,12 @@ namespace SKD.Test {
             var originalDate = new DateTime(2020, 11, 28);
             var newDate = new DateTime(2020, 11, 30);
 
-            var dto = new VehicleTimelineEventDTO {
+            var dto = new VehicleTimelineEventInput {
                 KitNo = vehicle.KitNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = originalDate
             };
-            var dto2 = new VehicleTimelineEventDTO {
+            var dto2 = new VehicleTimelineEventInput {
                 KitNo = vehicle.KitNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = newDate
@@ -408,12 +408,12 @@ namespace SKD.Test {
             var originalDate = new DateTime(2020, 11, 28);
             var newDate = new DateTime(2020, 11, 30);
 
-            var dto = new VehicleTimelineEventDTO {
+            var dto = new VehicleTimelineEventInput {
                 KitNo = vehicle.KitNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = originalDate
             };
-            var dto2 = new VehicleTimelineEventDTO {
+            var dto2 = new VehicleTimelineEventInput {
                 KitNo = vehicle.KitNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = newDate
@@ -445,7 +445,7 @@ namespace SKD.Test {
 
             var eventDate = new DateTime(2020, 11, 30);
             var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
-            var dto = new VehicleLotTimelineEventDTO {
+            var dto = new VehicleLotTimelineEventInput {
                 LotNo = lotNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = eventDate,
@@ -483,7 +483,7 @@ namespace SKD.Test {
 
             var eventDate = new DateTime(2020, 11, 30);
             var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
-            var dto = new VehicleLotTimelineEventDTO {
+            var dto = new VehicleLotTimelineEventInput {
                 LotNo = lotNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = eventDate,
@@ -534,15 +534,15 @@ namespace SKD.Test {
             return vehicleLot;
         }
 
-        private VehicleLotDTO Gen_VehicleLot_DTO(
+        private VehicleLotInput Gen_VehicleLot_DTO(
             string lotNo,
             string plantCode,
             string modelCode,
             List<string> kitNos) {
-            return new VehicleLotDTO {
+            return new VehicleLotInput {
                 LotNo = lotNo,
                 PlantCode = plantCode,
-                Kits = kitNos.Select(kitNo => new VehicleLotDTO.Kit {
+                Kits = kitNos.Select(kitNo => new VehicleLotInput.Kit {
                     KitNo = kitNo,
                     ModelCode = modelCode,
                 }).ToList()

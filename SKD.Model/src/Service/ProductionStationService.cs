@@ -16,7 +16,7 @@ namespace SKD.Model {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<ProductionStation>> SaveProductionStation(ProductionStationDTO dto) {
+        public async Task<MutationPayload<ProductionStation>> SaveProductionStation(ProductionStationInput dto) {
             var productionStation = await context.ProductionStations.FirstOrDefaultAsync(t => t.Id == dto.Id);
 
             if (productionStation != null) {

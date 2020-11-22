@@ -3,8 +3,8 @@ using SKD.Model;
 
 namespace SKD.Server {
 
-    public class ComponentScanInputType : InputObjectType<ComponentScanDTO> {
-        protected override void Configure(IInputObjectTypeDescriptor<ComponentScanDTO> descriptor) {
+    public class ComponentScanInputType : InputObjectType<ComponentScanInput> {
+        protected override void Configure(IInputObjectTypeDescriptor<ComponentScanInput> descriptor) {
             base.Configure(descriptor);
             descriptor.Name("ComponentScanInput");
         }

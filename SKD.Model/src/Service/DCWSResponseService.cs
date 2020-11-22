@@ -20,7 +20,7 @@ namespace SKD.Model {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<DCWSResponse>> CreateDCWSResponse(DCWWResponseDTO dto) {
+        public async Task<MutationPayload<DCWSResponse>> CreateDCWSResponse(DCWWResponseInput dto) {
             var response = new DCWSResponse {
                 ResponseCode = dto.ResponseCode,
                 ErrorMessage = dto.ErrorMessage,
@@ -31,7 +31,7 @@ namespace SKD.Model {
                 DcwsSuccessfulSave = IsDcwsSuccessfulSaveResonseCode(dto.ResponseCode)
             };
             var payload = new MutationPayload<DCWSResponse>(response);
-            payload.Errors = await ValidateDCWSResponse<DCWWResponseDTO>(dto);
+            payload.Errors = await ValidateDCWSResponse<DCWWResponseInput>(dto);
 
             if (payload.Errors.Any()) {
                 return payload;
@@ -46,7 +46,7 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<List<Error>> ValidateDCWSResponse<T>(DCWWResponseDTO dto) where T : DCWWResponseDTO {
+        public async Task<List<Error>> ValidateDCWSResponse<T>(DCWWResponseInput dto) where T : DCWWResponseInput {
             var errors = new List<Error>();
 
             var componentScan = await context.ComponentScans
