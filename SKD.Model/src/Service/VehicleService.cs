@@ -19,16 +19,16 @@ namespace SKD.Model {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<VehicleLot>> CreateVehicleLot(VehicleLotInput dto) {
-            var vehicleLot = new VehicleLot { LotNo = dto.LotNo };
+        public async Task<MutationPayload<VehicleLot>> CreateVehicleLot(VehicleLotInput input) {
+            var vehicleLot = new VehicleLot { LotNo = input.LotNo };
             var payload = new MutationPayload<VehicleLot>(vehicleLot);
-            payload.Errors = await ValidateCreateVehicleLot(dto);
+            payload.Errors = await ValidateCreateVehicleLot(input);
             if (payload.Errors.Any()) {
                 return payload;
             }
 
             // create vehicle records and add to vehicleLot.Vehicles
-            foreach (var vehicleDTO in dto.Kits) {
+            foreach (var vehicleDTO in input.Kits) {
                 var vehiclePayload = await CreateVehicleFromKitDTO(vehicleDTO);
                 if (vehiclePayload.Errors.Any()) {
                     payload.Errors.AddRange(vehiclePayload.Errors);
@@ -41,9 +41,9 @@ namespace SKD.Model {
             }
 
             // ensure plant code
-            var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == dto.PlantCode);
+            var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
             if (plant == null) {
-                plant = new Plant { Code = dto.PlantCode, Name = dto.PlantCode };
+                plant = new Plant { Code = input.PlantCode, Name = input.PlantCode };
                 context.Plants.Add(plant);
             }
             plant.VehicleLots.Add(vehicleLot);
@@ -378,7 +378,7 @@ namespace SKD.Model {
                 .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .FirstOrDefaultAsync(t => t.KitNo == dto.KitNo);
             if (vehicle == null) {
-                errors.Add(new Error("VIN", $"vehicle not found for vin: {dto.KitNo}"));
+                errors.Add(new Error("KitNo", $"vehicle not found for kitNo: {dto.KitNo}"));
                 return errors;
             }
 

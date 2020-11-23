@@ -25,12 +25,12 @@ namespace SKD.Test {
             var lotNo = Gen_LotNo();
             var plantCode = Gen_PlantCode();
             var kitNos = new List<string> { Gen_KitNo(), Gen_KitNo() };
-            var vehicleLotDTO = Gen_VehicleLot_DTO(lotNo, plantCode, modelCode, kitNos);
+            var vehicleLotInput = Gen_VehicleLot_Input(lotNo, plantCode, modelCode, kitNos);
 
             var before_count = await ctx.VehicleLots.CountAsync();
             // test
             var service = new VehicleService(ctx);
-            var paylaod = await service.CreateVehicleLot(vehicleLotDTO);
+            var paylaod = await service.CreateVehicleLot(vehicleLotInput);
             var after_count = await ctx.VehicleLots.CountAsync();
 
             // assert
@@ -48,13 +48,13 @@ namespace SKD.Test {
                 ("component_1", "statin_1")
             });
 
-            var lotNo = Util.RandomString(EntityFieldLen.Vehicle_LotNo).ToUpper();
+            var lotNo = Gen_LotNo();
             var kitNos = new List<string> { };
-            var vehicleLotDTO = Gen_VehicleLot_DTO(lotNo, Gen_PlantCode(), modelCode, kitNos);
+            var vehicleLotInput = Gen_VehicleLot_Input(lotNo, Gen_PlantCode(), modelCode, kitNos);
 
             // test
             var service = new VehicleService(ctx);
-            var payload = await service.CreateVehicleLot(vehicleLotDTO);
+            var payload = await service.CreateVehicleLot(vehicleLotInput);
 
             // assert
             Assert.True(1 == payload.Errors.Count());
@@ -72,15 +72,15 @@ namespace SKD.Test {
                 ("component_1", "station_1"),
                 ("component_2", "station_2")
             });
-            var lotNo = Util.RandomString(EntityFieldLen.Vehicle_LotNo).ToUpper();
+            var lotNo = Gen_LotNo();
 
             var kitNo = Gen_KitNo();
             var kitNos = new List<string> { kitNo, kitNo };
-            var vehicleLotDTO = Gen_VehicleLot_DTO(lotNo, Gen_PlantCode(), modelCode, kitNos);
+            var vehicleLotInput = Gen_VehicleLot_Input(lotNo, Gen_PlantCode(), modelCode, kitNos);
 
             // test
             var service = new VehicleService(ctx);
-            var payload = await service.CreateVehicleLot(vehicleLotDTO);
+            var payload = await service.CreateVehicleLot(vehicleLotInput);
 
             // assert
             Assert.True(1 == payload.Errors.Count());
@@ -93,15 +93,15 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_create_vehicle_lot_if_model_code_does_not_exists() {
             // setup
-            var lotNo = Util.RandomString(EntityFieldLen.Vehicle_LotNo).ToUpper();
+            var lotNo = Gen_LotNo();
             var kitNos = new List<string> { Gen_KitNo(), Gen_KitNo() };
 
             var nonExistendModelCode = Util.RandomString(EntityFieldLen.VehicleModel_Code);
-            var vehicleLotDTO = Gen_VehicleLot_DTO(lotNo, Gen_PlantCode(), nonExistendModelCode, kitNos);
+            var vehicleLotInput = Gen_VehicleLot_Input(lotNo, Gen_PlantCode(), nonExistendModelCode, kitNos);
 
             // test
             var service = new VehicleService(ctx);
-            var payload = await service.CreateVehicleLot(vehicleLotDTO);
+            var payload = await service.CreateVehicleLot(vehicleLotInput);
 
             // assert
             Assert.True(1 == payload.Errors.Count());
@@ -121,16 +121,16 @@ namespace SKD.Test {
             var lotNo = Gen_LotNo();
 
             var kitNos = new List<string> { Gen_KitNo(), Gen_KitNo() };
-            var dto = Gen_VehicleLot_DTO(lotNo, Gen_PlantCode(), modelCode, kitNos);
+            var vehicleLotInput = Gen_VehicleLot_Input(lotNo, Gen_PlantCode(), modelCode, kitNos);
 
             // test
             var service = new VehicleService(ctx);
             try {
-                var payload = await service.CreateVehicleLot(dto);
+                var payload = await service.CreateVehicleLot(vehicleLotInput);
 
                 Assert.True(0 == payload.Errors.Count());
 
-                var payload_2 = await service.CreateVehicleLot(dto);
+                var payload_2 = await service.CreateVehicleLot(vehicleLotInput);
                 Assert.True(1 == payload_2.Errors.Count());
 
                 // assert
@@ -519,7 +519,7 @@ namespace SKD.Test {
                     ("comp_1", "stat_1")
                 });
 
-            var vehicleLotDto = Gen_VehicleLot_DTO(
+            var vehicleLotInput = Gen_VehicleLot_Input(
                 lotNo,
                 Gen_PlantCode(),
                 modelCode,
@@ -527,26 +527,26 @@ namespace SKD.Test {
              );
 
             var service = new VehicleService(ctx);
-            var payload = await service.CreateVehicleLot(vehicleLotDto);
+            var payload = await service.CreateVehicleLot(vehicleLotInput);
             var vehicleLot = await ctx.VehicleLots
                 .Include(t => t.Vehicles)
                 .FirstOrDefaultAsync(t => t.LotNo == lotNo);
             return vehicleLot;
         }
 
-        private VehicleLotInput Gen_VehicleLot_DTO(
-            string lotNo,
-            string plantCode,
-            string modelCode,
-            List<string> kitNos) {
-            return new VehicleLotInput {
-                LotNo = lotNo,
-                PlantCode = plantCode,
-                Kits = kitNos.Select(kitNo => new VehicleLotInput.Kit {
-                    KitNo = kitNo,
-                    ModelCode = modelCode,
-                }).ToList()
-            };
-        }
+        // private VehicleLotInput Gen_VehicleLot_DTO(
+        //     string lotNo,
+        //     string plantCode,
+        //     string modelCode,
+        //     List<string> kitNos) {
+        //     return new VehicleLotInput {
+        //         LotNo = lotNo,
+        //         PlantCode = plantCode,
+        //         Kits = kitNos.Select(kitNo => new VehicleLotInput.Kit {
+        //             KitNo = kitNo,
+        //             ModelCode = modelCode,
+        //         }).ToList()
+        //     };
+        // }
     }
 }

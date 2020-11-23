@@ -17,7 +17,7 @@ namespace SKD.Test {
         [Fact]
         private async Task cannot_create_bom_summary_with_duplicate_lot_and_part() {
             // setup
-            var lotNo = Util.RandomString(EntityFieldLen.BomPart_LotNo);
+            var lotNo = Gen_LotNo();
 
             var dto = new BomSummaryInput() {
                 SequenceNo = "0001",
@@ -55,7 +55,7 @@ namespace SKD.Test {
                 SequenceNo = "0001",
                 Parts = new List<BomSummaryPartInput> {
                     new BomSummaryPartInput {
-                        LotNo = Util.RandomString(EntityFieldLen.BomPart_LotNo),
+                        LotNo = Gen_LotNo(),
                         PartNo = "0001",
                         PartDesc = "part 1",
                         Quantity = 1

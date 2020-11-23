@@ -10,7 +10,7 @@ namespace SKD.Model {
         Final
     }
 
-    public enum PartnerStatus_TimelineType {
+    public enum PartnerStatus_CurrentStatusType {
         FPCR,       // Custom Received               
         FPBP,       // Planed Build Date Set / Change
         FPBC,       // Build Completed At     
@@ -22,9 +22,10 @@ namespace SKD.Model {
 
         public DateTime RunDate { get; set; }
         public string PlantCode { get; set; }
-        public ICollection<ParnterStatusLine> Lines { get; set; } = new List<ParnterStatusLine>();
-        public class ParnterStatusLine {
+        public ICollection<VehicleStatus> VehicleStatusEntries { get; set; } = new List<VehicleStatus>();
+        public class VehicleStatus {
             public PartnerStatus_TxType TxType { get; set; }
+            public PartnerStatus_CurrentStatusType CurrentStatusType { get; set; }
             public string LotNo { get; set; }
             public string KitNo { get; set; }
             public string VIN { get; set; }

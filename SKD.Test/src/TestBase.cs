@@ -5,8 +5,10 @@ using Microsoft.Extensions.Configuration;
 using SKD.Model;
 using System.Linq;
 using System;
+using System.Threading.Tasks;
 
 namespace SKD.Test {
+
     public class TestBase {
 
         public SkdContext GetAppDbContext() {
@@ -90,6 +92,8 @@ namespace SKD.Test {
             return componentScan;
         }
 
+
+
         public Vehicle Gen_Vehicle_And_Model(
             SkdContext ctx,
             string vin,
@@ -162,6 +166,27 @@ namespace SKD.Test {
             return vehicle;
         }
 
+        public VehicleLotInput Gen_VehicleLot_Input(
+            string lotNo,
+            string plantCode,
+            string modelCode,
+            List<string> kitNos) {
+            return new VehicleLotInput {
+                LotNo = lotNo,
+                PlantCode = plantCode,
+                Kits = kitNos.Select(kitNo => new VehicleLotInput.Kit {
+                    KitNo = kitNo,
+                    ModelCode = modelCode,
+                }).ToList()
+            };
+        }
+
+        public void SetEntityCreatedAt<T>(SkdContext context, Guid id, DateTime date) where T : EntityBase  {
+            var entity = context.Find<T>(id);
+            entity.CreatedAt = date;
+            context.SaveChanges();
+        }
+    
         public void Gen_VehicleTimelineEventTypes(SkdContext ctx) {
             var eventTypes = new List<VehicleTimelineEventType> {
                 new VehicleTimelineEventType {
@@ -212,6 +237,8 @@ namespace SKD.Test {
         public string Gen_PlantCode() {
             return Util.RandomString(EntityFieldLen.Plant_Code).ToUpper();
         }
-
+        public string Get_PlantCode() {
+            return Util.RandomString(EntityFieldLen.Plant_Code).ToUpper();
+        }
     }
 }
