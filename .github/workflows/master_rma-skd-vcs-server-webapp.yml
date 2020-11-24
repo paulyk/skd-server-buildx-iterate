@@ -18,7 +18,7 @@ jobs:
     - name: Set up .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: '5.0.0'
+        dotnet-version: '5.0.x'
     
     - name: Run tests with dotnet
       run: dotnet test

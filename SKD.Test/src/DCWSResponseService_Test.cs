@@ -32,12 +32,12 @@ namespace SKD.Test {
 
             // act
             var service = new DCWSResponseService(ctx);
-            var dto = new DCWWResponseInput {
+            var input = new DCWWResponseInput {
                 ComponentScanId = componentScan.Id,
                 ResponseCode = "NONE",
                 ErrorMessage = ""
             };
-            var payload = await service.CreateDCWSResponse(dto);
+            var payload = await service.CreateDCWSResponse(input);
             // assert
             Assert.True(payload.Errors.Count() == 0, "error count should be 0");
             var responseCoount = ctx.DCWSResponses.Count();

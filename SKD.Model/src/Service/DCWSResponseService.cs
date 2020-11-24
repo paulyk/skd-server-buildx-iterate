@@ -20,18 +20,18 @@ namespace SKD.Model {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<DCWSResponse>> CreateDCWSResponse(DCWWResponseInput dto) {
+        public async Task<MutationPayload<DCWSResponse>> CreateDCWSResponse(DCWWResponseInput input) {
             var response = new DCWSResponse {
-                ResponseCode = dto.ResponseCode,
-                ErrorMessage = dto.ErrorMessage,
-                ComponentScanId = dto.ComponentScanId,
+                ResponseCode = input.ResponseCode,
+                ErrorMessage = input.ErrorMessage,
+                ComponentScanId = input.ComponentScanId,
                 ComponentScan = await context.ComponentScans
                     .Include(t => t.VehicleComponent)
-                    .FirstOrDefaultAsync(t => t.Id == dto.ComponentScanId),
-                DcwsSuccessfulSave = IsDcwsSuccessfulSaveResonseCode(dto.ResponseCode)
+                    .FirstOrDefaultAsync(t => t.Id == input.ComponentScanId),
+                DcwsSuccessfulSave = IsDcwsSuccessfulSaveResonseCode(input.ResponseCode)
             };
             var payload = new MutationPayload<DCWSResponse>(response);
-            payload.Errors = await ValidateDCWSResponse<DCWWResponseInput>(dto);
+            payload.Errors = await ValidateDCWSResponse<DCWWResponseInput>(input);
 
             if (payload.Errors.Any()) {
                 return payload;

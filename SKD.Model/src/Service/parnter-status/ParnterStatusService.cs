@@ -91,6 +91,10 @@ namespace SKD.Model {
         }
 
         private async Task<string> GetEngineSerialNumber(Vehicle vehicle, string engineComponentCode) {
+            if (engineComponentCode == null) {
+                throw new Exception("GetEngineSerialNumber: Engine component code required");
+            }
+
             var buildCompletedEvent = vehicle.TimelineEvents
                 .Where(t => t.RemovedAt == null)
                 .FirstOrDefault(t => t.EventType.Code == TimeLineEventType.BULD_COMPLETED.ToString());
@@ -102,10 +106,10 @@ namespace SKD.Model {
             var componentScan = await context.ComponentScans
                 .Where(t => t.VehicleComponent.Vehicle.KitNo == vehicle.KitNo)
                 .Where(t => t.VehicleComponent.Component.Code == engineComponentCode)
-                .Where(t => t.AcceptedAt != null && t.RemovedAt != null)
+                .Where(t => t.AcceptedAt != null && t.RemovedAt == null)
                 .FirstOrDefaultAsync();
 
-            return (componentScan.Scan1 + " " + componentScan.Scan2).Trim();
+            return (componentScan?.Scan1 + " " + componentScan?.Scan2).Trim();
         }
 
         private DateTime? GetVehicleTimelineEventDate(Vehicle vehicle, TimeLineEventType eventType) {
@@ -162,12 +166,17 @@ namespace SKD.Model {
             return PartnerStatus_TxType.NoChange;
         }
 
-        public async Task<List<Error>> ValidateGetPartnerStatus(PartnerStatusInput dto) {
+        public async Task<List<Error>> ValidateGetPartnerStatus(PartnerStatusInput input) {
             var errors = new List<Error>();
 
-            var plantExists = await context.Plants.AnyAsync(t => t.Code == dto.PlantCode);
+            var plantExists = await context.Plants.AnyAsync(t => t.Code == input.PlantCode);
             if (!plantExists) {
                 errors.Add(new Error("plantCode", "plant code not found"));
+            }
+        
+            var component = await context.Components.FirstOrDefaultAsync(t => t.Code == input.EngineComponentCode);
+            if (component == null) {
+                errors.Add(new Error("EngineComponentCode", $"engine component not found for {input.EngineComponentCode}"));
             }
 
             return errors;
