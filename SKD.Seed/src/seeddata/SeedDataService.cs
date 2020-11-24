@@ -6,10 +6,10 @@ using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
 
 namespace SKD.Seed {
-    public class MockDataService {
+    public class SeedDataService {
 
         SkdContext ctx;
-        public MockDataService(SkdContext ctx) {
+        public SeedDataService(SkdContext ctx) {
             this.ctx = ctx;
         }
 
@@ -26,9 +26,9 @@ namespace SKD.Seed {
 
             // seed
             var seedDataPath = Path.Combine(Directory.GetCurrentDirectory(), "src/json");
-            var seedData = new MockData(seedDataPath);
+            var seedData = new SeedData(seedDataPath);
 
-            var generator = new MockDataGenerator(ctx);
+            var generator = new SeedDataGenerator(ctx);
             await generator.Seed_VehicleTimelineVentType();
             await generator.Seed_Components(seedData.Component_MockData);
             await generator.Seed_ProductionStations(seedData.ProductionStation_MockData);

@@ -37,7 +37,7 @@ namespace SKD.Server {
 
             services.AddDbContext<SkdContext>(options => {
                 var connectionString = Configuration.GetConnectionString("Default");
-                options.UseSqlServer(connectionString, 
+                options.UseSqlServer(connectionString,
                 b => b.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery));
             }, ServiceLifetime.Transient);
 
@@ -95,7 +95,7 @@ namespace SKD.Server {
                 if (_env.IsDevelopment()) {
                     endpoints.MapPost("/gen_ref_data", async (context) => {
                         var ctx = context.RequestServices.GetService<SkdContext>();
-                        var service = new MockDataService(ctx);
+                        var service = new SeedDataService(ctx);
                         await service.GenerateReferencekData();
                         context.Response.StatusCode = 200;
                     });
@@ -111,6 +111,8 @@ namespace SKD.Server {
                         var ctx = context.RequestServices.GetService<SkdContext>();
                         var dbService = new DbService(ctx);
                         await dbService.DroCreateDb();
+                        var service = new SeedDataService(ctx);
+                        await service.GenerateReferencekData();
                         context.Response.StatusCode = 200;
                     });
 

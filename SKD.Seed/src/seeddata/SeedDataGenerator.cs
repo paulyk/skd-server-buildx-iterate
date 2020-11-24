@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 using System.Transactions;
 
 namespace SKD.Seed {
-    internal class MockDataGenerator {
+    internal class SeedDataGenerator {
         private SkdContext ctx;
 
-        public MockDataGenerator(SkdContext ctx) {
+        public SeedDataGenerator(SkdContext ctx) {
             this.ctx = ctx;
         }
 
