@@ -5,9 +5,9 @@ namespace SKD.Model {
 
     public class QueryPayload<T> where T : class {
         public QueryPayload(T? entity) {
-            Entity = entity;
+            Result = entity;
         }
-        public T? Entity { get; set; }
+        public T? Result { get; set; }
         public List<Error> Errors { get; set; } = new List<Error>();
     }
 }

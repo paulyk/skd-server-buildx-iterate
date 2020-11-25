@@ -26,7 +26,8 @@ namespace SKD.Model {
                 return payload;
             }
 
-            var query = GetPartnerStatusQualifyingVehiclesQuery(input);
+            // get qualifying vehicle list
+            var query = GetPartnerStatusQualifyingVehiclesQuery(input);            
             var qualifyingVehicles = await query
                 .Include(t => t.Lot)
                 .Include(t => t.StatusSnapshots)
@@ -59,7 +60,7 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<QueryPayload<VehicleSnapshoDTO>> GetSnapshot(VehicleSnapshotInput input) {
+        public async Task<VehicleSnapshoDTO> GetSnapshot(VehicleSnapshotInput input) {
             var dto = new VehicleSnapshoDTO {
                 PlantCode = input.PlantCode,
                 RunDate= input.RunDate.Date,
@@ -91,12 +92,10 @@ namespace SKD.Model {
                 });
             }
         
-            return payload;
+            return dto;
         }
 
         private IQueryable<Vehicle> GetPartnerStatusQualifyingVehiclesQuery(VehicleSnapshotInput input) {
-            var wholesaleCutoff = input.RunDate.AddDays(7);
-
             // filter by plant code
             var query = context.Vehicles.Where(t => t.Lot.Plant.Code == input.PlantCode).AsQueryable();
 
@@ -119,7 +118,7 @@ namespace SKD.Model {
                     t.TimelineEvents.Any(ev =>
                         ev.RemovedAt == null &&
                         ev.EventType.Code == TimeLineEventType.WHOLE_SALE.ToString() &&
-                        ev.EventDate <= wholesaleCutoff
+                        ev.EventDate.AddDays(7) > input.RunDate
                     )
                 ).AsQueryable();
 
@@ -199,14 +198,18 @@ namespace SKD.Model {
                 .OrderByDescending(t => t.CreatedAt)
                 .FirstOrDefault(t => t.RemovedAt == null);
 
-            var eventCode = latestTimelineEvent.EventType.Code;
+            var currentEventCode = latestTimelineEvent.EventType.Code;
 
             var priorPartnerStatusEntry = vehicle.StatusSnapshots
                 .OrderByDescending(t => t.RunDate)
                 .FirstOrDefault();
+            
+            var priorEventCode = priorPartnerStatusEntry != null 
+                ? priorPartnerStatusEntry.TimelineEventCode.ToString()
+                : null;
 
             // 1:  if custom received and no previous status entry
-            if (eventCode == TimeLineEventType.CUSTOM_RECEIVED.ToString() &&
+            if (currentEventCode == TimeLineEventType.CUSTOM_RECEIVED.ToString() &&
                 priorPartnerStatusEntry == null) {
                 return PartnerStatus_ChangeStatus.Added;
             }
@@ -216,13 +219,13 @@ namespace SKD.Model {
             }
 
             // if anything but wholesale and not same as prior event
-            if (eventCode != TimeLineEventType.WHOLE_SALE.ToString() &&
-                priorPartnerStatusEntry.TimelineEventCode != TimeLineEventType.WHOLE_SALE) {
+            if (currentEventCode != TimeLineEventType.WHOLE_SALE.ToString() &&
+                currentEventCode != priorEventCode) {
                 return PartnerStatus_ChangeStatus.Changed;
             }
 
             // if wholesale
-            if (eventCode == TimeLineEventType.WHOLE_SALE.ToString()) {
+            if (currentEventCode == TimeLineEventType.WHOLE_SALE.ToString()) {
                 return PartnerStatus_ChangeStatus.Final;
             }
             return PartnerStatus_ChangeStatus.NoChange;
