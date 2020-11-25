@@ -18,7 +18,11 @@ namespace SKD.Model {
             // relationships        
             builder.HasMany(t => t.VehicleLots)
                 .WithOne(t => t.Plant)
-                .HasForeignKey(t => t.PlantId);            
+                .HasForeignKey(t => t.PlantId);           
+
+            builder.HasMany(t => t.VehicleStatusSnapshots) 
+                .WithOne(t => t.Plant)
+                .HasForeignKey(t => t.PlanBuild);
         }
     }
 }

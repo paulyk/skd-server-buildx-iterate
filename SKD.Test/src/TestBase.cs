@@ -53,8 +53,6 @@ namespace SKD.Test {
             ctx.SaveChanges();
             return ctx.Components.ToList();
         }
-
-
         public VehicleModel Gen_VehicleModel(SkdContext ctx,
             string modelCode,
             List<(string componentCode,

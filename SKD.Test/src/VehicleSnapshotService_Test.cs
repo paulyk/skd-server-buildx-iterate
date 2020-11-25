@@ -7,14 +7,59 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 
 namespace SKD.Test {
-    public class ParnterStatusServiceTest : TestBase {
+    public class VehicleSnapshotServiceTest : TestBase {
 
         private SkdContext ctx;
-        public ParnterStatusServiceTest() {
+        public VehicleSnapshotServiceTest() {
             ctx = GetAppDbContext();
         }
 
         [Fact]
+        public async Task can_generate_snapshot() {
+            // setup
+            var snapshotInput =  await Gen_Test_Data_For_Vehicle_Snapshot();
+
+            var service = new VehicleSnapshotService(ctx);
+            snapshotInput.RunDate = DateTime.Now.Date;
+            var payload = await service.GenerateSnapshot(snapshotInput);
+
+            var snapshots_count = ctx.VehicleStatusSnapshots.Count();
+            Assert.Equal(0, snapshots_count);
+
+            // custom received
+            snapshotInput.RunDate = snapshotInput.RunDate.AddDays(1);
+            var vehicle = ctx.Vehicles.OrderBy(t => t.KitNo).First();
+            await AddVehicleTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, vehicle.KitNo, "", DateTime.Now.Date);
+            payload = await service.GenerateSnapshot(snapshotInput);
+
+            snapshots_count = ctx.VehicleStatusSnapshots.Count();
+            Assert.Equal(1, snapshots_count);
+        }
+
+        [Fact]
+        public async Task cannot_generate_snapshot_with_same_run_date() {
+            // setup
+            var snapshotInput  = await Gen_Test_Data_For_Vehicle_Snapshot();
+
+            var vehicle = ctx.Vehicles.OrderBy(t => t.KitNo).First();
+            await AddVehicleTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, vehicle.KitNo, "", DateTime.Now.Date);
+            var service = new VehicleSnapshotService(ctx);
+
+            snapshotInput.RunDate = new DateTime(2020, 11, 24);
+            var payload = await service.GenerateSnapshot(snapshotInput);
+            var snapshots_count = ctx.VehicleStatusSnapshots.Count();
+            Assert.Equal(1, snapshots_count);
+
+            // test with same runDate
+            payload = await service.GenerateSnapshot(snapshotInput);
+
+            var errorCount= payload.Errors.Count;
+            Assert.Equal(1, errorCount);
+
+        }
+
+
+        /*
         public async Task can_generate_partner_status() {
             // setup
 
@@ -31,7 +76,7 @@ namespace SKD.Test {
 
             // day 1  (no timeline events)
             var date = new DateTime(2020, 12, 1);
-            var vehicleEntries = await GetVehicleStatusEntries(plantCode, engineComponentCode, date);
+            var vehicleEntries = await GetVehiclePartnerStatusReport(plantCode, engineComponentCode, date);
             var entryCount = vehicleEntries.Count;
             Assert.Equal(0, entryCount);
 
@@ -39,37 +84,37 @@ namespace SKD.Test {
             date = date.AddDays(1);
             var vehicle = ctx.Vehicles.OrderBy(t => t.KitNo).First();
             await AddVehicleTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, vehicle.KitNo, "", date, date);
-            vehicleEntries = await GetVehicleStatusEntries(plantCode, engineComponentCode, date);
+            vehicleEntries = await GetVehiclePartnerStatusReport(plantCode, engineComponentCode, date);
 
             entryCount = vehicleEntries.Count;
             Assert.Equal(1, entryCount);
             var entry = vehicleEntries.First();
-            Assert.Equal(PartnerStatus_TxType.Added, entry.TxType);
-            Assert.Equal(PartnerStatus_CurrentStatusType.FPCR, entry.CurrentStatusType);
+            Assert.Equal(PartnerStatus_ChangeStatus.Added, entry.TxType);
+            Assert.Equal(PartnerStatus_TimelineStatusType.CustomReceived, entry.CurrentStatusType);
 
             // day 3   (no change)
             date = date.AddDays(1);
-            vehicleEntries = await GetVehicleStatusEntries(plantCode, engineComponentCode, date);
+            vehicleEntries = await GetVehiclePartnerStatusReport(plantCode, engineComponentCode, date);
             entryCount = vehicleEntries.Count;
             Assert.Equal(1, entryCount);
             entry = vehicleEntries.First();
-            Assert.Equal(PartnerStatus_TxType.NoChange, entry.TxType);
-            Assert.Equal(PartnerStatus_CurrentStatusType.FPCR, entry.CurrentStatusType);
+            Assert.Equal(PartnerStatus_ChangeStatus.NoChange, entry.TxType);
+            Assert.Equal(PartnerStatus_TimelineStatusType.CustomReceived, entry.CurrentStatusType);
 
             // day 3   (PLan Build)
             date = date.AddDays(1);
             await AddVehicleTimelineEntry(TimeLineEventType.PLAN_BUILD, vehicle.KitNo, "", date, date);
-            vehicleEntries = await GetVehicleStatusEntries(plantCode, engineComponentCode, date);
+            vehicleEntries = await GetVehiclePartnerStatusReport(plantCode, engineComponentCode, date);
             entry = vehicleEntries.First();
-            Assert.Equal(PartnerStatus_TxType.Changed, entry.TxType);
-            Assert.Equal(PartnerStatus_CurrentStatusType.FPBP, entry.CurrentStatusType);
+            Assert.Equal(PartnerStatus_ChangeStatus.Changed, entry.TxType);
+            Assert.Equal(PartnerStatus_TimelineStatusType.FPBP, entry.CurrentStatusType);
 
             // day 5   (no change)
             date = date.AddDays(1);
-            vehicleEntries = await GetVehicleStatusEntries(plantCode, engineComponentCode, date);
+            vehicleEntries = await GetVehiclePartnerStatusReport(plantCode, engineComponentCode, date);
             entry = vehicleEntries.First();
-            Assert.Equal(PartnerStatus_TxType.NoChange, entry.TxType);
-            Assert.Equal(PartnerStatus_CurrentStatusType.FPBP, entry.CurrentStatusType);
+            Assert.Equal(PartnerStatus_ChangeStatus.NoChange, entry.TxType);
+            Assert.Equal(PartnerStatus_TimelineStatusType.FPBP, entry.CurrentStatusType);
 
             // day 6   (Build Completed)
             // Scan engine serial number 
@@ -79,52 +124,57 @@ namespace SKD.Test {
             vehicle = ctx.Vehicles.OrderBy(t => t.KitNo).First();
             await AddEngineSerialNumberComponentScan(vehicle.KitNo, engineComponentCode, engineSerial);
             await AddVehicleTimelineEntry(TimeLineEventType.BULD_COMPLETED, vehicle.KitNo, "", date, date);
-            vehicleEntries = await GetVehicleStatusEntries(plantCode, engineComponentCode, date);
+            vehicleEntries = await GetVehiclePartnerStatusReport(plantCode, engineComponentCode, date);
             entry = vehicleEntries.First();
-            Assert.Equal(PartnerStatus_TxType.Changed, entry.TxType);
-            Assert.Equal(PartnerStatus_CurrentStatusType.FPBC, entry.CurrentStatusType);
+            Assert.Equal(PartnerStatus_ChangeStatus.Changed, entry.TxType);
+            Assert.Equal(PartnerStatus_TimelineStatusType.BuildCompleted, entry.CurrentStatusType);
             Assert.Equal(engineSerial, entry.EngineSerialNumber);
 
             // day 6   (Gate Release)
             date = date.AddDays(1);
             vehicle = ctx.Vehicles.OrderBy(t => t.KitNo).First();
             await AddVehicleTimelineEntry(TimeLineEventType.GATE_RELEASED, vehicle.KitNo, "", date, date);
-            vehicleEntries = await GetVehicleStatusEntries(plantCode, engineComponentCode, date);
+            vehicleEntries = await GetVehiclePartnerStatusReport(plantCode, engineComponentCode, date);
             entry = vehicleEntries.First();
-            Assert.Equal(PartnerStatus_TxType.Changed, entry.TxType);
-            Assert.Equal(PartnerStatus_CurrentStatusType.FPGR, entry.CurrentStatusType);
+            Assert.Equal(PartnerStatus_ChangeStatus.Changed, entry.TxType);
+            Assert.Equal(PartnerStatus_TimelineStatusType.GateRelease, entry.CurrentStatusType);
 
             // day 7  (Wholesale)
             date = date.AddDays(1);
             vehicle = ctx.Vehicles.OrderBy(t => t.KitNo).First();
             await AddVehicleTimelineEntry(TimeLineEventType.WHOLE_SALE, vehicle.KitNo, dealerCode, date, date);
-            vehicleEntries = await GetVehicleStatusEntries(plantCode, engineComponentCode, date);
+            vehicleEntries = await GetVehiclePartnerStatusReport(plantCode, engineComponentCode, date);
             entry = vehicleEntries.First();
-            Assert.Equal(PartnerStatus_TxType.Final, entry.TxType);
-            Assert.Equal(PartnerStatus_CurrentStatusType.FPWS, entry.CurrentStatusType);
+            Assert.Equal(PartnerStatus_ChangeStatus.Final, entry.TxType);
+            Assert.Equal(PartnerStatus_TimelineStatusType.Wholesale, entry.CurrentStatusType);
             Assert.Equal(dealerCode, entry.DealerCode);
 
             // day 8   (final)
             date = date.AddDays(1);
-            vehicleEntries = await GetVehicleStatusEntries(plantCode, engineComponentCode, date);
+            vehicleEntries = await GetVehiclePartnerStatusReport(plantCode, engineComponentCode, date);
             entry = vehicleEntries.First();
-            Assert.Equal(PartnerStatus_TxType.Final, entry.TxType);
-            Assert.Equal(PartnerStatus_CurrentStatusType.FPWS, entry.CurrentStatusType);
+            Assert.Equal(PartnerStatus_ChangeStatus.Final, entry.TxType);
+            Assert.Equal(PartnerStatus_TimelineStatusType.Wholesale, entry.CurrentStatusType);
 
         }
+        */
 
         #region test helper methods
-        private async Task<List<PartnerStatusDTO.VehicleStatus>> GetVehicleStatusEntries(string plantCode, string engineComponentCode, DateTime date) {
-            var partnerStatusInput = new PartnerStatusInput {
+        private async Task<List<VehicleSnapshoDTO.Entry>> GetVehiclePartnerStatusReport(
+            string plantCode,
+            string engineComponentCode,
+            DateTime date) {
+
+            var partnerStatusInput = new VehicleSnapshotInput {
                 PlantCode = plantCode,
                 EngineComponentCode = engineComponentCode,
                 RunDate = date
             };
 
             // initial
-            var service = new PartnerStatusService(ctx);
-            var payload = await service.GetPartnerStatus(partnerStatusInput);
-            return payload.Entity.VehicleStatusEntries.ToList();
+            var service = new VehicleSnapshotService(ctx);
+            var payload = await service.GetSnapshot(partnerStatusInput);
+            return payload.Entity.Entries.ToList();
         }
 
         private async Task AddEngineSerialNumberComponentScan(string kitNo, string engineComponentCode, string engineSerial) {
@@ -145,7 +195,7 @@ namespace SKD.Test {
                 ErrorMessage = ""
             });
         }
-        private async Task AddVehicleTimelineEntry(TimeLineEventType eventType, string kitNo, string eventNote, DateTime eventDate, DateTime createdAt) {
+        private async Task AddVehicleTimelineEntry(TimeLineEventType eventType, string kitNo, string eventNote, DateTime eventDate) {
             var service = new VehicleService(ctx);
             var payload = await service.CreateVehicleTimelineEvent(new VehicleTimelineEventInput {
                 KitNo = kitNo,
@@ -153,21 +203,28 @@ namespace SKD.Test {
                 EventNote = eventNote,
                 EventDate = eventDate
             });
-            SetEntityCreatedAt<VehicleTimelineEvent>(ctx, payload.Entity.Id, createdAt);
         }
 
-        private async Task Gen_PartStatus_Test_Data(string plantCode, string engineComponentCode) {
+        private async Task<VehicleSnapshotInput> Gen_Test_Data_For_Vehicle_Snapshot() {
+            var input = new VehicleSnapshotInput{
+                RunDate = DateTime.Now.Date,
+                PlantCode =  Gen_PlantCode(),
+                EngineComponentCode = "EN"
+            };
+
             Gen_VehicleTimelineEventTypes(ctx);
 
             var lotNo = Gen_LotNo();
             var modelCode = Gen_VehicleModel_Code();
             var vehicleLot = await Gen_Vehicle_Lot(
-                ctx, lotNo, plantCode,
-                modelCode, new List<(string, string)> { (engineComponentCode, "stating_1"), ("AB", "station_2") });
+                ctx, lotNo, input.PlantCode,
+                modelCode, new List<(string, string)> { (input.EngineComponentCode, "stating_1"), ("AB", "station_2") });
 
             // assert setup correct
             var vehicles = await ctx.Vehicles.AsNoTracking().ToListAsync();
             var vehicle_count = vehicles.Count();
+
+            return input;
         }
 
         public async Task<VehicleLot> Gen_Vehicle_Lot(

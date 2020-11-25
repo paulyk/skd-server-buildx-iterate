@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SKD.Model {
 
-    public enum PartnerStatus_TxType {
+    public enum PartnerStatus_ChangeStatus {
         Added,
         Changed,
         NoChange,
@@ -18,14 +18,14 @@ namespace SKD.Model {
         FPWS        // Wholesale Date         
     }
 
-    public class PartnerStatusDTO {
+    public class VehicleSnapshoDTO {
 
         public DateTime RunDate { get; set; }
         public string PlantCode { get; set; }
-        public ICollection<VehicleStatus> VehicleStatusEntries { get; set; } = new List<VehicleStatus>();
-        public class VehicleStatus {
-            public PartnerStatus_TxType TxType { get; set; }
-            public PartnerStatus_CurrentStatusType CurrentStatusType { get; set; }
+        public ICollection<Entry> Entries { get; set; } = new List<Entry>();
+        public class Entry {
+            public PartnerStatus_ChangeStatus TxType { get; set; }
+            public TimeLineEventType CurrentTimelineEvent { get; set; }
             public string LotNo { get; set; }
             public string KitNo { get; set; }
             public string VIN { get; set; }
