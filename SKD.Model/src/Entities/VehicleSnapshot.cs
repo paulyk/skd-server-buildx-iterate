@@ -1,7 +1,7 @@
 using System;
 
 namespace SKD.Model {
-    public class VehicleStatusSnapshots : EntityBase {
+    public class VehicleSnapshot : EntityBase {
         public DateTime RunDate { get; set; }
         public Guid VehicleId { get; set; }
         public Vehicle Vehicle { get; set; }
@@ -9,8 +9,6 @@ namespace SKD.Model {
         public Plant Plant { get; set; }
         public PartnerStatus_ChangeStatus ChangeStatusCode { get; set; }
         public TimeLineEventType TimelineEventCode { get; set; }
-        
-        // the following fields are deliberately redundant
         public string VIN { get; set; }
         public string DealerCode { get; set; }
         public string EngineSerialNumber { get; set; }

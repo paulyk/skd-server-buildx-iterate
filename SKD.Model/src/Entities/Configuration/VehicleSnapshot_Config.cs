@@ -2,10 +2,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace SKD.Model {
-    public class VehicleStatusSnapshot_Config : IEntityTypeConfiguration<VehicleStatusSnapshots> {
-        public void Configure(EntityTypeBuilder<VehicleStatusSnapshots> builder) {
+    public class VehicleSnapshot_Config : IEntityTypeConfiguration<VehicleSnapshot> {
+        public void Configure(EntityTypeBuilder<VehicleSnapshot> builder) {
 
-            builder.ToTable("vehicle_status_snapshot");
+            builder.ToTable("vehicle_snapshot");
 
             builder.HasKey(t => t.Id);
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
@@ -16,11 +16,12 @@ namespace SKD.Model {
             builder.Property(t => t.VIN).HasMaxLength(EntityFieldLen.Vehicle_VIN);
             // relationships
             builder.HasOne(t => t.Vehicle)
-                .WithMany(t => t.StatusSnapshots)
+                .WithMany(t => t.Snapshots)
+                .OnDelete(DeleteBehavior.NoAction)
                 .HasForeignKey(t => t.VehicleId);
 
             builder.HasOne(t => t.Plant)
-                .WithMany(t => t.VehicleStatusSnapshots)
+                .WithMany(t => t.VehicleSnapshots)
                 .HasForeignKey(t => t.PlantId);
         }
     }

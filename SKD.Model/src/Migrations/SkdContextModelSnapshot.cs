@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SKD.Model;
 
-namespace SKD.Model.Migrations
+namespace SKD.Model.src.Migrations
 {
     [DbContext(typeof(SkdContext))]
     partial class SkdContextModelSnapshot : ModelSnapshot
@@ -609,6 +609,73 @@ namespace SKD.Model.Migrations
                     b.ToTable("vehicle_model_component");
                 });
 
+            modelBuilder.Entity("SKD.Model.VehicleSnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("BuildCompleted")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ChangeStatusCode")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("CustomReceived")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DealerCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EngineSerialNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("GateRelease")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("PlanBuild")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("PlantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("RemovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("RunDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TimelineEventCode")
+                        .HasColumnType("int");
+
+                    b.Property<string>("VIN")
+                        .HasMaxLength(17)
+                        .HasColumnType("nvarchar(17)");
+
+                    b.Property<Guid>("VehicleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("Wholesale")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlantId");
+
+                    b.HasIndex("VehicleId");
+
+                    b.HasIndex("PlanBuild", "RunDate");
+
+                    b.HasIndex("RunDate", "VehicleId")
+                        .IsUnique();
+
+                    b.ToTable("vehicle_snapshot");
+                });
+
             modelBuilder.Entity("SKD.Model.VehicleTimelineEvent", b =>
                 {
                     b.Property<Guid>("Id")
@@ -830,6 +897,25 @@ namespace SKD.Model.Migrations
                     b.Navigation("VehicleModel");
                 });
 
+            modelBuilder.Entity("SKD.Model.VehicleSnapshot", b =>
+                {
+                    b.HasOne("SKD.Model.Plant", "Plant")
+                        .WithMany("VehicleSnapshots")
+                        .HasForeignKey("PlantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SKD.Model.Vehicle", "Vehicle")
+                        .WithMany("Snapshots")
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Plant");
+
+                    b.Navigation("Vehicle");
+                });
+
             modelBuilder.Entity("SKD.Model.VehicleTimelineEvent", b =>
                 {
                     b.HasOne("SKD.Model.Vehicle", "Vehicle")
@@ -869,6 +955,8 @@ namespace SKD.Model.Migrations
             modelBuilder.Entity("SKD.Model.Plant", b =>
                 {
                     b.Navigation("VehicleLots");
+
+                    b.Navigation("VehicleSnapshots");
                 });
 
             modelBuilder.Entity("SKD.Model.ProductionStation", b =>
@@ -895,6 +983,8 @@ namespace SKD.Model.Migrations
 
             modelBuilder.Entity("SKD.Model.Vehicle", b =>
                 {
+                    b.Navigation("Snapshots");
+
                     b.Navigation("TimelineEvents");
 
                     b.Navigation("VehicleComponents");

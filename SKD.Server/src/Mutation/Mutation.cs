@@ -125,6 +125,12 @@ namespace SKD.Server {
                   BomSummaryInput input
         ) => await service.CreateBomSummary(input);
 
+        public async Task<MutationPayload<VehicleSnapshotsDTO>> GenarateVehicleSnapshots(
+                  [Service] VehicleSnapshotService service,
+                  [Service] SkdContext ctx,
+                  VehicleSnapshotInput input
+        ) => await service.GenerateSnapshots(input);
+
         private Guid ToGuid(string str) {
             Guid gOut;
             Guid.TryParse(str, out gOut);

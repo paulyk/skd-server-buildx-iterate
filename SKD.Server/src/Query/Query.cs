@@ -267,5 +267,17 @@ namespace SKD.Server {
                         .Include(t => t.Parts)
                         .FirstOrDefaultAsync(t => t.Id == id);
 
+        public async Task<VehicleSnapshotsDTO> GetVehicleSnapshots(
+                  [Service] VehicleSnapshotService service,
+                  [Service] SkdContext ctx,
+                  VehicleSnapshotInput input
+        ) => await service.GetSnapshots(input);
+
+        public async Task<List<DateTime>> GetVehiclSnapshotDates(
+                  [Service] VehicleSnapshotService service,
+                  [Service] SkdContext ctx,
+                  string plantCode
+        ) => await service.GetSnapshotDates(plantCode);                        
+
     }
 }

@@ -14,6 +14,6 @@ namespace SKD.Model {
 
         public virtual ICollection<VehicleComponent> VehicleComponents { get; set; } = new List<VehicleComponent>();
         public virtual ICollection<VehicleTimelineEvent> TimelineEvents { get; set; } = new List<VehicleTimelineEvent>();
-        public virtual ICollection<VehicleStatusSnapshots> StatusSnapshots { get; set; } = new List<VehicleStatusSnapshots>();
+        public virtual ICollection<VehicleSnapshot> Snapshots { get; set; } = new List<VehicleSnapshot>();
     }
 }

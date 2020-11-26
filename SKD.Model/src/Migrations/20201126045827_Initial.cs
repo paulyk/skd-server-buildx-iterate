@@ -1,9 +1,9 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace SKD.Model.Migrations
+namespace SKD.Model.src.Migrations
 {
-    public partial class Intial : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -317,6 +317,43 @@ namespace SKD.Model.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "vehicle_snapshot",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", maxLength: 36, nullable: false),
+                    RunDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    VehicleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PlantId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ChangeStatusCode = table.Column<int>(type: "int", nullable: false),
+                    TimelineEventCode = table.Column<int>(type: "int", nullable: false),
+                    VIN = table.Column<string>(type: "nvarchar(17)", maxLength: 17, nullable: true),
+                    DealerCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EngineSerialNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CustomReceived = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    PlanBuild = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    BuildCompleted = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    GateRelease = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Wholesale = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RemovedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_vehicle_snapshot", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_vehicle_snapshot_plant_PlantId",
+                        column: x => x.PlantId,
+                        principalTable: "plant",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_vehicle_snapshot_vehicle_VehicleId",
+                        column: x => x.VehicleId,
+                        principalTable: "vehicle",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "vehicle_timeline_event",
                 columns: table => new
                 {
@@ -607,6 +644,27 @@ namespace SKD.Model.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_vehicle_snapshot_PlanBuild_RunDate",
+                table: "vehicle_snapshot",
+                columns: new[] { "PlanBuild", "RunDate" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_vehicle_snapshot_PlantId",
+                table: "vehicle_snapshot",
+                column: "PlantId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_vehicle_snapshot_RunDate_VehicleId",
+                table: "vehicle_snapshot",
+                columns: new[] { "RunDate", "VehicleId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_vehicle_snapshot_VehicleId",
+                table: "vehicle_snapshot",
+                column: "VehicleId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_vehicle_timeline_event_CreatedAt",
                 table: "vehicle_timeline_event",
                 column: "CreatedAt");
@@ -644,6 +702,9 @@ namespace SKD.Model.Migrations
 
             migrationBuilder.DropTable(
                 name: "vehicle_model_component");
+
+            migrationBuilder.DropTable(
+                name: "vehicle_snapshot");
 
             migrationBuilder.DropTable(
                 name: "vehicle_timeline_event");

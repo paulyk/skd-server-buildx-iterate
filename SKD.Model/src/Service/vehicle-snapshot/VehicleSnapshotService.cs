@@ -14,30 +14,30 @@ namespace SKD.Model {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<VehicleSnapshoDTO>> GenerateSnapshot(VehicleSnapshotInput input) {
-            var dto = new VehicleSnapshoDTO {
+        public async Task<MutationPayload<VehicleSnapshotsDTO>> GenerateSnapshots(VehicleSnapshotInput input) {
+            var dto = new VehicleSnapshotsDTO {
                 RunDate = input.RunDate.Date,
                 PlantCode = input.PlantCode,
-                Entries = new List<VehicleSnapshoDTO.Entry>()
+                Entries = new List<VehicleSnapshotsDTO.Entry>()
             };
-            var payload = new MutationPayload<VehicleSnapshoDTO>(dto);
-            payload.Errors = await ValidateGenPartnerStatus(input);
+            var payload = new MutationPayload<VehicleSnapshotsDTO>(dto);
+            payload.Errors = await ValidateGenerateVehicleSnapshot(input);
             if (payload.Errors.Any()) {
                 return payload;
             }
 
             // get qualifying vehicle list
-            var query = GetPartnerStatusQualifyingVehiclesQuery(input);            
+            var query = GetPartnerStatusQualifyingVehiclesQuery(input);
             var qualifyingVehicles = await query
                 .Include(t => t.Lot)
-                .Include(t => t.StatusSnapshots)
+                .Include(t => t.Snapshots)
                 .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .ToListAsync();
 
-            var vehicleStatusSnapshots = new List<VehicleStatusSnapshots>();
+            var vehicleStatusSnapshots = new List<VehicleSnapshot>();
             // for each vehilce
             foreach (var vehicle in qualifyingVehicles) {
-                var vehicleStatusSnapshot = new VehicleStatusSnapshots {
+                var vehicleStatusSnapshot = new VehicleSnapshot {
                     RunDate = input.RunDate.Date,
                     Vehicle = vehicle,
                     PlantId = vehicle.Lot.PlantId,
@@ -54,29 +54,29 @@ namespace SKD.Model {
                 };
                 vehicleStatusSnapshots.Add(vehicleStatusSnapshot);
             }
-            
-            context.VehicleStatusSnapshots.AddRange(vehicleStatusSnapshots);
+
+            context.VehicleSnapshots.AddRange(vehicleStatusSnapshots);
             await context.SaveChangesAsync();
             return payload;
         }
 
-        public async Task<VehicleSnapshoDTO> GetSnapshot(VehicleSnapshotInput input) {
-            var dto = new VehicleSnapshoDTO {
+        public async Task<VehicleSnapshotsDTO> GetSnapshots(VehicleSnapshotInput input) {
+            var dto = new VehicleSnapshotsDTO {
                 PlantCode = input.PlantCode,
-                RunDate= input.RunDate.Date,
-                Entries = new List<VehicleSnapshoDTO.Entry>()
+                RunDate = input.RunDate.Date,
+                Entries = new List<VehicleSnapshotsDTO.Entry>()
             };
-            var payload = new QueryPayload<VehicleSnapshoDTO>(dto);
+            var payload = new QueryPayload<VehicleSnapshotsDTO>(dto);
 
-            var entries = await context.VehicleStatusSnapshots.AsNoTracking()
+            var entries = await context.VehicleSnapshots.AsNoTracking()
                 .Include(t => t.Vehicle).ThenInclude(t => t.Lot)
                 .Where(t => t.Plant.Code == input.PlantCode)
                 .Where(t => t.RunDate == input.RunDate.Date)
                 .ToListAsync();
-            
 
-            foreach(var entry in entries) {
-                dto.Entries.Add(new VehicleSnapshoDTO.Entry{
+
+            foreach (var entry in entries) {
+                dto.Entries.Add(new VehicleSnapshotsDTO.Entry {
                     TxType = entry.ChangeStatusCode,
                     CurrentTimelineEvent = entry.TimelineEventCode,
                     LotNo = entry.Vehicle.Lot.LotNo,
@@ -91,10 +91,47 @@ namespace SKD.Model {
                     Wholesale = entry.Wholesale
                 });
             }
-        
+
             return dto;
         }
 
+        public async Task<List<DateTime>> GetSnapshotDates(string plantCode) {
+            return await context.VehicleSnapshots
+                .OrderByDescending(t => t.RunDate)
+                .Select(t => t.RunDate)
+                .Distinct()
+                .ToListAsync();
+        }
+
+        public async Task<List<Error>> ValidateGenerateVehicleSnapshot(VehicleSnapshotInput input) {
+            var errors = new List<Error>();
+
+            var plantExists = await context.Plants.AnyAsync(t => t.Code == input.PlantCode);
+            if (!plantExists) {
+                errors.Add(new Error("plantCode", "plant code not found"));
+            }
+
+            var component = await context.Components.FirstOrDefaultAsync(t => t.Code == input.EngineComponentCode);
+            if (component == null) {
+                errors.Add(new Error("EngineComponentCode", $"engine component not found for {input.EngineComponentCode}"));
+            }
+
+            if (errors.Any()) {
+                return errors;
+            }
+
+            var alreadyGenerated = await context.VehicleSnapshots
+                .AnyAsync(t => t.RunDate.Date == input.RunDate.Date);
+
+            if (alreadyGenerated) {
+                errors.Add(new Error("", $"already generated for utc date ${DateTime.UtcNow.Date}"));
+            }
+
+            return errors;
+        }
+
+
+        #region helper methods
         private IQueryable<Vehicle> GetPartnerStatusQualifyingVehiclesQuery(VehicleSnapshotInput input) {
             // filter by plant code
             var query = context.Vehicles.Where(t => t.Lot.Plant.Code == input.PlantCode).AsQueryable();
@@ -125,7 +162,7 @@ namespace SKD.Model {
             return query;
         }
 
-        public string Get_VehicleVIN_IfBuildComplete(Vehicle vehicle) {
+        private string Get_VehicleVIN_IfBuildComplete(Vehicle vehicle) {
             var buildCompletedEvent = vehicle.TimelineEvents
                 .Where(t => t.RemovedAt == null)
                 .FirstOrDefault(t => t.EventType.Code == TimeLineEventType.BULD_COMPLETED.ToString());
@@ -200,11 +237,11 @@ namespace SKD.Model {
 
             var currentEventCode = latestTimelineEvent.EventType.Code;
 
-            var priorPartnerStatusEntry = vehicle.StatusSnapshots
+            var priorPartnerStatusEntry = vehicle.Snapshots
                 .OrderByDescending(t => t.RunDate)
                 .FirstOrDefault();
-            
-            var priorEventCode = priorPartnerStatusEntry != null 
+
+            var priorEventCode = priorPartnerStatusEntry != null
                 ? priorPartnerStatusEntry.TimelineEventCode.ToString()
                 : null;
 
@@ -231,31 +268,6 @@ namespace SKD.Model {
             return PartnerStatus_ChangeStatus.NoChange;
         }
 
-        public async Task<List<Error>> ValidateGenPartnerStatus(VehicleSnapshotInput input) {
-            var errors = new List<Error>();
-
-            var plantExists = await context.Plants.AnyAsync(t => t.Code == input.PlantCode);
-            if (!plantExists) {
-                errors.Add(new Error("plantCode", "plant code not found"));
-            }
-
-            var component = await context.Components.FirstOrDefaultAsync(t => t.Code == input.EngineComponentCode);
-            if (component == null) {
-                errors.Add(new Error("EngineComponentCode", $"engine component not found for {input.EngineComponentCode}"));
-            }
-
-            if (errors.Any()) {
-                return errors;
-            }
-
-            var alreadyGenerated = await context.VehicleStatusSnapshots
-                .AnyAsync(t => t.RunDate.Date == input.RunDate.Date);
-
-            if (alreadyGenerated) {
-                errors.Add(new Error("", $"already generated for utc date ${DateTime.UtcNow.Date}"));
-            }
-
-            return errors;
-        }
+        #endregion
     }
 }
