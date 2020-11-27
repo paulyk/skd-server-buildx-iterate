@@ -125,7 +125,7 @@ namespace SKD.Server {
                   BomSummaryInput input
         ) => await service.CreateBomSummary(input);
 
-        public async Task<MutationPayload<VehicleSnapshotsDTO>> GenarateVehicleSnapshots(
+        public async Task<MutationPayload<GenarateSnapshotsDTO>> GenarateVehicleSnapshots(
                   [Service] VehicleSnapshotService service,
                   [Service] SkdContext ctx,
                   VehicleSnapshotInput input

@@ -19,7 +19,6 @@ namespace SKD.Model {
     }
 
     public class VehicleSnapshotsDTO {
-
         public DateTime RunDate { get; set; }
         public string PlantCode { get; set; }
         public ICollection<Entry> Entries { get; set; } = new List<Entry>();

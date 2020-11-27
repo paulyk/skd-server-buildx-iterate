@@ -14,13 +14,13 @@ namespace SKD.Model {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<VehicleSnapshotsDTO>> GenerateSnapshots(VehicleSnapshotInput input) {
-            var dto = new VehicleSnapshotsDTO {
+        public async Task<MutationPayload<GenarateSnapshotsDTO>> GenerateSnapshots(VehicleSnapshotInput input) {
+            var dto = new GenarateSnapshotsDTO {
                 RunDate = input.RunDate.Date,
                 PlantCode = input.PlantCode,
-                Entries = new List<VehicleSnapshotsDTO.Entry>()
+                SnapshotCount = 0
             };
-            var payload = new MutationPayload<VehicleSnapshotsDTO>(dto);
+            var payload = new MutationPayload<GenarateSnapshotsDTO>(dto);
             payload.Errors = await ValidateGenerateVehicleSnapshot(input);
             if (payload.Errors.Any()) {
                 return payload;
@@ -34,8 +34,7 @@ namespace SKD.Model {
                 .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .ToListAsync();
 
-            var vehicleStatusSnapshots = new List<VehicleSnapshot>();
-            // for each vehilce
+            var vehicleSnapshots = new List<VehicleSnapshot>();
             foreach (var vehicle in qualifyingVehicles) {
                 var vehicleStatusSnapshot = new VehicleSnapshot {
                     RunDate = input.RunDate.Date,
@@ -52,11 +51,15 @@ namespace SKD.Model {
                     GateRelease = GetVehicleTimelineEventDate(vehicle, TimeLineEventType.GATE_RELEASED),
                     Wholesale = GetVehicleTimelineEventDate(vehicle, TimeLineEventType.WHOLE_SALE),
                 };
-                vehicleStatusSnapshots.Add(vehicleStatusSnapshot);
+
+                vehicleSnapshots.Add(vehicleStatusSnapshot);
             }
 
-            context.VehicleSnapshots.AddRange(vehicleStatusSnapshots);
+            context.VehicleSnapshots.AddRange(vehicleSnapshots);
+
             await context.SaveChangesAsync();
+            
+            payload.Entity.SnapshotCount = vehicleSnapshots.Count();
             return payload;
         }
 
@@ -66,7 +69,6 @@ namespace SKD.Model {
                 RunDate = input.RunDate.Date,
                 Entries = new List<VehicleSnapshotsDTO.Entry>()
             };
-            var payload = new QueryPayload<VehicleSnapshotsDTO>(dto);
 
             var entries = await context.VehicleSnapshots.AsNoTracking()
                 .Include(t => t.Vehicle).ThenInclude(t => t.Lot)
@@ -97,9 +99,9 @@ namespace SKD.Model {
 
         public async Task<List<DateTime>> GetSnapshotDates(string plantCode) {
             return await context.VehicleSnapshots
-                .OrderByDescending(t => t.RunDate)
                 .Select(t => t.RunDate)
                 .Distinct()
+                .OrderByDescending(t => t)
                 .ToListAsync();
         }
 
