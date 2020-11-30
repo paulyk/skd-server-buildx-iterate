@@ -10,8 +10,7 @@ namespace SKD.Model {
             builder.HasKey(t => t.Id);
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
 
-            builder.HasIndex(t => new { t.PlanBuild, t.RunDate });
-            builder.HasIndex(t => new { t.RunDate, t.VehicleId }).IsUnique();
+            builder.HasIndex(t => new { t.VehicleSnapshotRunId, t.VehicleId }).IsUnique();
 
             builder.Property(t => t.VIN).HasMaxLength(EntityFieldLen.Vehicle_VIN);
             // relationships
@@ -20,9 +19,6 @@ namespace SKD.Model {
                 .OnDelete(DeleteBehavior.NoAction)
                 .HasForeignKey(t => t.VehicleId);
 
-            builder.HasOne(t => t.Plant)
-                .WithMany(t => t.VehicleSnapshots)
-                .HasForeignKey(t => t.PlantId);
         }
     }
 }

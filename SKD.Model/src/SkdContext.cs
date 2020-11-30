@@ -27,6 +27,7 @@ namespace SKD.Model {
         public DbSet<BomSummary> BomSummaries { get; set; }
         public DbSet<BomSummaryPart> BomSummaryParts { get; set; }
 
+        public DbSet<VehicleSnapshotRun> VehicleSnapshotRuns { get; set; }
         public DbSet<VehicleSnapshot> VehicleSnapshots { get; set; }
 
         public SkdContext(DbContextOptions options) : base(options) { }
@@ -55,6 +56,7 @@ namespace SKD.Model {
             builder.ApplyConfiguration(new BomSummaryPart_Config());
 
             builder.ApplyConfiguration(new VehicleSnapshot_Config());
+            builder.ApplyConfiguration(new VehicleSnapshotRun_Config());
         }
     }
 }

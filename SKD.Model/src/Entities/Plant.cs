@@ -6,6 +6,6 @@ namespace SKD.Model {
         public string Name { get; set; }
 
         public ICollection<VehicleLot> VehicleLots { get; set; } = new List<VehicleLot>();
-        public ICollection<VehicleSnapshot> VehicleSnapshots { get; set; } = new List<VehicleSnapshot>();
+        public ICollection<VehicleSnapshotRun> VehicleSnapshotRuns { get; set; } = new List<VehicleSnapshotRun>();
     }
 }

@@ -267,11 +267,11 @@ namespace SKD.Server {
                         .Include(t => t.Parts)
                         .FirstOrDefaultAsync(t => t.Id == id);
 
-        public async Task<VehicleSnapshotsDTO> GetVehicleSnapshots(
+        public async Task<VehicleSnapshotsDTO?> GetVehicleSnapshots(
                   [Service] VehicleSnapshotService service,
                   [Service] SkdContext ctx,
                   VehicleSnapshotInput input
-        ) => await service.GetSnapshots(input);
+        ) => await service.GetSnapshot(input);
 
         public async Task<List<DateTime>> GetVehicleSnapshotDates(
                   [Service] VehicleSnapshotService service,

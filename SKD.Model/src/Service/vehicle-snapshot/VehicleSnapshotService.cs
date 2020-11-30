@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,13 +16,9 @@ namespace SKD.Model {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<GenarateSnapshotsDTO>> GenerateSnapshots(VehicleSnapshotInput input) {
-            var dto = new GenarateSnapshotsDTO {
-                RunDate = input.RunDate.Date,
-                PlantCode = input.PlantCode,
-                SnapshotCount = 0
-            };
-            var payload = new MutationPayload<GenarateSnapshotsDTO>(dto);
+        public async Task<MutationPayload<GenarateSnapshotDTO>> GenerateSnapshot(VehicleSnapshotInput input) {
+
+            var payload = new MutationPayload<GenarateSnapshotDTO>(null);
             payload.Errors = await ValidateGenerateVehicleSnapshot(input);
             if (payload.Errors.Any()) {
                 return payload;
@@ -34,12 +32,32 @@ namespace SKD.Model {
                 .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .ToListAsync();
 
-            var vehicleSnapshots = new List<VehicleSnapshot>();
+            // if no vehicles return with { WasGenerated = False }
+            if (qualifyingVehicles.Count == 0) {
+                var dto = new GenarateSnapshotDTO {
+                    RunDate = input.RunDate.Date,
+                    PlantCode = input.PlantCode,
+                    WasGenerated = false
+                };
+
+                payload.Entity = dto;
+                return payload;
+            }
+
+            // create entity
+            var vehicleSnapshotRun = new VehicleSnapshotRun {
+                Plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode),
+                RunDate = input.RunDate,
+                Sequence = await context.VehicleSnapshotRuns
+                    .Where(t => t.Plant.Code == input.PlantCode)
+                    .OrderByDescending(t => t.Sequence)
+                    .Select(t => t.Sequence)
+                    .FirstOrDefaultAsync() + 1
+            };
+
             foreach (var vehicle in qualifyingVehicles) {
                 var vehicleStatusSnapshot = new VehicleSnapshot {
-                    RunDate = input.RunDate.Date,
                     Vehicle = vehicle,
-                    PlantId = vehicle.Lot.PlantId,
                     ChangeStatusCode = GetVehicle_TxSatus(vehicle),
                     TimelineEventCode = Get_VehicleLastestTimelineEventType(vehicle),
                     VIN = Get_VehicleVIN_IfBuildComplete(vehicle),
@@ -52,32 +70,54 @@ namespace SKD.Model {
                     Wholesale = GetVehicleTimelineEventDate(vehicle, TimeLineEventType.WHOLE_SALE),
                 };
 
-                vehicleSnapshots.Add(vehicleStatusSnapshot);
+                vehicleSnapshotRun.VehicleSnapshots.Add(vehicleStatusSnapshot);
             }
 
-            context.VehicleSnapshots.AddRange(vehicleSnapshots);
+            // save
+            context.VehicleSnapshotRuns.Add(vehicleSnapshotRun);
+            var entity = await context.SaveChangesAsync();
 
-            await context.SaveChangesAsync();
-            
-            payload.Entity.SnapshotCount = vehicleSnapshots.Count();
+            // dto
+            payload.Entity = new GenarateSnapshotDTO {
+                RunDate = input.RunDate.Date,
+                PlantCode = input.PlantCode,
+                SnapshotCount = vehicleSnapshotRun.VehicleSnapshots.Count(),
+                WasGenerated = true,
+                Sequence = vehicleSnapshotRun.Sequence
+            };
+
             return payload;
         }
 
-        public async Task<VehicleSnapshotsDTO> GetSnapshots(VehicleSnapshotInput input) {
+        public async Task<VehicleSnapshotsDTO?> GetSnapshot(VehicleSnapshotInput input) {
+
+            var snapsthoRun = await context.VehicleSnapshotRuns
+                .Include(t => t.Plant)
+                .Include( t => t.VehicleSnapshots)
+                    .ThenInclude(t => t.Vehicle)
+                    .ThenInclude(t => t.Lot)
+                .Where(t => t.Plant.Code == input.PlantCode)
+                .Where(t => t.RunDate == input.RunDate).FirstOrDefaultAsync();
+
+            if (snapsthoRun == null) {
+                return null;
+            }
+
             var dto = new VehicleSnapshotsDTO {
-                PlantCode = input.PlantCode,
-                RunDate = input.RunDate.Date,
+                PlantCode = snapsthoRun.Plant.Code,
+                RunDate = snapsthoRun.RunDate,
+                Sequnece = snapsthoRun.Sequence,
                 Entries = new List<VehicleSnapshotsDTO.Entry>()
             };
 
             var entries = await context.VehicleSnapshots.AsNoTracking()
                 .Include(t => t.Vehicle).ThenInclude(t => t.Lot)
-                .Where(t => t.Plant.Code == input.PlantCode)
-                .Where(t => t.RunDate == input.RunDate.Date)
+                .Where(t => t.VehicleSnapshotRun.Plant.Code == input.PlantCode)
+                .Where(t => t.VehicleSnapshotRun.RunDate == input.RunDate.Date)
                 .ToListAsync();
 
 
-            foreach (var entry in entries) {
+            foreach (var entry in snapsthoRun.VehicleSnapshots) {
                 dto.Entries.Add(new VehicleSnapshotsDTO.Entry {
                     TxType = entry.ChangeStatusCode,
                     CurrentTimelineEvent = entry.TimelineEventCode,
@@ -98,10 +138,9 @@ namespace SKD.Model {
         }
 
         public async Task<List<DateTime>> GetSnapshotDates(string plantCode) {
-            return await context.VehicleSnapshots
+            return await context.VehicleSnapshotRuns
+                .OrderByDescending(t => t.RunDate)
                 .Select(t => t.RunDate)
-                .Distinct()
-                .OrderByDescending(t => t)
                 .ToListAsync();
         }
 
@@ -122,11 +161,11 @@ namespace SKD.Model {
                 return errors;
             }
 
-            var alreadyGenerated = await context.VehicleSnapshots
-                .AnyAsync(t => t.RunDate.Date == input.RunDate.Date);
+            var alreadyGenerated = await context.VehicleSnapshotRuns
+                .AnyAsync(t => t.Plant.Code == input.PlantCode && t.RunDate.Date == input.RunDate.Date);
 
             if (alreadyGenerated) {
-                errors.Add(new Error("", $"already generated for utc date ${DateTime.UtcNow.Date}"));
+                errors.Add(new Error("", $"already generated vehicle snapshot for plant {input.PlantCode},  date ${DateTime.UtcNow.Date}"));
             }
 
             return errors;
@@ -208,11 +247,12 @@ namespace SKD.Model {
                 : (DateTime?)null;
         }
 
-        private string GetDealerCode(Vehicle vehicle) {
+        private string? GetDealerCode(Vehicle vehicle) {
             var timeLineEvnet = vehicle.TimelineEvents
                 .Where(t => t.RemovedAt == null)
                 .Where(t => t.EventType.Code == TimeLineEventType.WHOLE_SALE.ToString())
                 .FirstOrDefault();
+
 
             return timeLineEvnet != null
                 ? timeLineEvnet.EventNote
@@ -237,10 +277,14 @@ namespace SKD.Model {
                 .OrderByDescending(t => t.CreatedAt)
                 .FirstOrDefault(t => t.RemovedAt == null);
 
+            if (latestTimelineEvent == null) {
+                throw new Exception("timeline event should not be null");
+            }
+
             var currentEventCode = latestTimelineEvent.EventType.Code;
 
             var priorPartnerStatusEntry = vehicle.Snapshots
-                .OrderByDescending(t => t.RunDate)
+                .OrderByDescending(t => t.VehicleSnapshotRun.RunDate)
                 .FirstOrDefault();
 
             var priorEventCode = priorPartnerStatusEntry != null

@@ -2,11 +2,11 @@ using System;
 
 namespace SKD.Model {
     public class VehicleSnapshot : EntityBase {
-        public DateTime RunDate { get; set; }
+
+        public Guid VehicleSnapshotRunId { get; set; }
+        public VehicleSnapshotRun VehicleSnapshotRun { get; set; }
         public Guid VehicleId { get; set; }
         public Vehicle Vehicle { get; set; }
-        public Guid PlantId { get; set; }
-        public Plant Plant { get; set; }
         public PartnerStatus_ChangeStatus ChangeStatusCode { get; set; }
         public TimeLineEventType TimelineEventCode { get; set; }
         public string VIN { get; set; }

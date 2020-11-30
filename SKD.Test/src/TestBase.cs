@@ -49,7 +49,12 @@ namespace SKD.Test {
                 Name = $"{code} name"
             }).ToList();
 
-            ctx.Components.AddRange(components);
+            foreach (var component in components) {
+                if (ctx.Components.Count(t => t.Code == component.Code) == 0) {
+                    ctx.Components.AddRange(components);
+                }
+            }
+
             ctx.SaveChanges();
             return ctx.Components.ToList();
         }
@@ -179,12 +184,12 @@ namespace SKD.Test {
             };
         }
 
-        public void SetEntityCreatedAt<T>(SkdContext context, Guid id, DateTime date) where T : EntityBase  {
+        public void SetEntityCreatedAt<T>(SkdContext context, Guid id, DateTime date) where T : EntityBase {
             var entity = context.Find<T>(id);
             entity.CreatedAt = date;
             context.SaveChanges();
         }
-    
+
         public void Gen_VehicleTimelineEventTypes(SkdContext ctx) {
             var eventTypes = new List<VehicleTimelineEventType> {
                 new VehicleTimelineEventType {
@@ -210,7 +215,11 @@ namespace SKD.Test {
                 eventType.Sequecne = sequence++;
             });
 
-            ctx.VehicleTimelineEventTypes.AddRange(eventTypes);
+            foreach (var eventType in eventTypes) {
+                if (ctx.VehicleTimelineEventTypes.Count(t => t.Code == eventType.Code) == 0) {
+                    ctx.VehicleTimelineEventTypes.AddRange(eventTypes);
+                }
+            }
             ctx.SaveChanges();
         }
 
