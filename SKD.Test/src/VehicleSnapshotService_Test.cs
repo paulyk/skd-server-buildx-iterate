@@ -237,7 +237,7 @@ namespace SKD.Test {
         }
 
         #region test helper methods
-        private async Task<List<VehicleSnapshotsDTO.Entry>> GetVehiclePartnerStatusReport(
+        private async Task<List<VehicleSnapshotRunDTO.Entry>> GetVehiclePartnerStatusReport(
             string plantCode,
             string engineComponentCode,
             DateTime date) {

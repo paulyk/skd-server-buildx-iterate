@@ -176,6 +176,28 @@ namespace SKD.Model.src.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "vehicle_snapshot_run",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", maxLength: 36, nullable: false),
+                    PlantId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    RunDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Sequence = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RemovedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_vehicle_snapshot_run", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_vehicle_snapshot_run_plant_PlantId",
+                        column: x => x.PlantId,
+                        principalTable: "plant",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "shipment_lot",
                 columns: table => new
                 {
@@ -321,9 +343,8 @@ namespace SKD.Model.src.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", maxLength: 36, nullable: false),
-                    RunDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    VehicleSnapshotRunId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     VehicleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    PlantId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ChangeStatusCode = table.Column<int>(type: "int", nullable: false),
                     TimelineEventCode = table.Column<int>(type: "int", nullable: false),
                     VIN = table.Column<string>(type: "nvarchar(17)", maxLength: 17, nullable: true),
@@ -341,9 +362,9 @@ namespace SKD.Model.src.Migrations
                 {
                     table.PrimaryKey("PK_vehicle_snapshot", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_vehicle_snapshot_plant_PlantId",
-                        column: x => x.PlantId,
-                        principalTable: "plant",
+                        name: "FK_vehicle_snapshot_vehicle_snapshot_run_VehicleSnapshotRunId",
+                        column: x => x.VehicleSnapshotRunId,
+                        principalTable: "vehicle_snapshot_run",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -644,25 +665,27 @@ namespace SKD.Model.src.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_vehicle_snapshot_PlanBuild_RunDate",
-                table: "vehicle_snapshot",
-                columns: new[] { "PlanBuild", "RunDate" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_vehicle_snapshot_PlantId",
-                table: "vehicle_snapshot",
-                column: "PlantId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_vehicle_snapshot_RunDate_VehicleId",
-                table: "vehicle_snapshot",
-                columns: new[] { "RunDate", "VehicleId" },
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_vehicle_snapshot_VehicleId",
                 table: "vehicle_snapshot",
                 column: "VehicleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_vehicle_snapshot_VehicleSnapshotRunId_VehicleId",
+                table: "vehicle_snapshot",
+                columns: new[] { "VehicleSnapshotRunId", "VehicleId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_vehicle_snapshot_run_PlantId_RunDate",
+                table: "vehicle_snapshot_run",
+                columns: new[] { "PlantId", "RunDate" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_vehicle_snapshot_run_PlantId_Sequence",
+                table: "vehicle_snapshot_run",
+                columns: new[] { "PlantId", "Sequence" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_vehicle_timeline_event_CreatedAt",
@@ -717,6 +740,9 @@ namespace SKD.Model.src.Migrations
 
             migrationBuilder.DropTable(
                 name: "shipment_invoice");
+
+            migrationBuilder.DropTable(
+                name: "vehicle_snapshot_run");
 
             migrationBuilder.DropTable(
                 name: "vehicle_timeline_event_type");

@@ -47,7 +47,7 @@ namespace SKD.Model {
             // create entity
             var vehicleSnapshotRun = new VehicleSnapshotRun {
                 Plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode),
-                RunDate = input.RunDate,
+                RunDate = input.RunDate.Date,
                 Sequence = await context.VehicleSnapshotRuns
                     .Where(t => t.Plant.Code == input.PlantCode)
                     .OrderByDescending(t => t.Sequence)
@@ -89,7 +89,7 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<VehicleSnapshotsDTO?> GetSnapshot(VehicleSnapshotInput input) {
+        public async Task<VehicleSnapshotRunDTO?> GetSnapshot(VehicleSnapshotInput input) {
 
             var snapsthoRun = await context.VehicleSnapshotRuns
                 .Include(t => t.Plant)
@@ -103,11 +103,11 @@ namespace SKD.Model {
                 return null;
             }
 
-            var dto = new VehicleSnapshotsDTO {
+            var dto = new VehicleSnapshotRunDTO {
                 PlantCode = snapsthoRun.Plant.Code,
-                RunDate = snapsthoRun.RunDate,
-                Sequnece = snapsthoRun.Sequence,
-                Entries = new List<VehicleSnapshotsDTO.Entry>()
+                RunDate = snapsthoRun.RunDate.Date,
+                Sequence = snapsthoRun.Sequence,
+                Entries = new List<VehicleSnapshotRunDTO.Entry>()
             };
 
             var entries = await context.VehicleSnapshots.AsNoTracking()
@@ -116,9 +116,8 @@ namespace SKD.Model {
                 .Where(t => t.VehicleSnapshotRun.RunDate == input.RunDate.Date)
                 .ToListAsync();
 
-
             foreach (var entry in snapsthoRun.VehicleSnapshots) {
-                dto.Entries.Add(new VehicleSnapshotsDTO.Entry {
+                dto.Entries.Add(new VehicleSnapshotRunDTO.Entry {
                     TxType = entry.ChangeStatusCode,
                     CurrentTimelineEvent = entry.TimelineEventCode,
                     LotNo = entry.Vehicle.Lot.LotNo,

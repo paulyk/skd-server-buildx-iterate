@@ -10,7 +10,7 @@ using SKD.Model;
 namespace SKD.Model.src.Migrations
 {
     [DbContext(typeof(SkdContext))]
-    [Migration("20201126045827_Initial")]
+    [Migration("20201130072800_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -642,13 +642,7 @@ namespace SKD.Model.src.Migrations
                     b.Property<DateTime?>("PlanBuild")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("PlantId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<DateTime?>("RemovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("RunDate")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("TimelineEventCode")
@@ -661,21 +655,53 @@ namespace SKD.Model.src.Migrations
                     b.Property<Guid>("VehicleId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("VehicleSnapshotRunId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime?>("Wholesale")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PlantId");
-
                     b.HasIndex("VehicleId");
 
-                    b.HasIndex("PlanBuild", "RunDate");
-
-                    b.HasIndex("RunDate", "VehicleId")
+                    b.HasIndex("VehicleSnapshotRunId", "VehicleId")
                         .IsUnique();
 
                     b.ToTable("vehicle_snapshot");
+                });
+
+            modelBuilder.Entity("SKD.Model.VehicleSnapshotRun", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("PlantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("RemovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("RunDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlantId", "RunDate")
+                        .IsUnique();
+
+                    b.HasIndex("PlantId", "Sequence")
+                        .IsUnique();
+
+                    b.ToTable("vehicle_snapshot_run");
                 });
 
             modelBuilder.Entity("SKD.Model.VehicleTimelineEvent", b =>
@@ -901,21 +927,32 @@ namespace SKD.Model.src.Migrations
 
             modelBuilder.Entity("SKD.Model.VehicleSnapshot", b =>
                 {
-                    b.HasOne("SKD.Model.Plant", "Plant")
-                        .WithMany("VehicleSnapshots")
-                        .HasForeignKey("PlantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("SKD.Model.Vehicle", "Vehicle")
                         .WithMany("Snapshots")
                         .HasForeignKey("VehicleId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.Navigation("Plant");
+                    b.HasOne("SKD.Model.VehicleSnapshotRun", "VehicleSnapshotRun")
+                        .WithMany("VehicleSnapshots")
+                        .HasForeignKey("VehicleSnapshotRunId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Vehicle");
+
+                    b.Navigation("VehicleSnapshotRun");
+                });
+
+            modelBuilder.Entity("SKD.Model.VehicleSnapshotRun", b =>
+                {
+                    b.HasOne("SKD.Model.Plant", "Plant")
+                        .WithMany("VehicleSnapshotRuns")
+                        .HasForeignKey("PlantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Plant");
                 });
 
             modelBuilder.Entity("SKD.Model.VehicleTimelineEvent", b =>
@@ -958,7 +995,7 @@ namespace SKD.Model.src.Migrations
                 {
                     b.Navigation("VehicleLots");
 
-                    b.Navigation("VehicleSnapshots");
+                    b.Navigation("VehicleSnapshotRuns");
                 });
 
             modelBuilder.Entity("SKD.Model.ProductionStation", b =>
@@ -1007,6 +1044,11 @@ namespace SKD.Model.src.Migrations
                     b.Navigation("ModelComponents");
 
                     b.Navigation("Vehicles");
+                });
+
+            modelBuilder.Entity("SKD.Model.VehicleSnapshotRun", b =>
+                {
+                    b.Navigation("VehicleSnapshots");
                 });
 #pragma warning restore 612, 618
         }
