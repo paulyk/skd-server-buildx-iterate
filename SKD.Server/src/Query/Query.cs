@@ -270,8 +270,9 @@ namespace SKD.Server {
         public async Task<VehicleSnapshotRunDTO?> GetVehicleSnapshotRun(
                   [Service] VehicleSnapshotService service,
                   [Service] SkdContext ctx,
-                  VehicleSnapshotInput input
-        ) => await service.GetSnapshot(input);
+                  string plantCode,
+                  DateTime runDate
+        ) => await service.GetSnapshot(plantCode, runDate);
 
         public async Task<List<DateTime>> GetVehicleSnapshotDates(
                   [Service] VehicleSnapshotService service,

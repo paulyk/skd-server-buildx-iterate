@@ -89,15 +89,15 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<VehicleSnapshotRunDTO?> GetSnapshot(VehicleSnapshotInput input) {
+        public async Task<VehicleSnapshotRunDTO?> GetSnapshot(string plantCode, DateTime runDate) {
 
             var snapsthoRun = await context.VehicleSnapshotRuns
                 .Include(t => t.Plant)
                 .Include( t => t.VehicleSnapshots)
                     .ThenInclude(t => t.Vehicle)
                     .ThenInclude(t => t.Lot)
-                .Where(t => t.Plant.Code == input.PlantCode)
-                .Where(t => t.RunDate == input.RunDate).FirstOrDefaultAsync();
+                .Where(t => t.Plant.Code == plantCode)
+                .Where(t => t.RunDate == runDate).FirstOrDefaultAsync();
 
             if (snapsthoRun == null) {
                 return null;
@@ -109,12 +109,6 @@ namespace SKD.Model {
                 Sequence = snapsthoRun.Sequence,
                 Entries = new List<VehicleSnapshotRunDTO.Entry>()
             };
-
-            var entries = await context.VehicleSnapshots.AsNoTracking()
-                .Include(t => t.Vehicle).ThenInclude(t => t.Lot)
-                .Where(t => t.VehicleSnapshotRun.Plant.Code == input.PlantCode)
-                .Where(t => t.VehicleSnapshotRun.RunDate == input.RunDate.Date)
-                .ToListAsync();
 
             foreach (var entry in snapsthoRun.VehicleSnapshots) {
                 dto.Entries.Add(new VehicleSnapshotRunDTO.Entry {
