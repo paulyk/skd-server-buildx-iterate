@@ -58,7 +58,7 @@ namespace SKD.Model {
             foreach (var vehicle in qualifyingVehicles) {
                 var vehicleStatusSnapshot = new VehicleSnapshot {
                     Vehicle = vehicle,
-                    ChangeStatusCode = GetVehicle_TxSatus(vehicle),
+                    ChangeStatusCode = await GetVehicle_TxSatus(vehicle),
                     TimelineEventCode = Get_VehicleLastestTimelineEventType(vehicle),
                     VIN = Get_VehicleVIN_IfBuildComplete(vehicle),
                     DealerCode = GetDealerCode(vehicle),
@@ -264,7 +264,7 @@ namespace SKD.Model {
             return Enum.Parse<TimeLineEventType>(latestTimelineEvent.EventType.Code);
         }
 
-        private PartnerStatus_ChangeStatus GetVehicle_TxSatus(Vehicle vehicle) {
+        private async Task<PartnerStatus_ChangeStatus> GetVehicle_TxSatus(Vehicle vehicle) {
             var latestTimelineEvent = vehicle.TimelineEvents
                 .Where(t => t.RemovedAt == null)
                 .OrderByDescending(t => t.CreatedAt)
@@ -276,21 +276,21 @@ namespace SKD.Model {
 
             var currentEventCode = latestTimelineEvent.EventType.Code;
 
-            var priorPartnerStatusEntry = vehicle.Snapshots
+            var priorVehicleSnapshotEntry = await context.VehicleSnapshots
                 .OrderByDescending(t => t.VehicleSnapshotRun.RunDate)
-                .FirstOrDefault();
-
-            var priorEventCode = priorPartnerStatusEntry != null
-                ? priorPartnerStatusEntry.TimelineEventCode.ToString()
+                .FirstOrDefaultAsync(t => t.VehicleId == vehicle.Id);
+            
+            var priorEventCode = priorVehicleSnapshotEntry != null
+                ? priorVehicleSnapshotEntry.TimelineEventCode.ToString()
                 : null;
 
             // 1:  if custom received and no previous status entry
             if (currentEventCode == TimeLineEventType.CUSTOM_RECEIVED.ToString() &&
-                priorPartnerStatusEntry == null) {
+                priorVehicleSnapshotEntry == null) {
                 return PartnerStatus_ChangeStatus.Added;
             }
 
-            if (priorPartnerStatusEntry == null) {
+            if (priorVehicleSnapshotEntry == null) {
                 throw new Exception("The first event should have been custom received");
             }
 
