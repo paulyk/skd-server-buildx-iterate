@@ -23,7 +23,8 @@ namespace SKD.Test {
             snapshotInput.RunDate = DateTime.Now.Date;
             var payload = await service.GenerateSnapshot(snapshotInput);
 
-            Assert.Equal(false, payload.Entity.WasGenerated);
+            var seqeunceNumber = payload.Entity.Sequence;
+            Assert.Null(seqeunceNumber);
 
             // custom received
             snapshotInput.RunDate = snapshotInput.RunDate.AddDays(1);
@@ -106,14 +107,14 @@ namespace SKD.Test {
 
             // 1.  empty
             await service.GenerateSnapshot(snapshotInput);
-            var snapshotPayload = await service.GetSnapshot(snapshotInput.PlantCode, snapshotInput.RunDate);
+            var snapshotPayload = await service.GetSnapshotByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
             Assert.Null(snapshotPayload);
 
             // 2.  custom received
             await AddVehicleTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, vehicle.KitNo, "", DateTime.Now.Date);
             snapshotInput.RunDate = new DateTime(2020, 11, 24);
             await service.GenerateSnapshot(snapshotInput);
-            snapshotPayload = await service.GetSnapshot(snapshotInput.PlantCode, snapshotInput.RunDate);
+            snapshotPayload = await service.GetSnapshotByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
             var vehicleStatus = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
             Assert.Equal(TimeLineEventType.CUSTOM_RECEIVED, vehicleStatus.CurrentTimelineEvent);
             Assert.Equal(PartnerStatus_ChangeStatus.Added, vehicleStatus.TxType);
@@ -123,7 +124,7 @@ namespace SKD.Test {
             await service.GenerateSnapshot(snapshotInput);
             var snapshotRecordCount = await ctx.VehicleSnapshots.CountAsync();
             Assert.Equal(2, snapshotRecordCount);
-            snapshotPayload = await service.GetSnapshot(snapshotInput.PlantCode, snapshotInput.RunDate);
+            snapshotPayload = await service.GetSnapshotByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
             vehicleStatus = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
             Assert.Equal(1, snapshotPayload.Entries.Count);
             Assert.Equal(TimeLineEventType.CUSTOM_RECEIVED, vehicleStatus.CurrentTimelineEvent);
@@ -133,7 +134,7 @@ namespace SKD.Test {
             await AddVehicleTimelineEntry(TimeLineEventType.PLAN_BUILD, vehicle.KitNo, "", DateTime.Now.Date);
             snapshotInput.RunDate = snapshotInput.RunDate.AddDays(1);
             await service.GenerateSnapshot(snapshotInput);
-            snapshotPayload = await service.GetSnapshot(snapshotInput.PlantCode, snapshotInput.RunDate);
+            snapshotPayload = await service.GetSnapshotByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
             vehicleStatus = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
             Assert.Equal(TimeLineEventType.PLAN_BUILD, vehicleStatus.CurrentTimelineEvent);
             Assert.Equal(PartnerStatus_ChangeStatus.Changed, vehicleStatus.TxType);
@@ -141,7 +142,7 @@ namespace SKD.Test {
             // 4.  no change
             snapshotInput.RunDate = snapshotInput.RunDate.AddDays(1);
             await service.GenerateSnapshot(snapshotInput);
-            snapshotPayload = await service.GetSnapshot(snapshotInput.PlantCode, snapshotInput.RunDate);
+            snapshotPayload = await service.GetSnapshotByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
             vehicleStatus = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
             Assert.Equal(TimeLineEventType.PLAN_BUILD, vehicleStatus.CurrentTimelineEvent);
             Assert.Equal(PartnerStatus_ChangeStatus.NoChange, vehicleStatus.TxType);
@@ -150,7 +151,7 @@ namespace SKD.Test {
             await AddVehicleTimelineEntry(TimeLineEventType.BULD_COMPLETED, vehicle.KitNo, "", DateTime.Now.Date);
             snapshotInput.RunDate = snapshotInput.RunDate.AddDays(1);
             await service.GenerateSnapshot(snapshotInput);
-            snapshotPayload = await service.GetSnapshot(snapshotInput.PlantCode, snapshotInput.RunDate);
+            snapshotPayload = await service.GetSnapshotByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
             vehicleStatus = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
             Assert.Equal(TimeLineEventType.BULD_COMPLETED, vehicleStatus.CurrentTimelineEvent);
             Assert.Equal(PartnerStatus_ChangeStatus.Changed, vehicleStatus.TxType);
@@ -159,7 +160,7 @@ namespace SKD.Test {
             await AddVehicleTimelineEntry(TimeLineEventType.GATE_RELEASED, vehicle.KitNo, "", DateTime.Now.Date);
             snapshotInput.RunDate = snapshotInput.RunDate.AddDays(1);
             await service.GenerateSnapshot(snapshotInput);
-            snapshotPayload = await service.GetSnapshot(snapshotInput.PlantCode, snapshotInput.RunDate);
+            snapshotPayload = await service.GetSnapshotByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
             vehicleStatus = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
             Assert.Equal(TimeLineEventType.GATE_RELEASED, vehicleStatus.CurrentTimelineEvent);
             Assert.Equal(PartnerStatus_ChangeStatus.Changed, vehicleStatus.TxType);
@@ -171,7 +172,7 @@ namespace SKD.Test {
             await AddVehicleTimelineEntry(TimeLineEventType.WHOLE_SALE, vehicle.KitNo, dealerCode, wholesaleDate);
             snapshotInput.RunDate = snapshotInput.RunDate.AddDays(1);
             await service.GenerateSnapshot(snapshotInput);
-            snapshotPayload = await service.GetSnapshot(snapshotInput.PlantCode, snapshotInput.RunDate);
+            snapshotPayload = await service.GetSnapshotByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
             vehicleStatus = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
             Assert.Equal(TimeLineEventType.WHOLE_SALE, vehicleStatus.CurrentTimelineEvent);
             Assert.Equal(PartnerStatus_ChangeStatus.Final, vehicleStatus.TxType);
@@ -181,7 +182,7 @@ namespace SKD.Test {
             // 7.  no change ( should still be final)
             snapshotInput.RunDate = snapshotInput.RunDate.AddDays(2);
             await service.GenerateSnapshot(snapshotInput);
-            snapshotPayload = await service.GetSnapshot(snapshotInput.PlantCode, snapshotInput.RunDate);
+            snapshotPayload = await service.GetSnapshotByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
             vehicleStatus = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
             Assert.Equal(TimeLineEventType.WHOLE_SALE, vehicleStatus.CurrentTimelineEvent);
             Assert.Equal(PartnerStatus_ChangeStatus.Final, vehicleStatus.TxType);
@@ -189,7 +190,7 @@ namespace SKD.Test {
             // 8.  wholesale
             snapshotInput.RunDate = snapshotInput.RunDate.AddDays(4);
             await service.GenerateSnapshot(snapshotInput);
-            snapshotPayload = await service.GetSnapshot(snapshotInput.PlantCode, snapshotInput.RunDate);
+            snapshotPayload = await service.GetSnapshotByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
             Assert.Null(snapshotPayload);
 
         }
@@ -205,22 +206,20 @@ namespace SKD.Test {
             // 1. vehicle snapshot run with no entries
             snapshotInput.RunDate = new DateTime(2020, 12, 1);
             await service.GenerateSnapshot(snapshotInput);
-            var snapshotPayload = await service.GetSnapshot(snapshotInput.PlantCode, snapshotInput.RunDate);
+            var snapshotPayload = await service.GetSnapshotByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
             Assert.Null(snapshotPayload);
-            var snapshotDates = await service.GetSnapshotDates(snapshotInput.PlantCode);
-            var snapshotDatesCount = snapshotDates.Count();
-            Assert.Equal(0, snapshotDatesCount);
+            var snapshotCount =  ctx.VehicleSnapshotRuns.Count();
+            Assert.Equal(0, snapshotCount);
 
             // 2.  custom received
             await AddVehicleTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, vehicle_1.KitNo, "", DateTime.Now.Date);
             await AddVehicleTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, vehicle_2.KitNo, "", DateTime.Now.Date);
             snapshotInput.RunDate = snapshotInput.RunDate.AddDays(1);
             await service.GenerateSnapshot(snapshotInput);
-            snapshotPayload = await service.GetSnapshot(snapshotInput.PlantCode, snapshotInput.RunDate);
+            snapshotPayload = await service.GetSnapshotByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
             Assert.Equal(2, snapshotPayload.Entries.Count);
-            snapshotDates = await service.GetSnapshotDates(snapshotInput.PlantCode);
-            snapshotDatesCount  = snapshotDates.Count;
-            Assert.Equal(1, snapshotDatesCount);
+            snapshotCount  = ctx.VehicleSnapshotRuns.Count();
+            Assert.Equal(1, snapshotCount);
 
             // 3.  no change
             snapshotInput.RunDate = snapshotInput.RunDate.AddDays(1);
@@ -232,8 +231,8 @@ namespace SKD.Test {
             var totalSnapshotEntries = await ctx.VehicleSnapshots.CountAsync();
             Assert.Equal(6, totalSnapshotEntries);
 
-            snapshotDates = await service.GetSnapshotDates(snapshotInput.PlantCode);
-            Assert.Equal(3, snapshotDates.Count);
+            snapshotCount  = ctx.VehicleSnapshotRuns.Count();
+            Assert.Equal(3, snapshotCount);
         }
 
         #region test helper methods
@@ -250,7 +249,7 @@ namespace SKD.Test {
 
             // initial
             var service = new VehicleSnapshotService(ctx);
-            var payload = await service.GetSnapshot(snapshotInput.PlantCode, snapshotInput.RunDate);
+            var payload = await service.GetSnapshotByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
             return payload.Entries.ToList();
         }
 

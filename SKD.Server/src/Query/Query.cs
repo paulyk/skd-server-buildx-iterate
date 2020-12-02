@@ -267,18 +267,27 @@ namespace SKD.Server {
                         .Include(t => t.Parts)
                         .FirstOrDefaultAsync(t => t.Id == id);
 
-        public async Task<VehicleSnapshotRunDTO?> GetVehicleSnapshotRun(
+        public async Task<VehicleSnapshotRunDTO?> GetVehicleSnapshotRunByDate(
                   [Service] VehicleSnapshotService service,
                   [Service] SkdContext ctx,
                   string plantCode,
                   DateTime runDate
-        ) => await service.GetSnapshot(plantCode, runDate);
+        ) => await service.GetSnapshotByDate(plantCode, runDate);
 
-        public async Task<List<DateTime>> GetVehicleSnapshotDates(
+        public async Task<VehicleSnapshotRunDTO?> GetVehicleSnapshotRun(
                   [Service] VehicleSnapshotService service,
                   [Service] SkdContext ctx,
-                  string plantCode
-        ) => await service.GetSnapshotDates(plantCode);                        
+                  string plantCode,
+                  int sequence
+        ) => await service.GetSnapshotBySequenceNumber(plantCode, sequence);
+
+
+        public async Task<List<SnapshotDTO>> GetRecentVehicleSnapshotRuns(
+                  [Service] VehicleSnapshotService service,
+                  [Service] SkdContext ctx,
+                  string plantCode,
+                  int count
+        ) => await service.GetSnapshotRuns(plantCode, count);
 
     }
 }
