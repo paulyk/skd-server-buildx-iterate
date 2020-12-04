@@ -64,6 +64,7 @@ namespace SKD.Model {
             var vehicleLot = await context.VehicleLots
                 .Include(t => t.Vehicles)
                 .FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
+            payload.Entity = vehicleLot;
 
             vehicleLot.Vehicles.ToList().ForEach(vehicle => {
                 var vin = dto.Kits.First(t => t.KitNo == vehicle.KitNo).VIN;
