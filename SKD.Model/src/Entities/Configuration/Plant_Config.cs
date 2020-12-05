@@ -23,6 +23,10 @@ namespace SKD.Model {
             builder.HasMany(t => t.VehicleSnapshotRuns) 
                 .WithOne(t => t.Plant)
                 .HasForeignKey(t => t.PlantId);
+
+            builder.HasMany(t => t.BomSummaries)
+                .WithOne(t => t.Plant)
+                .HasForeignKey(t => t.PlantId);
         }
     }
 }

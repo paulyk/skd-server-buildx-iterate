@@ -3,7 +3,9 @@ using System.Collections.Generic;
 
 namespace SKD.Model {
     public class BomSummaryInput {
-        public string SequenceNo { get; init; }
+        public string PlantCode { get; set; }
+        public string PartnerCode { get; set; }
+        public int Sequence { get; init; }
         public ICollection<BomSummaryPartInput> Parts { get; set; } = new List<BomSummaryPartInput>();
     }
 

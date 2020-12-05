@@ -13,6 +13,8 @@ namespace SKD.Model {
         public static int Plant_Code = 5;
         public static int Plant_Name = 100;
 
+        public static int Partner_Code = 5;
+
         public static int Vehicle_VIN = 17;
         public static int Vehicle_LotNo = 15;
         public static int Vehicle_KitNo = 17;
@@ -30,8 +32,6 @@ namespace SKD.Model {
 
         public static int CreatedBy = 255;
         public static int VehicleComponent_PrerequisiteSequence = 50;
-
-        public static int Shipment_SequenceNo = 4;
         public static int Shipment_LotNo = 15;
         public static int Shipment_InvoiceNo = 11;
 

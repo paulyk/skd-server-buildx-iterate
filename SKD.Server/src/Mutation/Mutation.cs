@@ -116,7 +116,7 @@ namespace SKD.Server {
         public async Task<MutationPayload<Shipment>> CreateShipment(
             [Service] ShipmentService service,
             [Service] SkdContext ctx,
-            ShipmentDTO input
+            ShipmentInput input
         ) => await service.CreateShipment(input);
 
         public async Task<MutationPayload<BomSummary>> CreateBomSummary(

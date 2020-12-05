@@ -10,7 +10,7 @@ using SKD.Model;
 namespace SKD.Model.src.Migrations
 {
     [DbContext(typeof(SkdContext))]
-    [Migration("20201130072800_Initial")]
+    [Migration("20201205091734_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -34,17 +34,20 @@ namespace SKD.Model.src.Migrations
                     b.Property<bool>("LotPartQuantitiesMatchShipment")
                         .HasColumnType("bit");
 
+                    b.Property<Guid>("PlantId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("SequenceNo")
-                        .IsRequired()
+                    b.Property<int>("Sequence")
                         .HasMaxLength(4)
-                        .HasColumnType("nvarchar(4)");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SequenceNo");
+                    b.HasIndex("PlantId", "Sequence")
+                        .IsUnique();
 
                     b.ToTable("bom_summary");
                 });
@@ -286,14 +289,13 @@ namespace SKD.Model.src.Migrations
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("SequenceNo")
-                        .IsRequired()
+                    b.Property<int>("Sequence")
                         .HasMaxLength(4)
-                        .HasColumnType("nvarchar(4)");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SequenceNo");
+                    b.HasIndex("Sequence");
 
                     b.ToTable("shipment");
                 });
@@ -775,6 +777,17 @@ namespace SKD.Model.src.Migrations
                     b.ToTable("vehicle_timeline_event_type");
                 });
 
+            modelBuilder.Entity("SKD.Model.BomSummary", b =>
+                {
+                    b.HasOne("SKD.Model.Plant", "Plant")
+                        .WithMany("BomSummaries")
+                        .HasForeignKey("PlantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Plant");
+                });
+
             modelBuilder.Entity("SKD.Model.BomSummaryPart", b =>
                 {
                     b.HasOne("SKD.Model.BomSummary", "BomSummary")
@@ -993,6 +1006,8 @@ namespace SKD.Model.src.Migrations
 
             modelBuilder.Entity("SKD.Model.Plant", b =>
                 {
+                    b.Navigation("BomSummaries");
+
                     b.Navigation("VehicleLots");
 
                     b.Navigation("VehicleSnapshotRuns");

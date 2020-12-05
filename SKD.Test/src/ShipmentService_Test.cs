@@ -18,8 +18,8 @@ namespace SKD.Test {
         private async Task can_create_shipment() {
             // setup
 
-            var dto = new ShipmentDTO() {
-                SequenceNo = "0001",
+            var dto = new ShipmentInput() {
+                Sequence = 1,
                 Lots = new List<ShipmentLotInput> {
                     new ShipmentLotInput {
                         LotNo = "1234",
@@ -53,8 +53,8 @@ namespace SKD.Test {
         [Fact]
         private async Task cannot_create_shipment_with_no_pards() {
             // setup
-            var dto = new ShipmentDTO() {
-                SequenceNo = "0001",
+            var dto = new ShipmentInput() {
+                Sequence = 1,
                 Lots = new List<ShipmentLotInput> {
                     new ShipmentLotInput {
                         LotNo = "1234",
@@ -83,8 +83,8 @@ namespace SKD.Test {
         [Fact]
         private async Task cannot_create_shipment_invoice_with_no_parts() {
             // setup
-            var dto = new ShipmentDTO() {
-                SequenceNo = "0001",
+            var dto = new ShipmentInput() {
+                Sequence = 1,
                 Lots = new List<ShipmentLotInput> {
                     new ShipmentLotInput {
                         LotNo = "1234",
@@ -113,8 +113,8 @@ namespace SKD.Test {
         [Fact]
         private async Task cannot_create_shipment_lot_with_no_invoices() {
             // setup
-            var dto = new ShipmentDTO() {
-                SequenceNo = "0001",
+            var dto = new ShipmentInput() {
+                Sequence = 1,
                 Lots = new List<ShipmentLotInput> {
                     new ShipmentLotInput {
                         LotNo = "1234",

@@ -15,12 +15,40 @@ namespace SKD.Test {
         }
 
         [Fact]
+        private async Task can_create_bom_summary() {
+            // setup
+            var dto = new BomSummaryInput() {
+                Sequence = 1,
+                PlantCode = Gen_PlantCode(),
+                Parts = new List<BomSummaryPartInput> {
+                    new BomSummaryPartInput {
+                        LotNo = Gen_LotNo(),
+                        PartNo = "0001",
+                        PartDesc = "part 1",
+                        Quantity = 1
+                    }
+                }
+            };
+
+            var before_count = ctx.BomSummaryParts.Count();
+            // test
+            var bomService = new BomSummaryService(ctx);
+            var payload = await bomService.CreateBomSummary(dto);
+
+            // assert
+            var after_count = ctx.BomSummaryParts.Count();
+            Assert.Equal(1, after_count);
+        }
+
+
+        [Fact]
         private async Task cannot_create_bom_summary_with_duplicate_lot_and_part() {
             // setup
             var lotNo = Gen_LotNo();
 
             var dto = new BomSummaryInput() {
-                SequenceNo = "0001",
+                Sequence = 1,
+                PlantCode = Gen_PlantCode(),
                 Parts = new List<BomSummaryPartInput> {
                     new BomSummaryPartInput {
                         LotNo = lotNo,
@@ -49,35 +77,12 @@ namespace SKD.Test {
             Assert.Equal(expectedError, errorMessage);
         }
 
-        private async Task can_create_bom_summary() {
-            // setup
-            var dto = new BomSummaryInput() {
-                SequenceNo = "0001",
-                Parts = new List<BomSummaryPartInput> {
-                    new BomSummaryPartInput {
-                        LotNo = Gen_LotNo(),
-                        PartNo = "0001",
-                        PartDesc = "part 1",
-                        Quantity = 1
-                    }
-                }
-            };
-
-            var before_count = ctx.BomSummaryParts.Count();
-            // test
-            var bomService = new BomSummaryService(ctx);
-            var payload = await bomService.CreateBomSummary(dto);
-
-            // assert
-            var after_count = ctx.BomSummaryParts.Count();
-            Assert.Equal(1, after_count);
-        }
-
         [Fact]
         private async Task cannot_create_bom_summary_with_no_pards() {
             // setup
             var dto = new BomSummaryInput() {
-                SequenceNo = "0001",
+                PlantCode = Gen_PlantCode(),
+                Sequence = 1,
                 Parts = new List<BomSummaryPartInput>()
             };
 

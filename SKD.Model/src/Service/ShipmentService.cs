@@ -16,9 +16,9 @@ namespace SKD.Model {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<Shipment>> CreateShipment(ShipmentDTO dto) {
+        public async Task<MutationPayload<Shipment>> CreateShipment(ShipmentInput dto) {
             var shipment = new Shipment() {
-                SequenceNo = dto.SequenceNo,
+                Sequence = dto.Sequence,
                 Lots = dto.Lots.Select(lotDTO => new ShipmentLot {
                     LotNo = lotDTO.LotNo,
                     Invoices = lotDTO.Invoices.Select(invoiceDTO => new ShipmentInvoice {
@@ -36,7 +36,7 @@ namespace SKD.Model {
 
             var payload = new MutationPayload<Shipment>(shipment);
 
-            payload.Errors = await ValidateShipmentDTO<ShipmentDTO>(dto);
+            payload.Errors = await ValidateShipmentDTO<ShipmentInput>(dto);
             if (payload.Errors.Count > 0) {
                 return payload;
             }
@@ -46,10 +46,10 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<List<Error>> ValidateShipmentDTO<T>(ShipmentDTO dto) where T : ShipmentDTO {
+        public async Task<List<Error>> ValidateShipmentDTO<T>(ShipmentInput dto) where T : ShipmentInput {
             var errors = new List<Error>();
 
-            var duplicate = await context.Shipments.AnyAsync(t => t.SequenceNo == dto.SequenceNo);
+            var duplicate = await context.Shipments.AnyAsync(t => t.Sequence == dto.Sequence);
             if (duplicate) {
                 errors.Add(new Error("", "duplicate shipment sequence number"));
                 return errors;

@@ -256,7 +256,8 @@ namespace SKD.Server {
         public IQueryable<BomSummaryListDTO> GetBomSummaryList([Service] SkdContext context) =>
                 context.BomSummaries.AsNoTracking().Select(t => new BomSummaryListDTO {
                     Id = t.Id,
-                    SequenceNo = t.SequenceNo,
+                    PlantCode = t.Plant.Code,
+                    Sequence = t.Sequence,
                     CreatedAt = t.CreatedAt,
                     LotPartQuantitiesMatchShipment = t.LotPartQuantitiesMatchShipment,
                     PartsCount = t.Parts.Count(),

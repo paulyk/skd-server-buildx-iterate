@@ -4,10 +4,9 @@ using System.Collections.Generic;
 namespace SKD.Model {
 
 
-    public class ShipmentDTO {
-        public string SequenceNo { get; set; } = "";
+    public class ShipmentInput {
+        public int Sequence { get; set; } 
         public ICollection<ShipmentLotInput> Lots { get; set; } = new List<ShipmentLotInput>();
-
     }
 
     public class ShipmentLotInput {
