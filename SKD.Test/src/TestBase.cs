@@ -223,6 +223,9 @@ namespace SKD.Test {
             ctx.SaveChanges();
         }
 
+        public string Get_Code(int len) {
+            return Util.RandomString(len).ToUpper();
+        }
         public string Gen_LotNo() {
             return Util.RandomString(EntityFieldLen.Vehicle_LotNo).ToUpper();
         }
