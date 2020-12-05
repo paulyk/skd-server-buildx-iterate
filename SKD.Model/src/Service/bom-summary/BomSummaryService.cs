@@ -52,7 +52,7 @@ namespace SKD.Model {
             var errors = new List<Error>();
 
             if (String.IsNullOrEmpty(input.PlantCode) || input.PlantCode.Length != EntityFieldLen.Plant_Code) {
-                errors.Add(new Error("", "plant code required"));
+                errors.Add(new Error("", "invalid plant code"));
                 return errors;
             }
 

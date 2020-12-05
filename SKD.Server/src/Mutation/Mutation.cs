@@ -113,13 +113,13 @@ namespace SKD.Server {
             return await service.CreateDCWSResponse(dto);
         }
 
-        public async Task<MutationPayload<Shipment>> CreateShipment(
+        public async Task<MutationPayload<ShipmentOverviewDTO>> CreateShipment(
             [Service] ShipmentService service,
             [Service] SkdContext ctx,
             ShipmentInput input
         ) => await service.CreateShipment(input);
 
-        public async Task<MutationPayload<BomSummary>> CreateBomSummary(
+         async Task<MutationPayload<BomSummary>> CreateBomSummary(
                   [Service] BomSummaryService service,
                   [Service] SkdContext ctx,
                   BomSummaryInput input

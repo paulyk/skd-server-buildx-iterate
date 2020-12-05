@@ -10,12 +10,15 @@ namespace SKD.Model {
             builder.HasKey(t => t.Id);
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
 
-            builder.HasIndex(t => t.Sequence); // not unique
+            builder.HasIndex(t => new { t.PlantId, t.Sequence }).IsUnique();
 
             builder.HasMany(t => t.Lots)
                 .WithOne(t => t.Shipment)
                 .HasForeignKey(t => t.ShipmentId);
 
+            builder.HasOne(t => t.Plant)
+                .WithMany(t => t.Shipments)
+                .HasForeignKey(t => t.PlantId);
         }
     }
 }

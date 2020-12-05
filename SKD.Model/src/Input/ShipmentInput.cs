@@ -5,6 +5,7 @@ namespace SKD.Model {
 
 
     public class ShipmentInput {
+        public string PlantCode { get; set; }
         public int Sequence { get; set; } 
         public ICollection<ShipmentLotInput> Lots { get; set; } = new List<ShipmentLotInput>();
     }
