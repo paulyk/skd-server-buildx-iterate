@@ -17,15 +17,15 @@ namespace SKD.Test {
         [Fact]
         public async Task can_create_vehicle_lot() {
             // setup
+            var plant = Gen_Plant(ctx);
             var modelCode = Gen_VehicleModel_Code();
             var model = Gen_VehicleModel(ctx, modelCode, new List<(string, string)> {
                 ("component_1", "station_1"),
                 ("component_2", "station_2")
             });
             var lotNo = Gen_LotNo();
-            var plantCode = Gen_PlantCode();
             var kitNos = new List<string> { Gen_KitNo(), Gen_KitNo() };
-            var vehicleLotInput = Gen_VehicleLot_Input(lotNo, plantCode, modelCode, kitNos);
+            var vehicleLotInput = Gen_VehicleLot_Input(lotNo, plant.Code, modelCode, kitNos);
 
             var before_count = await ctx.VehicleLots.CountAsync();
             // test
@@ -36,13 +36,12 @@ namespace SKD.Test {
             // assert
             Assert.Equal(before_count + 1, after_count);
 
-            var plant = await ctx.Plants.FirstOrDefaultAsync(t => t.Code == plantCode);
-            Assert.NotNull(plant);
         }
 
         [Fact]
         public async Task cannot_create_vehicle_lot_without_vehicles() {
             // setup            
+            var plant = Gen_Plant(ctx);
             var modelCode = Gen_VehicleModel_Code();
             Gen_VehicleModel(ctx, modelCode, new List<(string componentCode, string stationCode)>{
                 ("component_1", "statin_1")
@@ -50,7 +49,7 @@ namespace SKD.Test {
 
             var lotNo = Gen_LotNo();
             var kitNos = new List<string> { };
-            var vehicleLotInput = Gen_VehicleLot_Input(lotNo, Gen_PlantCode(), modelCode, kitNos);
+            var vehicleLotInput = Gen_VehicleLot_Input(lotNo, plant.Code, modelCode, kitNos);
 
             // test
             var service = new VehicleService(ctx);
@@ -67,6 +66,7 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_create_vehicle_lot_with_duplicate_kitNos() {
             // setup
+            var plant = Gen_Plant(ctx);
             var modelCode = Gen_VehicleModel_Code();
             var model = Gen_VehicleModel(ctx, modelCode, new List<(string, string)> {
                 ("component_1", "station_1"),
@@ -76,7 +76,7 @@ namespace SKD.Test {
 
             var kitNo = Gen_KitNo();
             var kitNos = new List<string> { kitNo, kitNo };
-            var vehicleLotInput = Gen_VehicleLot_Input(lotNo, Gen_PlantCode(), modelCode, kitNos);
+            var vehicleLotInput = Gen_VehicleLot_Input(lotNo, plant.Code, modelCode, kitNos);
 
             // test
             var service = new VehicleService(ctx);
@@ -93,11 +93,12 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_create_vehicle_lot_if_model_code_does_not_exists() {
             // setup
+            var plant = Gen_Plant(ctx);
             var lotNo = Gen_LotNo();
             var kitNos = new List<string> { Gen_KitNo(), Gen_KitNo() };
 
             var nonExistendModelCode = Util.RandomString(EntityFieldLen.VehicleModel_Code);
-            var vehicleLotInput = Gen_VehicleLot_Input(lotNo, Gen_PlantCode(), nonExistendModelCode, kitNos);
+            var vehicleLotInput = Gen_VehicleLot_Input(lotNo, plant.Code, nonExistendModelCode, kitNos);
 
             // test
             var service = new VehicleService(ctx);
@@ -114,6 +115,7 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_create_duplicate_vehicle_lot() {
             // setup
+            var plant = Gen_Plant(ctx);
             var modelCode = Gen_VehicleModel_Code();
             var model = Gen_VehicleModel(ctx, modelCode, new List<(string, string)> {
                 ("component_1", "station_1")
@@ -121,7 +123,7 @@ namespace SKD.Test {
             var lotNo = Gen_LotNo();
 
             var kitNos = new List<string> { Gen_KitNo(), Gen_KitNo() };
-            var vehicleLotInput = Gen_VehicleLot_Input(lotNo, Gen_PlantCode(), modelCode, kitNos);
+            var vehicleLotInput = Gen_VehicleLot_Input(lotNo, plant.Code, modelCode, kitNos);
 
             // test
             var service = new VehicleService(ctx);
@@ -149,8 +151,9 @@ namespace SKD.Test {
         [Fact]
         public async Task can_assing_vehicle_kit_vins() {
             // setup
+            var plant = Gen_Plant(ctx);
             var lotNo = Gen_LotNo();
-            var vehicleLot = await Gen_Vehicle_Lot(lotNo);
+            var vehicleLot = await Gen_Vehicle_Lot(plant.Code, lotNo);
 
             var kitVinDto = new VehicleKitVinInput {
                 LotNo = lotNo,
@@ -172,8 +175,9 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_assing_vehicle_kit_vins_if_vins_already_assigned() {
             // setup
+            var plant = Gen_Plant(ctx);
             var lotNo = Gen_LotNo();
-            var vehicleLot = await Gen_Vehicle_Lot(lotNo);
+            var vehicleLot = await Gen_Vehicle_Lot(plant.Code, lotNo);
 
             var kitVinDto = new VehicleKitVinInput {
                 LotNo = lotNo,
@@ -197,8 +201,9 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_assing_vehicle_lot_vins_kits_not_found() {
             // setup
+            var plant = Gen_Plant(ctx);
             var lotNo = Gen_LotNo();
-            var vehicleLot = await Gen_Vehicle_Lot(lotNo);
+            var vehicleLot = await Gen_Vehicle_Lot(plant.Code, lotNo);
 
             var kitVinDto = new VehicleKitVinInput {
                 LotNo = lotNo,
@@ -223,12 +228,12 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_assing_vehicle_lot_with_duplicate_kits_in_payload() {
             // setup
+            var plant = Gen_Plant(ctx);
             var lotNo = Gen_LotNo();
-
             var kitNo1 = Gen_KitNo();
             var kitNo2 = Gen_KitNo();
 
-            var vehicleLot = await Gen_Vehicle_Lot(lotNo, kitNo1, kitNo2);
+            var vehicleLot = await Gen_Vehicle_Lot(plant.Code, lotNo, kitNo1, kitNo2);
 
             var kitVinDto = new VehicleKitVinInput {
                 LotNo = lotNo,
@@ -439,9 +444,10 @@ namespace SKD.Test {
             // setup
             Gen_VehicleTimelineEventTypes(ctx);
             //
+            var plant = Gen_Plant(ctx);
             var lotNo = Gen_LotNo();
             var kitNos = new string[] { Gen_KitNo(), Gen_KitNo() };
-            var vehicleLot = Gen_Vehicle_Lot(lotNo, kitNos);
+            var vehicleLot = Gen_Vehicle_Lot(plant.Code, lotNo, kitNos);
 
             var eventDate = new DateTime(2020, 11, 30);
             var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
@@ -477,9 +483,10 @@ namespace SKD.Test {
             // setup
             Gen_VehicleTimelineEventTypes(ctx);
             //
+            var plant = Gen_Plant(ctx);
             var lotNo = Gen_LotNo();
             var kitNos = new string[] { Gen_KitNo(), Gen_KitNo() };
-            var vehicleLot = Gen_Vehicle_Lot(lotNo, kitNos);
+            var vehicleLot = Gen_Vehicle_Lot(plant.Code, lotNo, kitNos);
 
             var eventDate = new DateTime(2020, 11, 30);
             var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
@@ -505,7 +512,7 @@ namespace SKD.Test {
             var expectedMessage = "duplicate vehicle timeline event";
             Assert.Equal(expectedMessage, errorMessage.Substring(0, expectedMessage.Length));
         }
-        private async Task<VehicleLot> Gen_Vehicle_Lot(string lotNo, params string[] kitNos) {
+        private async Task<VehicleLot> Gen_Vehicle_Lot(string plantCode, string lotNo, params string[] kitNos) {
 
             kitNos = kitNos.Length > 0
                 ? kitNos :
@@ -521,7 +528,7 @@ namespace SKD.Test {
 
             var vehicleLotInput = Gen_VehicleLot_Input(
                 lotNo,
-                Gen_PlantCode(),
+                plantCode,
                 modelCode,
                 kitNos.ToList()
              );

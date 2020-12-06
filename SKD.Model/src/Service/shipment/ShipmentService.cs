@@ -76,8 +76,6 @@ namespace SKD.Model {
                 return errors;
             }
 
-            Console.WriteLine(duplicateShipment ? "duplicate": "ok");
-
             // shipment dto must have lot + invoice + parts
             if (!input.Lots.Any()) {
                 errors.Add(new Error("", "shipment must have lots"));

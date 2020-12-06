@@ -20,14 +20,17 @@ namespace SKD.Model {
         }
 
         public async Task<MutationPayload<VehicleLot>> CreateVehicleLot(VehicleLotInput input) {
-            var vehicleLot = new VehicleLot { LotNo = input.LotNo };
-            var payload = new MutationPayload<VehicleLot>(vehicleLot);
+            var payload = new MutationPayload<VehicleLot>(null);
             payload.Errors = await ValidateCreateVehicleLot(input);
             if (payload.Errors.Any()) {
                 return payload;
             }
 
             // create vehicle records and add to vehicleLot.Vehicles
+            var vehicleLot = new VehicleLot { 
+                Plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode),
+                LotNo = input.LotNo 
+            };
             foreach (var vehicleDTO in input.Kits) {
                 var vehiclePayload = await CreateVehicleFromKitDTO(vehicleDTO);
                 if (vehiclePayload.Errors.Any()) {
@@ -36,20 +39,13 @@ namespace SKD.Model {
                 }
                 vehicleLot.Vehicles.Add(vehiclePayload.Entity);
             }
-            if (payload.Errors.Any()) {
-                return payload;
-            }
 
             // ensure plant code
-            var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
-            if (plant == null) {
-                plant = new Plant { Code = input.PlantCode, Name = input.PlantCode };
-                context.Plants.Add(plant);
-            }
-            plant.VehicleLots.Add(vehicleLot);
+            context.VehicleLots.Add(vehicleLot);
 
             // persist
             await context.SaveChangesAsync();
+            payload.Entity = vehicleLot;
             return payload;
         }
 
@@ -228,53 +224,59 @@ namespace SKD.Model {
 
             return errors;
         }
-        public async Task<List<Error>> ValidateCreateVehicleLot(VehicleLotInput dto) {
+        public async Task<List<Error>> ValidateCreateVehicleLot(VehicleLotInput input) {
             var errors = new List<Error>();
 
-            var existingLot = await context.VehicleLots.AsNoTracking().FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
+            var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
+            if (plant == null) {
+                errors.Add(new Error("PlantCode", $"plant not found  {input.PlantCode}"));
+                return errors;
+            }
+
+            var existingLot = await context.VehicleLots.AsNoTracking().FirstOrDefaultAsync(t => t.LotNo == input.LotNo);
             if (existingLot != null) {
                 errors.Add(new Error("lotNo", "duplicate vehicle lot"));
                 return errors;
             }
 
             // valid lotNo legnth
-            if (dto.LotNo.Length != EntityFieldLen.Vehicle_LotNo) {
+            if (input.LotNo.Length != EntityFieldLen.Vehicle_LotNo) {
                 errors.Add(new Error("lotNo", $"lotNo must be ${EntityFieldLen.Vehicle_LotNo} characters"));
                 return errors;
             }
 
             // plant code
-            if (dto.PlantCode.Length != EntityFieldLen.Plant_Code) {
+            if (input.PlantCode.Length != EntityFieldLen.Plant_Code) {
                 errors.Add(new Error("plantCode", $"plantCode must be ${EntityFieldLen.Plant_Code} characters"));
                 return errors;
             }
 
-            if (!dto.Kits.Any()) {
+            if (!input.Kits.Any()) {
                 errors.Add(new Error("", "no vehicles found in lot"));
                 return errors;
             }
 
-            if (await context.VehicleLots.AnyAsync(t => t.LotNo == dto.LotNo)) {
+            if (await context.VehicleLots.AnyAsync(t => t.LotNo == input.LotNo)) {
                 errors.Add(new Error("LotNo", "duplicate vehicle lot"));
                 return errors;
             }
 
             // duplicate kitNo
-            var duplicateKits = dto.Kits.GroupBy(t => t.KitNo).Where(g => g.Count() > 1);
+            var duplicateKits = input.Kits.GroupBy(t => t.KitNo).Where(g => g.Count() > 1);
             if (duplicateKits.Any()) {
                 var kitNos = String.Join(", ", duplicateKits.Select(g => g.Key));
                 errors.Add(new Error("", $"duplicate kitNo in vehicle lot {kitNos}"));
                 return errors;
             }
 
-            var modelCodeCount = dto.Kits.GroupBy(t => t.ModelCode).Count();
+            var modelCodeCount = input.Kits.GroupBy(t => t.ModelCode).Count();
             if (modelCodeCount > 1) {
                 errors.Add(new Error("", "Vehicle lot vehicles must have the same model code"));
                 return errors;
             }
 
             // model code exits
-            var modelCode = dto.Kits.Select(t => t.ModelCode).FirstOrDefault();
+            var modelCode = input.Kits.Select(t => t.ModelCode).FirstOrDefault();
             var existingModelCode = await context.VehicleModels.AsNoTracking().FirstOrDefaultAsync(t => t.Code == modelCode);
             if (existingModelCode == null) {
                 errors.Add(new Error("", $"vehicle model not found: {modelCode}"));

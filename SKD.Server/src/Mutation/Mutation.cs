@@ -131,6 +131,12 @@ namespace SKD.Server {
                   VehicleSnapshotInput input
         ) => await service.GenerateSnapshot(input);
 
+       public async Task<MutationPayload<PlantOverviewDTO>> CreatePlant(
+                  [Service] PlantService service,
+                  [Service] SkdContext ctx,
+                  PlantInput input
+        ) => await service.CreatePlant(input);
+
         private Guid ToGuid(string str) {
             Guid gOut;
             Guid.TryParse(str, out gOut);

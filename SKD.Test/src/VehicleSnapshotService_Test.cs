@@ -282,9 +282,10 @@ namespace SKD.Test {
         }
 
         private async Task<VehicleSnapshotInput> Gen_Test_Data_For_Vehicle_Snapshot(string plantCode = null) {
+            var plant= Gen_Plant(ctx, plantCode);
             var input = new VehicleSnapshotInput {
                 RunDate = DateTime.Now.Date,
-                PlantCode = plantCode != null ? plantCode : Gen_PlantCode(),
+                PlantCode = plant.Code,
                 EngineComponentCode = "EN"
             };
 

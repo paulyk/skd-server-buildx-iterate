@@ -11,6 +11,7 @@ namespace SKD.Test {
 
     public class TestBase {
 
+
         public SkdContext GetAppDbContext() {
 
             var connection = new SqliteConnection("DataSource=:memory:");
@@ -24,6 +25,18 @@ namespace SKD.Test {
 
             ctx.Database.EnsureCreated();
             return ctx;
+        }
+
+        public Plant Gen_Plant(SkdContext ctx, string plantCode = null) {
+            plantCode = plantCode != null ? plantCode : Gen_PlantCode();
+
+            var plant = new Plant {
+                Code = plantCode,
+                Name = $"{plantCode} name"
+            };
+            ctx.Plants.Add(plant);
+            ctx.SaveChanges();
+            return plant;
         }
 
         public List<ProductionStation> Gen_ProductionStations(SkdContext ctx, params string[] codes) {
@@ -94,8 +107,6 @@ namespace SKD.Test {
             context.SaveChanges();
             return componentScan;
         }
-
-
 
         public Vehicle Gen_Vehicle_And_Model(
             SkdContext ctx,
