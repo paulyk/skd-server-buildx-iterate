@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 namespace SKD.Test {
     public class VehicleSnapshotServiceTest : TestBase {
 
-        private SkdContext ctx;
         public VehicleSnapshotServiceTest() {
             ctx = GetAppDbContext();
         }
@@ -282,14 +281,14 @@ namespace SKD.Test {
         }
 
         private async Task<VehicleSnapshotInput> Gen_Test_Data_For_Vehicle_Snapshot(string plantCode = null) {
-            var plant= Gen_Plant(ctx, plantCode);
+            var plant= Gen_Plant(plantCode);
             var input = new VehicleSnapshotInput {
                 RunDate = DateTime.Now.Date,
                 PlantCode = plant.Code,
                 EngineComponentCode = "EN"
             };
 
-            Gen_VehicleTimelineEventTypes(ctx);
+            Gen_VehicleTimelineEventTypes();
 
             var lotNo = Gen_LotNo();
             var modelCode = Gen_VehicleModel_Code();
@@ -312,7 +311,6 @@ namespace SKD.Test {
             List<(string, string)> component_stations
         ) {
             var model = Gen_VehicleModel(
-                ctx,
                 modelCode,
                 component_stations
             );

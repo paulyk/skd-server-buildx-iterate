@@ -10,7 +10,6 @@ namespace SKD.Test {
 
     public class VehicleModelServiceTest : TestBase {
 
-        private SkdContext ctx;
         public VehicleModelServiceTest() {
             ctx = GetAppDbContext();
         }
@@ -20,8 +19,8 @@ namespace SKD.Test {
             // setup
             var componentCode = "component_1";
             var stationCode = "station_1";
-            Gen_Components(ctx, componentCode);
-            Gen_ProductionStations(ctx, stationCode);
+            Gen_Components(componentCode);
+            Gen_ProductionStations(stationCode);
 
 
             var vehicleModel = new VehicleModelInput {
@@ -71,8 +70,8 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_add_duplicate_vehicle_model_code() {
             // setup
-            Gen_Components(ctx, "component_1");
-            Gen_ProductionStations(ctx, "station_1");
+            Gen_Components("component_1");
+            Gen_ProductionStations("station_1");
 
             var modelCode = Util.RandomString(EntityFieldLen.VehicleModel_Code);
             var modelName = Util.RandomString(EntityFieldLen.VehicleModel_Name);
@@ -119,8 +118,8 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_add_duplicate_vehicle_model_name() {
             // setup
-            Gen_Components(ctx, "component_1");
-            Gen_ProductionStations(ctx, "station_1");
+            Gen_Components("component_1");
+            Gen_ProductionStations("station_1");
 
             var components = await ctx.Components.ToListAsync();
             var productionStations = await ctx.ProductionStations.ToListAsync();
@@ -170,8 +169,8 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_add_vehicle_model_with_duplicate_component_station_entries() {
             // setup
-            Gen_Components(ctx, "component_1", "component_2");
-            Gen_ProductionStations(ctx, "station_1", "station_2");
+            Gen_Components("component_1", "component_2");
+            Gen_ProductionStations("station_1", "station_2");
 
             var component = ctx.Components.OrderBy(t => t.Code).First();
             var station = ctx.ProductionStations.OrderBy(t => t.Code).First();

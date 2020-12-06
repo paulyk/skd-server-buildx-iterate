@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 namespace SKD.Test {
     public class ComponentServiceTest : TestBase {
 
-        private SkdContext ctx;
         public ComponentServiceTest() {
             ctx = GetAppDbContext();
             // GenerateSeedData();
@@ -36,7 +35,7 @@ namespace SKD.Test {
         [Fact]
         private async Task can_update_component() {
             // setup
-            Gen_Components(ctx, Gen_ComponentCode(), Gen_ComponentCode());
+            Gen_Components(Gen_ComponentCode(), Gen_ComponentCode());
 
             var component = await ctx.Components.FirstOrDefaultAsync();
 
@@ -68,7 +67,7 @@ namespace SKD.Test {
         [Fact]
         private async Task validate_component_warns_duplicate_code() {
             // setup
-            Gen_Components(ctx, Gen_ComponentCode(), Gen_ComponentCode());
+            Gen_Components(Gen_ComponentCode(), Gen_ComponentCode());
 
             var existingComponent = await ctx.Components.FirstAsync();
 
@@ -111,7 +110,7 @@ namespace SKD.Test {
         [Fact]
         private async Task can_modify_componetn_code() {
             // setup
-            Gen_Components(ctx, Gen_ComponentCode(), Gen_ComponentCode());
+            Gen_Components(Gen_ComponentCode(), Gen_ComponentCode());
             var component = await ctx.Components.FirstOrDefaultAsync();
 
             var newCode = Util.RandomString(EntityFieldLen.Component_Code).ToString();

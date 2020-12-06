@@ -18,13 +18,13 @@ namespace SKD.Model {
 
         public async Task<MutationPayload<BomSummary>> CreateBomSummary(BomSummaryInput input) {
             var payload = new MutationPayload<BomSummary>(null);
-
             payload.Errors = await ValidateBomDTO<BomSummaryInput>(input);
             if (payload.Errors.Count > 0) {
                 return payload;
             }
 
             var bomSummary = new BomSummary() {
+                Plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode),
                 Sequence = input.Sequence,
                 Parts = input.Parts.Select(partDTO => new BomSummaryPart {
                     LotNo = partDTO.LotNo,
@@ -36,14 +36,7 @@ namespace SKD.Model {
             payload.Entity = bomSummary;
 
             // ensure plant code
-            var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
-            if (plant == null) {
-                plant = new Plant { Code = input.PlantCode, Name = input.PlantCode };
-                context.Plants.Add(plant);
-            }
-            plant.BomSummaries.Add(bomSummary);
-
-            //
+            context.BomSummaries.Add(bomSummary);
             await context.SaveChangesAsync();
             return payload;
         }
@@ -51,8 +44,9 @@ namespace SKD.Model {
         public async Task<List<Error>> ValidateBomDTO<T>(BomSummaryInput input) where T : BomSummaryInput {
             var errors = new List<Error>();
 
-            if (String.IsNullOrEmpty(input.PlantCode) || input.PlantCode.Length != EntityFieldLen.Plant_Code) {
-                errors.Add(new Error("", "invalid plant code"));
+            var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
+            if (plant == null) {
+                errors.Add(new Error("PlantCode", $"plant not found  {input.PlantCode}"));
                 return errors;
             }
 

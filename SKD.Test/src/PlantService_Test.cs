@@ -8,8 +8,7 @@ using System.Threading.Tasks;
 
 namespace SKD.Test {
     public class PlantService_Test : TestBase {
-
-        private SkdContext ctx;
+        
         public PlantService_Test() {
             ctx = GetAppDbContext();
         }

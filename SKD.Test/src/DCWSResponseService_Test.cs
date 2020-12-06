@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 namespace SKD.Test {
     public class DCWSResponseService_Test : TestBase {
 
-        private SkdContext ctx;
         public DCWSResponseService_Test() {
             ctx = GetAppDbContext();
         }
@@ -18,7 +17,6 @@ namespace SKD.Test {
         public async Task can_create_dcws_response() {
             // setup
             var vehicle = Gen_Vehicle_And_Model(
-                ctx,
                 vin: Gen_Vin(),
                 kitNo: Gen_KitNo(),
                 lotNo: Gen_LotNo(),
@@ -28,7 +26,7 @@ namespace SKD.Test {
             });
 
             var vehicleComponent = vehicle.VehicleComponents.First();
-            var componentScan = Gen_ComponentScan(ctx, vehicleComponent.Id);
+            var componentScan = Gen_ComponentScan(vehicleComponent.Id);
 
             // act
             var service = new DCWSResponseService(ctx);
@@ -55,7 +53,6 @@ namespace SKD.Test {
         public async Task cannot_create_duplicate_dcws_response_code() {
 
             var vehicle = Gen_Vehicle_And_Model(
-                ctx,
                 vin: Gen_Vin(),
                 kitNo: Gen_KitNo(),
                 lotNo: Gen_LotNo(),
@@ -65,7 +62,7 @@ namespace SKD.Test {
             });
 
             var vehicleComponent = vehicle.VehicleComponents.First();
-            var componentScan = Gen_ComponentScan(ctx, vehicleComponent.Id);
+            var componentScan = Gen_ComponentScan(vehicleComponent.Id);
 
             var service = new DCWSResponseService(ctx);
             var dto = new DCWWResponseInput {

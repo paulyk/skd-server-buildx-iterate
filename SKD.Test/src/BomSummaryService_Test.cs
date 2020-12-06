@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 namespace SKD.Test {
     public class BomSummaryService_Test : TestBase {
 
-        private SkdContext ctx;
         public BomSummaryService_Test() {
             ctx = GetAppDbContext();
         }
@@ -17,9 +16,10 @@ namespace SKD.Test {
         [Fact]
         private async Task can_create_bom_summary() {
             // setup
+            var plant = Gen_Plant();
             var dto = new BomSummaryInput() {
                 Sequence = 1,
-                PlantCode = Gen_PlantCode(),
+                PlantCode = plant.Code,
                 Parts = new List<BomSummaryPartInput> {
                     new BomSummaryPartInput {
                         LotNo = Gen_LotNo(),
@@ -44,11 +44,12 @@ namespace SKD.Test {
         [Fact]
         private async Task cannot_create_bom_summary_with_duplicate_lot_and_part() {
             // setup
+            var plant = Gen_Plant();
             var lotNo = Gen_LotNo();
 
             var dto = new BomSummaryInput() {
                 Sequence = 1,
-                PlantCode = Gen_PlantCode(),
+                PlantCode = plant.Code,
                 Parts = new List<BomSummaryPartInput> {
                     new BomSummaryPartInput {
                         LotNo = lotNo,
@@ -80,8 +81,9 @@ namespace SKD.Test {
         [Fact]
         private async Task cannot_create_bom_summary_with_no_pards() {
             // setup
+            var plant = Gen_Plant();
             var dto = new BomSummaryInput() {
-                PlantCode = Gen_PlantCode(),
+                PlantCode = plant.Code,
                 Sequence = 1,
                 Parts = new List<BomSummaryPartInput>()
             };

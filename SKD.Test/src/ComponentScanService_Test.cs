@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 namespace SKD.Test {
     public class ComponentScanService_Test : TestBase {
 
-        private SkdContext ctx;
         public ComponentScanService_Test() {
             ctx = GetAppDbContext();
             GenerateSeedData();
@@ -113,7 +112,6 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_create_vehicle_component_scan_if_one_already_exists() {
             var vehicle = Gen_Vehicle_Amd_Model_From_Components(
-                ctx,
                 new List<(string, string)>() {
                     ("component_1", "station_1"),
                     ("component_2", "station_2"),
@@ -150,7 +148,6 @@ namespace SKD.Test {
         [Fact]
         public async Task can_replace_existing_component_scan() {
             var vehicle = Gen_Vehicle_Amd_Model_From_Components(
-                ctx, 
                 new List<(string, string)>() {
                     ("component_1", "station_1"),
                     ("component_2", "station_2"),
@@ -238,7 +235,6 @@ namespace SKD.Test {
         public async Task can_create_scan_for_same_component_in_different_stations() {
             // creat vehicle model with 'component_2' twice, one for each station
             var vehicle = Gen_Vehicle_Amd_Model_From_Components(
-                ctx,
                 new List<(string, string)> {
                     ("component_1", "station_1"),
                     ("component_2", "station_1"),
@@ -282,7 +278,6 @@ namespace SKD.Test {
         public async Task cannot_create_scan_for_same_component_out_of_order() {
             // creat vehicle model with 'component_2' twice, one for each station
             var vehicle = Gen_Vehicle_Amd_Model_From_Components(
-                ctx,
                 new List<(string, string)> {
                     ("component_1", "station_1"),
                     ("component_2", "station_1"),
@@ -321,15 +316,14 @@ namespace SKD.Test {
 
         private void GenerateSeedData() {
             // components
-            Gen_ProductionStations(ctx, "station_1", "station_2");
-            Gen_Components(ctx, "component_1", "component_2", "component_3");
+            Gen_ProductionStations("station_1", "station_2");
+            Gen_Components("component_1", "component_2", "component_3");
 
             var components = ctx.Components.ToList();
             var productionStations = ctx.ProductionStations.ToList();
 
             var modelCode = "model_1";
-            Gen_VehicleModel(
-                ctx,
+            Gen_VehicleModel(                
                 modelCode: modelCode,
                 component_stations_maps: new List<(string, string)> {
                     ("component_1", "station_1"),
@@ -338,7 +332,6 @@ namespace SKD.Test {
               );
 
             Gen_Vehicle_From_Model(
-                ctx: ctx,
                 vin: Gen_Vin(),
                 kitNo: Gen_KitNo(),
                 

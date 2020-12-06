@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 namespace SKD.Test {
     public class ProductionStationServiceTest : TestBase {
 
-        private SkdContext ctx;
         public ProductionStationServiceTest() {
             ctx = GetAppDbContext();
         }

@@ -11,7 +11,7 @@ namespace SKD.Test {
 
     public class TestBase {
 
-
+        protected SkdContext ctx;
         public SkdContext GetAppDbContext() {
 
             var connection = new SqliteConnection("DataSource=:memory:");
@@ -27,7 +27,7 @@ namespace SKD.Test {
             return ctx;
         }
 
-        public Plant Gen_Plant(SkdContext ctx, string plantCode = null) {
+        public Plant Gen_Plant(string plantCode = null) {
             plantCode = plantCode != null ? plantCode : Gen_PlantCode();
 
             var plant = new Plant {
@@ -39,7 +39,7 @@ namespace SKD.Test {
             return plant;
         }
 
-        public List<ProductionStation> Gen_ProductionStations(SkdContext ctx, params string[] codes) {
+        public List<ProductionStation> Gen_ProductionStations(params string[] codes) {
             var stationCodes = codes.Where(code => !ctx.ProductionStations.Any(t => t.Code == code)).ToList();
 
             var productionStations = stationCodes.ToList().Select((code, index) => new ProductionStation {
@@ -54,7 +54,7 @@ namespace SKD.Test {
             return ctx.ProductionStations.ToList();
         }
 
-        public List<Component> Gen_Components(SkdContext ctx, params string[] codes) {
+        public List<Component> Gen_Components(params string[] codes) {
             var componentCodes = codes.ToList().Where(code => !ctx.Components.Any(t => t.Code == code));
 
             var components = componentCodes.ToList().Select(code => new Component {
@@ -71,13 +71,13 @@ namespace SKD.Test {
             ctx.SaveChanges();
             return ctx.Components.ToList();
         }
-        public VehicleModel Gen_VehicleModel(SkdContext ctx,
+        public VehicleModel Gen_VehicleModel(
             string modelCode,
             List<(string componentCode,
             string stationCode)> component_stations_maps
         ) {
-            Gen_Components(ctx, component_stations_maps.Select(t => t.componentCode).ToArray());
-            Gen_ProductionStations(ctx, component_stations_maps.Select(t => t.stationCode).ToArray());
+            Gen_Components(component_stations_maps.Select(t => t.componentCode).ToArray());
+            Gen_ProductionStations(component_stations_maps.Select(t => t.stationCode).ToArray());
 
             var modelComponents = component_stations_maps
             .Select(map => new VehicleModelComponent {
@@ -96,31 +96,30 @@ namespace SKD.Test {
             return vehicleModel;
         }
 
-        public ComponentScan Gen_ComponentScan(SkdContext context, Guid vehicleComponentId) {
-            var vehicleComponent = context.VehicleComponents.FirstOrDefault(t => t.Id == vehicleComponentId);
+        public ComponentScan Gen_ComponentScan(Guid vehicleComponentId) {
+            var vehicleComponent = ctx.VehicleComponents.FirstOrDefault(t => t.Id == vehicleComponentId);
             var componentScan = new ComponentScan {
                 VehicleComponentId = vehicleComponentId,
                 Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
                 Scan2 = ""
             };
-            context.ComponentScans.Add(componentScan);
-            context.SaveChanges();
+            ctx.ComponentScans.Add(componentScan);
+            ctx.SaveChanges();
             return componentScan;
         }
 
         public Vehicle Gen_Vehicle_And_Model(
-            SkdContext ctx,
             string vin,
             string kitNo,
             string lotNo,
             string modelCode,
             List<(string componentCode, string stationCode)> component_stations_maps
         ) {
-            var vehicleModel = Gen_VehicleModel(ctx, modelCode, component_stations_maps);
-            return Gen_Vehicle_From_Model(ctx, vin, kitNo, lotNo, modelCode);
+            var vehicleModel = Gen_VehicleModel(modelCode, component_stations_maps);
+            return Gen_Vehicle_From_Model(vin, kitNo, lotNo, modelCode);
         }
 
-        public Vehicle Gen_Vehicle_From_Model(SkdContext ctx,
+        public Vehicle Gen_Vehicle_From_Model(
             string vin,
             string kitNo,
             string lotNo,
@@ -160,19 +159,17 @@ namespace SKD.Test {
         }
 
         public Vehicle Gen_Vehicle_Amd_Model_From_Components(
-            SkdContext ctx,
             List<(string componentCode, string stationCode)> component_stations_maps
         ) {
 
             var modelCode = Util.RandomString(EntityFieldLen.VehicleModel_Code);
             Gen_VehicleModel(
-                ctx,
                 modelCode: modelCode,
                 component_stations_maps: component_stations_maps
               );
 
             // cretre vehicle based on that model
-            var vehicle = Gen_Vehicle_From_Model(ctx,
+            var vehicle = Gen_Vehicle_From_Model(
                 vin: Gen_Vin(),
                 kitNo: Gen_KitNo(),
                 lotNo: Gen_LotNo(),
@@ -195,13 +192,13 @@ namespace SKD.Test {
             };
         }
 
-        public void SetEntityCreatedAt<T>(SkdContext context, Guid id, DateTime date) where T : EntityBase {
-            var entity = context.Find<T>(id);
+        public void SetEntityCreatedAt<T>(Guid id, DateTime date) where T : EntityBase {
+            var entity = ctx.Find<T>(id);
             entity.CreatedAt = date;
-            context.SaveChanges();
+            ctx.SaveChanges();
         }
 
-        public void Gen_VehicleTimelineEventTypes(SkdContext ctx) {
+        public void Gen_VehicleTimelineEventTypes() {
             var eventTypes = new List<VehicleTimelineEventType> {
                 new VehicleTimelineEventType {
                     Code = TimeLineEventType.CUSTOM_RECEIVED.ToString(),

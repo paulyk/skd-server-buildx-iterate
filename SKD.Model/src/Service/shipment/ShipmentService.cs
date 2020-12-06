@@ -18,13 +18,13 @@ namespace SKD.Model {
 
         public async Task<MutationPayload<ShipmentOverviewDTO>> CreateShipment(ShipmentInput input) {
             var payload = new MutationPayload<ShipmentOverviewDTO>(null);
-
             payload.Errors = await ValidateShipmentDTO<ShipmentInput>(input);
             if (payload.Errors.Count > 0) {
                 return payload;
             }
 
             var shipment = new Shipment() {
+                Plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode),
                 Sequence = input.Sequence,
                 Lots = input.Lots.Select(lotDTO => new ShipmentLot {
                     LotNo = lotDTO.LotNo,
@@ -41,17 +41,12 @@ namespace SKD.Model {
                 }).ToList()
             };
 
-            // ensure plant code
-            var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
-            if (plant == null) {
-                plant = new Plant { Code = input.PlantCode, Name = input.PlantCode };
-                context.Plants.Add(plant);
-            }
-            plant.Shipments.Add(shipment);
+            context.Shipments.Add(shipment);
 
             // save
             await context.SaveChangesAsync();
-            payload.Entity = await context.Shipments.Select(t => new ShipmentOverviewDTO {
+
+            var shipmentOverviewDTO = await context.Shipments.Select(t => new ShipmentOverviewDTO {
                 Id = t.Id,
                 PlantCode = t.Plant.Code,
                 Sequence = t.Sequence,
@@ -59,14 +54,17 @@ namespace SKD.Model {
                 InvoiceCount = t.Lots.Select(t => t.Invoices.Count()).Sum(),
                 CreatedAt = t.CreatedAt
             }).FirstOrDefaultAsync(t => t.Id == shipment.Id);
+
+            payload.Entity = shipmentOverviewDTO;
             return payload;
         }
 
         public async Task<List<Error>> ValidateShipmentDTO<T>(ShipmentInput input) where T : ShipmentInput {
             var errors = new List<Error>();
 
-            if (String.IsNullOrEmpty(input.PlantCode) || input.PlantCode.Length != EntityFieldLen.Plant_Code ) {
-                errors.Add(new Error("", "invalid plant code"));
+            var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
+            if (plant == null) {
+                errors.Add(new Error("PlantCode", $"plant not found  {input.PlantCode}"));
                 return errors;
             }
 

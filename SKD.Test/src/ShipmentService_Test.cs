@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 namespace SKD.Test {
     public class ShipmentService_Test : TestBase {
 
-        private SkdContext ctx;
         public ShipmentService_Test() {
             ctx = GetAppDbContext();
         }
@@ -17,10 +16,10 @@ namespace SKD.Test {
         [Fact]
         private async Task can_create_shipment() {
             // 
-            var plantCode = Gen_PlantCode();
+            var plant = Gen_Plant();
             var sequence = 2;
 
-            var input = Gen_ShipmentInput_1_lot_2_invoices_2_parts(plantCode, sequence);
+            var input = Gen_ShipmentInput_1_lot_2_invoices_2_parts(plant.Code, sequence);
 
             var before_count = ctx.ShipmentParts.Count();
             // test
@@ -28,7 +27,7 @@ namespace SKD.Test {
             var payload = await shipmentService.CreateShipment(input);
 
             // payload check:  plant code , sequence, count
-            Assert.Equal(plantCode, payload.Entity.PlantCode);
+            Assert.Equal(plant.Code, payload.Entity.PlantCode);
             Assert.Equal(sequence, payload.Entity.Sequence);
             Assert.Equal(1, payload.Entity.LotCount);
             Assert.Equal(2, payload.Entity.InvoiceCount);
@@ -41,9 +40,9 @@ namespace SKD.Test {
 
         [Fact]
         private async Task cannot_create_shipment_with_duplicate_plant_and_sequence() {
-            var plantCode = Gen_PlantCode();
+            var plant = Gen_Plant();
             var sequence = 2;
-            var input = Gen_ShipmentInput_1_lot_2_invoices_2_parts(plantCode, sequence);
+            var input = Gen_ShipmentInput_1_lot_2_invoices_2_parts(plant.Code, sequence);
             var shipmentService = new ShipmentService(ctx);
 
             // test
@@ -52,7 +51,7 @@ namespace SKD.Test {
             Assert.Equal(1, count);
 
             var payload_1 = await shipmentService.CreateShipment(input);
-            var errorCOunt= payload_1.Errors.Count();
+            var errorCOunt = payload_1.Errors.Count();
             Assert.Equal(1, errorCOunt);
 
             var expectedMessage = "duplicate shipment plant & sequence found";
@@ -65,8 +64,9 @@ namespace SKD.Test {
         [Fact]
         private async Task cannot_create_shipment_with_no_pards() {
             // setup
+            var plant = Gen_Plant();
             var input = new ShipmentInput() {
-                PlantCode = Gen_PlantCode(),
+                PlantCode = plant.Code,
                 Sequence = 1,
                 Lots = new List<ShipmentLotInput> {
                     new ShipmentLotInput {
@@ -96,8 +96,9 @@ namespace SKD.Test {
         [Fact]
         private async Task cannot_create_shipment_invoice_with_no_parts() {
             // setup
+            var plant = Gen_Plant();
             var input = new ShipmentInput() {
-                PlantCode = Gen_PlantCode(),
+                PlantCode = plant.Code,
                 Sequence = 1,
                 Lots = new List<ShipmentLotInput> {
                     new ShipmentLotInput {
@@ -111,7 +112,6 @@ namespace SKD.Test {
                     }
                 }
             };
-
 
             var before_count = ctx.ShipmentParts.Count();
             // test
@@ -127,8 +127,9 @@ namespace SKD.Test {
         [Fact]
         private async Task cannot_create_shipment_lot_with_no_invoices() {
             // setup
+            var plant = Gen_Plant();
             var input = new ShipmentInput() {
-                PlantCode = Gen_PlantCode(),
+                PlantCode = plant.Code,
                 Sequence = 1,
                 Lots = new List<ShipmentLotInput> {
                     new ShipmentLotInput {
@@ -149,10 +150,10 @@ namespace SKD.Test {
             var expectedError = "shipment lots must have invoices";
             Assert.Equal(expectedError, errorMessage);
         }
-    
-    
+
+
         public ShipmentInput Gen_ShipmentInput_1_lot_2_invoices_2_parts(string plantCode, int sequence) {
-             var input = new ShipmentInput() {
+            var input = new ShipmentInput() {
                 PlantCode = plantCode,
                 Sequence = sequence,
                 Lots = new List<ShipmentLotInput> {
