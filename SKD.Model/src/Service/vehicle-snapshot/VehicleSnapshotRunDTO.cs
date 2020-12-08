@@ -32,6 +32,7 @@ namespace SKD.Model {
             public string DealerCode { get; set; }
             public string EngineSerialNumber { get; set; }
             public DateTime? CustomReceived { get; set; }
+            public DateTime? OriginalPlanBuild { get; set; }
             public DateTime? PlanBuild { get; set; }
             public DateTime? BuildCompleted { get; set; }
             public DateTime? GateRelease { get; set; }

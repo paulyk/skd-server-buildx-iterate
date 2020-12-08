@@ -235,6 +235,10 @@ namespace SKD.Model.src.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasFilter("[Name] IS NOT NULL");
+
                     b.ToTable("plant");
                 });
 
@@ -284,16 +288,19 @@ namespace SKD.Model.src.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid>("PlantId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Sequence")
-                        .HasMaxLength(4)
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Sequence");
+                    b.HasIndex("PlantId", "Sequence")
+                        .IsUnique();
 
                     b.ToTable("shipment");
                 });
@@ -639,6 +646,9 @@ namespace SKD.Model.src.Migrations
                     b.Property<DateTime?>("GateRelease")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("OrginalPlanBuild")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("PlanBuild")
                         .HasColumnType("datetime2");
 
@@ -817,6 +827,17 @@ namespace SKD.Model.src.Migrations
                         .IsRequired();
 
                     b.Navigation("ComponentScan");
+                });
+
+            modelBuilder.Entity("SKD.Model.Shipment", b =>
+                {
+                    b.HasOne("SKD.Model.Plant", "Plant")
+                        .WithMany("Shipments")
+                        .HasForeignKey("PlantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Plant");
                 });
 
             modelBuilder.Entity("SKD.Model.ShipmentInvoice", b =>
@@ -1005,6 +1026,8 @@ namespace SKD.Model.src.Migrations
             modelBuilder.Entity("SKD.Model.Plant", b =>
                 {
                     b.Navigation("BomSummaries");
+
+                    b.Navigation("Shipments");
 
                     b.Navigation("VehicleLots");
 

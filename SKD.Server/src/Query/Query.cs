@@ -273,14 +273,14 @@ namespace SKD.Server {
                   [Service] SkdContext ctx,
                   string plantCode,
                   DateTime runDate
-        ) => await service.GetSnapshotByDate(plantCode, runDate);
+        ) => await service.GetSnapshotRunByDate(plantCode, runDate);
 
         public async Task<VehicleSnapshotRunDTO?> GetVehicleSnapshotRun(
                   [Service] VehicleSnapshotService service,
                   [Service] SkdContext ctx,
                   string plantCode,
                   int sequence
-        ) => await service.GetSnapshotBySequenceNumber(plantCode, sequence);
+        ) => await service.GetSnapshotRunBySequence(plantCode, sequence);
 
 
         public async Task<List<SnapshotDTO>> GetRecentVehicleSnapshotRuns(
