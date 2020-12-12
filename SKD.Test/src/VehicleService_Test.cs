@@ -392,7 +392,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task cannot_add_duplicate_vehicle_timline_event_if_same_type_and_date() {
+        public async Task cannot_add_duplicate_vehicle_timline_event_if_same_type_and_date_and_note() {
             // setup
             Gen_VehicleTimelineEventTypes();
             var vehicle = Gen_Vehicle_And_Model(
@@ -407,16 +407,19 @@ namespace SKD.Test {
 
             var originalDate = new DateTime(2020, 11, 28);
             var newDate = new DateTime(2020, 11, 30);
+            var eventNote = "EN 78889";
 
             var dto = new VehicleTimelineEventInput {
                 KitNo = vehicle.KitNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
-                EventDate = originalDate
+                EventDate = originalDate,
+                EventNote = eventNote
             };
             var dto2 = new VehicleTimelineEventInput {
                 KitNo = vehicle.KitNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
-                EventDate = newDate
+                EventDate = newDate,
+                EventNote = eventNote
             };
 
             // test

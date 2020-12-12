@@ -391,6 +391,7 @@ namespace SKD.Model {
                 .Where(t => t.RemovedAt == null)
                 .Where(t => t.EventType.Code == dto.EventType.ToString())
                 .Where(t => t.EventDate == dto.EventDate)
+                .Where(t => t.EventNote == dto.EventNote)
                 .FirstOrDefault();
 
             if (duplicate != null) {

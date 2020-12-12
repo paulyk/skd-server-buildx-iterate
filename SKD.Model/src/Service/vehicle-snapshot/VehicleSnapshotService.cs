@@ -173,8 +173,8 @@ namespace SKD.Model {
                 errors.Add(new Error("plantCode", "plant code not found"));
             }
 
-            var component = await context.Components.FirstOrDefaultAsync(t => t.Code == input.EngineComponentCode);
-            if (component == null) {
+            var engineComponent = await context.Components.FirstOrDefaultAsync(t => t.Code == input.EngineComponentCode);
+            if (engineComponent == null) {
                 errors.Add(new Error("EngineComponentCode", $"engine component not found for {input.EngineComponentCode}"));
             }
 
