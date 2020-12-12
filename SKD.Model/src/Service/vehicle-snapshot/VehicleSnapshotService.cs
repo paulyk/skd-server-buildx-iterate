@@ -314,7 +314,7 @@ namespace SKD.Model {
         private async Task<PartnerStatus_ChangeStatus> GetVehicle_TxSatus(Vehicle vehicle) {
             var latestTimelineEvent = vehicle.TimelineEvents
                 .Where(t => t.RemovedAt == null)
-                .OrderByDescending(t => t.CreatedAt)
+                .OrderByDescending(t => t.EventType.Sequecne)
                 .FirstOrDefault(t => t.RemovedAt == null);
 
             if (latestTimelineEvent == null) {
@@ -331,14 +331,9 @@ namespace SKD.Model {
                 ? priorVehicleSnapshotEntry.TimelineEventCode.ToString()
                 : null;
 
-            // 1:  if custom received and no previous status entry
-            if (currentEventCode == TimeLineEventType.CUSTOM_RECEIVED.ToString() &&
-                priorVehicleSnapshotEntry == null) {
-                return PartnerStatus_ChangeStatus.Added;
-            }
-
+            // 1.  if not prior event the ADDED
             if (priorVehicleSnapshotEntry == null) {
-                throw new Exception("The first event should have been custom received");
+                return PartnerStatus_ChangeStatus.Added;
             }
 
             // if anything but wholesale and not same as prior event

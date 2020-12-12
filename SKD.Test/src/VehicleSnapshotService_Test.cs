@@ -41,7 +41,8 @@ namespace SKD.Test {
             var snapshotInput = await Gen_Test_Data_For_Vehicle_Snapshot();
             var vehicle = ctx.Vehicles.OrderBy(t => t.KitNo).First();
             var dealerCode = "D12345678";
-            snapshotInput.RunDate = new DateTime(2020, 12, 1);
+            var eventDate = new DateTime(2020,12,1);
+            snapshotInput.RunDate = new DateTime(2020, 12, 2);
 
             // 1.  empty
             await service.GenerateSnapshot(snapshotInput);
@@ -49,13 +50,15 @@ namespace SKD.Test {
             Assert.Null(snapshotPayload);
 
             // 2.  custom received
-            await AddVehicleTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, vehicle.KitNo, "", DateTime.Now.Date);
-            snapshotInput.RunDate = new DateTime(2020, 11, 24);
+            eventDate = eventDate.AddDays(1);
+            await AddVehicleTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, vehicle.KitNo, "", eventDate);
+            snapshotInput.RunDate = snapshotInput.RunDate.AddDays(1);
             await service.GenerateSnapshot(snapshotInput);
+
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
-            var vehicleStatus = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
-            Assert.Equal(TimeLineEventType.CUSTOM_RECEIVED, vehicleStatus.CurrentTimelineEvent);
-            Assert.Equal(PartnerStatus_ChangeStatus.Added, vehicleStatus.TxType);
+            var vehicleSnapshot = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
+            Assert.Equal(TimeLineEventType.CUSTOM_RECEIVED, vehicleSnapshot.CurrentTimelineEvent);
+            Assert.Equal(PartnerStatus_ChangeStatus.Added, vehicleSnapshot.TxType);
 
             // 2.  custom no change
             snapshotInput.RunDate = snapshotInput.RunDate.AddDays(1);
@@ -63,67 +66,74 @@ namespace SKD.Test {
             var snapshotRecordCount = await ctx.VehicleSnapshots.CountAsync();
             Assert.Equal(2, snapshotRecordCount);
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
-            vehicleStatus = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
+            vehicleSnapshot = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
             Assert.Equal(1, snapshotPayload.Entries.Count);
-            Assert.Equal(TimeLineEventType.CUSTOM_RECEIVED, vehicleStatus.CurrentTimelineEvent);
-            Assert.Equal(PartnerStatus_ChangeStatus.NoChange, vehicleStatus.TxType);
+            Assert.Equal(TimeLineEventType.CUSTOM_RECEIVED, vehicleSnapshot.CurrentTimelineEvent);
+            Assert.Equal(PartnerStatus_ChangeStatus.NoChange, vehicleSnapshot.TxType);
 
             // 3.  plan build
-            await AddVehicleTimelineEntry(TimeLineEventType.PLAN_BUILD, vehicle.KitNo, "", DateTime.Now.Date);
+            eventDate = eventDate.AddDays(1);
+            await AddVehicleTimelineEntry(TimeLineEventType.PLAN_BUILD, vehicle.KitNo, "", eventDate);
             snapshotInput.RunDate = snapshotInput.RunDate.AddDays(1);
             await service.GenerateSnapshot(snapshotInput);
+
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
-            vehicleStatus = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
-            Assert.Equal(TimeLineEventType.PLAN_BUILD, vehicleStatus.CurrentTimelineEvent);
-            Assert.Equal(PartnerStatus_ChangeStatus.Changed, vehicleStatus.TxType);
+            vehicleSnapshot = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
+            Assert.Equal(TimeLineEventType.PLAN_BUILD, vehicleSnapshot.CurrentTimelineEvent);
+            Assert.Equal(PartnerStatus_ChangeStatus.Changed, vehicleSnapshot.TxType);
 
             // 4.  no change
             snapshotInput.RunDate = snapshotInput.RunDate.AddDays(1);
             await service.GenerateSnapshot(snapshotInput);
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
-            vehicleStatus = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
-            Assert.Equal(TimeLineEventType.PLAN_BUILD, vehicleStatus.CurrentTimelineEvent);
-            Assert.Equal(PartnerStatus_ChangeStatus.NoChange, vehicleStatus.TxType);
+            vehicleSnapshot = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
+            Assert.Equal(TimeLineEventType.PLAN_BUILD, vehicleSnapshot.CurrentTimelineEvent);
+            Assert.Equal(PartnerStatus_ChangeStatus.NoChange, vehicleSnapshot.TxType);
 
             // 5. build completed
-            await AddVehicleTimelineEntry(TimeLineEventType.BULD_COMPLETED, vehicle.KitNo, "", DateTime.Now.Date);
+            eventDate = eventDate.AddDays(1);
+            await AddVehicleTimelineEntry(TimeLineEventType.BULD_COMPLETED, vehicle.KitNo, "", eventDate);
             snapshotInput.RunDate = snapshotInput.RunDate.AddDays(1);
             await service.GenerateSnapshot(snapshotInput);
+
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
-            vehicleStatus = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
-            Assert.Equal(TimeLineEventType.BULD_COMPLETED, vehicleStatus.CurrentTimelineEvent);
-            Assert.Equal(PartnerStatus_ChangeStatus.Changed, vehicleStatus.TxType);
+            vehicleSnapshot = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
+            Assert.Equal(TimeLineEventType.BULD_COMPLETED, vehicleSnapshot.CurrentTimelineEvent);
+            Assert.Equal(PartnerStatus_ChangeStatus.Changed, vehicleSnapshot.TxType);
 
             // 5.  gate release
-            await AddVehicleTimelineEntry(TimeLineEventType.GATE_RELEASED, vehicle.KitNo, "", DateTime.Now.Date);
+            eventDate = eventDate.AddDays(1);
+            await AddVehicleTimelineEntry(TimeLineEventType.GATE_RELEASED, vehicle.KitNo, "", eventDate);
             snapshotInput.RunDate = snapshotInput.RunDate.AddDays(1);
             await service.GenerateSnapshot(snapshotInput);
+
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
-            vehicleStatus = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
-            Assert.Equal(TimeLineEventType.GATE_RELEASED, vehicleStatus.CurrentTimelineEvent);
-            Assert.Equal(PartnerStatus_ChangeStatus.Changed, vehicleStatus.TxType);
+            vehicleSnapshot = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
+            Assert.Equal(TimeLineEventType.GATE_RELEASED, vehicleSnapshot.CurrentTimelineEvent);
+            Assert.Equal(PartnerStatus_ChangeStatus.Changed, vehicleSnapshot.TxType);
 
 
             // 6.  wholesale
-            var wholesaleDate = snapshotInput.RunDate.Date;
-
-            await AddVehicleTimelineEntry(TimeLineEventType.WHOLE_SALE, vehicle.KitNo, dealerCode, wholesaleDate);
+            eventDate = eventDate.AddDays(1);
+            var wholesaleDate = eventDate;
+            await AddVehicleTimelineEntry(TimeLineEventType.WHOLE_SALE, vehicle.KitNo, dealerCode, eventDate);
             snapshotInput.RunDate = snapshotInput.RunDate.AddDays(1);
             await service.GenerateSnapshot(snapshotInput);
+
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
-            vehicleStatus = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
-            Assert.Equal(TimeLineEventType.WHOLE_SALE, vehicleStatus.CurrentTimelineEvent);
-            Assert.Equal(PartnerStatus_ChangeStatus.Final, vehicleStatus.TxType);
-            Assert.Equal(PartnerStatus_ChangeStatus.Final, vehicleStatus.TxType);
-            Assert.Equal(dealerCode, vehicleStatus.DealerCode);
+            vehicleSnapshot = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
+            Assert.Equal(TimeLineEventType.WHOLE_SALE, vehicleSnapshot.CurrentTimelineEvent);
+            Assert.Equal(PartnerStatus_ChangeStatus.Final, vehicleSnapshot.TxType);
+            Assert.Equal(PartnerStatus_ChangeStatus.Final, vehicleSnapshot.TxType);
+            Assert.Equal(dealerCode, vehicleSnapshot.DealerCode);
 
             // 7.  no change ( should still be final)
             snapshotInput.RunDate = snapshotInput.RunDate.AddDays(2);
             await service.GenerateSnapshot(snapshotInput);
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
-            vehicleStatus = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
-            Assert.Equal(TimeLineEventType.WHOLE_SALE, vehicleStatus.CurrentTimelineEvent);
-            Assert.Equal(PartnerStatus_ChangeStatus.Final, vehicleStatus.TxType);
+            vehicleSnapshot = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
+            Assert.Equal(TimeLineEventType.WHOLE_SALE, vehicleSnapshot.CurrentTimelineEvent);
+            Assert.Equal(PartnerStatus_ChangeStatus.Final, vehicleSnapshot.TxType);
 
             // 8.  wholesale
             snapshotInput.RunDate = snapshotInput.RunDate.AddDays(4);
@@ -147,22 +157,22 @@ namespace SKD.Test {
             snapshotInput.RunDate = new DateTime(2020, 11, 24);
             var payload = await service.GenerateSnapshot(snapshotInput);
             var snapshotRun = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, payload.Entity.Sequence.Value);
-            var vehicleStatus = snapshotRun.Entries.First(t => t.KitNo == vehicle.KitNo);
+            var vehicleSnapshot = snapshotRun.Entries.First(t => t.KitNo == vehicle.KitNo);
             Assert.Equal(1, snapshotRun.Entries.Count);
-            Assert.Equal(TimeLineEventType.CUSTOM_RECEIVED, vehicleStatus.CurrentTimelineEvent);
-            Assert.Equal(PartnerStatus_ChangeStatus.Added, vehicleStatus.TxType);
+            Assert.Equal(TimeLineEventType.CUSTOM_RECEIVED, vehicleSnapshot.CurrentTimelineEvent);
+            Assert.Equal(PartnerStatus_ChangeStatus.Added, vehicleSnapshot.TxType);
 
             // 1.  plan build 
             await AddVehicleTimelineEntry(TimeLineEventType.PLAN_BUILD, vehicle.KitNo, "", first_plan_build_date);
             snapshotInput.RunDate = snapshotInput.RunDate.AddDays(1);
             payload = await service.GenerateSnapshot(snapshotInput);
             snapshotRun = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, payload.Entity.Sequence.Value);
-            vehicleStatus = snapshotRun.Entries.First(t => t.KitNo == vehicle.KitNo);
+            vehicleSnapshot = snapshotRun.Entries.First(t => t.KitNo == vehicle.KitNo);
             Assert.Equal(1, snapshotRun.Entries.Count);
-            Assert.Equal(TimeLineEventType.PLAN_BUILD, vehicleStatus.CurrentTimelineEvent);
-            Assert.Equal(first_plan_build_date, vehicleStatus.PlanBuild);
-            Assert.Equal(first_plan_build_date, vehicleStatus.OriginalPlanBuild);
-            Assert.Equal(PartnerStatus_ChangeStatus.Changed, vehicleStatus.TxType);
+            Assert.Equal(TimeLineEventType.PLAN_BUILD, vehicleSnapshot.CurrentTimelineEvent);
+            Assert.Equal(first_plan_build_date, vehicleSnapshot.PlanBuild);
+            Assert.Equal(first_plan_build_date, vehicleSnapshot.OriginalPlanBuild);
+            Assert.Equal(PartnerStatus_ChangeStatus.Changed, vehicleSnapshot.TxType);
 
 
             // 1. edit plan build date does not change original
@@ -171,12 +181,35 @@ namespace SKD.Test {
             snapshotInput.RunDate = snapshotInput.RunDate.AddDays(1);
             payload = await service.GenerateSnapshot(snapshotInput);
             snapshotRun = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, payload.Entity.Sequence.Value);
-            vehicleStatus = snapshotRun.Entries.First(t => t.KitNo == vehicle.KitNo);
+            vehicleSnapshot = snapshotRun.Entries.First(t => t.KitNo == vehicle.KitNo);
             Assert.Equal(1, snapshotRun.Entries.Count);
-            Assert.Equal(TimeLineEventType.PLAN_BUILD, vehicleStatus.CurrentTimelineEvent);
-            Assert.Equal(new_plan_build_date, vehicleStatus.PlanBuild);
-            Assert.Equal(first_plan_build_date, vehicleStatus.OriginalPlanBuild);
-            Assert.Equal(PartnerStatus_ChangeStatus.NoChange, vehicleStatus.TxType);
+            Assert.Equal(TimeLineEventType.PLAN_BUILD, vehicleSnapshot.CurrentTimelineEvent);
+            Assert.Equal(new_plan_build_date, vehicleSnapshot.PlanBuild);
+            Assert.Equal(first_plan_build_date, vehicleSnapshot.OriginalPlanBuild);
+            Assert.Equal(PartnerStatus_ChangeStatus.NoChange, vehicleSnapshot.TxType);
+        }
+
+        [Fact]
+        public async Task vehicle_can_have_multiple_timeline_events_before_first_snapshot() {
+            // setup
+            var eventDate = new DateTime(2020, 12, 1);
+            var snapshotInput = await Gen_Test_Data_For_Vehicle_Snapshot();
+            snapshotInput.RunDate = DateTime.Now.Date;
+
+            var vehicle = ctx.Vehicles.OrderBy(t => t.KitNo).First();
+            await AddVehicleTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, vehicle.KitNo, "", eventDate);
+            await AddVehicleTimelineEntry(TimeLineEventType.PLAN_BUILD, vehicle.KitNo, "", eventDate.AddDays(1));
+
+            var service = new VehicleSnapshotService(ctx);
+            await service.GenerateSnapshot(snapshotInput);
+
+            var snapshots_count = ctx.VehicleSnapshots.Count();
+            Assert.Equal(1, snapshots_count);
+
+            var snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
+            var vehicleSnapshot = snapshotPayload.Entries.First(t => t.KitNo == vehicle.KitNo);
+            Assert.Equal(TimeLineEventType.PLAN_BUILD, vehicleSnapshot.CurrentTimelineEvent);
+            Assert.Equal(PartnerStatus_ChangeStatus.Added, vehicleSnapshot.TxType);
         }
 
         [Fact]

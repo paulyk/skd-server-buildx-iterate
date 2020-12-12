@@ -297,6 +297,51 @@ namespace SKD.Test {
             Assert.Equal(timelineEvents.Count, after_count);
         }
 
+
+        [Fact]
+        public async Task cannot_create_vehicle_timeline_events_out_of_sequence() {
+            // setup
+            Gen_VehicleTimelineEventTypes();
+            var vehicle = Gen_Vehicle_And_Model(
+                vin: Gen_Vin(),
+                kitNo: Gen_KitNo(),
+                lotNo: Gen_LotNo(),
+                modelCode: Gen_VehicleModel_Code(),
+                new List<(string, string)> {
+                    ("component_1", "station_1")
+                }
+            );
+
+            var timelineEvents = new List<(string eventTypeCode, DateTime eventDate)>() {
+                (TimeLineEventType.CUSTOM_RECEIVED.ToString(), new DateTime(2020, 11, 1)),
+                (TimeLineEventType.BULD_COMPLETED.ToString(), new DateTime(2020, 11, 22)),
+            };
+
+            // test
+            var service = new VehicleService(ctx);
+            var payloads = new List<MutationPayload<VehicleTimelineEvent>>();
+
+            var before_count = ctx.VehicleTimelineEvents.Count();
+
+
+            foreach (var entry in timelineEvents) {
+                var dto = new VehicleTimelineEventInput {
+                    KitNo = vehicle.KitNo,
+                    EventType = Enum.Parse<TimeLineEventType>(entry.eventTypeCode),
+                    EventDate = entry.eventDate,
+                };
+                var payload = await service.CreateVehicleTimelineEvent(dto);
+                payloads.Add(payload);
+            }
+
+            var lastPayload = payloads[1];
+
+            // assert
+            var expectedMessage = "prior timeline events mssing PLAN_BUILD";
+            var actualMessage = lastPayload.Errors[0].Message;
+            Assert.Equal(expectedMessage, actualMessage);
+        }
+
         [Fact]
         public async Task create_vehicle_timeline_event_with_note() {
             // setup
@@ -314,8 +359,11 @@ namespace SKD.Test {
             var eventNote = "DLR_9977";
 
             var timelineEventItems = new List<(string eventTypeCode, DateTime eventDate, string eventNode)>() {
-                (TimeLineEventType.GATE_RELEASED.ToString(), new DateTime(2020, 11, 26), eventNote),
-                (TimeLineEventType.WHOLE_SALE.ToString(), new DateTime(2020, 11, 30), eventNote),
+                (TimeLineEventType.CUSTOM_RECEIVED.ToString(), new DateTime(2020, 11, 20), eventNote),
+                (TimeLineEventType.PLAN_BUILD.ToString(), new DateTime(2020, 11, 21), eventNote),
+                (TimeLineEventType.BULD_COMPLETED.ToString(), new DateTime(2020, 11, 22), eventNote),
+                (TimeLineEventType.GATE_RELEASED.ToString(), new DateTime(2020, 11, 23), eventNote),
+                (TimeLineEventType.WHOLE_SALE.ToString(), new DateTime(2020, 11, 24), eventNote),
             };
 
             // test
@@ -323,13 +371,13 @@ namespace SKD.Test {
             var payloads = new List<MutationPayload<VehicleTimelineEvent>>();
 
             foreach (var entry in timelineEventItems) {
-                var dto = new VehicleTimelineEventInput {
+                var input = new VehicleTimelineEventInput {
                     KitNo = vehicle.KitNo,
                     EventType = Enum.Parse<TimeLineEventType>(entry.eventTypeCode),
                     EventDate = entry.eventDate,
                     EventNote = entry.eventNode
                 };
-                var payload = await service.CreateVehicleTimelineEvent(dto);
+                var payload = await service.CreateVehicleTimelineEvent(input);
                 payloads.Add(payload);
             }
 

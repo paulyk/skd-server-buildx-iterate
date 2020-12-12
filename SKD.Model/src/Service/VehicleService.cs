@@ -27,9 +27,9 @@ namespace SKD.Model {
             }
 
             // create vehicle records and add to vehicleLot.Vehicles
-            var vehicleLot = new VehicleLot { 
+            var vehicleLot = new VehicleLot {
                 Plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode),
-                LotNo = input.LotNo 
+                LotNo = input.LotNo
             };
             foreach (var vehicleDTO in input.Kits) {
                 var vehiclePayload = await CreateVehicleFromKitDTO(vehicleDTO);
@@ -374,44 +374,65 @@ namespace SKD.Model {
             return errors;
         }
 
-        public async Task<List<Error>> ValidateCreateVehicleTimelineEvent(VehicleTimelineEventInput dto) {
+        public async Task<List<Error>> ValidateCreateVehicleTimelineEvent(VehicleTimelineEventInput input) {
             var errors = new List<Error>();
 
+            // kitNo
             var vehicle = await context.Vehicles.AsNoTracking()
                 .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
-                .FirstOrDefaultAsync(t => t.KitNo == dto.KitNo);
+                .FirstOrDefaultAsync(t => t.KitNo == input.KitNo);
             if (vehicle == null) {
-                errors.Add(new Error("KitNo", $"vehicle not found for kitNo: {dto.KitNo}"));
+                errors.Add(new Error("KitNo", $"vehicle not found for kitNo: {input.KitNo}"));
                 return errors;
             }
 
-            // duplicate 
+            // duplicate vehicle timeline event
             var duplicate = vehicle.TimelineEvents
                 .OrderByDescending(t => t.CreatedAt)
                 .Where(t => t.RemovedAt == null)
-                .Where(t => t.EventType.Code == dto.EventType.ToString())
-                .Where(t => t.EventDate == dto.EventDate)
-                .Where(t => t.EventNote == dto.EventNote)
+                .Where(t => t.EventType.Code == input.EventType.ToString())
+                .Where(t => t.EventDate == input.EventDate)
+                .Where(t => t.EventNote == input.EventNote)
                 .FirstOrDefault();
 
             if (duplicate != null) {
-                var dateStr = dto.EventDate.ToShortDateString();
-                errors.Add(new Error("VIN", $"duplicate vehicle timeline event: {dto.EventType.ToString()} {dateStr} "));
+                var dateStr = input.EventDate.ToShortDateString();
+                errors.Add(new Error("VIN", $"duplicate vehicle timeline event: {input.EventType.ToString()} {dateStr} "));
+                return errors;
+            }
+
+            // missing prerequisite timeline events
+            var currentTimelineEventType = await context.VehicleTimelineEventTypes
+                .FirstOrDefaultAsync(t => t.Code == input.EventType.ToString());
+
+            var missingTimlineSequences =  Enumerable.Range(1, currentTimelineEventType.Sequecne - 1)
+                .Where(seq => !vehicle.TimelineEvents
+                .Any(t => t.EventType.Sequecne == seq)).ToList();
+
+            
+            if (missingTimlineSequences.Count > 0) {
+                var mssingTimelineEventCodes = await context.VehicleTimelineEventTypes
+                    .Where(t => missingTimlineSequences.Any(missingSeq => t.Sequecne == missingSeq ))
+                    .Select(t => t.Code).ToListAsync();
+                    
+                var text = mssingTimelineEventCodes.Aggregate((a,b) => a +", " + b);
+                errors.Add(new Error("", $"prior timeline events mssing {text}"));
                 return errors;
             }
 
             return errors;
         }
 
-        public async Task<List<Error>> ValidateCreateVehicleLotTimelineEvent(VehicleLotTimelineEventInput dto) {
+        public async Task<List<Error>> ValidateCreateVehicleLotTimelineEvent(VehicleLotTimelineEventInput input) {
             var errors = new List<Error>();
 
             var vehicleLot = await context.VehicleLots.AsNoTracking()
                 .Include(t => t.Vehicles).ThenInclude(t => t.TimelineEvents).ThenInclude(t => t.EventType)
-                .FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
+                .FirstOrDefaultAsync(t => t.LotNo == input.LotNo);
 
+            // vehicle lot 
             if (vehicleLot == null) {
-                errors.Add(new Error("VIN", $"vehicle lot not found for lotNo: {dto.LotNo}"));
+                errors.Add(new Error("VIN", $"vehicle lot not found for lotNo: {input.LotNo}"));
                 return errors;
             }
 
@@ -419,13 +440,13 @@ namespace SKD.Model {
             var duplicateTimelineEventsFound = vehicleLot.Vehicles.SelectMany(t => t.TimelineEvents)
                 .OrderByDescending(t => t.CreatedAt)
                 .Where(t => t.RemovedAt == null)
-                .Where(t => t.EventType.Code == dto.EventType.ToString())
-                .Where(t => t.EventDate == dto.EventDate)
+                .Where(t => t.EventType.Code == input.EventType.ToString())
+                .Where(t => t.EventDate == input.EventDate)
                 .ToList();
 
             if (duplicateTimelineEventsFound.Count > 0) {
-                var dateStr = dto.EventDate.ToShortDateString();
-                errors.Add(new Error("VIN", $"duplicate vehicle timeline event: {dto.LotNo}, Type: {dto.EventType.ToString()} Date: {dateStr} "));
+                var dateStr = input.EventDate.ToShortDateString();
+                errors.Add(new Error("VIN", $"duplicate vehicle timeline event: {input.LotNo}, Type: {input.EventType.ToString()} Date: {dateStr} "));
                 return errors;
             }
 
