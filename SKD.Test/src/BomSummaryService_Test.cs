@@ -17,12 +17,27 @@ namespace SKD.Test {
         private async Task can_create_bom_summary() {
             // setup
             var plant = Gen_Plant();
+            var lot1 = Gen_LotNo();
+            var lot2 = Gen_LotNo();
+
             var dto = new BomSummaryInput() {
                 Sequence = 1,
                 PlantCode = plant.Code,
                 Parts = new List<BomSummaryPartInput> {
                     new BomSummaryPartInput {
-                        LotNo = Gen_LotNo(),
+                        LotNo = lot1,
+                        PartNo = "0001",
+                        PartDesc = "part 1",
+                        Quantity = 1
+                    },
+                    new BomSummaryPartInput {
+                        LotNo = lot1,
+                        PartNo = "0002",
+                        PartDesc = "part 2",
+                        Quantity = 1
+                    },
+                    new BomSummaryPartInput {
+                        LotNo = lot2,
                         PartNo = "0001",
                         PartDesc = "part 1",
                         Quantity = 1
@@ -30,14 +45,16 @@ namespace SKD.Test {
                 }
             };
 
-            var before_count = ctx.BomSummaryParts.Count();
             // test
             var bomService = new BomSummaryService(ctx);
             var payload = await bomService.CreateBomSummary(dto);
 
             // assert
+            Assert.Equal(2, payload.Entity.LotCount);
+            Assert.Equal(3, payload.Entity.LotPartCount);
+
             var after_count = ctx.BomSummaryParts.Count();
-            Assert.Equal(1, after_count);
+            Assert.Equal(3, after_count);
         }
 
 

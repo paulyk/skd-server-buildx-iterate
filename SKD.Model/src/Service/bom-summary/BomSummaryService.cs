@@ -16,8 +16,8 @@ namespace SKD.Model {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<BomSummary>> CreateBomSummary(BomSummaryInput input) {
-            var payload = new MutationPayload<BomSummary>(null);
+        public async Task<MutationPayload<BomSummaryOverviewDTO>> CreateBomSummary(BomSummaryInput input) {
+            var payload = new MutationPayload<BomSummaryOverviewDTO>(null);
             payload.Errors = await ValidateBomDTO<BomSummaryInput>(input);
             if (payload.Errors.Count > 0) {
                 return payload;
@@ -33,11 +33,18 @@ namespace SKD.Model {
                     Quantity = partDTO.Quantity
                 }).ToList()
             };
-            payload.Entity = bomSummary;
 
             // ensure plant code
             context.BomSummaries.Add(bomSummary);
             await context.SaveChangesAsync();
+            payload.Entity = new BomSummaryOverviewDTO {
+                Id = bomSummary.Id,
+                Sequence = bomSummary.Sequence,
+                PlantCode = bomSummary.Plant.Code,
+                LotCount = bomSummary.Parts.Select(x => x.LotNo).Distinct().Count(),
+                LotPartCount = bomSummary.Parts.Count(),
+                CreatedAt = bomSummary.CreatedAt
+            };
             return payload;
         }
 
