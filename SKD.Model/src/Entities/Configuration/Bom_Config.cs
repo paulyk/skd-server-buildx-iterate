@@ -2,10 +2,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace SKD.Model {
-    public class BomSummary_Config : IEntityTypeConfiguration<BomSummary> {
-        public void Configure(EntityTypeBuilder<BomSummary> builder) {
+    public class Bom_Config : IEntityTypeConfiguration<Bom> {
+        public void Configure(EntityTypeBuilder<Bom> builder) {
 
-            builder.ToTable("bom_summary");
+            builder.ToTable("bom");
             
             builder.HasKey(t => t.Id);
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
@@ -16,14 +16,13 @@ namespace SKD.Model {
                 .IsRequired()
                 .HasMaxLength(EntityFieldLen.Bom_SequenceNo);
 
-            builder.HasMany(t => t.Parts)
-                .WithOne(t => t.BomSummary)
-                .HasForeignKey(t => t.BomSummaryId);    
-
             builder.HasOne(t => t.Plant) 
-                .WithMany(t => t.BomSummaries)
+                .WithMany(t => t.Boms)
                 .HasForeignKey(t => t.PlantId);
 
+            builder.HasMany(t => t.Lots)
+                .WithOne(t => t.Bom)
+                .HasForeignKey(t => t.BomId);
         }
     }
 

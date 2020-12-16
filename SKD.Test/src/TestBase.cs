@@ -71,6 +71,7 @@ namespace SKD.Test {
             ctx.SaveChanges();
             return ctx.Components.ToList();
         }
+        
         public VehicleModel Gen_VehicleModel(
             string modelCode,
             List<(string componentCode,
@@ -162,7 +163,7 @@ namespace SKD.Test {
             List<(string componentCode, string stationCode)> component_stations_maps
         ) {
 
-            var modelCode = Util.RandomString(EntityFieldLen.VehicleModel_Code);
+            var modelCode = Gen_VehicleModel_Code();
             Gen_VehicleModel(
                 modelCode: modelCode,
                 component_stations_maps: component_stations_maps

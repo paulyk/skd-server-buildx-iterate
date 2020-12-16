@@ -119,11 +119,11 @@ namespace SKD.Server {
             ShipmentInput input
         ) => await service.CreateShipment(input);
 
-         public async Task<MutationPayload<BomSummaryOverviewDTO>> CreateBomSummary(
-                  [Service] BomSummaryService service,
+         public async Task<MutationPayload<BomOverviewDTO>> CreateBomSummary(
+                  [Service] BomService service,
                   [Service] SkdContext ctx,
-                  BomSummaryInput input
-        ) => await service.CreateBomSummary(input);
+                  BomLotPartsInput input
+        ) => await service.ImportBomLotParts(input);
 
         public async Task<MutationPayload<SnapshotDTO>> GenerateVehicleSnapshotRun(
                   [Service] VehicleSnapshotService service,

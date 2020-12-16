@@ -254,18 +254,18 @@ namespace SKD.Server {
         [UsePaging]
         [UseSorting]
         public IQueryable<BomSummaryListDTO> GetBomSummaryList([Service] SkdContext context) =>
-                context.BomSummaries.AsNoTracking().Select(t => new BomSummaryListDTO {
+                context.Boms.AsNoTracking().Select(t => new BomSummaryListDTO {
                     Id = t.Id,
                     PlantCode = t.Plant.Code,
                     Sequence = t.Sequence,
                     CreatedAt = t.CreatedAt,
-                    LotPartQuantitiesMatchShipment = t.LotPartQuantitiesMatchShipment,
-                    PartsCount = t.Parts.Count(),
+                    LotCount = t.Lots.Count(),
+                    LotPartCount = t.Lots.Sum(a => a.LotParts.Count())
                 }).AsQueryable();
 
-        public async Task<BomSummary?> GetBomSummaryById([Service] SkdContext context, Guid id) =>
-                await context.BomSummaries.AsNoTracking()
-                        .Include(t => t.Parts)
+        public async Task<Bom?> GetBomById([Service] SkdContext context, Guid id) =>
+                await context.Boms.AsNoTracking()
+                        .Include(t => t.Lots).ThenInclude(t => t.LotParts)
                         .FirstOrDefaultAsync(t => t.Id == id);
 
         public async Task<VehicleSnapshotRunDTO?> GetVehicleSnapshotRunByDate(

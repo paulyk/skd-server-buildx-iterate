@@ -13,139 +13,30 @@ namespace SKD.Test {
             ctx = GetAppDbContext();
         }
 
-        [Fact]
-        public async Task can_create_vehicle_lot() {
-            // setup
-            var plant = Gen_Plant();
-            var modelCode = Gen_VehicleModel_Code();
-            var model = Gen_VehicleModel(modelCode, new List<(string, string)> {
-                ("component_1", "station_1"),
-                ("component_2", "station_2")
-            });
-            var lotNo = Gen_LotNo();
-            var kitNos = new List<string> { Gen_KitNo(), Gen_KitNo() };
-            var vehicleLotInput = Gen_VehicleLot_Input(lotNo, plant.Code, modelCode, kitNos);
+        
+        // public async Task can_create_vehicle_lot() {
+        //     // setup
+        //     var plant = Gen_Plant();
+        //     var modelCode = Gen_VehicleModel_Code();
+        //     var model = Gen_VehicleModel(modelCode, new List<(string, string)> {
+        //         ("component_1", "station_1"),
+        //         ("component_2", "station_2")
+        //     });
+        //     var lotNo = Gen_LotNo();
+        //     var kitNos = new List<string> { Gen_KitNo(), Gen_KitNo() };
+        //     var vehicleLotInput = Gen_VehicleLot_Input(lotNo, plant.Code, modelCode, kitNos);
 
-            var before_count = await ctx.VehicleLots.CountAsync();
-            // test
-            var service = new VehicleService(ctx);
-            var paylaod = await service.CreateVehicleLot(vehicleLotInput);
-            var after_count = await ctx.VehicleLots.CountAsync();
+        //     var before_count = await ctx.VehicleLots.CountAsync();
+        //     // test
+        //     var service = new VehicleService(ctx);
+        //     var paylaod = await service.CreateVehicleLot(vehicleLotInput);
+        //     var after_count = await ctx.VehicleLots.CountAsync();
 
-            // assert
-            Assert.Equal(before_count + 1, after_count);
+        //     // assert
+        //     Assert.Equal(before_count + 1, after_count);
 
-        }
+        // }
 
-        [Fact]
-        public async Task cannot_create_vehicle_lot_without_vehicles() {
-            // setup            
-            var plant = Gen_Plant();
-            var modelCode = Gen_VehicleModel_Code();
-            Gen_VehicleModel(modelCode, new List<(string componentCode, string stationCode)>{
-                ("component_1", "statin_1")
-            });
-
-            var lotNo = Gen_LotNo();
-            var kitNos = new List<string> { };
-            var vehicleLotInput = Gen_VehicleLot_Input(lotNo, plant.Code, modelCode, kitNos);
-
-            // test
-            var service = new VehicleService(ctx);
-            var payload = await service.CreateVehicleLot(vehicleLotInput);
-
-            // assert
-            Assert.True(1 == payload.Errors.Count());
-            var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
-            var expected = "no vehicles found in lot";
-            var actual = errorMessage.Substring(0, expected.Length);
-            Assert.Equal(expected, actual);
-        }
-
-        [Fact]
-        public async Task cannot_create_vehicle_lot_with_duplicate_kitNos() {
-            // setup
-            var plant = Gen_Plant();
-            var modelCode = Gen_VehicleModel_Code();
-            var model = Gen_VehicleModel(modelCode, new List<(string, string)> {
-                ("component_1", "station_1"),
-                ("component_2", "station_2")
-            });
-            var lotNo = Gen_LotNo();
-
-            var kitNo = Gen_KitNo();
-            var kitNos = new List<string> { kitNo, kitNo };
-            var vehicleLotInput = Gen_VehicleLot_Input(lotNo, plant.Code, modelCode, kitNos);
-
-            // test
-            var service = new VehicleService(ctx);
-            var payload = await service.CreateVehicleLot(vehicleLotInput);
-
-            // assert
-            Assert.True(1 == payload.Errors.Count());
-            var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
-            var expected = "duplicate kitNo in vehicle lot";
-            var actual = errorMessage.Substring(0, expected.Length);
-            Assert.Equal(expected, actual);
-        }
-
-        [Fact]
-        public async Task cannot_create_vehicle_lot_if_model_code_does_not_exists() {
-            // setup
-            var plant = Gen_Plant();
-            var lotNo = Gen_LotNo();
-            var kitNos = new List<string> { Gen_KitNo(), Gen_KitNo() };
-
-            var nonExistendModelCode = Util.RandomString(EntityFieldLen.VehicleModel_Code);
-            var vehicleLotInput = Gen_VehicleLot_Input(lotNo, plant.Code, nonExistendModelCode, kitNos);
-
-            // test
-            var service = new VehicleService(ctx);
-            var payload = await service.CreateVehicleLot(vehicleLotInput);
-
-            // assert
-            Assert.True(1 == payload.Errors.Count());
-            var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
-            var expected = "vehicle model not found";
-            var actual = errorMessage.Substring(0, expected.Length);
-            Assert.Equal(expected, actual);
-        }
-
-        [Fact]
-        public async Task cannot_create_duplicate_vehicle_lot() {
-            // setup
-            var plant = Gen_Plant();
-            var modelCode = Gen_VehicleModel_Code();
-            var model = Gen_VehicleModel(modelCode, new List<(string, string)> {
-                ("component_1", "station_1")
-            });
-            var lotNo = Gen_LotNo();
-
-            var kitNos = new List<string> { Gen_KitNo(), Gen_KitNo() };
-            var vehicleLotInput = Gen_VehicleLot_Input(lotNo, plant.Code, modelCode, kitNos);
-
-            // test
-            var service = new VehicleService(ctx);
-            try {
-                var payload = await service.CreateVehicleLot(vehicleLotInput);
-
-                Assert.True(0 == payload.Errors.Count());
-
-                var payload_2 = await service.CreateVehicleLot(vehicleLotInput);
-                Assert.True(1 == payload_2.Errors.Count());
-
-                // assert
-                var message = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
-                Assert.Equal("duplicate vehicle lot", message);
-            } catch (Exception ex) {
-                Console.WriteLine(ex.Message);
-                var inner = ex.InnerException;
-                while (inner != null) {
-                    Console.WriteLine(inner.Message); ;
-                    inner = inner.InnerException;
-                }
-            }
-        }
 
         [Fact]
         public async Task can_assing_vehicle_kit_vins() {

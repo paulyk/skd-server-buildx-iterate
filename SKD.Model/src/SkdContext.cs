@@ -24,8 +24,8 @@ namespace SKD.Model {
         public DbSet<ShipmentInvoice> ShipmentInvoices { get; set; }
         public DbSet<ShipmentPart> ShipmentParts { get; set; }
 
-        public DbSet<BomSummary> BomSummaries { get; set; }
-        public DbSet<BomSummaryPart> BomSummaryParts { get; set; }
+        public DbSet<Bom> Boms { get; set; }
+        public DbSet<LotPart> LotParts { get; set; }
 
         public DbSet<VehicleSnapshotRun> VehicleSnapshotRuns { get; set; }
         public DbSet<VehicleSnapshot> VehicleSnapshots { get; set; }
@@ -52,8 +52,8 @@ namespace SKD.Model {
             builder.ApplyConfiguration(new ShipmentInvoice_Config());
             builder.ApplyConfiguration(new ShipmentPart_Config());
             //
-            builder.ApplyConfiguration(new BomSummary_Config());
-            builder.ApplyConfiguration(new BomSummaryPart_Config());
+            builder.ApplyConfiguration(new Bom_Config());
+            builder.ApplyConfiguration(new LotPart_Config());
 
             builder.ApplyConfiguration(new VehicleSnapshot_Config());
             builder.ApplyConfiguration(new VehicleSnapshotRun_Config());
