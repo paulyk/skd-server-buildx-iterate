@@ -160,9 +160,13 @@ namespace SKD.Test {
                 var plant = new Plant { Code = Gen_PlantCode() };
                 ctx.Plants.Add(plant);
 
+                // bom
+                var bom = new Bom { Sequence = 1, Plant = plant };
+                ctx.Boms.Add(bom);
+
                 // lot
                 var lotNo = new String('X', EntityFieldLen.Vehicle_LotNo);
-                var vehicleLot = new VehicleLot { LotNo = lotNo, Plant = plant };
+                var vehicleLot = new VehicleLot { LotNo = lotNo, Bom = bom, Plant = plant };
                 ctx.VehicleLots.Add(vehicleLot);
 
                 // vehicle 

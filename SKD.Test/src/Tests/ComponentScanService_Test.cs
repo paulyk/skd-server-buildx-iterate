@@ -11,21 +11,23 @@ namespace SKD.Test {
 
         public ComponentScanService_Test() {
             ctx = GetAppDbContext();
-            GenerateSeedData();
+            Gen_Baseline_Test_Seed_Data();
         }
 
         [Fact]
         public async Task can_create_component_scan() {
-            var vehicleComponent = ctx.VehicleComponents.FirstOrDefault();
+            var vehicleComponent = ctx.VehicleComponents
+                .OrderBy(t => t.ProductionStation.SortOrder)
+                .FirstOrDefault();
 
-            var dto = new ComponentScanInput {
+            var input = new ComponentScanInput {
                 VehicleComponentId = vehicleComponent.Id,
                 Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
                 Scan2 = ""
             };
 
             var service = new ComponentScanService(ctx);
-            var payload = await service.CreateComponentScan(dto);
+            var payload = await service.CreateComponentScan(input);
 
             var componentScan = await ctx.ComponentScans.FirstOrDefaultAsync(t => t.Id == payload.Entity.Id);
             Assert.NotNull(componentScan);
@@ -75,7 +77,9 @@ namespace SKD.Test {
 
         [Fact]
         public async Task cannot_create_component_scan_if_scan1_scan2_empty() {
-            var vehicleComponent = await ctx.VehicleComponents.FirstOrDefaultAsync();
+            var vehicleComponent = await ctx.VehicleComponents
+                .OrderBy(t => t.ProductionStation.SortOrder)
+                .FirstOrDefaultAsync();
 
             var dto = new ComponentScanInput {
                 VehicleComponentId = vehicleComponent.Id,
@@ -92,7 +96,9 @@ namespace SKD.Test {
 
         [Fact]
         public async Task cannot_create_component_scan_if_less_than_min_length() {
-            var vehicleComponent = await ctx.VehicleComponents.FirstOrDefaultAsync();
+            var vehicleComponent = await ctx.VehicleComponents
+                .OrderBy(t => t.ProductionStation.SortOrder)
+                .FirstOrDefaultAsync();
 
             var dto = new ComponentScanInput {
                 VehicleComponentId = vehicleComponent.Id,
@@ -184,7 +190,10 @@ namespace SKD.Test {
 
         [Fact]
         public async Task create_component_scan_swaps_if_scan1_empty() {
-            var vehicleComponent = await ctx.VehicleComponents.FirstOrDefaultAsync();
+            var vehicleComponent = await ctx.VehicleComponents
+                .OrderBy(t => t.ProductionStation.SortOrder)
+                .FirstOrDefaultAsync();
+
 
             var scan1 = "";
             var scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry);
@@ -208,28 +217,6 @@ namespace SKD.Test {
             Assert.True(String.IsNullOrEmpty(componentScan.Scan2));
         }
 
-        // [Fact]
-        // public async Task cannot_create_component_scan_if_no_planned_build_date() {
-        //     var vehicleComponent = await ctx.VehicleComponents
-        //         .Include(t => t.Vehicle)
-        //         .FirstOrDefaultAsync();
-
-        //     var vehicle = vehicleComponent.Vehicle;
-        //     vehicle.Timeline.PlannedBuildAt = null;
-        //     await ctx.SaveChangesAsync();
-
-        //     var dto = new ComponentScanDTO {
-        //         VehicleComponentId = vehicleComponent.Id,
-        //         Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
-        //         Scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)
-        //     };
-
-        //     var service = new ComponentScanService(ctx);
-        //     var payload = await service.CreateComponentScan(dto);
-
-        //     var errors = payload.Errors.ToList();
-        //     Assert.True(errors.Count == 1 && errors[0].Message == "vehicle planned build date required");
-        // }
 
         [Fact]
         public async Task can_create_scan_for_same_component_in_different_stations() {
@@ -312,33 +299,5 @@ namespace SKD.Test {
         }
 
 
-        #region generate seed data         
-
-        private void GenerateSeedData() {
-            // components
-            Gen_ProductionStations("station_1", "station_2");
-            Gen_Components("component_1", "component_2", "component_3");
-
-            var components = ctx.Components.ToList();
-            var productionStations = ctx.ProductionStations.ToList();
-
-            var modelCode = "model_1";
-            Gen_VehicleModel(                
-                modelCode: modelCode,
-                component_stations_maps: new List<(string, string)> {
-                    ("component_1", "station_1"),
-                    ("component_2", "station_2"),
-                }
-              );
-
-            Gen_Vehicle_From_Model(
-                vin: Gen_Vin(),
-                kitNo: Gen_KitNo(),
-                
-                lotNo: Gen_LotNo(),
-                modelCode: modelCode);
-
-        }
-        #endregion
     }
 }

@@ -11,9 +11,10 @@ namespace SKD.Test {
 
         public VehicleServiceTest() {
             ctx = GetAppDbContext();
+            Gen_Baseline_Test_Seed_Data();
         }
 
-        
+
         // public async Task can_create_vehicle_lot() {
         //     // setup
         //     var plant = Gen_Plant();
@@ -41,13 +42,11 @@ namespace SKD.Test {
         [Fact]
         public async Task can_assing_vehicle_kit_vins() {
             // setup
-            var plant = Gen_Plant();
-            var lotNo = Gen_LotNo();
-            var vehicleLot = await Gen_Vehicle_Lot(plant.Code, lotNo);
+            var lot = ctx.VehicleLots.First();
 
             var kitVinDto = new VehicleKitVinInput {
-                LotNo = lotNo,
-                Kits = vehicleLot.Vehicles.Select(t => new KitVinInput {
+                LotNo = lot.LotNo,
+                Kits = lot.Vehicles.Select(t => new KitVinInput {
                     KitNo = t.KitNo,
                     VIN = Gen_Vin()
                 }).ToList()
@@ -65,13 +64,11 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_assing_vehicle_kit_vins_if_vins_already_assigned() {
             // setup
-            var plant = Gen_Plant();
-            var lotNo = Gen_LotNo();
-            var vehicleLot = await Gen_Vehicle_Lot(plant.Code, lotNo);
+            var lot = ctx.VehicleLots.First();
 
             var kitVinDto = new VehicleKitVinInput {
-                LotNo = lotNo,
-                Kits = vehicleLot.Vehicles.Select(t => new KitVinInput {
+                LotNo = lot.LotNo,
+                Kits = lot.Vehicles.Select(t => new KitVinInput {
                     KitNo = t.KitNo,
                     VIN = Gen_Vin()
                 }).ToList()
@@ -91,13 +88,10 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_assing_vehicle_lot_vins_kits_not_found() {
             // setup
-            var plant = Gen_Plant();
-            var lotNo = Gen_LotNo();
-            var vehicleLot = await Gen_Vehicle_Lot(plant.Code, lotNo);
-
+            var lot = ctx.VehicleLots.First();
             var kitVinDto = new VehicleKitVinInput {
-                LotNo = lotNo,
-                Kits = vehicleLot.Vehicles.Select(t => new KitVinInput {
+                LotNo = lot.LotNo,
+                Kits = lot.Vehicles.Select(t => new KitVinInput {
                     KitNo = Gen_KitNo(), // generate a kit not thats different
                     VIN = Gen_Vin()
                 }).ToList()
@@ -118,19 +112,21 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_assing_vehicle_lot_with_duplicate_kits_in_payload() {
             // setup
-            var plant = Gen_Plant();
-            var lotNo = Gen_LotNo();
-            var kitNo1 = Gen_KitNo();
-            var kitNo2 = Gen_KitNo();
-
-            var vehicleLot = await Gen_Vehicle_Lot(plant.Code, lotNo, kitNo1, kitNo2);
+            var lot = ctx.VehicleLots.First();
+            var lotVehicles =  lot.Vehicles.ToList();
+            
 
             var kitVinDto = new VehicleKitVinInput {
-                LotNo = lotNo,
-                Kits = vehicleLot.Vehicles.Select(t => new KitVinInput {
-                    KitNo = kitNo1,
-                    VIN = Gen_Vin()
-                }).ToList()
+                LotNo = lot.LotNo                
+            };
+            kitVinDto.Kits = new List<KitVinInput> () {
+                new KitVinInput {KitNo = lotVehicles[0].KitNo, VIN = Gen_Vin() },
+                new KitVinInput {KitNo = lotVehicles[1].KitNo, VIN = Gen_Vin() },
+                new KitVinInput {KitNo = lotVehicles[2].KitNo, VIN = Gen_Vin() },
+                new KitVinInput {KitNo = lotVehicles[3].KitNo, VIN = Gen_Vin() },
+                // duplicate kits
+                new KitVinInput {KitNo = lotVehicles[5].KitNo, VIN = Gen_Vin() },
+                new KitVinInput {KitNo = lotVehicles[5].KitNo, VIN = Gen_Vin() },
             };
 
             // test
@@ -146,18 +142,7 @@ namespace SKD.Test {
 
         [Fact]
         public async Task can_create_vehicle_timeline_events() {
-            // setup
-            Gen_VehicleTimelineEventTypes();
-            var vehicle = Gen_Vehicle_And_Model(
-                vin: Gen_Vin(),
-                kitNo: Gen_KitNo(),
-                lotNo: Gen_LotNo(),
-                modelCode: Gen_VehicleModel_Code(),
-                new List<(string, string)> {
-                    ("component_1", "station_1")
-                }
-            );
-
+            // setup        
             var timelineEvents = new List<(string eventTypeCode, DateTime eventDate)>() {
                 (TimeLineEventType.CUSTOM_RECEIVED.ToString(), new DateTime(2020, 11, 1)),
                 (TimeLineEventType.PLAN_BUILD.ToString(), new DateTime(2020, 11, 8)),
@@ -167,10 +152,13 @@ namespace SKD.Test {
             };
 
             // test
+            var vehicle = ctx.Vehicles.First();
+
             var service = new VehicleService(ctx);
             var payloads = new List<MutationPayload<VehicleTimelineEvent>>();
 
             var before_count = ctx.VehicleTimelineEvents.Count();
+
 
             foreach (var entry in timelineEvents) {
                 var dto = new VehicleTimelineEventInput {
@@ -191,24 +179,13 @@ namespace SKD.Test {
 
         [Fact]
         public async Task cannot_create_vehicle_timeline_events_out_of_sequence() {
-            // setup
-            Gen_VehicleTimelineEventTypes();
-            var vehicle = Gen_Vehicle_And_Model(
-                vin: Gen_Vin(),
-                kitNo: Gen_KitNo(),
-                lotNo: Gen_LotNo(),
-                modelCode: Gen_VehicleModel_Code(),
-                new List<(string, string)> {
-                    ("component_1", "station_1")
-                }
-            );
-
             var timelineEvents = new List<(string eventTypeCode, DateTime eventDate)>() {
                 (TimeLineEventType.CUSTOM_RECEIVED.ToString(), new DateTime(2020, 11, 1)),
                 (TimeLineEventType.BULD_COMPLETED.ToString(), new DateTime(2020, 11, 22)),
             };
 
             // test
+            var vehicle = ctx.Vehicles.First();
             var service = new VehicleService(ctx);
             var payloads = new List<MutationPayload<VehicleTimelineEvent>>();
 
@@ -236,17 +213,7 @@ namespace SKD.Test {
         [Fact]
         public async Task create_vehicle_timeline_event_with_note() {
             // setup
-            Gen_VehicleTimelineEventTypes();
-            var vehicle = Gen_Vehicle_And_Model(
-                vin: Gen_Vin(),
-                kitNo: Gen_KitNo(),
-                lotNo: Gen_LotNo(),
-                modelCode: Gen_VehicleModel_Code(),
-                new List<(string, string)> {
-                    ("component_1", "station_1")
-                }
-            );
-
+            var vehicle = ctx.Vehicles.First();
             var eventNote = "DLR_9977";
 
             var timelineEventItems = new List<(string eventTypeCode, DateTime eventDate, string eventNode)>() {
@@ -285,17 +252,7 @@ namespace SKD.Test {
         [Fact]
         public async Task create_vehicle_timline_event_removes_prior_events_of_the_same_type() {
             // setup
-            Gen_VehicleTimelineEventTypes();
-            var vehicle = Gen_Vehicle_And_Model(
-                vin: Gen_Vin(),
-                kitNo: Gen_KitNo(),
-                lotNo: Gen_LotNo(),
-                modelCode: Gen_VehicleModel_Code(),
-                new List<(string, string)> {
-                    ("component_1", "station_1")
-                }
-            );
-
+            var vehicle = ctx.Vehicles.First();
             var before_count = ctx.VehicleTimelineEvents.Count();
 
             var originalDate = new DateTime(2020, 11, 28);
@@ -333,16 +290,7 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_add_duplicate_vehicle_timline_event_if_same_type_and_date_and_note() {
             // setup
-            Gen_VehicleTimelineEventTypes();
-            var vehicle = Gen_Vehicle_And_Model(
-                vin: Gen_Vin(),
-                kitNo: Gen_KitNo(),
-                lotNo: Gen_LotNo(),
-                modelCode: Gen_VehicleModel_Code(),
-                new List<(string, string)> {
-                    ("component_1", "station_1")
-                }
-            );
+            var vehicle = ctx.Vehicles.First();
 
             var originalDate = new DateTime(2020, 11, 28);
             var newDate = new DateTime(2020, 11, 30);
@@ -379,17 +327,15 @@ namespace SKD.Test {
         [Fact]
         public async Task can_create_vehicle_timeline_event_by_lot() {
             // setup
-            Gen_VehicleTimelineEventTypes();
-            //
-            var plant = Gen_Plant();
-            var lotNo = Gen_LotNo();
-            var kitNos = new string[] { Gen_KitNo(), Gen_KitNo() };
-            var vehicleLot = Gen_Vehicle_Lot(plant.Code, lotNo, kitNos);
+            var vehicleLot = ctx.VehicleLots
+                .Include(t => t.Vehicles)
+                .First();
+            var vehicleCoount = vehicleLot.Vehicles.Count();
 
             var eventDate = new DateTime(2020, 11, 30);
             var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
             var dto = new VehicleLotTimelineEventInput {
-                LotNo = lotNo,
+                LotNo = vehicleLot.LotNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = eventDate,
                 EventNote = eventNote
@@ -407,7 +353,7 @@ namespace SKD.Test {
                 .Include(t => t.EventType).ToList();
 
             var timelineEventCount = timelineEvents.Count();
-            Assert.Equal(2, timelineEventCount);
+            Assert.Equal(vehicleCoount, timelineEventCount);
 
             foreach (var timelineEvent in timelineEvents) {
                 Assert.Equal(eventDate, timelineEvent.EventDate);
@@ -418,17 +364,12 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_create_vehicle_timeline_event_by_lot_with_dupliate_date() {
             // setup
-            Gen_VehicleTimelineEventTypes();
-            //
-            var plant = Gen_Plant();
-            var lotNo = Gen_LotNo();
-            var kitNos = new string[] { Gen_KitNo(), Gen_KitNo() };
-            var vehicleLot = Gen_Vehicle_Lot(plant.Code, lotNo, kitNos);
+            var vehicleLot = ctx.VehicleLots.First();
 
             var eventDate = new DateTime(2020, 11, 30);
             var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
             var dto = new VehicleLotTimelineEventInput {
-                LotNo = lotNo,
+                LotNo = vehicleLot.LotNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = eventDate,
                 EventNote = eventNote
@@ -449,47 +390,7 @@ namespace SKD.Test {
             var expectedMessage = "duplicate vehicle timeline event";
             Assert.Equal(expectedMessage, errorMessage.Substring(0, expectedMessage.Length));
         }
-        private async Task<VehicleLot> Gen_Vehicle_Lot(string plantCode, string lotNo, params string[] kitNos) {
 
-            kitNos = kitNos.Length > 0
-                ? kitNos :
-                new string[] { Gen_KitNo(), Gen_KitNo() };
 
-            var modelCode = Gen_VehicleModel_Code();
-            var modelNo = Gen_VehicleModel(
-                modelCode,
-                component_stations_maps: new List<(string, string)> {
-                    ("comp_1", "stat_1")
-                });
-
-            var vehicleLotInput = Gen_VehicleLot_Input(
-                lotNo,
-                plantCode,
-                modelCode,
-                kitNos.ToList()
-             );
-
-            var service = new VehicleService(ctx);
-            var payload = await service.CreateVehicleLot(vehicleLotInput);
-            var vehicleLot = await ctx.VehicleLots
-                .Include(t => t.Vehicles)
-                .FirstOrDefaultAsync(t => t.LotNo == lotNo);
-            return vehicleLot;
-        }
-
-        // private VehicleLotInput Gen_VehicleLot_DTO(
-        //     string lotNo,
-        //     string plantCode,
-        //     string modelCode,
-        //     List<string> kitNos) {
-        //     return new VehicleLotInput {
-        //         LotNo = lotNo,
-        //         PlantCode = plantCode,
-        //         Kits = kitNos.Select(kitNo => new VehicleLotInput.Kit {
-        //             KitNo = kitNo,
-        //             ModelCode = modelCode,
-        //         }).ToList()
-        //     };
-        // }
     }
 }

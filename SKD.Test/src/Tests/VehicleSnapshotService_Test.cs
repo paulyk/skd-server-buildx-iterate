@@ -9,17 +9,22 @@ using System.Threading.Tasks;
 namespace SKD.Test {
     public class VehicleSnapshotServiceTest : TestBase {
 
+        string engineCode = "EN";
         public VehicleSnapshotServiceTest() {
             ctx = GetAppDbContext();
+            Gen_Baseline_Test_Seed_Data(componentCodes: new List<string> { "DA", "PA", engineCode });
         }
 
         [Fact]
         public async Task can_generate_snapshot() {
             // setup
-            var snapshotInput = await Gen_Test_Data_For_Vehicle_Snapshot();
+            var snapshotInput = new VehicleSnapshotInput {
+                RunDate = DateTime.Now.Date,
+                PlantCode = ctx.Plants.Select(t => t.Code).First(),
+                EngineComponentCode = engineCode
+            };
 
             var service = new VehicleSnapshotService(ctx);
-            snapshotInput.RunDate = DateTime.Now.Date;
             var payload = await service.GenerateSnapshot(snapshotInput);
 
             var seqeunceNumber = payload.Entity.Sequence;
@@ -38,11 +43,14 @@ namespace SKD.Test {
         public async Task can_create_full_snapshow_timeline() {
             // setup
             var service = new VehicleSnapshotService(ctx);
-            var snapshotInput = await Gen_Test_Data_For_Vehicle_Snapshot();
             var vehicle = ctx.Vehicles.OrderBy(t => t.KitNo).First();
             var dealerCode = "D12345678";
-            var eventDate = new DateTime(2020,12,1);
-            snapshotInput.RunDate = new DateTime(2020, 12, 2);
+            var eventDate = new DateTime(2020, 12, 1);
+            var snapshotInput = new VehicleSnapshotInput {
+                RunDate = new DateTime(2020, 12, 2),
+                PlantCode = ctx.Plants.Select(t => t.Code).First(),
+                EngineComponentCode = engineCode
+            };
 
             // 1.  empty
             await service.GenerateSnapshot(snapshotInput);
@@ -147,9 +155,12 @@ namespace SKD.Test {
         public async Task creates_original_plan_build_date_only_once() {
             // setup
             var service = new VehicleSnapshotService(ctx);
-            var snapshotInput = await Gen_Test_Data_For_Vehicle_Snapshot();
+            var snapshotInput = new VehicleSnapshotInput {
+                RunDate = new DateTime(2020, 12, 1),
+                PlantCode = ctx.Plants.Select(t => t.Code).First(),
+                EngineComponentCode = engineCode
+            };
             var vehicle = ctx.Vehicles.OrderBy(t => t.KitNo).First();
-            snapshotInput.RunDate = new DateTime(2020, 12, 1);
             var first_plan_build_date = new DateTime(2020, 1, 15);
 
             // 1.  custom received
@@ -193,8 +204,11 @@ namespace SKD.Test {
         public async Task vehicle_can_have_multiple_timeline_events_before_first_snapshot() {
             // setup
             var eventDate = new DateTime(2020, 12, 1);
-            var snapshotInput = await Gen_Test_Data_For_Vehicle_Snapshot();
-            snapshotInput.RunDate = DateTime.Now.Date;
+            var snapshotInput = new VehicleSnapshotInput {
+                RunDate = new DateTime(2020, 12, 1),
+                PlantCode = ctx.Plants.Select(t => t.Code).First(),
+                EngineComponentCode = engineCode
+            };
 
             var vehicle = ctx.Vehicles.OrderBy(t => t.KitNo).First();
             await AddVehicleTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, vehicle.KitNo, "", eventDate);
@@ -215,13 +229,16 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_generate_snapshot_with_same_run_date() {
             // setup
-            var snapshotInput = await Gen_Test_Data_For_Vehicle_Snapshot();
 
             var vehicle = ctx.Vehicles.OrderBy(t => t.KitNo).First();
             await AddVehicleTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, vehicle.KitNo, "", DateTime.Now.Date);
             var service = new VehicleSnapshotService(ctx);
 
-            snapshotInput.RunDate = new DateTime(2020, 11, 24);
+            var snapshotInput = new VehicleSnapshotInput {
+                RunDate = new DateTime(2020, 11, 24),
+                PlantCode = ctx.Plants.Select(t => t.Code).First(),
+                EngineComponentCode = engineCode
+            };
             var payload = await service.GenerateSnapshot(snapshotInput);
             var snapshots_count = ctx.VehicleSnapshots.Count();
             Assert.Equal(1, snapshots_count);
@@ -237,8 +254,12 @@ namespace SKD.Test {
         [Fact]
         public async Task generate_snapshot_with_same_plant_code_increments_sequence() {
             // setup plant 1
-            var plantCode_1 = Gen_PlantCode();
-            var snapshotInput_1 = await Gen_Test_Data_For_Vehicle_Snapshot(plantCode_1);
+            var plantCode_1 = ctx.Plants.Select(t => t.Code).First();
+
+            var snapshotInput_1 = new VehicleSnapshotInput {
+                PlantCode = plantCode_1,
+                EngineComponentCode = engineCode
+            };
 
             var vehicle_1 = ctx.Vehicles.Where(t => t.Lot.Plant.Code == plantCode_1).OrderBy(t => t.KitNo).First();
             await AddVehicleTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, vehicle_1.KitNo, "", DateTime.Now.Date);
@@ -255,12 +276,17 @@ namespace SKD.Test {
 
             // setup plant 2
             var plantCode_2 = Gen_PlantCode();
-            var snapshotInput_2 = await Gen_Test_Data_For_Vehicle_Snapshot(plantCode_2);
+            Gen_Plant_Bom_Lot_Vehicles(plantCode_2);
 
             var vehicle_2 = ctx.Vehicles.Where(t => t.Lot.Plant.Code == plantCode_2).OrderBy(t => t.KitNo).First();
             await AddVehicleTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, vehicle_2.KitNo, "", DateTime.Now.Date);
 
-            snapshotInput_2.RunDate = new DateTime(2020, 12, 1);
+            var snapshotInput_2 = new VehicleSnapshotInput {
+                PlantCode = plantCode_2,
+                RunDate = new DateTime(2020, 12, 1),
+                EngineComponentCode = engineCode
+            };
+
             payload = await service.GenerateSnapshot(snapshotInput_2);
             Assert.Equal(1, payload.Entity.Sequence);
 
@@ -277,12 +303,15 @@ namespace SKD.Test {
         public async Task can_get_vehicle_snapshot_dates() {
             // setup
             var service = new VehicleSnapshotService(ctx);
-            var snapshotInput = await Gen_Test_Data_For_Vehicle_Snapshot();
             var vehicle_1 = ctx.Vehicles.OrderBy(t => t.KitNo).First();
             var vehicle_2 = ctx.Vehicles.OrderBy(t => t.KitNo).Skip(1).First();
 
             // 1. vehicle snapshot run with no entries
-            snapshotInput.RunDate = new DateTime(2020, 12, 1);
+            var snapshotInput = new VehicleSnapshotInput {
+                RunDate = new DateTime(2020, 12, 1),
+                PlantCode = ctx.Plants.Select(t => t.Code).First(),
+                EngineComponentCode = engineCode
+            };
             await service.GenerateSnapshot(snapshotInput);
             var snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
             Assert.Null(snapshotPayload);
@@ -359,49 +388,8 @@ namespace SKD.Test {
             });
         }
 
-        private async Task<VehicleSnapshotInput> Gen_Test_Data_For_Vehicle_Snapshot(string plantCode = null) {
-            var plant = Gen_Plant(plantCode);
-            var input = new VehicleSnapshotInput {
-                RunDate = DateTime.Now.Date,
-                PlantCode = plant.Code,
-                EngineComponentCode = "EN"
-            };
 
-            Gen_VehicleTimelineEventTypes();
 
-            var lotNo = Gen_LotNo();
-            var modelCode = Gen_VehicleModel_Code();
-            var vehicleLot = await Gen_Vehicle_Lot(
-                ctx, lotNo, input.PlantCode,
-                modelCode, new List<(string, string)> { (input.EngineComponentCode, "stating_1"), ("AB", "station_2") });
-
-            // assert setup correct
-            var vehicles = await ctx.Vehicles.AsNoTracking().ToListAsync();
-            var vehicle_count = vehicles.Count();
-
-            return input;
-        }
-
-        public async Task<VehicleLot> Gen_Vehicle_Lot(
-            SkdContext ctx,
-            string lotNo,
-            string plantCode,
-            string modelCode,
-            List<(string, string)> component_stations
-        ) {
-            var model = Gen_VehicleModel(
-                modelCode,
-                component_stations
-            );
-            var kitNos = Enumerable.Range(1, 6).Select(n => Gen_KitNo()).ToList();
-
-            var input = Gen_VehicleLot_Input(lotNo, plantCode, modelCode, kitNos);
-
-            var service = new VehicleService(ctx);
-            var payload = await service.CreateVehicleLot(input);
-
-            return payload.Entity;
-        }
         #endregion
 
     }

@@ -11,20 +11,13 @@ namespace SKD.Test {
 
         public DCWSResponseService_Test() {
             ctx = GetAppDbContext();
+            Gen_Baseline_Test_Seed_Data();
         }
 
         [Fact]
         public async Task can_create_dcws_response() {
             // setup
-            var vehicle = Gen_Vehicle_And_Model(
-                vin: Gen_Vin(),
-                kitNo: Gen_KitNo(),
-                lotNo: Gen_LotNo(),
-                modelCode: Gen_VehicleModel_Code(),
-                component_stations_maps: new List<(string, string)> {
-                ("component_1", "station_1")
-            });
-
+            var vehicle = ctx.Vehicles.First();
             var vehicleComponent = vehicle.VehicleComponents.First();
             var componentScan = Gen_ComponentScan(vehicleComponent.Id);
 
@@ -52,15 +45,7 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_create_duplicate_dcws_response_code() {
 
-            var vehicle = Gen_Vehicle_And_Model(
-                vin: Gen_Vin(),
-                kitNo: Gen_KitNo(),
-                lotNo: Gen_LotNo(),
-                modelCode: Gen_VehicleModel_Code(),
-                component_stations_maps: new List<(string, string)> {
-                            ("component_1", "station_1")
-            });
-
+            var vehicle = ctx.Vehicles.First();
             var vehicleComponent = vehicle.VehicleComponents.First();
             var componentScan = Gen_ComponentScan(vehicleComponent.Id);
 
