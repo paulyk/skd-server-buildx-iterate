@@ -10,8 +10,8 @@ using SKD.Model;
 namespace SKD.Model.src.Migrations
 {
     [DbContext(typeof(SkdContext))]
-    [Migration("20201208103811_Initital")]
-    partial class Initital
+    [Migration("20201216090025_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -21,7 +21,7 @@ namespace SKD.Model.src.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("ProductVersion", "5.0.0");
 
-            modelBuilder.Entity("SKD.Model.BomSummary", b =>
+            modelBuilder.Entity("SKD.Model.Bom", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -49,56 +49,7 @@ namespace SKD.Model.src.Migrations
                     b.HasIndex("PlantId", "Sequence")
                         .IsUnique();
 
-                    b.ToTable("bom_summary");
-                });
-
-            modelBuilder.Entity("SKD.Model.BomSummaryPart", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(36)
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("BomSummaryId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("LotNo")
-                        .IsRequired()
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar(15)");
-
-                    b.Property<bool>("MatcheShipmentLotPartQuantity")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("PartDesc")
-                        .IsRequired()
-                        .HasMaxLength(34)
-                        .HasColumnType("nvarchar(34)");
-
-                    b.Property<string>("PartNo")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("RemovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BomSummaryId");
-
-                    b.HasIndex("PartNo");
-
-                    b.HasIndex("LotNo", "PartNo")
-                        .IsUnique();
-
-                    b.ToTable("bom_summary_part");
+                    b.ToTable("bom");
                 });
 
             modelBuilder.Entity("SKD.Model.Component", b =>
@@ -208,6 +159,45 @@ namespace SKD.Model.src.Migrations
                     b.HasIndex("ComponentScanId");
 
                     b.ToTable("dcws_response");
+                });
+
+            modelBuilder.Entity("SKD.Model.LotPart", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("LotId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PartDesc")
+                        .IsRequired()
+                        .HasMaxLength(34)
+                        .HasColumnType("nvarchar(34)");
+
+                    b.Property<string>("PartNo")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RemovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PartNo");
+
+                    b.HasIndex("LotId", "PartNo")
+                        .IsUnique();
+
+                    b.ToTable("lot_part");
                 });
 
             modelBuilder.Entity("SKD.Model.Plant", b =>
@@ -525,6 +515,9 @@ namespace SKD.Model.src.Migrations
                         .HasMaxLength(36)
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("BomId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -539,6 +532,8 @@ namespace SKD.Model.src.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BomId");
 
                     b.HasIndex("LotNo")
                         .IsUnique()
@@ -787,26 +782,15 @@ namespace SKD.Model.src.Migrations
                     b.ToTable("vehicle_timeline_event_type");
                 });
 
-            modelBuilder.Entity("SKD.Model.BomSummary", b =>
+            modelBuilder.Entity("SKD.Model.Bom", b =>
                 {
                     b.HasOne("SKD.Model.Plant", "Plant")
-                        .WithMany("BomSummaries")
+                        .WithMany("Boms")
                         .HasForeignKey("PlantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Plant");
-                });
-
-            modelBuilder.Entity("SKD.Model.BomSummaryPart", b =>
-                {
-                    b.HasOne("SKD.Model.BomSummary", "BomSummary")
-                        .WithMany("Parts")
-                        .HasForeignKey("BomSummaryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("BomSummary");
                 });
 
             modelBuilder.Entity("SKD.Model.ComponentScan", b =>
@@ -829,6 +813,17 @@ namespace SKD.Model.src.Migrations
                         .IsRequired();
 
                     b.Navigation("ComponentScan");
+                });
+
+            modelBuilder.Entity("SKD.Model.LotPart", b =>
+                {
+                    b.HasOne("SKD.Model.VehicleLot", "Lot")
+                        .WithMany("LotParts")
+                        .HasForeignKey("LotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Lot");
                 });
 
             modelBuilder.Entity("SKD.Model.Shipment", b =>
@@ -923,11 +918,19 @@ namespace SKD.Model.src.Migrations
 
             modelBuilder.Entity("SKD.Model.VehicleLot", b =>
                 {
+                    b.HasOne("SKD.Model.Bom", "Bom")
+                        .WithMany("Lots")
+                        .HasForeignKey("BomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("SKD.Model.Plant", "Plant")
                         .WithMany("VehicleLots")
                         .HasForeignKey("PlantId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("Bom");
 
                     b.Navigation("Plant");
                 });
@@ -1008,9 +1011,9 @@ namespace SKD.Model.src.Migrations
                     b.Navigation("Vehicle");
                 });
 
-            modelBuilder.Entity("SKD.Model.BomSummary", b =>
+            modelBuilder.Entity("SKD.Model.Bom", b =>
                 {
-                    b.Navigation("Parts");
+                    b.Navigation("Lots");
                 });
 
             modelBuilder.Entity("SKD.Model.Component", b =>
@@ -1027,7 +1030,7 @@ namespace SKD.Model.src.Migrations
 
             modelBuilder.Entity("SKD.Model.Plant", b =>
                 {
-                    b.Navigation("BomSummaries");
+                    b.Navigation("Boms");
 
                     b.Navigation("Shipments");
 
@@ -1074,6 +1077,8 @@ namespace SKD.Model.src.Migrations
 
             modelBuilder.Entity("SKD.Model.VehicleLot", b =>
                 {
+                    b.Navigation("LotParts");
+
                     b.Navigation("Vehicles");
                 });
 

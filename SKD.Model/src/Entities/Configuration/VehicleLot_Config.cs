@@ -24,7 +24,8 @@ namespace SKD.Model {
 
             builder.HasOne(t => t.Plant)
                 .WithMany(t => t.VehicleLots)
-                .HasForeignKey(t => t.PlantId);
+                .HasForeignKey(t => t.PlantId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasOne(t => t.Bom)
                 .WithMany(t => t.Lots)
