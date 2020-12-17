@@ -11,10 +11,11 @@ namespace SKD.Test {
 
         public BomService_Test() {
             ctx = GetAppDbContext();
+            Gen_Baseline_Test_Seed_Data();
         }
 
         [Fact]
-        private async Task can_import_bom_lot_parts() {
+        private async Task can_import_vehicle_lot_parts() {
             // setup
             var plant = Gen_Plant();
             var lot1 = Gen_LotNo();
@@ -58,7 +59,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        private async Task cannot_import_duplicate_lot_parts() {
+        private async Task cannot_import_duplicate_vehicle_lot_parts() {
             // setup
             var plant = Gen_Plant();
             var lotNo = Gen_LotNo();
@@ -95,7 +96,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        private async Task cannot_import_if_no_lot_parts() {
+        private async Task cannot_import_if_no_vehicle_lot_parts() {
             // setup
             var plant = Gen_Plant();
             var dto = new BomLotPartsInput() {
@@ -114,18 +115,68 @@ namespace SKD.Test {
             var expectedError = "no lot parts found";
             Assert.Equal(expectedError, errorMessage);
         }
-    
-        
-        private void can_import_lot_kits_from_bom() {
 
+        [Fact]
+        private async Task can_import_vehicle_lots_from_bom() {
+
+            // setup
+            var plant = Gen_Plant();
+            var model = await ctx.VehicleModels.FirstOrDefaultAsync();
+            var lotNo = Gen_LotNo();
+            var kitCount = 6;
+
+            var input = Gen_BomLotKitInput(plant.Code, lotNo, model.Code, kitCount);
+
+            // test
+            var service = new BomService(ctx);
+            var payload = await service.ImportBomLotKits(input);
+
+            var bom = await ctx.Boms
+                .Include(t => t.Lots).ThenInclude(t => t.Vehicles)
+                .FirstOrDefaultAsync(t => t.Plant.Code == plant.Code);
+
+            var lotCount = bom.Lots.Count();
+            Assert.Equal(1, lotCount);
+            var actualKitCount = bom.Lots.Sum(t => t.Vehicles.Count());
+            Assert.Equal(kitCount, actualKitCount);
         }
 
-        private void cannot_import_lot_kits_from_bom_if_models_missing() {
-            
+        [Fact]
+        private async Task cannot_import_lot_kits_from_bom_if_model_missing() {
+            // setup
+            var plant = Gen_Plant();
+            var modelCode = Gen_VehicleModel_Code();
+            var lotNo = Gen_LotNo();
+            var kitCount = 6;
+
+            var input = Gen_BomLotKitInput(plant.Code, lotNo, modelCode, kitCount);
+
+            // test
+            var service = new BomService(ctx);
+            var payload = await service.ImportBomLotKits(input);
+
+            var errorCount = payload.Errors.Count();
+            Assert.Equal(1, errorCount);
+
+            var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
+            var expectedErrorMessage = "model codes not in system";
+            Assert.Equal(expectedErrorMessage, errorMessage.Substring(0,expectedErrorMessage.Length ));
         }
 
-        private void cannot_import_lot_kits_from_bom_if_duplicate_kit_no() {
-            
+        private BomLotKitInput Gen_BomLotKitInput(string plantCode, string lotNo, string modelCode, int kitCount = 6) {                    
+            return new BomLotKitInput() {
+                PlantCode = plantCode,
+                Sequence = 1,
+                Lots = new List<BomLotKitInput.Lot> {
+                    new BomLotKitInput.Lot {
+                        LotNo = Gen_LotNo(),
+                        Kits = Enumerable.Range(1,kitCount).Select(num => new BomLotKitInput.Lot.Kit {
+                            KitNo = Gen_KitNo(lotNo, num),
+                            ModelCode = modelCode
+                        }).ToList()
+                    }
+                }
+            };
         }
 
     }

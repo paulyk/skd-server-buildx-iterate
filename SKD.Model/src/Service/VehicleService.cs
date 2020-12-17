@@ -168,7 +168,7 @@ namespace SKD.Model {
             var validator = new Validator();
             var invalidVins = dto.Kits
                 .Select(t => t.VIN)
-                .Where(vin => !validator.ValidVIN(vin))
+                .Where(vin => !validator.Valid_KitNo(vin))
                 .ToList();
 
             if (invalidVins.Any()) {

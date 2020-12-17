@@ -16,9 +16,12 @@ namespace SKD.Model {
             this.context = ctx;
         }
 
+        ///<summary>
+        /// Import vehicle lot part and quantity associated with a BOM  sequence
+        ///</summary>
         public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotParts(BomLotPartsInput input) {
             var payload = new MutationPayload<BomOverviewDTO>(null);
-            payload.Errors = await ValidateBomLotPartsInput<BomLotPartsInput>(input);
+            payload.Errors = await ValidateVehicleLotPartsInput<BomLotPartsInput>(input);
             if (payload.Errors.Count > 0) {
                 return payload;
             }
@@ -60,7 +63,50 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<List<Error>> ValidateBomLotPartsInput<T>(BomLotPartsInput input) where T : BomLotPartsInput {
+        ///<summary>
+        /// Import vehicle lot and kits associated with a plant and BOM sequence
+        ///</summary>
+        public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotKits(BomLotKitInput input) {
+            var payload = new MutationPayload<BomOverviewDTO>(null);
+            payload.Errors = await ValidateBomLotKitInput<BomLotKitInput>(input);
+            if (payload.Errors.Count > 0) {
+                return payload;
+            }
+            var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
+            var bom = await context.Boms.FirstOrDefaultAsync(t => t.Plant.Code == input.PlantCode && t.Sequence == input.Sequence);
+            if (bom == null) {
+                bom = new Bom {
+                    Plant = plant,
+                    Sequence = input.Sequence
+                };
+                context.Boms.Add(bom);
+            }
+
+            foreach (var inputLot in input.Lots) {
+                var lot = await context.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == inputLot.LotNo);
+                if (lot == null) {
+                    lot = new VehicleLot {
+                        LotNo = inputLot.LotNo,
+                        Plant = plant
+                    };
+                    bom.Lots.Add(lot);
+                }
+                foreach (var inputKit in inputLot.Kits) {
+                    var vehicle = await CreateVehicleKit(inputKit);
+                    lot.Vehicles.Add(vehicle);
+                }
+            }
+            try {
+            await context.SaveChangesAsync();
+            } catch(Exception ex) {
+                throw ex;
+            }
+            payload.Entity = await GetBomOverview(bom.Id);
+
+            return payload;
+        }
+
+        public async Task<List<Error>> ValidateVehicleLotPartsInput<T>(BomLotPartsInput input) where T : BomLotPartsInput {
             var errors = new List<Error>();
 
             var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
@@ -105,41 +151,7 @@ namespace SKD.Model {
             return errors;
         }
 
-        public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotKits(BomLotKitInput input) {
-            var payload = new MutationPayload<BomOverviewDTO>(null);
-            payload.Errors = await ValidateBomLotKitInput<BomLotKitInput>(input);
-            if (payload.Errors.Count > 0) {
-                return payload;
-            }
-            var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
-            var bom = await context.Boms.FirstOrDefaultAsync(t => t.Plant.Code == input.PlantCode && t.Sequence == input.Sequence);
-            if (bom == null) {
-                bom = new Bom {
-                    Plant = plant,
-                    Sequence = input.Sequence
-                };
-                context.Boms.Add(bom);
-            }
 
-            foreach (var inputLot in input.Lots) {
-                var lot = await context.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == inputLot.LotNo);
-                if (lot == null) {
-                    lot = new VehicleLot {
-                        LotNo = inputLot.LotNo
-                    };
-                    bom.Lots.Add(lot);
-                }
-                foreach (var inputKit in inputLot.Kits) {
-                    var vehicle = await CreateVehicleKit(inputKit);
-                    lot.Vehicles.Add(vehicle);
-                }
-            }
-
-            await context.SaveChangesAsync();
-            payload.Entity = await GetBomOverview(bom.Id);
-
-            return payload;
-        }
 
         private async Task<Vehicle> CreateVehicleKit(BomLotKitInput.Lot.Kit input) {
             var vehicles = new List<Vehicle>();
@@ -201,13 +213,14 @@ namespace SKD.Model {
                 return errors;
             }
 
-            if (input.Lots.Any(t => t.LotNo.Length != EntityFieldLen.Vehicle_LotNo)) {
-                errors.Add(new Error("", "invalid / blank lot nos"));
+            var validator = new Validator();
+            if (input.Lots.Any(t => !validator.Valid_LotNo(t.LotNo))) {
+                errors.Add(new Error("", "invalid lot numbers found"));
                 return errors;
             }
 
-            if (input.Lots.Any(t => t.Kits.Any(k => k.KitNo.Length != EntityFieldLen.Vehicle_KitNo))) {
-                errors.Add(new Error("", "invalid / blank kit nos"));
+            if (input.Lots.Any(t => t.Kits.Any(k => !validator.Valid_KitNo(k.KitNo)))) {
+                errors.Add(new Error("", "invalid kit numbers found"));
                 return errors;
             }
 
