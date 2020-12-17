@@ -136,18 +136,20 @@ namespace SKD.Model {
                 return errors;
             }
 
-            if (input.LotParts.Any(t => string.IsNullOrEmpty(t.LotNo))) {
-                errors.Add(new Error("", "missing lot number(s)"));
+            // validate lotNo format
+            var validator = new Validator();
+            if (input.LotParts.Any(t => !validator.Valid_LotNo(t.LotNo))) {
+                errors.Add(new Error("", "lot numbers with invalid format found"));
                 return errors;
             }
 
             if (input.LotParts.Any(t => string.IsNullOrEmpty(t.PartNo))) {
-                errors.Add(new Error("", "missing part number(s)"));
+                errors.Add(new Error("", "entries with missing part number(s)"));
                 return errors;
             }
 
             if (input.LotParts.Any(t => string.IsNullOrEmpty(t.PartDesc))) {
-                errors.Add(new Error("", "missing part decription(s)"));
+                errors.Add(new Error("", "entries with missing part decription(s)"));
                 return errors;
             }
 
@@ -230,19 +232,22 @@ namespace SKD.Model {
                 return errors;
             }
 
+            // validate lotNo format
             var validator = new Validator();
             if (input.Lots.Any(t => !validator.Valid_LotNo(t.LotNo))) {
-                errors.Add(new Error("", "invalid lot numbers found"));
+                errors.Add(new Error("", "lot numbers  with invalid format found"));
                 return errors;
             }
 
+            // validate kitNo format
             if (input.Lots.Any(t => t.Kits.Any(k => !validator.Valid_KitNo(k.KitNo)))) {
-                errors.Add(new Error("", "invalid kit numbers found"));
+                errors.Add(new Error("", "kit numbers with invalid format found"));
                 return errors;
             }
 
+            // missing model code
             if (input.Lots.Any(t => t.Kits.Any(k => String.IsNullOrEmpty(k.ModelCode)))) {
-                errors.Add(new Error("", "blank model code(s)"));
+                errors.Add(new Error("", "kits with missing model code found"));
                 return errors;
             }
 
