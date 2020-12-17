@@ -34,7 +34,7 @@ namespace SKD.Server {
         public async Task<MutationPayload<VehicleLot>> AssignVehicleKitVin(
             [Service] VehicleService service,
             [Service] SkdContext ctx,
-            VehicleKitVinInput input
+            AssignKitVinInput input
         ) {
             return await service.AssingVehicleKitVin(input);
         }
@@ -129,7 +129,7 @@ namespace SKD.Server {
          public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotParts(
                   [Service] BomService service,
                   [Service] SkdContext ctx,
-                  BomLotPartsInput input
+                  BomLotPartInput input
         ) => await service.ImportBomLotParts(input);
 
         public async Task<MutationPayload<SnapshotDTO>> GenerateVehicleSnapshotRun(

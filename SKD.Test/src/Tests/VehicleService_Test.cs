@@ -44,9 +44,9 @@ namespace SKD.Test {
             // setup
             var lot = ctx.VehicleLots.First();
 
-            var kitVinDto = new VehicleKitVinInput {
+            var kitVinDto = new AssignKitVinInput {
                 LotNo = lot.LotNo,
-                Kits = lot.Vehicles.Select(t => new KitVinInput {
+                Kits = lot.Vehicles.Select(t => new AssignKitVinInput.KitVin {
                     KitNo = t.KitNo,
                     VIN = Gen_Vin()
                 }).ToList()
@@ -66,9 +66,9 @@ namespace SKD.Test {
             // setup
             var lot = ctx.VehicleLots.First();
 
-            var kitVinDto = new VehicleKitVinInput {
+            var kitVinDto = new AssignKitVinInput {
                 LotNo = lot.LotNo,
-                Kits = lot.Vehicles.Select(t => new KitVinInput {
+                Kits = lot.Vehicles.Select(t => new AssignKitVinInput.KitVin {
                     KitNo = t.KitNo,
                     VIN = Gen_Vin()
                 }).ToList()
@@ -89,9 +89,9 @@ namespace SKD.Test {
         public async Task cannot_assing_vehicle_lot_vins_kits_not_found() {
             // setup
             var lot = ctx.VehicleLots.First();
-            var kitVinDto = new VehicleKitVinInput {
+            var kitVinDto = new AssignKitVinInput {
                 LotNo = lot.LotNo,
-                Kits = lot.Vehicles.Select(t => new KitVinInput {
+                Kits = lot.Vehicles.Select(t => new AssignKitVinInput.KitVin {
                     KitNo = Gen_KitNo(), // generate a kit not thats different
                     VIN = Gen_Vin()
                 }).ToList()
@@ -116,17 +116,17 @@ namespace SKD.Test {
             var lotVehicles =  lot.Vehicles.ToList();
             
 
-            var kitVinDto = new VehicleKitVinInput {
+            var kitVinDto = new AssignKitVinInput {
                 LotNo = lot.LotNo                
             };
-            kitVinDto.Kits = new List<KitVinInput> () {
-                new KitVinInput {KitNo = lotVehicles[0].KitNo, VIN = Gen_Vin() },
-                new KitVinInput {KitNo = lotVehicles[1].KitNo, VIN = Gen_Vin() },
-                new KitVinInput {KitNo = lotVehicles[2].KitNo, VIN = Gen_Vin() },
-                new KitVinInput {KitNo = lotVehicles[3].KitNo, VIN = Gen_Vin() },
+            kitVinDto.Kits = new List<AssignKitVinInput.KitVin> () {
+                new AssignKitVinInput.KitVin {KitNo = lotVehicles[0].KitNo, VIN = Gen_Vin() },
+                new AssignKitVinInput.KitVin {KitNo = lotVehicles[1].KitNo, VIN = Gen_Vin() },
+                new AssignKitVinInput.KitVin {KitNo = lotVehicles[2].KitNo, VIN = Gen_Vin() },
+                new AssignKitVinInput.KitVin {KitNo = lotVehicles[3].KitNo, VIN = Gen_Vin() },
                 // duplicate kits
-                new KitVinInput {KitNo = lotVehicles[5].KitNo, VIN = Gen_Vin() },
-                new KitVinInput {KitNo = lotVehicles[5].KitNo, VIN = Gen_Vin() },
+                new AssignKitVinInput.KitVin {KitNo = lotVehicles[5].KitNo, VIN = Gen_Vin() },
+                new AssignKitVinInput.KitVin {KitNo = lotVehicles[5].KitNo, VIN = Gen_Vin() },
             };
 
             // test

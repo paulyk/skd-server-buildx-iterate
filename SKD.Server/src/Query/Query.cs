@@ -263,7 +263,7 @@ namespace SKD.Server {
                         Sequence = t.Sequence,
                         CreatedAt = t.CreatedAt,
                         LotCount = t.Lots.Count(),
-                        LotPartCount = t.Lots.Sum(a => a.LotParts.Count())
+                        LotPartCount = t.Lots.SelectMany(u => u.LotParts).Count()
                     }).AsQueryable();
 
         public async Task<Bom?> GetBomById([Service] SkdContext context, Guid id) =>

@@ -9,9 +9,9 @@ namespace SKD.Model {
         public List<Lot> Lots { get; set; } 
         public class Lot {
             public string LotNo { get; init; }
-            public List<Kit> Kits { get; init; } 
+            public List<LotKit> Kits { get; init; } 
 
-            public class Kit {
+            public class LotKit {
                 public string KitNo { get; init; }
                 public string ModelCode { get; init; }
             }

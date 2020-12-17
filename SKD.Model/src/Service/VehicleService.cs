@@ -49,7 +49,7 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<MutationPayload<VehicleLot>> AssingVehicleKitVin(VehicleKitVinInput dto) {
+        public async Task<MutationPayload<VehicleLot>> AssingVehicleKitVin(AssignKitVinInput dto) {
             var payload = new MutationPayload<VehicleLot>(null);
             payload.Errors = await ValidateAssignVehicleLotVin(dto);
             if (payload.Errors.Count() > 0) {
@@ -146,7 +146,7 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<List<Error>> ValidateAssignVehicleLotVin(VehicleKitVinInput dto) {
+        public async Task<List<Error>> ValidateAssignVehicleLotVin(AssignKitVinInput dto) {
             var errors = new List<Error>();
 
             var vehicleLot = await context.VehicleLots.AsNoTracking()

@@ -19,9 +19,9 @@ namespace SKD.Model {
         ///<summary>
         /// Import vehicle lot part and quantity associated with a BOM  sequence
         ///</summary>
-        public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotParts(BomLotPartsInput input) {
+        public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotParts(BomLotPartInput input) {
             var payload = new MutationPayload<BomOverviewDTO>(null);
-            payload.Errors = await ValidateVehicleLotPartsInput<BomLotPartsInput>(input);
+            payload.Errors = await ValidateVehicleLotPartsInput<BomLotPartInput>(input);
             if (payload.Errors.Count > 0) {
                 return payload;
             }
@@ -102,7 +102,7 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<List<Error>> ValidateVehicleLotPartsInput<T>(BomLotPartsInput input) where T : BomLotPartsInput {
+        public async Task<List<Error>> ValidateVehicleLotPartsInput<T>(BomLotPartInput input) where T : BomLotPartInput {
             var errors = new List<Error>();
 
             var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
@@ -149,7 +149,7 @@ namespace SKD.Model {
 
 
 
-        private async Task<Vehicle> CreateVehicleKit(BomLotKitInput.Lot.Kit input) {
+        private async Task<Vehicle> CreateVehicleKit(BomLotKitInput.Lot.LotKit input) {
             var vehicles = new List<Vehicle>();
 
             var modelId = await context.VehicleModels

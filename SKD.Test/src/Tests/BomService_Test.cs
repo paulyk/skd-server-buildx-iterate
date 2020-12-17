@@ -21,23 +21,23 @@ namespace SKD.Test {
             var lot1 = Gen_LotNo();
             var lot2 = Gen_LotNo();
 
-            var dto = new BomLotPartsInput() {
+            var dto = new BomLotPartInput() {
                 Sequence = 1,
                 PlantCode = plant.Code,
-                LotParts = new List<LotPartInput> {
-                    new LotPartInput {
+                LotParts = new List<BomLotPartInput.LotPart> {
+                    new BomLotPartInput.LotPart {
                         LotNo = lot1,
                         PartNo = "0001",
                         PartDesc = "part 1",
                         Quantity = 1
                     },
-                    new LotPartInput {
+                    new BomLotPartInput.LotPart {
                         LotNo = lot1,
                         PartNo = "0002",
                         PartDesc = "part 2",
                         Quantity = 1
                     },
-                    new LotPartInput {
+                    new BomLotPartInput.LotPart {
                         LotNo = lot2,
                         PartNo = "0001",
                         PartDesc = "part 1",
@@ -64,17 +64,17 @@ namespace SKD.Test {
             var plant = Gen_Plant();
             var lotNo = Gen_LotNo();
 
-            var dto = new BomLotPartsInput() {
+            var dto = new BomLotPartInput() {
                 Sequence = 1,
                 PlantCode = plant.Code,
-                LotParts = new List<LotPartInput> {
-                    new LotPartInput {
+                LotParts = new List<BomLotPartInput.LotPart> {
+                    new BomLotPartInput.LotPart {
                         LotNo = lotNo,
                         PartNo = "0001",
                         PartDesc = "part 1",
                         Quantity = 1
                     },
-                    new LotPartInput {
+                    new BomLotPartInput.LotPart {
                         LotNo = lotNo,
                         PartNo = "0001",
                         PartDesc = "part 1",
@@ -99,10 +99,10 @@ namespace SKD.Test {
         private async Task cannot_import_if_no_vehicle_lot_parts() {
             // setup
             var plant = Gen_Plant();
-            var dto = new BomLotPartsInput() {
+            var dto = new BomLotPartInput() {
                 PlantCode = plant.Code,
                 Sequence = 1,
-                LotParts = new List<LotPartInput>()
+                LotParts = new List<BomLotPartInput.LotPart>()
             };
 
             var before_count = ctx.LotParts.Count();
@@ -170,7 +170,7 @@ namespace SKD.Test {
                 Lots = new List<BomLotKitInput.Lot> {
                     new BomLotKitInput.Lot {
                         LotNo = Gen_LotNo(),
-                        Kits = Enumerable.Range(1,kitCount).Select(num => new BomLotKitInput.Lot.Kit {
+                        Kits = Enumerable.Range(1,kitCount).Select(num => new BomLotKitInput.Lot.LotKit {
                             KitNo = Gen_KitNo(lotNo, num),
                             ModelCode = modelCode
                         }).ToList()

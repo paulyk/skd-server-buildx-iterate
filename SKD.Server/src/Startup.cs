@@ -60,7 +60,7 @@ namespace SKD.Server {
                 .AddMutationType<Mutation>()
                 .AddType<VehicleType>()
                 .AddType<ComponentScanInputType>()
-                .AddType<KitVinDtoType>()
+                .AddType<AssignKitVinInputType>()
                 .AddType<VehicleTimelineDTOType>()
                 .AddType<VehicleModelType>()
                 .AddType<VehicleComponentType>()
