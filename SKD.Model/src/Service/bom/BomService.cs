@@ -96,13 +96,9 @@ namespace SKD.Model {
                     lot.Vehicles.Add(vehicle);
                 }
             }
-            try {
-            await context.SaveChangesAsync();
-            } catch(Exception ex) {
-                throw ex;
-            }
-            payload.Entity = await GetBomOverview(bom.Id);
 
+            await context.SaveChangesAsync();
+            payload.Entity = await GetBomOverview(bom.Id);
             return payload;
         }
 

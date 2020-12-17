@@ -101,6 +101,7 @@ namespace SKD.Server {
 
             return result;
         }
+ 
         public async Task<Vehicle?> GetVehicleByVinOrKitNo([Service] SkdContext context, string vinOrKitNo) {
             var result = await context.Vehicles.AsNoTracking()
                     .Include(t => t.Lot)
@@ -253,15 +254,17 @@ namespace SKD.Server {
 
         [UsePaging]
         [UseSorting]
-        public IQueryable<BomSummaryListDTO> GetBomSummaryList([Service] SkdContext context) =>
-                context.Boms.AsNoTracking().Select(t => new BomSummaryListDTO {
-                    Id = t.Id,
-                    PlantCode = t.Plant.Code,
-                    Sequence = t.Sequence,
-                    CreatedAt = t.CreatedAt,
-                    LotCount = t.Lots.Count(),
-                    LotPartCount = t.Lots.Sum(a => a.LotParts.Count())
-                }).AsQueryable();
+        public IQueryable<BomListDTO> GetBomList([Service] SkdContext context, string plantCode) =>
+                context.Boms.AsNoTracking()
+                    .Where(t => t.Plant.Code == plantCode)
+                    .Select(t => new BomListDTO {
+                        Id = t.Id,
+                        PlantCode = t.Plant.Code,
+                        Sequence = t.Sequence,
+                        CreatedAt = t.CreatedAt,
+                        LotCount = t.Lots.Count(),
+                        LotPartCount = t.Lots.Sum(a => a.LotParts.Count())
+                    }).AsQueryable();
 
         public async Task<Bom?> GetBomById([Service] SkdContext context, Guid id) =>
                 await context.Boms.AsNoTracking()
