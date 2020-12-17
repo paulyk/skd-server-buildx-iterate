@@ -59,7 +59,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        private async Task cannot_import_duplicate_vehicle_lot_parts() {
+        private async Task cannot_import_duplicate_bom_lot_parts_in_paylaod() {
             // setup
             var plant = Gen_Plant();
             var lotNo = Gen_LotNo();
@@ -89,11 +89,48 @@ namespace SKD.Test {
             var payload = await service.ImportBomLotParts(dto);
 
             // assert
-            var expectedError = "duplicate Lot + Part number(s)";
+            var expectedError = "duplicate Lot + Part number(s) in payload";
             var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
             errorMessage = (errorMessage ?? "").Substring(0, expectedError.Length);
             Assert.Equal(expectedError, errorMessage);
         }
+
+        [Fact]
+        private async Task cannot_import_bom_lot_parts_if_already_imported() {
+            // setup
+            var plant = Gen_Plant();
+            var lotNo = Gen_LotNo();
+
+            var input = new BomLotPartInput() {
+                Sequence = 1,
+                PlantCode = plant.Code,
+                LotParts = new List<BomLotPartInput.LotPart> {
+                    new BomLotPartInput.LotPart {
+                        LotNo = lotNo,
+                        PartNo = "0001",
+                        PartDesc = "part 1",
+                        Quantity = 1
+                    },
+                    new BomLotPartInput.LotPart {
+                        LotNo = lotNo,
+                        PartNo = "0002",
+                        PartDesc = "part 2jj",
+                        Quantity = 3
+                    }
+                }
+            };
+
+            // test
+            var service = new BomService(ctx);
+            var payload = await service.ImportBomLotParts(input);
+            var payload_2 = await service.ImportBomLotParts(input);
+
+            // assert
+            var errorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
+            var expectedMessage = "lot parts already imported";
+            Assert.Equal(expectedMessage, errorMessage);
+        }
+
 
         [Fact]
         private async Task cannot_import_if_no_vehicle_lot_parts() {
@@ -117,7 +154,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        private async Task can_import_vehicle_lots_from_bom() {
+        private async Task can_import_bom_lot_kits_from_bom() {
 
             // setup
             var plant = Gen_Plant();
@@ -131,6 +168,7 @@ namespace SKD.Test {
             var service = new BomService(ctx);
             var payload = await service.ImportBomLotKits(input);
 
+            // assert
             var bom = await ctx.Boms
                 .Include(t => t.Lots).ThenInclude(t => t.Vehicles)
                 .FirstOrDefaultAsync(t => t.Plant.Code == plant.Code);
@@ -142,7 +180,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        private async Task cannot_import_lot_kits_from_bom_if_model_missing() {
+        private async Task cannot_import_bom_lot_kits_if_model_missing() {
             // setup
             var plant = Gen_Plant();
             var modelCode = Gen_VehicleModel_Code();
@@ -155,15 +193,38 @@ namespace SKD.Test {
             var service = new BomService(ctx);
             var payload = await service.ImportBomLotKits(input);
 
+            // assert
             var errorCount = payload.Errors.Count();
             Assert.Equal(1, errorCount);
 
             var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
             var expectedErrorMessage = "model codes not in system";
-            Assert.Equal(expectedErrorMessage, errorMessage.Substring(0,expectedErrorMessage.Length ));
+            Assert.Equal(expectedErrorMessage, errorMessage.Substring(0, expectedErrorMessage.Length));
         }
 
-        private BomLotKitInput Gen_BomLotKitInput(string plantCode, string lotNo, string modelCode, int kitCount = 6) {                    
+        [Fact]
+        private async Task cannot_import_bom_lot_kits_already_imported() {
+            // setup
+            var plant = Gen_Plant();
+            var lotNo = Gen_LotNo();
+            var model = await ctx.VehicleModels.FirstOrDefaultAsync();
+            var kitCount = 6;
+
+            var input = Gen_BomLotKitInput(plant.Code, lotNo, model.Code, kitCount);
+
+            // test
+            var service = new BomService(ctx);
+            var payload = await service.ImportBomLotKits(input);
+            var payload_2 = await service.ImportBomLotKits(input);
+
+            // assert
+            var errorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
+            var expectedMessage = "kit numbers already imported";
+            Assert.Equal(expectedMessage, errorMessage);
+
+        }
+
+        private BomLotKitInput Gen_BomLotKitInput(string plantCode, string lotNo, string modelCode, int kitCount = 6) {
             return new BomLotKitInput() {
                 PlantCode = plantCode,
                 Sequence = 1,

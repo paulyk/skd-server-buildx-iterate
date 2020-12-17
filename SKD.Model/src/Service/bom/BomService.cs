@@ -116,11 +116,23 @@ namespace SKD.Model {
                 return errors;
             }
 
-            // duplicate lotNo + Part
+            // already imported
+            var newLotNumbers = input.LotParts.Select(t => t.LotNo).ToArray();
+
+            var alreadyImportedLotParts = await context.LotParts
+                .Where(t => t.Lot.Plant.Code == input.PlantCode)
+                .AnyAsync(t => newLotNumbers.Any(newLotNo  => newLotNo == t.Lot.LotNo));
+                
+            if (alreadyImportedLotParts) {
+                errors.Add(new Error("", "lot parts already imported"));
+                return errors;
+            }            
+
+            // duplicate lotNo + Part in payload
             var duplicateLotParts = input.LotParts.GroupBy(t => new { t.LotNo, t.PartNo })
                 .Any(g => g.Count() > 1);
             if (duplicateLotParts) {
-                errors.Add(new Error("", "duplicate Lot + Part number(s)"));
+                errors.Add(new Error("", "duplicate Lot + Part number(s) in payload"));
                 return errors;
             }
 
@@ -201,11 +213,20 @@ namespace SKD.Model {
                 return errors;
             }
 
-            // duplicate 
+            // kits alread imported
+            var newKitNumbers = input.Lots.SelectMany(t => t.Kits).Select(t => t.KitNo).ToList();
+            var alreadyImportedKitNumbers = await context.Vehicles
+                .AnyAsync(t => newKitNumbers.Any(newKitNo => newKitNo == t.KitNo));
+
+            if (alreadyImportedKitNumbers) {
+                errors.Add(new Error("","kit numbers already imported"));
+            }        
+
+            // duplicate lot number in payload
             var duplicate_lotNo = input.Lots.GroupBy(t => t.LotNo)
                 .Any(g => g.Count() > 1);
             if (duplicate_lotNo) {
-                errors.Add(new Error("", "duplicate Lot no"));
+                errors.Add(new Error("", "duplicate Lot numbers in payload"));
                 return errors;
             }
 
@@ -249,8 +270,8 @@ namespace SKD.Model {
                     PlantCode = t.Plant.Code,
                     Sequence = t.Sequence,
                     LotCount = t.Lots.Count(),
-                    LotPartCount = t.Lots.Sum(u => u.LotParts.Count()),
-                    VehicleCount = t.Lots.Sum(u => u.Vehicles.Count()),
+                    LotPartCount = t.Lots.SelectMany(u => u.LotParts).Count(),
+                    VehicleCount = t.Lots.SelectMany(u => u.Vehicles).Count(),
                     CreatedAt = t.CreatedAt
                 })
                 .FirstOrDefaultAsync();
