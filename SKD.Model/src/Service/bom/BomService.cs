@@ -272,6 +272,24 @@ namespace SKD.Model {
             var bom = await context.Boms
                 .Where(t => t.Id == id)
                 .Select(t => new BomOverviewDTO {
+                    Id = t.Id,
+                    PlantCode = t.Plant.Code,
+                    Sequence = t.Sequence,
+                    LotCount = t.Lots.Count(),
+                    PartCount = t.Lots.SelectMany(u => u.LotParts).Select(u => u.PartNo).Distinct().Count(),
+                    VehicleCount = t.Lots.SelectMany(u => u.Vehicles).Count(),
+                    CreatedAt = t.CreatedAt
+                })
+                .FirstOrDefaultAsync();
+
+            return bom;
+        }
+
+        public async Task<BomOverviewDTO> GetBomLots(Guid id) {
+            var bom = await context.Boms
+                .Where(t => t.Id == id)
+                .Select(t => new BomOverviewDTO {
+                    Id = t.Id,
                     PlantCode = t.Plant.Code,
                     Sequence = t.Sequence,
                     LotCount = t.Lots.Count(),

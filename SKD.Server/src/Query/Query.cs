@@ -170,6 +170,7 @@ namespace SKD.Server {
                 .Include(t => t.Vehicles).ThenInclude(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .Include(t => t.Vehicles).ThenInclude(t => t.Model)
                 .Include(t => t.Plant)
+                .Include(t => t.Bom)
                 .FirstOrDefaultAsync(t => t.LotNo == lotNo);
 
             if (vehicleLot == null) {
@@ -187,6 +188,8 @@ namespace SKD.Server {
             return new VehicleLotOverviewDTO {
                 Id = vehicleLot.Id,
                 LotNo = vehicleLot.LotNo,
+                BomId = vehicleLot.Bom.Id,
+                BomSequenceNo = vehicleLot.Bom.Sequence,
                 PlantCode = vehicleLot.Plant.Code,
                 ModelCode = vehicle.Model.Code,
                 ModelName = vehicle.Model.Name,
@@ -275,26 +278,36 @@ namespace SKD.Server {
         public async Task<BomOverviewDTO?> GetBomOverview([Service] BomService service, Guid id) =>
              await service.GetBomOverview(id);
 
-        public async Task<BomLotPartSummaryDTO?> GetBomSummaryById([Service] SkdContext context, Guid id) {
-            var result = await context.Boms.AsNoTracking()
-                       .Include(t => t.Lots).ThenInclude(t => t.LotParts)
-                       .Include(t => t.Plant)
-                       .Select(t => new BomLotPartSummaryDTO {
-                           PlantCode = t.Plant.Code,
-                           Sequence = t.Sequence,
-                           CreatedAt = t.CreatedAt,
-                           Parts = t.Lots.SelectMany(u => u.LotParts)
-                                   .GroupBy(g => new { LotNo = g.Lot.LotNo, PartNo = g.PartNo, PartDesc = g.PartDesc })
-                                   .Select(g => new BomLotPartSummaryDTO.LotPartSummary {
-                                       LotNo = g.Key.LotNo,
-                                       PartNo = g.Key.PartNo,
-                                       PartDesc = g.Key.PartDesc,
-                                       Quantity = g.Sum(k => k.Quantity)
-                                   }).ToList()
-                       })
-                       .FirstOrDefaultAsync(t => t.Id == id);
+        public async Task<List<LotListDTO>> GetLotListByBomId([Service] SkdContext context,Guid id) =>
+                 await context.VehicleLots.AsNoTracking()
+                    .Where(t =>  t.Bom.Id == id)
+                    .Select(t => new LotListDTO {
+                        Id = t.Id,
+                        PlantCode = t.Plant.Code,
+                        LotNo = t.LotNo,
+                        KitCount = t.Vehicles.Count(),
+                        TimelineStatus = t.Vehicles
+                        .SelectMany(t => t.TimelineEvents)
+                        .OrderByDescending(t => t.CreatedAt)
+                        .Where(t => t.RemovedAt == null)
+                        .Select(t => t.EventType.Code).FirstOrDefault(),
+                        CreatedAt = t.CreatedAt
+                    }).ToListAsync();
+
+
+        public async Task<List<PartQuantityDTO>> GetBomPartsQuantity([Service] SkdContext context, Guid id) {
+            var result =  await context.LotParts
+                .Where(t => t.Lot.Bom.Id == id)
+                .GroupBy(t =>new {
+                    PartNo = t.PartNo, PartDesc = t.PartDesc  })
+                .Select(g => new PartQuantityDTO {
+                    PartNo = g.Key.PartNo,
+                    PartDesc = g.Key.PartDesc,
+                    Quantity = g.Sum(u => u.Quantity)
+                }).ToListAsync();
+
             return result;
-        }
+         }
 
         public async Task<VehicleSnapshotRunDTO?> GetVehicleSnapshotRunByDate(
                   [Service] VehicleSnapshotService service,
