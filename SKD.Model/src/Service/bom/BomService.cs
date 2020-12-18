@@ -268,14 +268,14 @@ namespace SKD.Model {
         }
 
 
-        private async Task<BomOverviewDTO> GetBomOverview(Guid id) {
+        public async Task<BomOverviewDTO> GetBomOverview(Guid id) {
             var bom = await context.Boms
                 .Where(t => t.Id == id)
                 .Select(t => new BomOverviewDTO {
                     PlantCode = t.Plant.Code,
                     Sequence = t.Sequence,
                     LotCount = t.Lots.Count(),
-                    LotPartCount = t.Lots.SelectMany(u => u.LotParts).Count(),
+                    PartCount = t.Lots.SelectMany(u => u.LotParts).Select(u => u.PartNo).Distinct().Count(),
                     VehicleCount = t.Lots.SelectMany(u => u.Vehicles).Count(),
                     CreatedAt = t.CreatedAt
                 })

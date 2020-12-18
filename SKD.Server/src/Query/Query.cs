@@ -101,7 +101,7 @@ namespace SKD.Server {
 
             return result;
         }
- 
+
         public async Task<Vehicle?> GetVehicleByVinOrKitNo([Service] SkdContext context, string vinOrKitNo) {
             var result = await context.Vehicles.AsNoTracking()
                     .Include(t => t.Lot)
@@ -261,9 +261,9 @@ namespace SKD.Server {
                         Id = t.Id,
                         PlantCode = t.Plant.Code,
                         Sequence = t.Sequence,
-                        CreatedAt = t.CreatedAt,
                         LotCount = t.Lots.Count(),
-                        LotPartCount = t.Lots.SelectMany(u => u.LotParts).Count()
+                        PartCount = t.Lots.SelectMany(t => t.LotParts).Select(t => t.PartNo).Distinct().Count(),
+                        CreatedAt = t.CreatedAt
                     }).AsQueryable();
 
         public async Task<Bom?> GetBomById([Service] SkdContext context, Guid id) =>
@@ -272,24 +272,27 @@ namespace SKD.Server {
                         .FirstOrDefaultAsync(t => t.Id == id);
 
 
+        public async Task<BomOverviewDTO?> GetBomOverview([Service] BomService service, Guid id) =>
+             await service.GetBomOverview(id);
+
         public async Task<BomLotPartSummaryDTO?> GetBomSummaryById([Service] SkdContext context, Guid id) {
-             var result =   await context.Boms.AsNoTracking()
-                        .Include(t => t.Lots).ThenInclude(t => t.LotParts)
-                        .Include(t => t.Plant)
-                        .Select(t => new BomLotPartSummaryDTO{
-                                PlantCode = t.Plant.Code,
-                                Sequence = t.Sequence,
-                                CreatedAt = t.CreatedAt,
-                                Parts = t.Lots.SelectMany(u => u.LotParts)
-                                    .GroupBy(g => new { LotNo = g.Lot.LotNo, PartNo = g.PartNo, PartDesc = g.PartDesc })
-                                    .Select(g => new BomLotPartSummaryDTO.LotPartSummary {
-                                        LotNo = g.Key.LotNo,
-                                        PartNo = g.Key.PartNo,
-                                        PartDesc = g.Key.PartDesc,
-                                        Quantity = g.Sum(k => k.Quantity)
-                                    } ).ToList()
-                        })
-                        .FirstOrDefaultAsync(t => t.Id == id);
+            var result = await context.Boms.AsNoTracking()
+                       .Include(t => t.Lots).ThenInclude(t => t.LotParts)
+                       .Include(t => t.Plant)
+                       .Select(t => new BomLotPartSummaryDTO {
+                           PlantCode = t.Plant.Code,
+                           Sequence = t.Sequence,
+                           CreatedAt = t.CreatedAt,
+                           Parts = t.Lots.SelectMany(u => u.LotParts)
+                                   .GroupBy(g => new { LotNo = g.Lot.LotNo, PartNo = g.PartNo, PartDesc = g.PartDesc })
+                                   .Select(g => new BomLotPartSummaryDTO.LotPartSummary {
+                                       LotNo = g.Key.LotNo,
+                                       PartNo = g.Key.PartNo,
+                                       PartDesc = g.Key.PartDesc,
+                                       Quantity = g.Sum(k => k.Quantity)
+                                   }).ToList()
+                       })
+                       .FirstOrDefaultAsync(t => t.Id == id);
             return result;
         }
 

@@ -52,7 +52,7 @@ namespace SKD.Test {
 
             // assert
             Assert.Equal(2, payload.Entity.LotCount);
-            Assert.Equal(3, payload.Entity.LotPartCount);
+            Assert.Equal(2, payload.Entity.PartCount);
 
             var after_count = ctx.LotParts.Count();
             Assert.Equal(3, after_count);
