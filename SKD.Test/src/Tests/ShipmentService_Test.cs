@@ -14,7 +14,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        private async Task can_create_shipment() {
+        private async Task can_import_shipment() {
             // 
             var plant = Gen_Plant();
             var sequence = 2;
@@ -24,7 +24,7 @@ namespace SKD.Test {
             var before_count = ctx.ShipmentParts.Count();
             // test
             var shipmentService = new ShipmentService(ctx);
-            var payload = await shipmentService.CreateShipment(input);
+            var payload = await shipmentService.ImportShipment(input);
 
             // payload check:  plant code , sequence, count
             Assert.Equal(plant.Code, payload.Entity.PlantCode);
@@ -39,18 +39,18 @@ namespace SKD.Test {
         }
 
         [Fact]
-        private async Task cannot_create_shipment_with_duplicate_plant_and_sequence() {
+        private async Task cannot_import_shipment_with_duplicate_plant_and_sequence() {
             var plant = Gen_Plant();
             var sequence = 2;
             var input = Gen_ShipmentInput_1_lot_2_invoices_2_parts(plant.Code, sequence);
             var shipmentService = new ShipmentService(ctx);
 
             // test
-            var payload = await shipmentService.CreateShipment(input);
+            var payload = await shipmentService.ImportShipment(input);
             var count = await ctx.Shipments.CountAsync();
             Assert.Equal(1, count);
 
-            var payload_1 = await shipmentService.CreateShipment(input);
+            var payload_1 = await shipmentService.ImportShipment(input);
             var errorCOunt = payload_1.Errors.Count();
             Assert.Equal(1, errorCOunt);
 
@@ -62,7 +62,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        private async Task cannot_create_shipment_with_no_pards() {
+        private async Task cannot_import_shipment_with_no_pards() {
             // setup
             var plant = Gen_Plant();
             var input = new ShipmentInput() {
@@ -74,7 +74,7 @@ namespace SKD.Test {
                         Invoices = new List<ShipmentInvoiceInput> {
                             new ShipmentInvoiceInput {
                                 InvoiceNo = "001",
-                                Parts = new List<ShipmentPartDTO>()
+                                Parts = new List<ShipmentPartInput>()
                             }
                         }
                     }
@@ -85,7 +85,7 @@ namespace SKD.Test {
             var before_count = ctx.ShipmentParts.Count();
             // test
             var shipmentService = new ShipmentService(ctx);
-            var payload = await shipmentService.CreateShipment(input);
+            var payload = await shipmentService.ImportShipment(input);
 
             // assert
             var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
@@ -94,7 +94,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        private async Task cannot_create_shipment_invoice_with_no_parts() {
+        private async Task cannot_import_shipment_invoice_with_no_parts() {
             // setup
             var plant = Gen_Plant();
             var input = new ShipmentInput() {
@@ -106,7 +106,7 @@ namespace SKD.Test {
                         Invoices = new List<ShipmentInvoiceInput> {
                             new ShipmentInvoiceInput {
                                 InvoiceNo = "001",
-                                Parts = new List<ShipmentPartDTO>()
+                                Parts = new List<ShipmentPartInput>()
                             }
                         }
                     }
@@ -116,7 +116,7 @@ namespace SKD.Test {
             var before_count = ctx.ShipmentParts.Count();
             // test
             var shipmentService = new ShipmentService(ctx);
-            var payload = await shipmentService.CreateShipment(input);
+            var payload = await shipmentService.ImportShipment(input);
 
             // assert
             var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
@@ -125,7 +125,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        private async Task cannot_create_shipment_lot_with_no_invoices() {
+        private async Task cannot_import_shipment_lot_with_no_invoices() {
             // setup
             var plant = Gen_Plant();
             var input = new ShipmentInput() {
@@ -143,7 +143,7 @@ namespace SKD.Test {
             var before_count = ctx.ShipmentParts.Count();
             // test
             var shipmentService = new ShipmentService(ctx);
-            var payload = await shipmentService.CreateShipment(input);
+            var payload = await shipmentService.ImportShipment(input);
 
             // assert
             var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
@@ -162,8 +162,8 @@ namespace SKD.Test {
                         Invoices = new List<ShipmentInvoiceInput> {
                             new ShipmentInvoiceInput {
                                 InvoiceNo = "001",
-                                Parts = new List<ShipmentPartDTO> {
-                                    new ShipmentPartDTO {
+                                Parts = new List<ShipmentPartInput> {
+                                    new ShipmentPartInput {
                                         PartNo = "0001",
                                         CustomerPartDesc = "part 1",
                                         CustomerPartNo = "cust 0001",
@@ -173,8 +173,8 @@ namespace SKD.Test {
                             },
                             new ShipmentInvoiceInput {
                                 InvoiceNo = "002",
-                                Parts = new List<ShipmentPartDTO> {
-                                    new ShipmentPartDTO {
+                                Parts = new List<ShipmentPartInput> {
+                                    new ShipmentPartInput {
                                         PartNo = "0002",
                                         CustomerPartDesc = "part 2",
                                         CustomerPartNo = "cust 0002",

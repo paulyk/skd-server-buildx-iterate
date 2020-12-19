@@ -16,9 +16,9 @@ namespace SKD.Model {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<ShipmentOverviewDTO>> CreateShipment(ShipmentInput input) {
+        public async Task<MutationPayload<ShipmentOverviewDTO>> ImportShipment(ShipmentInput input) {
             var payload = new MutationPayload<ShipmentOverviewDTO>(null);
-            payload.Errors = await ValidateShipmentDTO<ShipmentInput>(input);
+            payload.Errors = await ValidateShipmentInput<ShipmentInput>(input);
             if (payload.Errors.Count > 0) {
                 return payload;
             }
@@ -46,20 +46,11 @@ namespace SKD.Model {
             // save
             await context.SaveChangesAsync();
 
-            var shipmentOverviewDTO = await context.Shipments.Select(t => new ShipmentOverviewDTO {
-                Id = t.Id,
-                PlantCode = t.Plant.Code,
-                Sequence = t.Sequence,
-                LotCount = t.Lots.Count(),
-                InvoiceCount = t.Lots.Select(t => t.Invoices.Count()).Sum(),
-                CreatedAt = t.CreatedAt
-            }).FirstOrDefaultAsync(t => t.Id == shipment.Id);
-
-            payload.Entity = shipmentOverviewDTO;
+            payload.Entity = await GetShipmentOverview(shipment.Id);
             return payload;
         }
 
-        public async Task<List<Error>> ValidateShipmentDTO<T>(ShipmentInput input) where T : ShipmentInput {
+        public async Task<List<Error>> ValidateShipmentInput<T>(ShipmentInput input) where T : ShipmentInput {
             var errors = new List<Error>();
 
             var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
@@ -103,6 +94,19 @@ namespace SKD.Model {
             }
 
             return errors;
+        }
+
+        public async Task<ShipmentOverviewDTO?> GetShipmentOverview(Guid id) {
+            return await context.Shipments.Select(t => new ShipmentOverviewDTO {
+                Id = t.Id,
+                PlantCode = t.Plant.Code,
+                Sequence = t.Sequence,
+                LotCount = t.Lots.Count(),
+                InvoiceCount = t.Lots.SelectMany(t => t.Invoices).Count(),
+                PartCount = t.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.Parts).Count(),
+                CreatedAt = t.CreatedAt
+            }).FirstOrDefaultAsync(t => t.Id == id);
+
         }
     }
 }

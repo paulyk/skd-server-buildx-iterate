@@ -19,14 +19,13 @@ namespace SKD.Model {
         public string InvoiceNo { get; set; }
         public DateTime ShipDate { get; set; }
 
-        public ICollection<ShipmentPartDTO> Parts { get; set; } = new List<ShipmentPartDTO>();
+        public ICollection<ShipmentPartInput> Parts { get; set; } = new List<ShipmentPartInput>();
     }
 
-    public class ShipmentPartDTO {
+    public class ShipmentPartInput {
         public string PartNo { get; set; }
         public string CustomerPartNo { get; set; }
         public string CustomerPartDesc { get; set; }
         public int Quantity { get; set; }
-
     }
 }
