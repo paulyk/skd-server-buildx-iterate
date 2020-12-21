@@ -52,7 +52,8 @@ namespace SKD.Server {
                 .AddTransient<ComponentScanService>()
                 .AddTransient<ShipmentService>()
                 .AddTransient<BomService>()
-                .AddTransient<PlantService>();
+                .AddTransient<PlantService>()
+                .AddTransient<QueryService>();
 
             services.AddGraphQL(sp => SchemaBuilder.New()
                 .AddServices(sp)

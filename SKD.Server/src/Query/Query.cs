@@ -89,9 +89,9 @@ namespace SKD.Server {
                         .Include(t => t.Lots).ThenInclude(t => t.Invoices).ThenInclude(t => t.Parts)
                         .FirstOrDefaultAsync(t => t.Id == id);
 
-        public async Task<ShipmentOverviewDTO?> GetShipmentOverview([Service] ShipmentService service, Guid id) => 
+        public async Task<ShipmentOverviewDTO?> GetShipmentOverview([Service] ShipmentService service, Guid id) =>
             await service.GetShipmentOverview(id);
-        
+
         public async Task<Vehicle?> GetVehicleById([Service] SkdContext context, Guid id) {
             var result = await context.Vehicles.AsNoTracking()
                     .Include(t => t.Lot)
@@ -207,6 +207,11 @@ namespace SKD.Server {
             };
         }
 
+        public async Task<List<BomShipmentLotPartDTO>> GetBomShipmentLotPartComparison(
+            [Service] QueryService service, Guid bomId) {
+            return await service.GetBomShipmentLotPartComparison(bomId);
+        }
+
         public async Task<List<Vehicle>> GetVehiclesByLot([Service] SkdContext context, string lotNo) =>
                  await context.Vehicles.OrderBy(t => t.Lot).AsNoTracking()
                     .Where(t => t.Lot.LotNo == lotNo)
@@ -281,9 +286,9 @@ namespace SKD.Server {
         public async Task<BomOverviewDTO?> GetBomOverview([Service] BomService service, Guid id) =>
              await service.GetBomOverview(id);
 
-        public async Task<List<LotListDTO>> GetLotListByBomId([Service] SkdContext context,Guid id) =>
+        public async Task<List<LotListDTO>> GetLotListByBomId([Service] SkdContext context, Guid id) =>
                  await context.VehicleLots.AsNoTracking()
-                    .Where(t =>  t.Bom.Id == id)
+                    .Where(t => t.Bom.Id == id)
                     .Select(t => new LotListDTO {
                         Id = t.Id,
                         PlantCode = t.Plant.Code,
@@ -299,10 +304,11 @@ namespace SKD.Server {
 
 
         public async Task<List<PartQuantityDTO>> GetBomPartsQuantity([Service] SkdContext context, Guid id) {
-            var result =  await context.LotParts
+            var result = await context.LotParts
                 .Where(t => t.Lot.Bom.Id == id)
-                .GroupBy(t =>new {
-                    PartNo = t.PartNo, PartDesc = t.PartDesc  })
+                .GroupBy(t => new {
+                    PartNo = t.PartNo, PartDesc = t.PartDesc
+                })
                 .Select(g => new PartQuantityDTO {
                     PartNo = g.Key.PartNo,
                     PartDesc = g.Key.PartDesc,
@@ -310,7 +316,7 @@ namespace SKD.Server {
                 }).ToListAsync();
 
             return result;
-         }
+        }
 
         public async Task<VehicleSnapshotRunDTO?> GetVehicleSnapshotRunByDate(
                   [Service] VehicleSnapshotService service,
