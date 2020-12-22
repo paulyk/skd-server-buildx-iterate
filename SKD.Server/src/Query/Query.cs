@@ -207,9 +207,13 @@ namespace SKD.Server {
             };
         }
 
-        public async Task<List<BomShipmentLotPartDTO>> GetBomShipmentLotPartComparison(
+        public async Task<List<BomShipmentLotPartDTO>> GetBomShipmentPartsCompareByBomId(
             [Service] QueryService service, Guid bomId) {
-            return await service.GetBomShipmentLotPartComparison(bomId);
+            return await service.GetBomShipmentPartsCompareByBomId(bomId);
+        }
+        public async Task<List<BomShipmentLotPartDTO>> GetBomShipmentPartsCompareByLotNo(
+            [Service] QueryService service, string lotNo) {
+            return await service.GetBomShipmentPartsCompareByLotNo(lotNo);
         }
 
         public async Task<List<Vehicle>> GetVehiclesByLot([Service] SkdContext context, string lotNo) =>

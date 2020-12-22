@@ -77,7 +77,7 @@ namespace SKD.Test {
 
             // test
             var queryService = new QueryService(ctx);
-            var lotParts = await queryService.GetBomShipmentLotPartComparison(bomPayload.Entity.Id);
+            var lotParts = await queryService.GetBomShipmentPartsCompareByBomId(bomPayload.Entity.Id);
 
             var expectedCount = 2;
             var actualCount= lotParts.Count();
