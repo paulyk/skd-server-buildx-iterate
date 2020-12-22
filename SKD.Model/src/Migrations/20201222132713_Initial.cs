@@ -24,6 +24,21 @@ namespace SKD.Model.src.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "part",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", maxLength: 36, nullable: false),
+                    PartNo = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    PartDesc = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RemovedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_part", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "plant",
                 columns: table => new
                 {
@@ -252,8 +267,7 @@ namespace SKD.Model.src.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", maxLength: 36, nullable: false),
-                    PartNo = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
-                    PartDesc = table.Column<string>(type: "nvarchar(34)", maxLength: 34, nullable: false),
+                    PartId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     LotId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -262,6 +276,12 @@ namespace SKD.Model.src.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_lot_part", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_lot_part_part_PartId",
+                        column: x => x.PartId,
+                        principalTable: "part",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_lot_part_vehicle_lot_LotId",
                         column: x => x.LotId,
@@ -427,9 +447,7 @@ namespace SKD.Model.src.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", maxLength: 36, nullable: false),
-                    PartNo = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
-                    CustomerPartNo = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: true),
-                    CustomerPartDesc = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    PartId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     ShipmentInvoiceId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -438,6 +456,12 @@ namespace SKD.Model.src.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_shipment_part", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_shipment_part_part_PartId",
+                        column: x => x.PartId,
+                        principalTable: "part",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_shipment_part_shipment_invoice_ShipmentInvoiceId",
                         column: x => x.ShipmentInvoiceId,
@@ -531,15 +555,28 @@ namespace SKD.Model.src.Migrations
                 column: "ComponentScanId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_lot_part_LotId_PartNo",
+                name: "IX_lot_part_LotId_PartId",
                 table: "lot_part",
-                columns: new[] { "LotId", "PartNo" },
+                columns: new[] { "LotId", "PartId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_lot_part_PartNo",
+                name: "IX_lot_part_PartId",
                 table: "lot_part",
-                column: "PartNo");
+                column: "PartId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_part_PartDesc",
+                table: "part",
+                column: "PartDesc",
+                unique: true,
+                filter: "[PartDesc] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_part_PartNo",
+                table: "part",
+                column: "PartNo",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_plant_Code",
@@ -595,14 +632,15 @@ namespace SKD.Model.src.Migrations
                 column: "ShipmentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_shipment_part_PartNo",
+                name: "IX_shipment_part_PartId",
                 table: "shipment_part",
-                column: "PartNo");
+                column: "PartId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_shipment_part_ShipmentInvoiceId",
+                name: "IX_shipment_part_ShipmentInvoiceId_PartId",
                 table: "shipment_part",
-                column: "ShipmentInvoiceId");
+                columns: new[] { "ShipmentInvoiceId", "PartId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_user_Email",
@@ -762,6 +800,9 @@ namespace SKD.Model.src.Migrations
 
             migrationBuilder.DropTable(
                 name: "component_scan");
+
+            migrationBuilder.DropTable(
+                name: "part");
 
             migrationBuilder.DropTable(
                 name: "shipment_invoice");

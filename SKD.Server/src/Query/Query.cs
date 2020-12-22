@@ -277,7 +277,7 @@ namespace SKD.Server {
                         PlantCode = t.Plant.Code,
                         Sequence = t.Sequence,
                         LotCount = t.Lots.Count(),
-                        PartCount = t.Lots.SelectMany(t => t.LotParts).Select(t => t.PartNo).Distinct().Count(),
+                        PartCount = t.Lots.SelectMany(t => t.LotParts).Select(t => t.Part).Distinct().Count(),
                         CreatedAt = t.CreatedAt
                     }).AsQueryable();
 
@@ -311,7 +311,7 @@ namespace SKD.Server {
             var result = await context.LotParts
                 .Where(t => t.Lot.Bom.Id == id)
                 .GroupBy(t => new {
-                    PartNo = t.PartNo, PartDesc = t.PartDesc
+                    PartNo = t.Part.PartNo, PartDesc = t.Part.PartDesc
                 })
                 .Select(g => new PartQuantityDTO {
                     PartNo = g.Key.PartNo,

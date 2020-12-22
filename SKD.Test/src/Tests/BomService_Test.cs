@@ -15,32 +15,32 @@ namespace SKD.Test {
         }
 
         [Fact]
-        private async Task can_import_vehicle_lot_parts() {
+        private async Task can_import_bom_lot_parts() {
             // setup
             var plant = Gen_Plant();
             var lot1 = Gen_LotNo();
             var lot2 = Gen_LotNo();
 
-            var dto = new BomLotPartInput() {
+            var input = new BomLotPartInput() {
                 Sequence = 1,
                 PlantCode = plant.Code,
                 LotParts = new List<BomLotPartInput.LotPart> {
                     new BomLotPartInput.LotPart {
                         LotNo = lot1,
-                        PartNo = "0001",
-                        PartDesc = "part 1",
+                        PartNo = "part_1",
+                        PartDesc = "part-1 desc",
                         Quantity = 1
                     },
                     new BomLotPartInput.LotPart {
                         LotNo = lot1,
-                        PartNo = "0002",
-                        PartDesc = "part 2",
+                        PartNo = "part_2",
+                        PartDesc = "part_2 desc",
                         Quantity = 1
                     },
                     new BomLotPartInput.LotPart {
                         LotNo = lot2,
-                        PartNo = "0001",
-                        PartDesc = "part 1",
+                        PartNo = "part_1",
+                        PartDesc = "part_1 desc",
                         Quantity = 1
                     }
                 }
@@ -48,14 +48,20 @@ namespace SKD.Test {
 
             // test
             var service = new BomService(ctx);
-            var payload = await service.ImportBomLotParts(dto);
+            var payload = await service.ImportBomLotParts(input);
 
             // assert
-            Assert.Equal(2, payload.Entity.LotCount);
-            Assert.Equal(2, payload.Entity.PartCount);
+            var expected_Lot_count = input.LotParts.Select(t => t.LotNo).Distinct().Count();
+            var expeced_parts_count = input.LotParts.Select(t => t.PartNo).Distinct().Count();
 
-            var after_count = ctx.LotParts.Count();
-            Assert.Equal(3, after_count);
+            Assert.Equal(expected_Lot_count, payload.Entity.LotCount);
+            Assert.Equal(expeced_parts_count, payload.Entity.PartCount);
+
+            var lot_parts_count = ctx.VehicleLots.Count(t => t.Bom.Id == payload.Entity.Id);
+            Assert.Equal(expected_Lot_count, lot_parts_count);
+
+            var parts_count = ctx.Parts.Count();
+            Assert.Equal(expeced_parts_count, lot_parts_count);
         }
 
         [Fact]
@@ -107,14 +113,14 @@ namespace SKD.Test {
                 LotParts = new List<BomLotPartInput.LotPart> {
                     new BomLotPartInput.LotPart {
                         LotNo = lotNo,
-                        PartNo = "0001",
-                        PartDesc = "part 1",
+                        PartNo = "part_1",
+                        PartDesc = "part_1 desc",
                         Quantity = 1
                     },
                     new BomLotPartInput.LotPart {
                         LotNo = lotNo,
-                        PartNo = "0002",
-                        PartDesc = "part 2jj",
+                        PartNo = "part_2",
+                        PartDesc = "part_2 desc",
                         Quantity = 3
                     }
                 }

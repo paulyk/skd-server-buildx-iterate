@@ -10,7 +10,7 @@ using SKD.Model;
 namespace SKD.Model.src.Migrations
 {
     [DbContext(typeof(SkdContext))]
-    [Migration("20201216090025_Initial")]
+    [Migration("20201222132713_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -174,15 +174,8 @@ namespace SKD.Model.src.Migrations
                     b.Property<Guid>("LotId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("PartDesc")
-                        .IsRequired()
-                        .HasMaxLength(34)
-                        .HasColumnType("nvarchar(34)");
-
-                    b.Property<string>("PartNo")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                    b.Property<Guid>("PartId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
@@ -192,12 +185,46 @@ namespace SKD.Model.src.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PartNo");
+                    b.HasIndex("PartId");
 
-                    b.HasIndex("LotId", "PartNo")
+                    b.HasIndex("LotId", "PartId")
                         .IsUnique();
 
                     b.ToTable("lot_part");
+                });
+
+            modelBuilder.Entity("SKD.Model.Part", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PartDesc")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("PartNo")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTime?>("RemovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PartDesc")
+                        .IsUnique()
+                        .HasFilter("[PartDesc] IS NOT NULL");
+
+                    b.HasIndex("PartNo")
+                        .IsUnique();
+
+                    b.ToTable("part");
                 });
 
             modelBuilder.Entity("SKD.Model.Plant", b =>
@@ -371,19 +398,8 @@ namespace SKD.Model.src.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("CustomerPartDesc")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<string>("CustomerPartNo")
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<string>("PartNo")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                    b.Property<Guid>("PartId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
@@ -396,9 +412,10 @@ namespace SKD.Model.src.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PartNo");
+                    b.HasIndex("PartId");
 
-                    b.HasIndex("ShipmentInvoiceId");
+                    b.HasIndex("ShipmentInvoiceId", "PartId")
+                        .IsUnique();
 
                     b.ToTable("shipment_part");
                 });
@@ -823,7 +840,15 @@ namespace SKD.Model.src.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("SKD.Model.Part", "Part")
+                        .WithMany("LotParts")
+                        .HasForeignKey("PartId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Lot");
+
+                    b.Navigation("Part");
                 });
 
             modelBuilder.Entity("SKD.Model.Shipment", b =>
@@ -861,11 +886,19 @@ namespace SKD.Model.src.Migrations
 
             modelBuilder.Entity("SKD.Model.ShipmentPart", b =>
                 {
+                    b.HasOne("SKD.Model.Part", "Part")
+                        .WithMany("ShipmentParts")
+                        .HasForeignKey("PartId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("SKD.Model.ShipmentInvoice", "ShipmentInvoice")
                         .WithMany("Parts")
                         .HasForeignKey("ShipmentInvoiceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Part");
 
                     b.Navigation("ShipmentInvoice");
                 });
@@ -1026,6 +1059,13 @@ namespace SKD.Model.src.Migrations
             modelBuilder.Entity("SKD.Model.ComponentScan", b =>
                 {
                     b.Navigation("DCWSResponses");
+                });
+
+            modelBuilder.Entity("SKD.Model.Part", b =>
+                {
+                    b.Navigation("LotParts");
+
+                    b.Navigation("ShipmentParts");
                 });
 
             modelBuilder.Entity("SKD.Model.Plant", b =>

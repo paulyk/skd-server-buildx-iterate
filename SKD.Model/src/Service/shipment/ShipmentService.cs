@@ -23,6 +23,15 @@ namespace SKD.Model {
                 return payload;
             }
 
+            // ensure parts
+            var partService = new PartService(context);
+            List<(string, string)> inputParts = input.Lots
+                .SelectMany(t => t.Invoices)
+                .SelectMany(t => t.Parts)
+                .Select(t => (t.PartNo, t.CustomerPartDesc)).ToList();
+            var parts = await partService.GetEnsureParts(inputParts);
+
+            // create shipment
             var shipment = new Shipment() {
                 Plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode),
                 Sequence = input.Sequence,
@@ -32,9 +41,7 @@ namespace SKD.Model {
                         InvoiceNo = invoiceDTO.InvoiceNo,
                         ShipDate = invoiceDTO.ShipDate,
                         Parts = invoiceDTO.Parts.Select(partDTO => new ShipmentPart {
-                            PartNo = partDTO.PartNo,
-                            CustomerPartNo = partDTO.CustomerPartNo,
-                            CustomerPartDesc = partDTO.CustomerPartDesc,
+                            Part =  parts.First(t => t.PartNo == partDTO.PartNo),
                             Quantity = partDTO.Quantity
                         }).ToList()
                     }).ToList()

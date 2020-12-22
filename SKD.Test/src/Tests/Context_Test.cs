@@ -3,6 +3,7 @@ using SKD.Model;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using Xunit;
+using System.Collections.Generic;
 
 namespace SKD.Test {
     public class ContextTest : TestBase {
@@ -110,7 +111,7 @@ namespace SKD.Test {
                     Name = new String('B', EntityFieldLen.VehicleModel_Name),
                     Type = new String('B', EntityFieldLen.VehicleModel_Type),
                 };
-                
+
                 ctx.VehicleModels.AddRange(vehicleModel_1, vehicleModel_2);
 
                 // test + assert
@@ -229,6 +230,25 @@ namespace SKD.Test {
 
                 // test + assert
                 Assert.Throws<DbUpdateException>(() => ctx.SaveChanges());
+            }
+        }
+
+        [Fact]
+        public void can_add_parts() {
+            using (var ctx = GetAppDbContext()) {
+                var parts = new List<Part> {
+                    new Part { PartNo = "p1", PartDesc = "p1 desc"},
+                    new Part { PartNo = "p2", PartDesc = "p2 desc"},
+                };
+
+                ctx.Parts.AddRange(parts);
+                var before_count = ctx.Parts.Count();
+                Assert.Equal(0, before_count);
+
+                ctx.SaveChanges();
+
+                var after_count = ctx.Parts.Count();
+                Assert.Equal(parts.Count, after_count);
             }
         }
     }

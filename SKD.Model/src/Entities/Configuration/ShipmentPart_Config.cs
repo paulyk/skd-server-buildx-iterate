@@ -10,22 +10,15 @@ namespace SKD.Model {
             builder.HasKey(t => t.Id);
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
 
-            builder.HasIndex(t => t.PartNo);
-
-            builder.Property(t => t.PartNo)
-                .IsRequired()
-                .HasMaxLength(EntityFieldLen.Shipment_PartNo);
-
-            builder.Property(t => t.CustomerPartNo)
-                .HasMaxLength(EntityFieldLen.Shipment_CustomerPartNo);
-
-            builder.Property(t => t.CustomerPartDesc)
-                .IsRequired()
-                .HasMaxLength(EntityFieldLen.Shipment_CustomerPartDesc);
+            builder.HasIndex(t => new { t.ShipmentInvoiceId, t.PartId }).IsUnique();
 
             builder.HasOne(t => t.ShipmentInvoice)
                 .WithMany(t => t.Parts)
                 .HasForeignKey(t => t.ShipmentInvoiceId);
+
+            builder.HasOne(t => t.Part)
+                .WithMany(t => t.ShipmentParts)
+                .HasForeignKey(t => t.PartId);
         }
     }
 }

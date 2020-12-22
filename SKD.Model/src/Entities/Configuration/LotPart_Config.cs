@@ -9,16 +9,18 @@ namespace SKD.Model {
             builder.HasKey(t => t.Id);
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
 
-            builder.HasIndex(t => new { t.LotId, t.PartNo }).IsUnique();
-            builder.HasIndex(t => t.PartNo);
+            builder.HasIndex(t => new { t.LotId, t.PartId }).IsUnique();
 
-            builder.Property(t => t.PartNo).IsRequired().HasMaxLength(EntityFieldLen.BomPart_PartNo);
-            builder.Property(t => t.PartDesc).IsRequired().HasMaxLength(EntityFieldLen.BomPart_PartDesc);
             builder.Property(t => t.Quantity).IsRequired();
 
             builder.HasOne(t => t.Lot)
                 .WithMany(t => t.LotParts)
                 .HasForeignKey(t => t.LotId);
+
+            builder.HasOne(t => t.Part)
+                .WithMany(t => t.LotParts)
+                .HasForeignKey(t => t.PartId);
+
         }
     }
 }

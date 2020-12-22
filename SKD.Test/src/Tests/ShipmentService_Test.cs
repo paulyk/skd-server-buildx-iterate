@@ -19,10 +19,10 @@ namespace SKD.Test {
             var plant = Gen_Plant();
             var sequence = 2;
 
-            var input = Gen_ShipmentInput_1_lot_2_invoices_2_parts(plant.Code, sequence);
-
-            var before_count = ctx.ShipmentParts.Count();
+            var input = Gen_ShipmentInput_1_lot_2_invoices_3_parts(plant.Code, sequence);
+            
             // test
+            var before_count = ctx.ShipmentParts.Count();
             var shipmentService = new ShipmentService(ctx);
             var payload = await shipmentService.ImportShipment(input);
 
@@ -32,9 +32,25 @@ namespace SKD.Test {
             Assert.Equal(1, payload.Entity.LotCount);
             Assert.Equal(2, payload.Entity.InvoiceCount);
 
-            // assert
-            var after_count = ctx.ShipmentParts.Count();
-            Assert.Equal(2, after_count);
+            // shipment
+
+            // shipment parts count
+            var expected_shipment_parts_count = input.Lots
+                .SelectMany(t => t.Invoices)
+                .SelectMany(t => t.Parts)
+                .Count();
+
+            var actual_shipment_parts_count = ctx.ShipmentParts.Count();
+            Assert.Equal(expected_shipment_parts_count, actual_shipment_parts_count);
+
+            // parts count
+            var expected_parts_count = input.Lots
+                .SelectMany(t => t.Invoices)
+                .SelectMany(t => t.Parts)
+                .Select(t => t.PartNo).Distinct().Count();
+
+            var actual_parts_count = ctx.Parts.Count();
+            Assert.Equal(expected_parts_count, actual_parts_count);
 
         }
 
@@ -42,7 +58,7 @@ namespace SKD.Test {
         private async Task cannot_import_shipment_with_duplicate_plant_and_sequence() {
             var plant = Gen_Plant();
             var sequence = 2;
-            var input = Gen_ShipmentInput_1_lot_2_invoices_2_parts(plant.Code, sequence);
+            var input = Gen_ShipmentInput_1_lot_2_invoices_3_parts(plant.Code, sequence);
             var shipmentService = new ShipmentService(ctx);
 
             // test
@@ -152,7 +168,7 @@ namespace SKD.Test {
         }
 
 
-        public ShipmentInput Gen_ShipmentInput_1_lot_2_invoices_2_parts(string plantCode, int sequence) {
+        public ShipmentInput Gen_ShipmentInput_1_lot_2_invoices_3_parts(string plantCode, int sequence) {
             var input = new ShipmentInput() {
                 PlantCode = plantCode,
                 Sequence = sequence,
@@ -164,8 +180,8 @@ namespace SKD.Test {
                                 InvoiceNo = "001",
                                 Parts = new List<ShipmentPartInput> {
                                     new ShipmentPartInput {
-                                        PartNo = "0001",
-                                        CustomerPartDesc = "part 1",
+                                        PartNo = "part 1",
+                                        CustomerPartDesc = "part 1 desc",
                                         CustomerPartNo = "cust 0001",
                                         Quantity = 1
                                     }
@@ -175,9 +191,15 @@ namespace SKD.Test {
                                 InvoiceNo = "002",
                                 Parts = new List<ShipmentPartInput> {
                                     new ShipmentPartInput {
-                                        PartNo = "0002",
-                                        CustomerPartDesc = "part 2",
-                                        CustomerPartNo = "cust 0002",
+                                        PartNo = "part 1",
+                                        CustomerPartDesc = "part 1 desc",
+                                        CustomerPartNo = "part 1 desc",
+                                        Quantity = 1
+                                    },
+                                    new ShipmentPartInput {
+                                        PartNo = "part 2",
+                                        CustomerPartDesc = "part 2 desc",
+                                        CustomerPartNo = "part 2 desc",
                                         Quantity = 1
                                     }
                                 }

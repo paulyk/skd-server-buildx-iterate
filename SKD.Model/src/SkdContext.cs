@@ -18,6 +18,7 @@ namespace SKD.Model {
         public DbSet<DCWSResponse> DCWSResponses { get; set; }
         public DbSet<VehicleModelComponent> VehicleModelComponents { get; set; }
         public DbSet<ProductionStation> ProductionStations { get; set; }
+        public DbSet<Part> Parts { get; set; }
         
         public DbSet<Shipment> Shipments { get; set; }
         public DbSet<ShipmentLot> ShipmentLots { get; set; }
@@ -46,6 +47,7 @@ namespace SKD.Model {
             builder.ApplyConfiguration(new VehicleTimelineEvent_Config());
             builder.ApplyConfiguration(new DCWSResponse_Config());
             builder.ApplyConfiguration(new ProductionStation_Config());
+            builder.ApplyConfiguration(new Part_Config());
             //
             builder.ApplyConfiguration(new Shipment_Config());
             builder.ApplyConfiguration(new ShipmentLot_Config());

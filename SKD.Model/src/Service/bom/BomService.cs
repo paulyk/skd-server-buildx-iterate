@@ -28,6 +28,7 @@ namespace SKD.Model {
 
             var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
 
+            // create / get bom
             var bom = await context.Boms.FirstOrDefaultAsync(t => t.Plant.Code == input.PlantCode && t.Sequence == input.Sequence);
             if (bom == null) {
                 bom = new Bom {
@@ -37,6 +38,13 @@ namespace SKD.Model {
                 context.Boms.Add(bom);
             }
 
+            // ensure parts
+            var partService = new PartService(context);
+            List<(string, string)> inputParts = input.LotParts
+                .Select(t => (t.PartNo, t.PartDesc)).ToList();
+            var parts = await partService.GetEnsureParts(inputParts);
+
+            // bom lot parts
             foreach (var lotGroup in input.LotParts.GroupBy(t => t.LotNo)) {
 
                 var lot = await context.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == lotGroup.Key);
@@ -48,11 +56,10 @@ namespace SKD.Model {
                 }
                 bom.Lots.Add(lot);
 
-                foreach (var entry in lotGroup) {
+                foreach (var lotGroupItem in lotGroup) {
                     var lotPart = new LotPart {
-                        PartNo = entry.PartNo,
-                        PartDesc = entry.PartDesc,
-                        Quantity = entry.Quantity
+                        Part = parts.First(t => t.PartNo == lotGroupItem.PartNo),
+                        Quantity = lotGroupItem.Quantity
                     };
                     lot.LotParts.Add(lotPart);
                 }
@@ -81,6 +88,7 @@ namespace SKD.Model {
                 };
                 context.Boms.Add(bom);
             }
+
 
             foreach (var inputLot in input.Lots) {
                 var lot = await context.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == inputLot.LotNo);
@@ -121,12 +129,12 @@ namespace SKD.Model {
 
             var alreadyImportedLotParts = await context.LotParts
                 .Where(t => t.Lot.Plant.Code == input.PlantCode)
-                .AnyAsync(t => newLotNumbers.Any(newLotNo  => newLotNo == t.Lot.LotNo));
-                
+                .AnyAsync(t => newLotNumbers.Any(newLotNo => newLotNo == t.Lot.LotNo));
+
             if (alreadyImportedLotParts) {
                 errors.Add(new Error("", "lot parts already imported"));
                 return errors;
-            }            
+            }
 
             // duplicate lotNo + Part in payload
             var duplicateLotParts = input.LotParts.GroupBy(t => new { t.LotNo, t.PartNo })
@@ -160,8 +168,6 @@ namespace SKD.Model {
 
             return errors;
         }
-
-
 
         private async Task<Vehicle> CreateVehicleKit(BomLotKitInput.Lot.LotKit input) {
             var vehicles = new List<Vehicle>();
@@ -221,8 +227,8 @@ namespace SKD.Model {
                 .AnyAsync(t => newKitNumbers.Any(newKitNo => newKitNo == t.KitNo));
 
             if (alreadyImportedKitNumbers) {
-                errors.Add(new Error("","kit numbers already imported"));
-            }        
+                errors.Add(new Error("", "kit numbers already imported"));
+            }
 
             // duplicate lot number in payload
             var duplicate_lotNo = input.Lots.GroupBy(t => t.LotNo)
@@ -276,7 +282,7 @@ namespace SKD.Model {
                     PlantCode = t.Plant.Code,
                     Sequence = t.Sequence,
                     LotCount = t.Lots.Count(),
-                    PartCount = t.Lots.SelectMany(u => u.LotParts).Select(u => u.PartNo).Distinct().Count(),
+                    PartCount = t.Lots.SelectMany(u => u.LotParts).Select(u => u.Part).Distinct().Count(),
                     VehicleCount = t.Lots.SelectMany(u => u.Vehicles).Count(),
                     CreatedAt = t.CreatedAt
                 })
@@ -293,7 +299,7 @@ namespace SKD.Model {
                     PlantCode = t.Plant.Code,
                     Sequence = t.Sequence,
                     LotCount = t.Lots.Count(),
-                    PartCount = t.Lots.SelectMany(u => u.LotParts).Select(u => u.PartNo).Distinct().Count(),
+                    PartCount = t.Lots.SelectMany(u => u.LotParts).Select(u => u.Part).Distinct().Count(),
                     VehicleCount = t.Lots.SelectMany(u => u.Vehicles).Count(),
                     CreatedAt = t.CreatedAt
                 })

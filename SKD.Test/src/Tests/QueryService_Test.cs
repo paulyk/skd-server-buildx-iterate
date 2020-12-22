@@ -15,7 +15,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        private async Task can_get_bom_shipment_parts_by_lot_comparison() {
+        private async Task can_get_bom_shipment_parts_compare_by_bom_id() {
             // setup
             var bomSequence = 1;
             var plant = Gen_Plant();
@@ -28,16 +28,15 @@ namespace SKD.Test {
             };
 
             var shipmentParts = new List<(string LotNo, string invoiceNo, string PartNo, string PartDesc, int Quantity)> {
-                (lot1,  "inv_1", "part_1", "part_1_desc",  1),
-                (lot1,  "inv_2", "part_1", "part_1_desc",  2),
+                (lot1,  "invoice_1", "part_1", "part_1_desc",  1),
+                (lot1,  "invoice_2", "part_1", "part_1_desc",  2),
 
-                (lot2,  "inv_3", "part_2", "part_2_desc",  3),
-                (lot2,  "inv_4", "part_2", "part_2_desc",  1),
-
+                (lot2,  "invoice_3", "part_2", "part_2_desc",  3),
+                (lot2,  "invoice_4", "part_2", "part_2_desc",  1),
             };
 
 
-            var dto = new BomLotPartInput() {
+            var bomLotInput = new BomLotPartInput() {
                 Sequence = bomSequence,
                 PlantCode = plant.Code,
                 LotParts = bomParts.Select(t => new BomLotPartInput.LotPart {
@@ -50,7 +49,7 @@ namespace SKD.Test {
             };
 
             var service = new BomService(ctx);
-            var bomPayload = await service.ImportBomLotParts(dto);
+            var bomPayload = await service.ImportBomLotParts(bomLotInput);
 
             // shipments
             var shipmentInput = new ShipmentInput() {
@@ -75,17 +74,25 @@ namespace SKD.Test {
             var shipmentService = new ShipmentService(ctx);
             await shipmentService.ImportShipment(shipmentInput);
 
-            // test
+            // test by id
             var queryService = new QueryService(ctx);
-            var lotParts = await queryService.GetBomShipmentPartsCompareByBomId(bomPayload.Entity.Id);
+            var bomLotPartsCompare = await queryService.GetBomShipmentPartsCompareByBomId(bomPayload.Entity.Id);
 
-            var expectedCount = 2;
-            var actualCount= lotParts.Count();
-            Assert.Equal(expectedCount, actualCount);
+            var expected_Lot_parts_count = 2;
+            var actualCount= bomLotPartsCompare.Count();
+            Assert.Equal(expected_Lot_parts_count, actualCount);
 
-            foreach(var entry in lotParts) {
+            foreach(var entry in bomLotPartsCompare) {
                 Assert.Equal(entry.BomQuantity, entry.ShipmentQuantity);
             }
+
+            // test by lot
+            
+            var lotPartsCompare = await queryService.GetBomShipmentPartsCompareByLotNo(lot1);
+            foreach(var entry in lotPartsCompare) {
+                Assert.Equal(entry.BomQuantity, entry.ShipmentQuantity);
+            }
+
         }
     }
 }
