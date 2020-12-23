@@ -110,10 +110,48 @@ namespace SKD.Model {
                 Sequence = t.Sequence,
                 LotCount = t.Lots.Count(),
                 InvoiceCount = t.Lots.SelectMany(t => t.Invoices).Count(),
-                PartCount = t.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.Parts).Count(),
+                PartCount = t.Lots
+                    .SelectMany(t => t.Invoices)
+                    .SelectMany(t => t.Parts).Select(t => t.Part.PartNo)
+                    .Distinct().Count(),
                 CreatedAt = t.CreatedAt
             }).FirstOrDefaultAsync(t => t.Id == id);
+        }
 
+        public async Task<List<BomShipmentLotPartDTO>> GetShipmentBomPartsCompare(Guid shipmentId) {
+            var bomShipmentLotParts = await context.ShipmentParts
+                .Where(t => t.ShipmentInvoice.ShipmentLot.Shipment.Id == shipmentId)
+                .GroupBy(t => new { t.ShipmentInvoice.ShipmentLot.LotNo, t.Part.PartNo, t.Part.PartDesc  })
+                .Select(t => new BomShipmentLotPartDTO {
+                    LotNo = t.Key.LotNo,
+                    PartNo = t.Key.PartNo,
+                    PartDesc = t.Key.PartDesc,
+                    ShipmentQuantity = t.Select(u => u.Quantity).Sum()
+                }).ToListAsync();
+
+
+            var lotNumbers = bomShipmentLotParts.Select(t => t.LotNo).ToList();
+            
+            var bomLotParts = await context.LotParts
+                .Where(t => lotNumbers.Any(lotNo => lotNo == t.Lot.LotNo))
+                .Select(g => new {
+                    LotNo = g.Lot.LotNo,
+                    PartNo = g.Part.PartNo,
+                    PartDesc = g.Part.PartDesc,
+                    Quanity = g.Quantity
+                })
+                .ToListAsync();
+
+            // assign shipment lot part quantity
+            bomShipmentLotParts.ForEach(t => {
+                t.BomQuantity = bomLotParts
+                    .Where(b => b.LotNo == t.LotNo)
+                    .Where(b => b.PartNo == t.PartNo)
+                    .Select(b => b.Quanity)
+                    .FirstOrDefault();
+            });
+
+            return bomShipmentLotParts.OrderBy(t => t.LotNo).ThenBy(t => t.PartNo).ToList();
         }
     }
 }

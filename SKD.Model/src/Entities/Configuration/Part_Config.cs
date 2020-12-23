@@ -11,7 +11,7 @@ namespace SKD.Model {
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
 
             builder.HasIndex(t => t.PartNo).IsUnique();
-            builder.HasIndex(t => t.PartDesc).IsUnique();
+            builder.HasIndex(t => t.PartDesc);
 
             builder.Property(t => t.PartNo).IsRequired().HasMaxLength(EntityFieldLen.Part_No);
             builder.Property(t => t.PartDesc).HasMaxLength(EntityFieldLen.Part_Desc);

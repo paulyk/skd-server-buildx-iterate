@@ -21,8 +21,6 @@ namespace SKD.Model {
                 .Where(t => t.Lot.Bom.Id == bomId)
                 .OrderBy(t => t.Part.PartNo)
                 .Select(t => new BomShipmentLotPartDTO {
-                    PlantCode = t.Lot.Plant.Code,
-                    BomSequence = t.Lot.Bom.Sequence,
                     LotNo = t.Lot.LotNo,
                     PartNo = t.Part.PartNo,
                     PartDesc = t.Part.PartDesc,
@@ -59,8 +57,6 @@ namespace SKD.Model {
                 .Where(t => t.Lot.LotNo == lotNo)
                 .OrderBy(t => t.Part.PartNo)
                 .Select(t => new BomShipmentLotPartDTO {
-                    PlantCode = t.Lot.Plant.Code,
-                    BomSequence = t.Lot.Bom.Sequence,
                     LotNo = t.Lot.LotNo,
                     PartNo = t.Part.PartNo,
                     PartDesc = t.Part.PartDesc,

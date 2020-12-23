@@ -84,13 +84,11 @@ namespace SKD.Server {
         public IQueryable<Shipment> GetShipments([Service] SkdContext context) =>
                 context.Shipments.AsQueryable();
 
-        public async Task<Shipment?> GetShipmentDetailById([Service] SkdContext context, Guid id) =>
-                await context.Shipments.AsNoTracking()
-                        .Include(t => t.Lots).ThenInclude(t => t.Invoices).ThenInclude(t => t.Parts)
-                        .FirstOrDefaultAsync(t => t.Id == id);
+        public async Task<ShipmentOverviewDTO?> GetShipmentOverview([Service] ShipmentService service, Guid shipmentId) =>
+            await service.GetShipmentOverview(shipmentId);
 
-        public async Task<ShipmentOverviewDTO?> GetShipmentOverview([Service] ShipmentService service, Guid id) =>
-            await service.GetShipmentOverview(id);
+        public async Task<List<BomShipmentLotPartDTO>> GetShipmentBomPartsCompare([Service] ShipmentService service, Guid shipmentId) =>
+            await service.GetShipmentBomPartsCompare(shipmentId);
 
         public async Task<Vehicle?> GetVehicleById([Service] SkdContext context, Guid id) {
             var result = await context.Vehicles.AsNoTracking()

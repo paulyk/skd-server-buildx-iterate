@@ -35,6 +35,5 @@ namespace SKD.Model {
 
             return parts;
         }
-
     }
 }
