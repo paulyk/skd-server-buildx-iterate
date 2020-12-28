@@ -19,7 +19,7 @@ namespace SKD.Test {
             var plant = Gen_Plant();
             var sequence = 2;
 
-            var input = Gen_ShipmentInput_1_lot_2_invoices_3_parts(plant.Code, sequence);
+            var input = Gen_ShipmentInput(plant.Code, Gen_LotNo(), sequence);
             
             // test
             var before_count = ctx.ShipmentParts.Count();
@@ -31,8 +31,6 @@ namespace SKD.Test {
             Assert.Equal(sequence, payload.Entity.Sequence);
             Assert.Equal(1, payload.Entity.LotCount);
             Assert.Equal(2, payload.Entity.InvoiceCount);
-
-            // shipment
 
             // shipment parts count
             var expected_shipment_parts_count = input.Lots
@@ -51,20 +49,19 @@ namespace SKD.Test {
 
             var actual_parts_count = ctx.Parts.Count();
             Assert.Equal(expected_parts_count, actual_parts_count);
-
         }
 
         [Fact]
         private async Task cannot_import_shipment_with_duplicate_plant_and_sequence() {
             var plant = Gen_Plant();
             var sequence = 2;
-            var input = Gen_ShipmentInput_1_lot_2_invoices_3_parts(plant.Code, sequence);
+            var input = Gen_ShipmentInput(plant.Code, Gen_LotNo(), sequence);
             var shipmentService = new ShipmentService(ctx);
 
             // test
             var payload = await shipmentService.ImportShipment(input);
-            var count = await ctx.Shipments.CountAsync();
-            Assert.Equal(1, count);
+            var shipmentsCount = await ctx.Shipments.CountAsync();
+            Assert.Equal(1, shipmentsCount);
 
             var payload_1 = await shipmentService.ImportShipment(input);
             var errorCOunt = payload_1.Errors.Count();
@@ -74,7 +71,6 @@ namespace SKD.Test {
             var actualMessage = payload_1.Errors.Select(t => t.Message).FirstOrDefault();
 
             Assert.Equal(expectedMessage, expectedMessage.Substring(0, expectedMessage.Length));
-
         }
 
         [Fact]
@@ -155,7 +151,6 @@ namespace SKD.Test {
                 }
             };
 
-
             var before_count = ctx.ShipmentParts.Count();
             // test
             var shipmentService = new ShipmentService(ctx);
@@ -167,14 +162,13 @@ namespace SKD.Test {
             Assert.Equal(expectedError, errorMessage);
         }
 
-
-        public ShipmentInput Gen_ShipmentInput_1_lot_2_invoices_3_parts(string plantCode, int sequence) {
+        public ShipmentInput Gen_ShipmentInput(string plantCode, string lotNo, int sequence) {
             var input = new ShipmentInput() {
                 PlantCode = plantCode,
                 Sequence = sequence,
                 Lots = new List<ShipmentLotInput> {
                     new ShipmentLotInput {
-                        LotNo = "1234",
+                        LotNo = lotNo,
                         Invoices = new List<ShipmentInvoiceInput> {
                             new ShipmentInvoiceInput {
                                 InvoiceNo = "001",

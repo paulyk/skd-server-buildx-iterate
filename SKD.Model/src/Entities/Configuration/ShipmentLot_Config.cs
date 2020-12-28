@@ -11,10 +11,10 @@ namespace SKD.Model {
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
 
             builder.HasIndex(t => t.LotNo);
-
+            
             builder.Property(t => t.LotNo)
                 .IsRequired()
-                .HasMaxLength(EntityFieldLen.Shipment_LotNo);
+                .HasMaxLength(EntityFieldLen.LotNo);
 
             builder.HasMany(t => t.Invoices)
                 .WithOne(t => t.ShipmentLot)

@@ -36,7 +36,7 @@ namespace SKD.Model {
 
         public static int CreatedBy = 255;
         public static int VehicleComponent_PrerequisiteSequence = 50;
-        public static int Shipment_LotNo = 15;
+        public static int LotNo = 15;
         public static int Shipment_InvoiceNo = 11;
 
         public static int Bom_SequenceNo = 4;

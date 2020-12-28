@@ -367,6 +367,15 @@ namespace SKD.Test {
         public string Get_PlantCode() {
             return Util.RandomString(EntityFieldLen.Plant_Code).ToUpper();
         }
+        public string Gen_PartNo() {
+            return Util.RandomString(EntityFieldLen.Part_No).ToUpper();
+        }
+        public string Gen_PartDesc() {
+            return Util.RandomString(EntityFieldLen.Part_Desc).ToUpper();
+        }
+        public string Gen_ShipmentInvoiceNo() {
+            return Util.RandomString(EntityFieldLen.Shipment_InvoiceNo).ToUpper();
+        }
 
         #endregion
     }

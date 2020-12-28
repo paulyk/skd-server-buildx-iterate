@@ -10,8 +10,6 @@ namespace SKD.Model {
             builder.HasKey(t => t.Id);
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
 
-            builder.HasIndex(t => t.LotPartId).IsUnique();
-
             // relationships     
             builder.HasOne(t => t.LotPart)
                 .WithMany(t => t.Received)
