@@ -27,6 +27,7 @@ namespace SKD.Model {
 
         public DbSet<Bom> Boms { get; set; }
         public DbSet<LotPart> LotParts { get; set; }
+        public DbSet<LotPartReceived> LotPartsReceived { get; set; }
 
         public DbSet<VehicleSnapshotRun> VehicleSnapshotRuns { get; set; }
         public DbSet<VehicleSnapshot> VehicleSnapshots { get; set; }
@@ -56,6 +57,7 @@ namespace SKD.Model {
             //
             builder.ApplyConfiguration(new Bom_Config());
             builder.ApplyConfiguration(new LotPart_Config());
+            builder.ApplyConfiguration(new LotPartReceived_Config());
 
             builder.ApplyConfiguration(new VehicleSnapshot_Config());
             builder.ApplyConfiguration(new VehicleSnapshotRun_Config());
