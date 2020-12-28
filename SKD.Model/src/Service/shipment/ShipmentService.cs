@@ -74,7 +74,7 @@ namespace SKD.Model {
                     };
                     context.LotParts.Add(lotPart);
                 }
-                lotPart.BomQuantity = lotPartInput.Quantity;
+                lotPart.ShipmentQuantity = lotPartInput.Quantity;
             }
             
 
