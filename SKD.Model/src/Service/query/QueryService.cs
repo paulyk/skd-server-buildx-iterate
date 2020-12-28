@@ -24,7 +24,7 @@ namespace SKD.Model {
                     LotNo = t.Lot.LotNo,
                     PartNo = t.Part.PartNo,
                     PartDesc = t.Part.PartDesc,
-                    BomQuantity = t.Quantity
+                    BomQuantity = t.BomQuantity
                 }).ToListAsync();
 
             var lotNumbers = bomShipmentLotParts.Select(t => t.LotNo).ToList();
@@ -60,7 +60,7 @@ namespace SKD.Model {
                     LotNo = t.Lot.LotNo,
                     PartNo = t.Part.PartNo,
                     PartDesc = t.Part.PartDesc,
-                    BomQuantity = t.Quantity
+                    BomQuantity = t.BomQuantity
                 }).ToListAsync();
 
             var lotNumbers = bomShipmentLotParts.Select(t => t.LotNo).ToList();

@@ -314,7 +314,7 @@ namespace SKD.Server {
                 .Select(g => new PartQuantityDTO {
                     PartNo = g.Key.PartNo,
                     PartDesc = g.Key.PartDesc,
-                    Quantity = g.Sum(u => u.Quantity)
+                    Quantity = g.Sum(u => u.BomQuantity)
                 }).ToListAsync();
 
             return result;

@@ -49,7 +49,7 @@ namespace SKD.Test {
                     .Where(t => t.Part.PartNo == lotPart.PartNo)
                     .FirstOrDefaultAsync();
 
-                Assert.Equal(lotPart.Quantity, db_LotPart.Quantity);
+                Assert.Equal(lotPart.Quantity, db_LotPart.BomQuantity);
             }
         }
 

@@ -59,7 +59,7 @@ namespace SKD.Model {
                 foreach (var lotGroupItem in lotGroup) {
                     var lotPart = new LotPart {
                         Part = parts.First(t => t.PartNo == lotGroupItem.PartNo),
-                        Quantity = lotGroupItem.Quantity
+                        BomQuantity = lotGroupItem.Quantity
                     };
                     lot.LotParts.Add(lotPart);
                 }

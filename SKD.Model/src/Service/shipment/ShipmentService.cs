@@ -31,9 +31,12 @@ namespace SKD.Model {
                 .Select(t => (t.PartNo, t.CustomerPartDesc)).ToList();
             var parts = await partService.GetEnsureParts(inputParts);
 
+            // plant
+            var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
+
             // create shipment
             var shipment = new Shipment() {
-                Plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode),
+                Plant = plant,
                 Sequence = input.Sequence,
                 Lots = input.Lots.Select(lotDTO => new ShipmentLot {
                     LotNo = lotDTO.LotNo,
@@ -47,8 +50,33 @@ namespace SKD.Model {
                     }).ToList()
                 }).ToList()
             };
-
             context.Shipments.Add(shipment);
+
+
+            // Add / Update LotPart (s)
+
+            var lotPartInputs = Get_LotPartInputs_from_ShipmentInput(input);
+            var lotNumbers = lotPartInputs.Select(t => t.LotNo).Distinct().ToList();
+            var lots = await context.VehicleLots
+                .Where(t => lotNumbers.Any(lotNo => lotNo == t.LotNo))
+                .ToListAsync(); 
+
+            foreach(var lotPartInput in lotPartInputs) {
+                var lotPart = await context.LotParts
+                    .Where(t => t.Lot.LotNo == lotPartInput.LotNo)
+                    .Where(t => t.Part.PartNo == lotPartInput.PartNo)
+                    .FirstOrDefaultAsync();
+
+                if (lotPart == null) {
+                    lotPart = new LotPart {
+                        Lot = lots.First(t => t.LotNo == lotPartInput.LotNo),
+                        Part = parts.First(t => t.PartNo == lotPartInput.PartNo),
+                    };
+                    context.LotParts.Add(lotPart);
+                }
+                lotPart.BomQuantity = lotPartInput.Quantity;
+            }
+            
 
             // save
             await context.SaveChangesAsync();
@@ -72,6 +100,20 @@ namespace SKD.Model {
                 return errors;
             }
 
+            // mossing lot numbers
+            var incommingLotNumbers = input.Lots.Select(t => t.LotNo).Distinct().ToList();
+            var existingLotNumbers = await context.VehicleLots
+                .Where(t => incommingLotNumbers.Any(lotNo => lotNo == t.LotNo))
+                .Select(t => t.LotNo)
+                .ToListAsync();
+            var missingLotNumbers = incommingLotNumbers.Except(existingLotNumbers).ToList();
+
+            if (missingLotNumbers.Count > 0) {
+                var missingNumbersStr = String.Join(", ", missingLotNumbers.Take(3));
+                errors.Add(new Error("", $"lot number(s) not found {missingNumbersStr}..."));
+                return errors;
+            }
+        
             // shipment dto must have lot + invoice + parts
             if (!input.Lots.Any()) {
                 errors.Add(new Error("", "shipment must have lots"));
@@ -92,7 +134,6 @@ namespace SKD.Model {
                 errors.Add(new Error("", "shipment partNo cannot be empty"));
                 return errors;
             }
-
 
             // quantity >= 0
             if (input.Lots.Any(t => t.Invoices.Any(u => u.Parts.Any(p => p.Quantity <= 0)))) {
@@ -118,6 +159,24 @@ namespace SKD.Model {
             }).FirstOrDefaultAsync(t => t.Id == id);
         }
 
+        public List<LotPartInput> Get_LotPartInputs_from_ShipmentInput(ShipmentInput shipmentInput) {
+            return shipmentInput.Lots.Select(t => new {
+                LotParts = t.Invoices.SelectMany(u => u.Parts)
+                    .Select(u => new {
+                        LotNo = t.LotNo,
+                        PartNo = u.PartNo,
+                        Quantity = u.Quantity
+                    })                
+                })
+                .SelectMany(t => t.LotParts)
+                .GroupBy(t => new { t.LotNo, t.PartNo})
+                .Select(g => new LotPartInput {
+                    LotNo = g.Key.LotNo,
+                    PartNo = g.Key.PartNo,
+                    Quantity = g.Select(u => u.Quantity).Sum()
+                }).ToList();
+        }
+
         public async Task<List<BomShipmentLotPartDTO>> GetShipmentBomPartsCompare(Guid shipmentId) {
             var bomShipmentLotParts = await context.ShipmentParts
                 .Where(t => t.ShipmentInvoice.ShipmentLot.Shipment.Id == shipmentId)
@@ -138,7 +197,7 @@ namespace SKD.Model {
                     LotNo = g.Lot.LotNo,
                     PartNo = g.Part.PartNo,
                     PartDesc = g.Part.PartDesc,
-                    Quanity = g.Quantity
+                    Quanity = g.BomQuantity
                 })
                 .ToListAsync();
 

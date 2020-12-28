@@ -11,7 +11,7 @@ namespace SKD.Model {
 
             builder.HasIndex(t => new { t.LotId, t.PartId }).IsUnique();
 
-            builder.Property(t => t.Quantity).IsRequired();
+            builder.Property(t => t.BomQuantity).IsRequired();
 
             builder.HasOne(t => t.Lot)
                 .WithMany(t => t.LotParts)

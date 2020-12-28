@@ -11,16 +11,18 @@ namespace SKD.Test {
 
         public ShipmentService_Test() {
             ctx = GetAppDbContext();
+            Gen_Baseline_Test_Seed_Data();
         }
 
         [Fact]
         private async Task can_import_shipment() {
             // 
-            var plant = Gen_Plant();
+            var plant = await ctx.Plants.FirstAsync();
+            var lot = await ctx.VehicleLots.FirstAsync();
             var sequence = 2;
 
-            var input = Gen_ShipmentInput(plant.Code, Gen_LotNo(), sequence);
-            
+            var input = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence);
+
             // test
             var before_count = ctx.ShipmentParts.Count();
             var shipmentService = new ShipmentService(ctx);
@@ -41,7 +43,7 @@ namespace SKD.Test {
             var actual_shipment_parts_count = ctx.ShipmentParts.Count();
             Assert.Equal(expected_shipment_parts_count, actual_shipment_parts_count);
 
-            // parts count
+            // imported parts count
             var expected_parts_count = input.Lots
                 .SelectMany(t => t.Invoices)
                 .SelectMany(t => t.Parts)
@@ -49,13 +51,25 @@ namespace SKD.Test {
 
             var actual_parts_count = ctx.Parts.Count();
             Assert.Equal(expected_parts_count, actual_parts_count);
+
+            // lot parts count
+            var expected_lot_parts_count = input.Lots
+                .Select(t => new {
+                    LotParts = t.Invoices
+                        .SelectMany(t => t.Parts)
+                        .Select(u => new { LotNo = t.LotNo, PartNo = u.PartNo }).Distinct()
+                }).SelectMany(t => t.LotParts).Count();
+
+            var actual_lot_parts = ctx.LotParts.Count();
+            Assert.Equal(expected_lot_parts_count, actual_lot_parts);
         }
 
         [Fact]
         private async Task cannot_import_shipment_with_duplicate_plant_and_sequence() {
-            var plant = Gen_Plant();
+            var plant = await ctx.Plants.FirstAsync();
+            var lot = await ctx.VehicleLots.FirstAsync();
             var sequence = 2;
-            var input = Gen_ShipmentInput(plant.Code, Gen_LotNo(), sequence);
+            var input = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence);
             var shipmentService = new ShipmentService(ctx);
 
             // test
@@ -74,15 +88,33 @@ namespace SKD.Test {
         }
 
         [Fact]
+        private async Task cannot_import_shipment_if_lot_numbers_not_found() {
+            var plant = await ctx.Plants.FirstAsync();
+            var lotNo = Gen_LotNo();
+            var sequence = 2;
+            var input = Gen_ShipmentInput(plant.Code, lotNo, sequence);
+            var shipmentService = new ShipmentService(ctx);
+
+            // test
+            var payload = await shipmentService.ImportShipment(input);
+            
+            var actual_error_message = payload.Errors.Select(t => t.Message).FirstOrDefault();
+            var expected_message = "lot number(s) not found";
+            Assert.Equal(expected_message, actual_error_message.Substring(0, expected_message.Length));
+        }
+
+        [Fact]
         private async Task cannot_import_shipment_with_no_pards() {
             // setup
-            var plant = Gen_Plant();
+            var plant = await ctx.Plants.FirstAsync();
+            var lot = await ctx.VehicleLots.FirstAsync();
+
             var input = new ShipmentInput() {
                 PlantCode = plant.Code,
                 Sequence = 1,
                 Lots = new List<ShipmentLotInput> {
                     new ShipmentLotInput {
-                        LotNo = "1234",
+                        LotNo = lot.LotNo,
                         Invoices = new List<ShipmentInvoiceInput> {
                             new ShipmentInvoiceInput {
                                 InvoiceNo = "001",
@@ -108,13 +140,14 @@ namespace SKD.Test {
         [Fact]
         private async Task cannot_import_shipment_invoice_with_no_parts() {
             // setup
-            var plant = Gen_Plant();
+            var plant = await ctx.Plants.FirstAsync();
+            var lot = await ctx.VehicleLots.FirstAsync();
             var input = new ShipmentInput() {
                 PlantCode = plant.Code,
                 Sequence = 1,
                 Lots = new List<ShipmentLotInput> {
                     new ShipmentLotInput {
-                        LotNo = "1234",
+                        LotNo = lot.LotNo,
                         Invoices = new List<ShipmentInvoiceInput> {
                             new ShipmentInvoiceInput {
                                 InvoiceNo = "001",
@@ -139,13 +172,14 @@ namespace SKD.Test {
         [Fact]
         private async Task cannot_import_shipment_lot_with_no_invoices() {
             // setup
-            var plant = Gen_Plant();
+            var plant = await ctx.Plants.FirstAsync();
+            var lot = await ctx.VehicleLots.FirstAsync();
             var input = new ShipmentInput() {
                 PlantCode = plant.Code,
                 Sequence = 1,
                 Lots = new List<ShipmentLotInput> {
                     new ShipmentLotInput {
-                        LotNo = "1234",
+                        LotNo = lot.LotNo,
                         Invoices = new List<ShipmentInvoiceInput>()
                     }
                 }
@@ -160,6 +194,23 @@ namespace SKD.Test {
             var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
             var expectedError = "shipment lots must have invoices";
             Assert.Equal(expectedError, errorMessage);
+        }
+
+        [Fact]
+        public async Task shipment_lot_part_to_lotpart_input_works() {
+            // setup
+            var plant = await ctx.Plants.FirstAsync();
+            var lot = await ctx.VehicleLots.FirstAsync();
+            var shipmentInput = Gen_ShipmentInput(plant.Code, lot.LotNo, 6);
+
+            // test
+            var service = new ShipmentService(ctx);
+            var lotPartInputList = service.Get_LotPartInputs_from_ShipmentInput(shipmentInput);
+
+            // assert
+            var expected_lot_part_count = 2;
+            var actual_lot_part_count = lotPartInputList.Count();
+            Assert.Equal(expected_lot_part_count, actual_lot_part_count);
         }
 
         public ShipmentInput Gen_ShipmentInput(string plantCode, string lotNo, int sequence) {
@@ -188,13 +239,13 @@ namespace SKD.Test {
                                         PartNo = "part 1",
                                         CustomerPartDesc = "part 1 desc",
                                         CustomerPartNo = "part 1 desc",
-                                        Quantity = 1
+                                        Quantity = 3
                                     },
                                     new ShipmentPartInput {
                                         PartNo = "part 2",
                                         CustomerPartDesc = "part 2 desc",
                                         CustomerPartNo = "part 2 desc",
-                                        Quantity = 1
+                                        Quantity = 2
                                     }
                                 }
                             },
