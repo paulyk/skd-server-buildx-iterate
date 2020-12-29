@@ -205,9 +205,9 @@ namespace SKD.Server {
             };
         }
 
-        public async Task<List<BomShipmentLotPartDTO>> GetBomShipmentPartsCompareByBomId(
+        public async Task<List<LotPartDTO>> GetBomLotParts(
             [Service] QueryService service, Guid bomId) {
-            return await service.GetBomShipmentPartsCompareByBomId(bomId);
+            return await service.GetBomLotParts(bomId);
         }
         public async Task<List<BomShipmentLotPartDTO>> GetBomShipmentPartsCompareByLotNo(
             [Service] QueryService service, string lotNo) {
