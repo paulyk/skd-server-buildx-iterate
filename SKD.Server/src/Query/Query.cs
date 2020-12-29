@@ -87,8 +87,8 @@ namespace SKD.Server {
         public async Task<ShipmentOverviewDTO?> GetShipmentOverview([Service] ShipmentService service, Guid shipmentId) =>
             await service.GetShipmentOverview(shipmentId);
 
-        public async Task<List<BomShipmentLotPartDTO>> GetShipmentBomPartsCompare([Service] ShipmentService service, Guid shipmentId) =>
-            await service.GetShipmentBomPartsCompare(shipmentId);
+        public async Task<List<LotPartDTO>> GetShipmentLotParts([Service] ShipmentService service, Guid shipmentId) =>
+            await service.GetShipmentLotParts(shipmentId);
 
         public async Task<Vehicle?> GetVehicleById([Service] SkdContext context, Guid id) {
             var result = await context.Vehicles.AsNoTracking()

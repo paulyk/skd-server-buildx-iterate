@@ -115,7 +115,7 @@ namespace SKD.Model {
                 PartDesc = lotPart.Part.PartDesc,
                 BomQuantity = lotPart.BomQuantity,
                 ShipmentQuantity = lotPart.ShipmentQuantity,
-                QuantityReceived =  receivedLotPrt != null ? receivedLotPrt.Quantity : 0,
+                ReceivedQuantity =  receivedLotPrt != null ? receivedLotPrt.Quantity : 0,
                 ImportDate = lotPart.CreatedAt,
                 ReceivedDate = receivedLotPrt != null ? receivedLotPrt.CreatedAt : (DateTime?)null
             };

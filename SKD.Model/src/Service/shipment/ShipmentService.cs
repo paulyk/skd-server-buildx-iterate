@@ -177,40 +177,36 @@ namespace SKD.Model {
                 }).ToList();
         }
 
-        public async Task<List<BomShipmentLotPartDTO>> GetShipmentBomPartsCompare(Guid shipmentId) {
-            var bomShipmentLotParts = await context.ShipmentParts
-                .Where(t => t.ShipmentInvoice.ShipmentLot.Shipment.Id == shipmentId)
-                .GroupBy(t => new { t.ShipmentInvoice.ShipmentLot.LotNo, t.Part.PartNo, t.Part.PartDesc  })
-                .Select(t => new BomShipmentLotPartDTO {
-                    LotNo = t.Key.LotNo,
-                    PartNo = t.Key.PartNo,
-                    PartDesc = t.Key.PartDesc,
-                    ShipmentQuantity = t.Select(u => u.Quantity).Sum()
-                }).ToListAsync();
+        public async Task<List<LotPartDTO>> GetShipmentLotParts(Guid shipmentId) {
+            var lotNumbers = await context.ShipmentLots   
+                .Where(t => t.Shipment.Id == shipmentId)
+                .Select(t => t.LotNo).Distinct()
+                .ToListAsync();
 
+            var result = await context.LotParts
+                .Where(t => lotNumbers.Any(LotNo => LotNo == t.Lot.LotNo))
+                .Select(t => new LotPartDTO {
+                    LotNo = t.Lot.LotNo,
+                    PartNo = t.Part.PartNo,
+                    PartDesc = t.Part.PartDesc,
+                    BomQuantity  = t.BomQuantity,
+                    ShipmentQuantity = t.ShipmentQuantity,
 
-            var lotNumbers = bomShipmentLotParts.Select(t => t.LotNo).ToList();
-            
-            var bomLotParts = await context.LotParts
-                .Where(t => lotNumbers.Any(lotNo => lotNo == t.Lot.LotNo))
-                .Select(g => new {
-                    LotNo = g.Lot.LotNo,
-                    PartNo = g.Part.PartNo,
-                    PartDesc = g.Part.PartDesc,
-                    Quanity = g.BomQuantity
+                    ReceivedDate = t.Received.OrderByDescending(t => t.CreatedAt)
+                        .Where(t => t.RemovedAt == null)
+                        .Select(t => t.CreatedAt)
+                        .FirstOrDefault(),
+
+                    ReceivedQuantity = t.Received.OrderByDescending(t => t.CreatedAt)
+                        .Where(t => t.RemovedAt == null)
+                        .Select(t => t.Quantity)
+                        .FirstOrDefault(),
+
+                    ImportDate = t.CreatedAt
                 })
                 .ToListAsync();
 
-            // assign shipment lot part quantity
-            bomShipmentLotParts.ForEach(t => {
-                t.BomQuantity = bomLotParts
-                    .Where(b => b.LotNo == t.LotNo)
-                    .Where(b => b.PartNo == t.PartNo)
-                    .Select(b => b.Quanity)
-                    .FirstOrDefault();
-            });
-
-            return bomShipmentLotParts.OrderBy(t => t.LotNo).ThenBy(t => t.PartNo).ToList();
+            return result;
         }
     }
 }

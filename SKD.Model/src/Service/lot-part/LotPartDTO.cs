@@ -7,7 +7,7 @@ namespace SKD.Model {
         public string PartDesc { get; set; }
         public int BomQuantity { get; set; }
         public int ShipmentQuantity { get; set; }
-        public int QuantityReceived { get; set; }
+        public int ReceivedQuantity { get; set; }
         public DateTime ImportDate { get; set; }
         public DateTime? ReceivedDate {get; set; }
     }
