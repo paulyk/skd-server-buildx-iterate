@@ -166,7 +166,7 @@ namespace SKD.Server {
                                 .ThenInclude(t => t.EventType)
                         .FirstOrDefaultAsync(t => t.LotNo == lotNo);
 
-        public async Task<VehicleLotOverviewDTO?> GetVehicleLotOverview([Service] SkdContext context, string lotNo) {
+        public async Task<LotOverviewDTO?> GetLotOverview([Service] SkdContext context, string lotNo) {
             var vehicleLot = await context.VehicleLots.OrderBy(t => t.LotNo).AsNoTracking()
                 .Include(t => t.Vehicles).ThenInclude(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .Include(t => t.Vehicles).ThenInclude(t => t.Model)
@@ -175,7 +175,7 @@ namespace SKD.Server {
                 .FirstOrDefaultAsync(t => t.LotNo == lotNo);
 
             if (vehicleLot == null) {
-                return (VehicleLotOverviewDTO?)null;
+                return (LotOverviewDTO?)null;
             }
 
             var vehicle = vehicleLot.Vehicles.First();
@@ -186,7 +186,7 @@ namespace SKD.Server {
                 .Where(t => t.RemovedAt == null)
                 .FirstOrDefault(t => t.EventType.Code == TimeLineEventType.CUSTOM_RECEIVED.ToString());
 
-            return new VehicleLotOverviewDTO {
+            return new LotOverviewDTO {
                 Id = vehicleLot.Id,
                 LotNo = vehicleLot.LotNo,
                 BomId = vehicleLot.Bom.Id,

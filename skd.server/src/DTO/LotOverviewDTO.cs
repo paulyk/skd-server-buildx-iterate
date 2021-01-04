@@ -1,7 +1,7 @@
 using System;
 
 namespace SKD.Server {
-    public class VehicleLotOverviewDTO {
+    public class LotOverviewDTO {
         public Guid Id { get; set; }
 
         public Guid BomId { get; set; }
