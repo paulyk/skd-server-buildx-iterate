@@ -30,7 +30,7 @@ namespace SKD.Test {
             // test
             var LotPartService = new LotPartService(ctx);
             foreach (var lotPart in bomLotPartInput.LotParts) {
-                var lotPartInput = new LotPartInput {
+                var lotPartInput = new ReceiveLotPartInput {
                     LotNo = lotPart.LotNo,
                     PartNo = lotPart.PartNo,
                     Quantity = lotPart.Quantity
@@ -67,7 +67,7 @@ namespace SKD.Test {
             var shipment_payload = await shipmetService.ImportShipment(shipmentInput);
 
             var firstLotPart = bomLotPartInput.LotParts.First();
-            var lotPartInput = new LotPartInput {
+            var lotPartInput = new ReceiveLotPartInput {
                 LotNo = firstLotPart.LotNo,
                 PartNo = firstLotPart.PartNo,
                 Quantity = firstLotPart.Quantity + 1
@@ -115,7 +115,7 @@ namespace SKD.Test {
             var shipment_payload = await shipmetService.ImportShipment(shipmentInput);
 
             var firstLotPart = bomLotPartInput.LotParts.First();
-            var lotPartInput = new LotPartInput {
+            var lotPartInput = new ReceiveLotPartInput {
                 LotNo = firstLotPart.LotNo,
                 PartNo = firstLotPart.PartNo,
                 Quantity = firstLotPart.Quantity + 1

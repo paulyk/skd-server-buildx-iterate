@@ -16,7 +16,7 @@ namespace SKD.Model {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<LotPartDTO>> CreateLotPartQuantityReceived(LotPartInput input) {
+        public async Task<MutationPayload<LotPartDTO>> CreateLotPartQuantityReceived(ReceiveLotPartInput input) {
             var paylaod = new MutationPayload<LotPartDTO>(null);
             paylaod.Errors = await ValidateCreateLotPartReceipt(input);
             if (paylaod.Errors.Any()) {
@@ -51,7 +51,7 @@ namespace SKD.Model {
             return paylaod;
         }
 
-        public async Task<List<Error>> ValidateCreateLotPartReceipt(LotPartInput input) {
+        public async Task<List<Error>> ValidateCreateLotPartReceipt(ReceiveLotPartInput input) {
             var errors = new List<Error>();
 
             var lot = await context.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == input.LotNo);
@@ -61,7 +61,7 @@ namespace SKD.Model {
             }
 
             var part = await context.Parts.FirstOrDefaultAsync(t => t.PartNo == input.PartNo);
-            if (lot == null) {
+            if (part == null) {
                 errors.Add(new Error("PartNo", $"Part not found {input.PartNo.Trim()}"));
                 return errors;
             }

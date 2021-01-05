@@ -129,10 +129,10 @@ namespace SKD.Server {
                    PlantInput input
          ) => await service.CreatePlant(input);
 
-        // public async Task<MutationPayload<LotPartDTO>> CreateLotPartQuantityReceived(
-        //     [Service] LotPartService service,
-        //     LotPartInput input
-        // ) => await service.CreateLotPartQuantityReceived(input);
+        public async Task<MutationPayload<LotPartDTO>> CreateLotPartQuantityReceived(
+            [Service] LotPartService service,
+            ReceiveLotPartInput input
+        ) => await service.CreateLotPartQuantityReceived(input);
 
         private Guid ToGuid(string str) {
             Guid gOut;

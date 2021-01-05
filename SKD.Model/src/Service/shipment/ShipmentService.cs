@@ -158,7 +158,7 @@ namespace SKD.Model {
             }).FirstOrDefaultAsync(t => t.Id == id);
         }
 
-        public List<LotPartInput> Get_LotPartInputs_from_ShipmentInput(ShipmentInput shipmentInput) {
+        public List<LotPartQuantityDTO> Get_LotPartInputs_from_ShipmentInput(ShipmentInput shipmentInput) {
             return shipmentInput.Lots.Select(t => new {
                 LotParts = t.Invoices.SelectMany(u => u.Parts)
                     .Select(u => new {
@@ -169,7 +169,7 @@ namespace SKD.Model {
                 })
                 .SelectMany(t => t.LotParts)
                 .GroupBy(t => new { t.LotNo, t.PartNo})
-                .Select(g => new LotPartInput {
+                .Select(g => new LotPartQuantityDTO {
                     LotNo = g.Key.LotNo,
                     PartNo = g.Key.PartNo,
                     Quantity = g.Select(u => u.Quantity).Sum()
