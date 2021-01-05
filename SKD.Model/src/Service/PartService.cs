@@ -20,11 +20,11 @@ namespace SKD.Model {
             var parts = new List<Part>();
 
             foreach (var inputPart in inputParts) {
-                if (!parts.Any(t => t.PartNo == inputPart.partNo)) {
-                    var part = await context.Parts.FirstOrDefaultAsync(t => t.PartNo == inputPart.partNo);
+                if (!parts.Any(t => t.PartNo == inputPart.partNo.Trim())) {
+                    var part = await context.Parts.FirstOrDefaultAsync(t => t.PartNo == inputPart.partNo.Trim());
                     if (part == null) {
                         part = new Part {
-                            PartNo = inputPart.partNo,
+                            PartNo = inputPart.partNo.Trim(),
                             PartDesc = inputPart.partDesc
                         };
                         context.Parts.Add(part);
