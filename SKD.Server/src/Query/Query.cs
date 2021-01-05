@@ -316,14 +316,12 @@ namespace SKD.Server {
 
         public async Task<VehicleSnapshotRunDTO?> GetVehicleSnapshotRunByDate(
                   [Service] VehicleSnapshotService service,
-                  [Service] SkdContext ctx,
                   string plantCode,
                   DateTime runDate
         ) => await service.GetSnapshotRunByDate(plantCode, runDate);
 
         public async Task<VehicleSnapshotRunDTO?> GetVehicleSnapshotRun(
                   [Service] VehicleSnapshotService service,
-                  [Service] SkdContext ctx,
                   string plantCode,
                   int sequence
         ) => await service.GetSnapshotRunBySequence(plantCode, sequence);
@@ -331,20 +329,25 @@ namespace SKD.Server {
 
         public async Task<List<SnapshotDTO>> GetRecentVehicleSnapshotRuns(
                   [Service] VehicleSnapshotService service,
-                  [Service] SkdContext ctx,
                   string plantCode,
                   int count
         ) => await service.GetSnapshotRuns(plantCode, count);
 
-        public async Task<LotDTO?> GetLotInfo(                
+        public async Task<LotDTO?> GetLotInfo(
                [Service] LotPartService service,
                string lotNo
         ) => await service.GetLotInfo(lotNo);
 
-        public async Task<LotPartDTO?> GetLotPartInfo(                
+        public async Task<LotPartDTO?> GetLotPartInfo(
                [Service] LotPartService service,
                string lotNo,
                string partNo
         ) => await service.GetLotPartInfo(lotNo, partNo);
+
+        public async Task<List<LotPartDTO>> GetRecentLotPartsReceived(
+            [Service] LotPartService service,
+            int count = 100) {
+            return await service.GetRecentLotPartsReceived(count);
+        }
     }
 }
