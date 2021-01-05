@@ -87,8 +87,8 @@ namespace SKD.Server {
         public async Task<ShipmentOverviewDTO?> GetShipmentOverview([Service] ShipmentService service, Guid shipmentId) =>
             await service.GetShipmentOverview(shipmentId);
 
-        public async Task<List<LotPartDTO>> GetShipmentLotParts([Service] ShipmentService service, Guid shipmentId) =>
-            await service.GetShipmentLotParts(shipmentId);
+        public async Task<List<LotPartDTO>> GetLotPartsByShipment([Service] QueryService service, Guid shipmentId) =>
+            await service.GetLotPartsByShipment(shipmentId);
 
         public async Task<Vehicle?> GetVehicleById([Service] SkdContext context, Guid id) {
             var result = await context.Vehicles.AsNoTracking()
@@ -205,13 +205,9 @@ namespace SKD.Server {
             };
         }
 
-        public async Task<List<LotPartDTO>> GetBomLotParts(
+        public async Task<List<LotPartDTO>> GetLotPartsByBom(
             [Service] QueryService service, Guid bomId) {
-            return await service.GetBomLotParts(bomId);
-        }
-        public async Task<List<BomShipmentLotPartDTO>> GetBomShipmentPartsCompareByLotNo(
-            [Service] QueryService service, string lotNo) {
-            return await service.GetBomShipmentPartsCompareByLotNo(lotNo);
+            return await service.GetLotPartsByBom(bomId);
         }
 
         public async Task<List<Vehicle>> GetVehiclesByLot([Service] SkdContext context, string lotNo) =>

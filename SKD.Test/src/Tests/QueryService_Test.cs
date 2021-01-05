@@ -15,7 +15,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        private async Task can_get_bom_shipment_parts_compare_by_bom_id() {
+        private async Task can_get_lot_parts_by_bom() {
             // setup
             var bomSequence = 1;
             var plant = Gen_Plant();
@@ -76,20 +76,13 @@ namespace SKD.Test {
 
             // test by id
             var queryService = new QueryService(ctx);
-            var bomLotPartsCompare = await queryService.GetBomLotParts(bomPayload.Entity.Id);
+            var bomLotPartsCompare = await queryService.GetLotPartsByBom(bomPayload.Entity.Id);
 
             var expected_Lot_parts_count = 2;
             var actualCount= bomLotPartsCompare.Count();
             Assert.Equal(expected_Lot_parts_count, actualCount);
 
             foreach(var entry in bomLotPartsCompare) {
-                Assert.Equal(entry.BomQuantity, entry.ShipmentQuantity);
-            }
-
-            // test by lot
-            
-            var lotPartsCompare = await queryService.GetBomShipmentPartsCompareByLotNo(lot1);
-            foreach(var entry in lotPartsCompare) {
                 Assert.Equal(entry.BomQuantity, entry.ShipmentQuantity);
             }
 
