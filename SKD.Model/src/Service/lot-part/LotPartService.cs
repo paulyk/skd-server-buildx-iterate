@@ -26,7 +26,7 @@ namespace SKD.Model {
             var lotPart = await context.LotParts
                 .Include(t => t.Received)
                 .Where(t => t.Lot.LotNo == input.LotNo)
-                .Where(t => t.Part.PartNo == input.PartNo)                
+                .Where(t => t.Part.PartNo == input.PartNo)
                 .FirstOrDefaultAsync();
 
             // mark existing received records as removed
@@ -47,7 +47,7 @@ namespace SKD.Model {
 
             await context.SaveChangesAsync();
 
-            paylaod.Entity = await GetLotPartOverview(input.LotNo, input.PartNo);
+            paylaod.Entity = await GetLotPartInfo(input.LotNo, input.PartNo);
             return paylaod;
         }
 
@@ -74,9 +74,9 @@ namespace SKD.Model {
             var lotPart = await context.LotParts
                 .Include(t => t.Received)
                 .Where(t => t.Lot.LotNo == input.LotNo)
-                .Where(t => t.Part.PartNo == input.PartNo)                
+                .Where(t => t.Part.PartNo == input.PartNo)
                 .FirstOrDefaultAsync();
-            
+
             if (lotPart == null) {
                 errors.Add(new Error("", "no matching lot + part found in system"));
                 return errors;
@@ -96,7 +96,7 @@ namespace SKD.Model {
             return errors;
         }
 
-        public async Task<LotPartDTO> GetLotPartOverview(string lotNo, string PartNo) {
+        public async Task<LotPartDTO> GetLotPartInfo(string lotNo, string PartNo) {
             var lotPart = await context.LotParts
                 .Where(t => t.Lot.LotNo == lotNo && t.Part.PartNo == PartNo)
                     .Include(t => t.Lot)
@@ -108,17 +108,28 @@ namespace SKD.Model {
                     .OrderByDescending(t => t.CreatedAt)
                     .Where(t => t.RemovedAt == null)
                     .FirstOrDefault();
-            
+
             return new LotPartDTO {
                 LotNo = lotPart.Lot.LotNo,
                 PartNo = lotPart.Part.PartNo,
                 PartDesc = lotPart.Part.PartDesc,
                 BomQuantity = lotPart.BomQuantity,
                 ShipmentQuantity = lotPart.ShipmentQuantity,
-                ReceivedQuantity =  receivedLotPrt != null ? receivedLotPrt.Quantity : 0,
+                ReceivedQuantity = receivedLotPrt != null ? receivedLotPrt.Quantity : 0,
                 ImportDate = lotPart.CreatedAt,
                 ReceivedDate = receivedLotPrt != null ? receivedLotPrt.CreatedAt : (DateTime?)null
             };
         }
+
+        public async Task<LotDTO?> GetLotInfo(string lotNo) {
+            var result = await context.VehicleLots.Select(t => new LotDTO {
+                LotNo = t.LotNo,
+                CreatedAt = t.CreatedAt,
+                ModelName = t.Vehicles.Select(u => u.Model.Name).FirstOrDefault()
+            }).FirstOrDefaultAsync(t => t.LotNo == lotNo);
+
+            return result;
+        }
+
     }
 }

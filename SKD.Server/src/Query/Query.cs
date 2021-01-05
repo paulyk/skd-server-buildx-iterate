@@ -87,9 +87,6 @@ namespace SKD.Server {
         public async Task<ShipmentOverviewDTO?> GetShipmentOverview([Service] ShipmentService service, Guid shipmentId) =>
             await service.GetShipmentOverview(shipmentId);
 
-        public async Task<List<LotPartDTO>> GetLotPartsByShipment([Service] QueryService service, Guid shipmentId) =>
-            await service.GetLotPartsByShipment(shipmentId);
-
         public async Task<Vehicle?> GetVehicleById([Service] SkdContext context, Guid id) {
             var result = await context.Vehicles.AsNoTracking()
                     .Include(t => t.Lot)
@@ -210,6 +207,9 @@ namespace SKD.Server {
             return await service.GetLotPartsByBom(bomId);
         }
 
+        public async Task<List<LotPartDTO>> GetLotPartsByShipment([Service] QueryService service, Guid shipmentId) =>
+            await service.GetLotPartsByShipment(shipmentId);
+
         public async Task<List<Vehicle>> GetVehiclesByLot([Service] SkdContext context, string lotNo) =>
                  await context.Vehicles.OrderBy(t => t.Lot).AsNoTracking()
                     .Where(t => t.Lot.LotNo == lotNo)
@@ -280,7 +280,6 @@ namespace SKD.Server {
                         .Include(t => t.Lots).ThenInclude(t => t.LotParts)
                         .FirstOrDefaultAsync(t => t.Id == id);
 
-
         public async Task<BomOverviewDTO?> GetBomOverview([Service] BomService service, Guid id) =>
              await service.GetBomOverview(id);
 
@@ -299,7 +298,6 @@ namespace SKD.Server {
                         .Select(t => t.EventType.Code).FirstOrDefault(),
                         CreatedAt = t.CreatedAt
                     }).ToListAsync();
-
 
         public async Task<List<PartQuantityDTO>> GetBomPartsQuantity([Service] SkdContext context, Guid id) {
             var result = await context.LotParts
@@ -338,5 +336,15 @@ namespace SKD.Server {
                   int count
         ) => await service.GetSnapshotRuns(plantCode, count);
 
+        public async Task<LotDTO?> GetLotInfo(                
+               [Service] LotPartService service,
+               string lotNo
+        ) => await service.GetLotInfo(lotNo);
+
+        public async Task<LotPartDTO?> GetLotPartInfo(                
+               [Service] LotPartService service,
+               string lotNo,
+               string partNo
+        ) => await service.GetLotPartInfo(lotNo, partNo);
     }
 }
