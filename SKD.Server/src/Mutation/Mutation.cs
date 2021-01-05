@@ -17,7 +17,6 @@ namespace SKD.Server {
         /// </summary>
         public async Task<MutationPayload<VehicleLot>> CreateVehicleLot(
             [Service] VehicleService service,
-            [Service] SkdContext ctx,
             VehicleLotInput input
         ) {
             return await service.CreateVehicleLot(input);
@@ -25,7 +24,6 @@ namespace SKD.Server {
 
         public async Task<MutationPayload<VehicleModel>> CreateVehicleModel(
             [Service] VehicleModelService service,
-            [Service] SkdContext ctx,
             VehicleModelInput input
         ) {
             return await service.CreateVehicleModel(input);
@@ -33,7 +31,6 @@ namespace SKD.Server {
 
         public async Task<MutationPayload<VehicleLot>> AssignVehicleKitVin(
             [Service] VehicleService service,
-            [Service] SkdContext ctx,
             AssignKitVinInput input
         ) {
             return await service.AssingVehicleKitVin(input);
@@ -41,7 +38,6 @@ namespace SKD.Server {
 
         public async Task<MutationPayload<VehicleTimelineEvent>> CreateVehicleTimelineEvent(
             [Service] VehicleService service,
-            [Service] SkdContext ctx,
             VehicleTimelineEventInput input
         ) {
             return await service.CreateVehicleTimelineEvent(input);
@@ -49,7 +45,6 @@ namespace SKD.Server {
 
         public async Task<MutationPayload<VehicleLot>> CreateVehicleLotTimelineEvent(
             [Service] VehicleService service,
-            [Service] SkdContext ctx,
             VehicleLotTimelineEventInput input
         ) {
             return await service.CreateVehicleLotTimelineEvent(input);
@@ -60,7 +55,6 @@ namespace SKD.Server {
         /// </summary>
         public async Task<MutationPayload<Component>> SaveComponent(
             [Service] ComponentService service1,
-            [Service] SkdContext ctx,
             ComponentInput input
         ) {
             var dto = new Model.ComponentInput {
@@ -76,7 +70,6 @@ namespace SKD.Server {
         /// </summary>
         public async Task<MutationPayload<ProductionStation>> SaveProductionStation(
             [Service] ProductionStationService service,
-            [Service] SkdContext ctx,
             ProductionStationInput input
         ) {
             var dto = new Model.ProductionStationInput {
@@ -89,7 +82,6 @@ namespace SKD.Server {
 
         public async Task<MutationPayload<ComponentScan>> CreateComponentScan(
           [Service] ComponentScanService service,
-          [Service] SkdContext ctx,
           ComponentScanInput input
         ) {
             var dto = new ComponentScanInput {
@@ -102,7 +94,6 @@ namespace SKD.Server {
 
         public async Task<MutationPayload<DCWSResponse>> CreateDcwsResponse(
           [Service] DCWSResponseService service,
-          [Service] SkdContext ctx,
           DCWWResponseInput input
         ) {
             var dto = new DCWWResponseInput {
@@ -115,33 +106,33 @@ namespace SKD.Server {
 
         public async Task<MutationPayload<ShipmentOverviewDTO>> ImportShipment(
             [Service] ShipmentService service,
-            [Service] SkdContext ctx,
             ShipmentInput input
         ) => await service.ImportShipment(input);
 
-         public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotKits(
-                  [Service] BomService service,
-                  [Service] SkdContext ctx,
-                  BomLotKitInput input
-        ) => await service.ImportBomLotKits(input);
+        public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotKits(
+                 [Service] BomService service,
+                 BomLotKitInput input
+       ) => await service.ImportBomLotKits(input);
 
-         public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotParts(
-                  [Service] BomService service,
-                  [Service] SkdContext ctx,
-                  BomLotPartInput input
-        ) => await service.ImportBomLotParts(input);
+        public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotParts(
+                 [Service] BomService service,
+                 BomLotPartInput input
+       ) => await service.ImportBomLotParts(input);
 
         public async Task<MutationPayload<SnapshotDTO>> GenerateVehicleSnapshotRun(
                   [Service] VehicleSnapshotService service,
-                  [Service] SkdContext ctx,
                   VehicleSnapshotInput input
         ) => await service.GenerateSnapshot(input);
 
-       public async Task<MutationPayload<PlantOverviewDTO>> CreatePlant(
-                  [Service] PlantService service,
-                  [Service] SkdContext ctx,
-                  PlantInput input
-        ) => await service.CreatePlant(input);
+        public async Task<MutationPayload<PlantOverviewDTO>> CreatePlant(
+                   [Service] PlantService service,
+                   PlantInput input
+         ) => await service.CreatePlant(input);
+
+        // public async Task<MutationPayload<LotPartDTO>> CreateLotPartQuantityReceived(
+        //     [Service] LotPartService service,
+        //     LotPartInput input
+        // ) => await service.CreateLotPartQuantityReceived(input);
 
         private Guid ToGuid(string str) {
             Guid gOut;
