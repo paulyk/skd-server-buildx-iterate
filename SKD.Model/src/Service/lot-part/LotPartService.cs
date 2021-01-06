@@ -96,13 +96,17 @@ namespace SKD.Model {
             return errors;
         }
 
-        public async Task<LotPartDTO> GetLotPartInfo(string lotNo, string PartNo) {
+        public async Task<LotPartDTO?> GetLotPartInfo(string lotNo, string PartNo) {
             var lotPart = await context.LotParts
                 .Where(t => t.Lot.LotNo == lotNo && t.Part.PartNo == PartNo)
                     .Include(t => t.Lot)
                     .Include(t => t.Part)
                     .Include(t => t.Received)
                 .FirstOrDefaultAsync();
+
+            if (lotPart == null) {
+                return null;
+            }
 
             var receivedLotPrt = lotPart.Received
                     .OrderByDescending(t => t.CreatedAt)
