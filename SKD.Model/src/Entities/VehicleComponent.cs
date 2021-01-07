@@ -13,7 +13,7 @@ namespace SKD.Model {
         public Guid ProductionStationId { get; set; }
         public ProductionStation ProductionStation { get; set; }
 
-        public virtual ICollection<ComponentScan> ComponentScans { get; set; } = new List<ComponentScan>();
+        public virtual ICollection<ComponentSerial> ComponentSerials { get; set; } = new List<ComponentSerial>();
         public DateTime? ScanVerifiedAt { get; set; }
 
         public VehicleComponent(): base() {

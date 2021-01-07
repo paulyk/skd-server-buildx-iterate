@@ -14,7 +14,7 @@ namespace SKD.Model {
         public DbSet<Component> Components { get; set; }
         public DbSet<VehicleModel> VehicleModels { get; set; }
         public DbSet<VehicleComponent> VehicleComponents { get; set; }
-        public DbSet<ComponentScan> ComponentScans { get; set; }
+        public DbSet<ComponentSerial> ComponentSerials { get; set; }
         public DbSet<DCWSResponse> DCWSResponses { get; set; }
         public DbSet<VehicleModelComponent> VehicleModelComponents { get; set; }
         public DbSet<ProductionStation> ProductionStations { get; set; }
@@ -43,7 +43,7 @@ namespace SKD.Model {
             builder.ApplyConfiguration(new VehicleModel_Config());
             builder.ApplyConfiguration(new VehicleComponent_Config());
             builder.ApplyConfiguration(new VehicleModelComponent_Config());
-            builder.ApplyConfiguration(new VehicleComponentScan_Config());
+            builder.ApplyConfiguration(new ComponentSerial_Config());
             builder.ApplyConfiguration(new VehicleTimelineEventType_Config());
             builder.ApplyConfiguration(new VehicleTimelineEvent_Config());
             builder.ApplyConfiguration(new DCWSResponse_Config());

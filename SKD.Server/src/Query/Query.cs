@@ -53,8 +53,8 @@ namespace SKD.Server {
         [UseSelection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<ComponentScan> GetComponentScans([Service] SkdContext context) =>
-                context.ComponentScans
+        public IQueryable<ComponentSerial> GetComponentScans([Service] SkdContext context) =>
+                context.ComponentSerials
                         .Include(t => t.VehicleComponent)
                                 .ThenInclude(t => t.Vehicle)
                                 .ThenInclude(t => t.Model)
@@ -67,7 +67,7 @@ namespace SKD.Server {
         [UseSorting]
         public IQueryable<DCWSResponse> GetDcwsResponses([Service] SkdContext context) =>
                 context.DCWSResponses
-                        .Include(t => t.ComponentScan).ThenInclude(t => t.VehicleComponent)
+                        .Include(t => t.ComponentSerial).ThenInclude(t => t.VehicleComponent)
                         .AsQueryable();
 
         [UsePaging]
@@ -92,7 +92,7 @@ namespace SKD.Server {
                     .Include(t => t.Lot)
                     .Include(t => t.VehicleComponents).ThenInclude(t => t.Component)
                     .Include(t => t.VehicleComponents).ThenInclude(t => t.ProductionStation)
-                    .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentScans)
+                    .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentSerials)
                     .Include(t => t.Model)
                     .Include(t => t.TimelineEvents)
                     .FirstOrDefaultAsync(t => t.Id == id);
@@ -105,7 +105,7 @@ namespace SKD.Server {
                     .Include(t => t.Lot)
                     .Include(t => t.VehicleComponents).ThenInclude(t => t.Component)
                     .Include(t => t.VehicleComponents).ThenInclude(t => t.ProductionStation)
-                    .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentScans)
+                    .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentSerials)
                     .Include(t => t.Model)
                     .Include(t => t.TimelineEvents)
                     .FirstOrDefaultAsync(t => t.VIN == vinOrKitNo || t.KitNo == vinOrKitNo);
@@ -230,7 +230,7 @@ namespace SKD.Server {
                  await context.VehicleComponents.AsNoTracking()
                         .Include(t => t.Vehicle)
                         .Include(t => t.Component)
-                        .Include(t => t.ComponentScans)
+                        .Include(t => t.ComponentSerials)
                         .FirstOrDefaultAsync(t => t.Vehicle.VIN == vin && t.Component.Code == componentCode);
 
         public async Task<VehicleOrComponentDTO> GetVehicleOrComponent([Service] SkdContext context, string vinOrCode) {
@@ -251,13 +251,13 @@ namespace SKD.Server {
             };
         }
 
-        public async Task<ComponentScan?> GetComponentScanById([Service] SkdContext context, Guid id) =>
-                await context.ComponentScans.AsNoTracking()
+        public async Task<ComponentSerial?> GetComponentScanById([Service] SkdContext context, Guid id) =>
+                await context.ComponentSerials.AsNoTracking()
                         .Include(t => t.VehicleComponent).ThenInclude(t => t.Vehicle)
                         .FirstOrDefaultAsync(t => t.Id == id);
 
-        public async Task<ComponentScan?> GetExistingComponentScan([Service] SkdContext context, Guid vehicleComponentId) =>
-               await context.ComponentScans.AsNoTracking()
+        public async Task<ComponentSerial?> GetExistingComponentScan([Service] SkdContext context, Guid vehicleComponentId) =>
+               await context.ComponentSerials.AsNoTracking()
                         .Include(t => t.VehicleComponent)
                         .FirstOrDefaultAsync(t => t.VehicleComponentId == vehicleComponentId && t.RemovedAt == null);
 

@@ -25,7 +25,7 @@ namespace SKD.Model {
                 ResponseCode = input.ResponseCode,
                 ErrorMessage = input.ErrorMessage,
                 ComponentScanId = input.ComponentScanId,
-                ComponentScan = await context.ComponentScans
+                ComponentSerial = await context.ComponentSerials
                     .Include(t => t.VehicleComponent)
                     .FirstOrDefaultAsync(t => t.Id == input.ComponentScanId),
                 DcwsSuccessfulSave = IsDcwsSuccessfulSaveResonseCode(input.ResponseCode)
@@ -38,8 +38,8 @@ namespace SKD.Model {
             }
 
             // update denormalized values
-            response.ComponentScan.AcceptedAt = response.DcwsSuccessfulSave ? DateTime.UtcNow : (DateTime?)null;
-            response.ComponentScan.VehicleComponent.ScanVerifiedAt = response.DcwsSuccessfulSave ? DateTime.UtcNow : (DateTime?)null;
+            response.ComponentSerial.AcceptedAt = response.DcwsSuccessfulSave ? DateTime.UtcNow : (DateTime?)null;
+            response.ComponentSerial.VehicleComponent.ScanVerifiedAt = response.DcwsSuccessfulSave ? DateTime.UtcNow : (DateTime?)null;
 
             context.DCWSResponses.Add(payload.Entity);
             await context.SaveChangesAsync();
@@ -49,7 +49,7 @@ namespace SKD.Model {
         public async Task<List<Error>> ValidateDCWSResponse<T>(DCWWResponseInput dto) where T : DCWWResponseInput {
             var errors = new List<Error>();
 
-            var componentScan = await context.ComponentScans
+            var componentScan = await context.ComponentSerials
                 .Include(t => t.DCWSResponses)
                 .Include(t => t.VehicleComponent).ThenInclude(t => t.Vehicle)
                 .FirstOrDefaultAsync(t => t.Id == dto.ComponentScanId);

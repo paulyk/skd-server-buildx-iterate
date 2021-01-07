@@ -49,7 +49,7 @@ namespace SKD.Server {
                 .AddTransient<ComponentService>()
                 .AddTransient<DCWSResponseService>()
                 .AddTransient<ProductionStationService>()
-                .AddTransient<ComponentScanService>()
+                .AddTransient<ComponentSerialService>()
                 .AddTransient<ShipmentService>()
                 .AddTransient<BomService>()
                 .AddTransient<PlantService>()

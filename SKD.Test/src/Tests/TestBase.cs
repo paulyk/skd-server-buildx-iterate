@@ -195,14 +195,14 @@ namespace SKD.Test {
             return vehicleModel;
         }
 
-        public ComponentScan Gen_ComponentScan(Guid vehicleComponentId) {
+        public ComponentSerial Gen_ComponentScan(Guid vehicleComponentId) {
             var vehicleComponent = ctx.VehicleComponents.FirstOrDefault(t => t.Id == vehicleComponentId);
-            var componentScan = new ComponentScan {
+            var componentScan = new ComponentSerial {
                 VehicleComponentId = vehicleComponentId,
-                Scan1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
-                Scan2 = ""
+                Serial1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
+                Serial2 = ""
             };
-            ctx.ComponentScans.Add(componentScan);
+            ctx.ComponentSerials.Add(componentScan);
             ctx.SaveChanges();
             return componentScan;
         }

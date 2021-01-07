@@ -248,13 +248,13 @@ namespace SKD.Model {
                 return "";
             }
 
-            var componentScan = await context.ComponentScans
+            var componentScan = await context.ComponentSerials
                 .Where(t => t.VehicleComponent.Vehicle.KitNo == vehicle.KitNo)
                 .Where(t => t.VehicleComponent.Component.Code == engineComponentCode)
                 .Where(t => t.AcceptedAt != null && t.RemovedAt == null)
                 .FirstOrDefaultAsync();
 
-            return (componentScan?.Scan1 + " " + componentScan?.Scan2).Trim();
+            return (componentScan?.Serial1 + " " + componentScan?.Serial2).Trim();
         }
 
         private DateTime? GetVehicleTimelineEventDate(Vehicle vehicle, TimeLineEventType eventType) {

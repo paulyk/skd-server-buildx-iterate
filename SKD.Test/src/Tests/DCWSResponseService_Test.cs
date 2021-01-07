@@ -35,11 +35,11 @@ namespace SKD.Test {
             Assert.True(responseCoount == 1, "should have 1 DCWSResponse entry");
 
             var response = ctx.DCWSResponses
-                .Include(t => t.ComponentScan).ThenInclude(t => t.VehicleComponent)
+                .Include(t => t.ComponentSerial).ThenInclude(t => t.VehicleComponent)
                 .FirstOrDefault(t => t.Id == payload.Entity.Id);
 
-            Assert.True(response.ComponentScan.AcceptedAt != null, "component scan AcceptedAt should be set");
-            Assert.True(response.ComponentScan.VehicleComponent.ScanVerifiedAt != null, "vehicle component ScanVerifiedAt should be set");
+            Assert.True(response.ComponentSerial.AcceptedAt != null, "component scan AcceptedAt should be set");
+            Assert.True(response.ComponentSerial.VehicleComponent.ScanVerifiedAt != null, "vehicle component ScanVerifiedAt should be set");
         }
 
         [Fact]

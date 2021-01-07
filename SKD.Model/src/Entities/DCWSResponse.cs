@@ -7,7 +7,7 @@ namespace SKD.Model {
         public string ErrorMessage { get; set; }
 
         public Guid ComponentScanId { get; set;}
-        public ComponentScan ComponentScan { get; set; }
+        public ComponentSerial ComponentSerial { get; set; }
 
         public bool DcwsSuccessfulSave { get; set; }
     }

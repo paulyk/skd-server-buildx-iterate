@@ -13,7 +13,7 @@ namespace SKD.Model {
             builder.Property(t => t.ResponseCode).HasMaxLength(EntityFieldLen.DCWSResponse_Code);            
             builder.Property(t => t.ErrorMessage).HasMaxLength(EntityFieldLen.DCWS_ErrorMessage);
                             
-            builder.HasOne(t => t.ComponentScan)
+            builder.HasOne(t => t.ComponentSerial)
                 .WithMany(t => t.DCWSResponses)
                 .HasForeignKey(t => t.ComponentScanId);
                          

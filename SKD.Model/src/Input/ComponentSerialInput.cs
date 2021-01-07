@@ -1,10 +1,10 @@
 using System;
 
 namespace SKD.Model {
-    public class ComponentScanInput {
+    public class ComponentSerialInput {
         public Guid VehicleComponentId { get; set; }
-        public string Scan1 { get; set; }
-        public string Scan2 { get; set; }
+        public string Serial1 { get; set; }
+        public string Serial2 { get; set; }
         public Boolean Replace { get; set; } 
     }
 }

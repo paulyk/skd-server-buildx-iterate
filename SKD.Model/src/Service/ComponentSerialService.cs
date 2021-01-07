@@ -7,53 +7,67 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SKD.Model {
 
-    public class ComponentScanService {
+    public class ComponentSerialService {
         private readonly SkdContext context;
 
-        public ComponentScanService(SkdContext ctx) => this.context = ctx;
+        public ComponentSerialService(SkdContext ctx) => this.context = ctx;
 
-        public async Task<MutationPayload<ComponentScan>> CreateComponentScan(ComponentScanInput dto) {
-            // swap if scan1 empty
-            if (dto.Scan1.Trim().Length == 0) {
-                dto.Scan1 = dto.Scan2;
-                dto.Scan2 = null;
-            }
+        public async Task<MutationPayload<ComponentSerialDTO>> CaptureComponentSerial(ComponentSerialInput dto) {
+            var payload = new MutationPayload<ComponentSerialDTO>(null);
 
-            var componentScan = new ComponentScan {
-                Scan1 = dto.Scan1,
-                Scan2 = dto.Scan2,
-                VehicleComponentId = dto.VehicleComponentId
-            };
-
-            var payload = new MutationPayload<ComponentScan>(componentScan);
-
-            payload.Errors = await ValidateCreateComponentScan<ComponentScan>(dto);
+            payload.Errors = await ValidateCaptureComponentSerial<ComponentSerialInput>(dto);
             if (payload.Errors.Count() > 0) {
                 return payload;
             }
 
+            // swap if scan1 empty
+            if (dto.Serial1.Trim().Length == 0) {
+                dto.Serial1 = dto.Serial2;
+                dto.Serial2 = null;
+            }
+
+            var componentSerial = new ComponentSerial {
+                Serial1 = dto.Serial1,
+                Serial2 = dto.Serial2,
+                VehicleComponentId = dto.VehicleComponentId
+            };
+
+
             // Deactivate existing scan if Replace == true
             if (dto.Replace) {
-                var existintScans = await context.ComponentScans
+                var existintScans = await context.ComponentSerials
                     .Where(t => t.VehicleComponentId == dto.VehicleComponentId && t.RemovedAt == null).ToListAsync();                
                 existintScans.ForEach(t => t.RemovedAt = DateTime.UtcNow);
             }
 
             // add             
-            context.ComponentScans.Add(componentScan);
+            context.ComponentSerials.Add(componentSerial);
 
             // save
             await context.SaveChangesAsync();
+
+            payload.Entity = await context.ComponentSerials
+                .Where(t => t.Id == componentSerial.Id)
+                .Select(t => new ComponentSerialDTO {
+                    Id = t.Id,
+                    VIN = t.VehicleComponent.Vehicle.VIN,
+                    LotNo = t.VehicleComponent.Vehicle.Lot.LotNo,
+                    ComponentCode = t.VehicleComponent.Component.Code,
+                    ComponentName = t.VehicleComponent.Component.Name,
+                    Serial1 = t.Serial1,
+                    Serial2 = t.Serial2,
+                    CreatedAt = t.CreatedAt
+                }).FirstOrDefaultAsync();
             return payload;
         }
 
-        public async Task<List<Error>> ValidateCreateComponentScan<T>(ComponentScanInput scan) where T : ComponentScan {
+        public async Task<List<Error>> ValidateCaptureComponentSerial<T>(ComponentSerialInput scan) where T : ComponentSerialInput {
             var errors = new List<Error>();
 
             var vehicleComponent = await context.VehicleComponents.AsNoTracking()
                     .Include(t => t.Component)
                     .Include(t => t.ProductionStation)
-                    .Include(t => t.ComponentScans)
+                    .Include(t => t.ComponentSerials)
                 .FirstOrDefaultAsync(t => t.Id == scan.VehicleComponentId);
 
             // vehicle component id
@@ -66,32 +80,32 @@ namespace SKD.Model {
                 ? await context.Vehicles.AsNoTracking()
                     .Include(t => t.VehicleComponents).ThenInclude(t => t.Component)
                     .Include(t => t.VehicleComponents).ThenInclude(t => t.ProductionStation)
-                    .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentScans)
+                    .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentSerials)
                     .FirstOrDefaultAsync(t => t.Id == vehicleComponent.VehicleId)
                 : null;
 
             // scan 1 || scan 2 set
-            if (string.IsNullOrEmpty(scan.Scan1) && string.IsNullOrEmpty(scan.Scan2)) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Scan1, "scan1 and or scan2 required"));
+            if (string.IsNullOrEmpty(scan.Serial1) && string.IsNullOrEmpty(scan.Serial2)) {
+                errors.Add(ErrorHelper.Create<T>(t => t.Serial1, "serial1 and or serial2 required"));
                 return errors;
             }
 
-            if (scan.Scan1?.Length > 0 && scan.Scan1?.Length < EntityFieldLen.ComponentScan_ScanEntry_Min
+            if (scan.Serial1?.Length > 0 && scan.Serial1?.Length < EntityFieldLen.ComponentScan_ScanEntry_Min
                 ||
-                scan.Scan2?.Length > 0 && scan.Scan2?.Length < EntityFieldLen.ComponentScan_ScanEntry_Min) {
+                scan.Serial2?.Length > 0 && scan.Serial2?.Length < EntityFieldLen.ComponentScan_ScanEntry_Min) {
 
-                errors.Add(ErrorHelper.Create<T>(t => t.Scan1, $"scan entry length min {EntityFieldLen.ComponentScan_ScanEntry_Min} characters"));
+                errors.Add(ErrorHelper.Create<T>(t => t.Serial1, $"scan entry length min {EntityFieldLen.ComponentScan_ScanEntry_Min} characters"));
                 return errors;
             }
 
             // scan length
-            if (scan.Scan1?.Length > EntityFieldLen.ComponentScan_ScanEntry || scan.Scan2?.Length > EntityFieldLen.ComponentScan_ScanEntry) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Scan1, $"scan entry length max {EntityFieldLen.ComponentScan_ScanEntry} characters"));
+            if (scan.Serial1?.Length > EntityFieldLen.ComponentScan_ScanEntry || scan.Serial2?.Length > EntityFieldLen.ComponentScan_ScanEntry) {
+                errors.Add(ErrorHelper.Create<T>(t => t.Serial1, $"scan entry length max {EntityFieldLen.ComponentScan_ScanEntry} characters"));
                 return errors;
             }
 
             // cannot add component to vehicle component / unless "replace" mode
-            if (vehicleComponent.ComponentScans.Any(t => t.RemovedAt == null)) {
+            if (vehicleComponent.ComponentSerials.Any(t => t.RemovedAt == null)) {
                 if (!scan.Replace) {
                     errors.Add(new Error("", "Existing scan found"));
                     return errors;
@@ -106,7 +120,7 @@ namespace SKD.Model {
                 .ToList();
 
             var preceeding_Unscanned_Stations = preceedingVehicleComponents
-                .Where(t => !t.ComponentScans.Any(t => t.RemovedAt == null))
+                .Where(t => !t.ComponentSerials.Any(t => t.RemovedAt == null))
                 .Select(t => t.ProductionStation.Code).ToList();
 
             if (preceeding_Unscanned_Stations.Any()) {
