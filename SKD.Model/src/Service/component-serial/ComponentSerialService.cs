@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -171,5 +173,31 @@ namespace SKD.Model {
             }
             return input;
         }
+
+        public async Task<SerialCaptureVehicleDTO?> GetVehicleInfo_ForSerialCapture(string vin) {
+            return await context.Vehicles
+                .Where(t => t.VIN == vin)
+                .Select(t => new SerialCaptureVehicleDTO {
+                    VIN = t.VIN,
+                    LotNo = t.Lot.LotNo,
+                    ModelCode = t.Model.Code,
+                    ModelName = t.Model.Name,
+                    Components = t.VehicleComponents
+                        .OrderBy(t => t.ProductionStation.SortOrder)
+                        .Where(t => t.RemovedAt == null)
+                        .Select(t => new SerialCaptureComponentDTO {
+                            ProductionStationSequence = t.ProductionStation.SortOrder,
+                            ProductionStationCode = t.ProductionStation.Code,
+                            ProductionStationName = t.ProductionStation.Name,
+                            ComponentCode = t.Component.Code,
+                            ComponentName = t.Component.Name,
+                            Serial1 = t.ComponentSerials.Where(u => u.RemovedAt == null).Select(u => u.Serial1).FirstOrDefault(),
+                            Serial2 = t.ComponentSerials.Where(u => u.RemovedAt == null).Select(u => u.Serial2).FirstOrDefault(),
+                            SerialCapturedAt = t.ComponentSerials.Where(u => u.RemovedAt == null).Select(u => u.CreatedAt).FirstOrDefault(),
+                        }).ToList()
+                })
+                .FirstOrDefaultAsync();
+        }
+
     }
 }

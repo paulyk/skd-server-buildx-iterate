@@ -241,7 +241,7 @@ namespace SKD.Test {
 
         [Fact]
         public async Task can_capture_full_vehicle_component_sequence() {
-            
+
             // setup
             var vehicle = Gen_Vehicle_Amd_Model_From_Components(new List<(string, string)> {
                 ("EN", "STATION_1"),
@@ -251,13 +251,13 @@ namespace SKD.Test {
                 ("EN", "STATION_3")
             });
 
-            var serial_numbers = new List<(string componetnCode, string serialNo)> {
+            var serial_numbers = new List<(string componentCode, string serialNo)> {
                 ("EN", "EN-RANDOM-348"),
                 ("DA", "DA-RANDOM-995"),
                 ("IK", "IK-RANDOM-657"),
             };
 
-            var vehicleComponents = await ctx.VehicleComponents 
+            var vehicleComponents = await ctx.VehicleComponents
                 .Include(t => t.Component)
                 .Include(t => t.ProductionStation)
                 .OrderBy(t => t.ProductionStation.SortOrder)
@@ -265,11 +265,11 @@ namespace SKD.Test {
 
             // test
             var service = new ComponentSerialService(ctx);
-            foreach(var vc in vehicleComponents) {
+            foreach (var vc in vehicleComponents) {
                 var code = vc.Component.Code;
                 var sortOrder = vc.ProductionStation.SortOrder;
-                var serialNo  = serial_numbers
-                        .Where(t => t.componetnCode == code)
+                var serialNo = serial_numbers
+                        .Where(t => t.componentCode == code)
                         .Select(t => t.serialNo)
                         .First();
                 var input = new ComponentSerialInput {
@@ -285,8 +285,67 @@ namespace SKD.Test {
             Assert.Equal(expected_count, component_serial_entry_count);
 
         }
+
+        [Fact]
+        public async Task get_vehicle_for_serial_capture_query_works() {
+
+            // setup
+            var vehicle = Gen_Vehicle_Amd_Model_From_Components(new List<(string, string)> {
+                ("EN", "STATION_1"),
+                ("DA", "STATION_1"),
+                ("EN", "STATION_2"),
+                ("IK", "STATION_2"),
+                ("EN", "STATION_3")
+            }, auto_assign_vin: true);
+
+
+            var serial_numbers = new List<(string componentCode, string serialNo)> {
+                ("EN", "EN-RANDOM-348"),
+                ("DA", "DA-RANDOM-995"),
+                ("IK", "IK-RANDOM-657"),
+            };
+
+            var vehicleComponents = await ctx.VehicleComponents
+                .Include(t => t.Component)
+                .OrderBy(t => t.ProductionStation.SortOrder)
+                .Where(t => t.VehicleId == vehicle.Id)
+                .ToListAsync();
+
+            var firstVehicleComponent = vehicleComponents.First();
+            var input = new ComponentSerialInput {
+                VehicleComponentId = firstVehicleComponent.Id,
+                Serial1 = serial_numbers
+                    .Where(t => t.componentCode == firstVehicleComponent.Component.Code)
+                    .Select(t => t.serialNo)
+                    .First()
+            };
+
+            var service = new ComponentSerialService(ctx);
+            await service.CaptureComponentSerial(input);
+
+            var vehicleInfo = await service.GetVehicleInfo_ForSerialCapture(vehicle.VIN);
+
+            var expected_component_count = vehicleComponents.Count();
+            var vehicle_info_component_count = vehicleInfo.Components.Count();
+            Assert.Equal(expected_component_count, vehicle_info_component_count);
+
+            var componentsWithSerial = vehicleInfo.Components
+                .Where(t => !String.IsNullOrEmpty(t.Serial1)).ToList();
+
+            var with_serial_count =componentsWithSerial.Count();
+            Assert.Equal(1, with_serial_count);
+
+            var component = componentsWithSerial.First();
+            var expected_serial_no = serial_numbers
+                .Where(t => t.componentCode == component.ComponentCode)
+                .Select(t => t.serialNo).First();
+
+            Assert.Equal(expected_serial_no, component.Serial1);
+        }
+
     }
 }
+
 
 
 

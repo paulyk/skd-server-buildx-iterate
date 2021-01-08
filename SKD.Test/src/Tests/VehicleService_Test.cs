@@ -44,21 +44,27 @@ namespace SKD.Test {
             // setup
             var lot = ctx.VehicleLots.First();
 
-            var kitVinDto = new AssignKitVinInput {
+            var input = new AssignKitVinInput {
                 LotNo = lot.LotNo,
                 Kits = lot.Vehicles.Select(t => new AssignKitVinInput.KitVin {
                     KitNo = t.KitNo,
-                    VIN = Gen_Vin()
+                    VIN = Gen_VIN()
                 }).ToList()
             };
 
             // test
+            var vehicles = await ctx.Vehicles.Where(t => t.Lot.LotNo == lot.LotNo).ToListAsync();
+            var lot_vehicles_count = vehicles.Count();
+            var with_vin_count = vehicles.Count(t => t.VIN != "");
+            Assert.Equal(0, with_vin_count);
+
             var service = new VehicleService(ctx);
-            var payload_2 = await service.AssingVehicleKitVin(kitVinDto);
+            var payload = await service.AssingVehicleKitVin(input);
 
             // assert
-            var errorCount_2 = payload_2.Errors.Count();
-            Assert.Equal(0, errorCount_2);
+            vehicles = await ctx.Vehicles.Where(t => t.Lot.LotNo == lot.LotNo).ToListAsync();
+            with_vin_count = vehicles.Count(t => t.VIN != "");
+            Assert.Equal(lot_vehicles_count, with_vin_count);
         }
 
         [Fact]
@@ -70,7 +76,7 @@ namespace SKD.Test {
                 LotNo = lot.LotNo,
                 Kits = lot.Vehicles.Select(t => new AssignKitVinInput.KitVin {
                     KitNo = t.KitNo,
-                    VIN = Gen_Vin()
+                    VIN = Gen_VIN()
                 }).ToList()
             };
 
@@ -93,17 +99,17 @@ namespace SKD.Test {
                 LotNo = lot.LotNo,
                 Kits = lot.Vehicles.Select(t => new AssignKitVinInput.KitVin {
                     KitNo = Gen_KitNo(), // generate a kit not thats different
-                    VIN = Gen_Vin()
+                    VIN = Gen_VIN()
                 }).ToList()
             };
 
             // test
             var service = new VehicleService(ctx);
-            var payload_2 = await service.AssingVehicleKitVin(kitVinDto);
+            var payload = await service.AssingVehicleKitVin(kitVinDto);
 
             // assert
             var expectedError = "kit numbers not found";
-            var errorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
+            var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
             errorMessage = errorMessage.Substring(0, expectedError.Length);
             Assert.Equal(expectedError, errorMessage);
 
@@ -120,13 +126,13 @@ namespace SKD.Test {
                 LotNo = lot.LotNo                
             };
             kitVinDto.Kits = new List<AssignKitVinInput.KitVin> () {
-                new AssignKitVinInput.KitVin {KitNo = lotVehicles[0].KitNo, VIN = Gen_Vin() },
-                new AssignKitVinInput.KitVin {KitNo = lotVehicles[1].KitNo, VIN = Gen_Vin() },
-                new AssignKitVinInput.KitVin {KitNo = lotVehicles[2].KitNo, VIN = Gen_Vin() },
-                new AssignKitVinInput.KitVin {KitNo = lotVehicles[3].KitNo, VIN = Gen_Vin() },
+                new AssignKitVinInput.KitVin {KitNo = lotVehicles[0].KitNo, VIN = Gen_VIN() },
+                new AssignKitVinInput.KitVin {KitNo = lotVehicles[1].KitNo, VIN = Gen_VIN() },
+                new AssignKitVinInput.KitVin {KitNo = lotVehicles[2].KitNo, VIN = Gen_VIN() },
+                new AssignKitVinInput.KitVin {KitNo = lotVehicles[3].KitNo, VIN = Gen_VIN() },
                 // duplicate kits
-                new AssignKitVinInput.KitVin {KitNo = lotVehicles[5].KitNo, VIN = Gen_Vin() },
-                new AssignKitVinInput.KitVin {KitNo = lotVehicles[5].KitNo, VIN = Gen_Vin() },
+                new AssignKitVinInput.KitVin {KitNo = lotVehicles[5].KitNo, VIN = Gen_VIN() },
+                new AssignKitVinInput.KitVin {KitNo = lotVehicles[5].KitNo, VIN = Gen_VIN() },
             };
 
             // test

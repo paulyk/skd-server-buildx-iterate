@@ -49,9 +49,9 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<MutationPayload<VehicleLot>> AssingVehicleKitVin(AssignKitVinInput dto) {
+        public async Task<MutationPayload<VehicleLot>> AssingVehicleKitVin(AssignKitVinInput input) {
             var payload = new MutationPayload<VehicleLot>(null);
-            payload.Errors = await ValidateAssignVehicleLotVin(dto);
+            payload.Errors = await ValidateAssignVehicleLotVin(input);
             if (payload.Errors.Count() > 0) {
                 return payload;
             }
@@ -59,11 +59,11 @@ namespace SKD.Model {
             // assign vin
             var vehicleLot = await context.VehicleLots
                 .Include(t => t.Vehicles)
-                .FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
+                .FirstOrDefaultAsync(t => t.LotNo == input.LotNo);
             payload.Entity = vehicleLot;
 
             vehicleLot.Vehicles.ToList().ForEach(vehicle => {
-                var vin = dto.Kits.First(t => t.KitNo == vehicle.KitNo).VIN;
+                var vin = input.Kits.First(t => t.KitNo == vehicle.KitNo).VIN;
                 vehicle.VIN = vin;
             });
             await context.SaveChangesAsync();
@@ -153,7 +153,7 @@ namespace SKD.Model {
                 .Include(t => t.Vehicles)
                 .FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
 
-            // lotNO
+            // lotNo
             if (vehicleLot == null) {
                 errors.Add(new Error("lotNo", $"vehicle lot not found: {dto.LotNo}"));
                 return errors;

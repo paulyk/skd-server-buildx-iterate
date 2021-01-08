@@ -91,7 +91,7 @@ namespace SKD.Test {
             return bom;
         }
 
-        public VehicleLot Gen_VehicleLot(Guid bomId, Guid modelId, int kitCount = 6) {
+        public VehicleLot Gen_VehicleLot(Guid bomId, Guid modelId, int kitCount = 6, bool auto_assign_vin = false) {
             var lotNo = Gen_LotNo("BP");
             var model = ctx.VehicleModels
                 .Include(t => t.ModelComponents)
@@ -116,6 +116,7 @@ namespace SKD.Test {
                 var vehicle = new Vehicle {
                     Model = model,
                     KitNo = Gen_KitNo(lotNo, kitSeq),
+                    VIN = auto_assign_vin ? Gen_VIN() : "",
                     VehicleComponents = model.ModelComponents.Select(mc => new VehicleComponent {
                         ComponentId = mc.ComponentId,
                         ProductionStationId = mc.ProductionStationId
@@ -207,7 +208,6 @@ namespace SKD.Test {
             return componentScan;
         }
 
-
         public Vehicle Gen_Vehicle_Entity(
             string kitNo,
             string lotNo,
@@ -263,7 +263,8 @@ namespace SKD.Test {
         }
 
         public Vehicle Gen_Vehicle_Amd_Model_From_Components(
-            List<(string componentCode, string stationCode)> component_stations_maps
+            List<(string componentCode, string stationCode)> component_stations_maps,
+            bool auto_assign_vin = false
         ) {
 
             // ensure component codes
@@ -301,9 +302,11 @@ namespace SKD.Test {
             // cretre vehicle based on that model
             var bom = ctx.Boms.Include(t => t.Plant).First();
             var plant = bom.Plant;
-            var lot = Gen_VehicleLot(bom.Id, model.Id);
+            var lot = Gen_VehicleLot(bom.Id, model.Id, auto_assign_vin: auto_assign_vin);
 
-            var vehicle = ctx.Vehicles.First(t => t.Lot.Id == lot.Id);
+            var vehicle = ctx.Vehicles
+                .Include(t => t.Lot)
+                .First(t => t.Lot.Id == lot.Id);
             return vehicle;
         }
 
@@ -378,7 +381,7 @@ namespace SKD.Test {
         public string Gen_VehicleModel_Code() {
             return Util.RandomString(EntityFieldLen.VehicleModel_Code).ToUpper();
         }
-        public string Gen_Vin() {
+        public string Gen_VIN() {
             return Util.RandomString(EntityFieldLen.Vehicle_VIN).ToUpper();
         }
         public string Gen_ComponentCode() {
