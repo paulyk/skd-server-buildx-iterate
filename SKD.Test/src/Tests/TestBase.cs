@@ -47,7 +47,7 @@ namespace SKD.Test {
                 Gen_Components("component_1", "component_2");
             }
             Gen_Model_From_Existing_Component_And_Stations();
-            Gen_Plant_Bom_Lot_Vehicles();
+            Gen_Plant_Bom_Lot_and_Kits();
         }
 
         public Bom Gen_Plant_Bom(string plantCode = null) {
@@ -55,7 +55,7 @@ namespace SKD.Test {
             var bom = Gen_Bom(plant.Code);
             return bom;
         }
-        public void Gen_Plant_Bom_Lot_Vehicles(string plantCode = null) {
+        public void Gen_Plant_Bom_Lot_and_Kits(string plantCode = null) {
             var bom = Gen_Plant_Bom(plantCode);
             var plant = bom.Plant;
             var model = ctx.VehicleModels.First();
@@ -199,7 +199,7 @@ namespace SKD.Test {
             var vehicleComponent = ctx.VehicleComponents.FirstOrDefault(t => t.Id == vehicleComponentId);
             var componentScan = new ComponentSerial {
                 VehicleComponentId = vehicleComponentId,
-                Serial1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
+                Serial1 = Util.RandomString(EntityFieldLen.ComponentSerial),
                 Serial2 = ""
             };
             ctx.ComponentSerials.Add(componentScan);

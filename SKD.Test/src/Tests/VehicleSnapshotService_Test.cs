@@ -276,7 +276,7 @@ namespace SKD.Test {
 
             // setup plant 2
             var plantCode_2 = Gen_PlantCode();
-            Gen_Plant_Bom_Lot_Vehicles(plantCode_2);
+            Gen_Plant_Bom_Lot_and_Kits(plantCode_2);
 
             var vehicle_2 = ctx.Vehicles.Where(t => t.Lot.Plant.Code == plantCode_2).OrderBy(t => t.KitNo).First();
             await AddVehicleTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, vehicle_2.KitNo, "", DateTime.Now.Date);
@@ -370,10 +370,10 @@ namespace SKD.Test {
                 Serial2 = ""
             });
 
-            var componentScan = createScanPayload.Entity;
+            var componentSerialResult = createScanPayload.Entity;
             var dcwsService = new DCWSResponseService(ctx);
             await dcwsService.CreateDCWSResponse(new DCWWResponseInput {
-                ComponentScanId = componentScan.Id,
+                ComponentScanId = componentSerialResult.ComponentSerialId,
                 ResponseCode = "NONE",
                 ErrorMessage = ""
             });

@@ -2,7 +2,7 @@ using System;
 
 namespace SKD.Model {
     public class ComponentSerialDTO {
-        public Guid Id { get; set; }
+        public Guid ComponentSerialId { get; set; }
         public string VIN { get; set; }
         public string LotNo { get; set; }
         public string ComponentCode { get; set; }

@@ -27,9 +27,9 @@ namespace SKD.Model {
         public static int VehicleModel_Name = 100;
         public static int VehicleModel_Type = 4;
 
-        public static int ComponentScan_ScanEntry_Min = 5;
-        public static int ComponentScan_ScanEntry = 100;
-        public static int ComponentScan_DCWS_ResponseCode = 100;
+        public static int ComponentSerial_Min = 5;
+        public static int ComponentSerial = 100;
+        public static int ComponentSerial_DCWS_ResponseCode = 100;
 
         public static int DCWSResponse_Code = 50;
         public static int DCWS_ErrorMessage = 1000;

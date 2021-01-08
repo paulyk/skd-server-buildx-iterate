@@ -15,289 +15,190 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task can_create_component_serial() {
-            var vehicleComponent = ctx.VehicleComponents
+        public async Task can_capture_component_serial() {
+            // setup
+            var vehicleComponent = await ctx.VehicleComponents
                 .OrderBy(t => t.ProductionStation.SortOrder)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             var input = new ComponentSerialInput {
                 VehicleComponentId = vehicleComponent.Id,
-                Serial1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
-                Serial2 = ""
+                Serial1 = Util.RandomString(EntityFieldLen.ComponentSerial_DCWS_ResponseCode)
             };
+            var before_count = await ctx.ComponentSerials.CountAsync();
 
+            // test
             var service = new ComponentSerialService(ctx);
             var payload = await service.CaptureComponentSerial(input);
 
-            var componentScan = await ctx.ComponentSerials.FirstOrDefaultAsync(t => t.Id == payload.Entity.Id);
-            Assert.NotNull(componentScan);
+            // assert
+            var after_count = await ctx.ComponentSerials.CountAsync();
+            Assert.Equal(before_count + 1, after_count);
         }
 
         [Fact]
-        public async Task cannot_create_component_serial_if_vehicleComponentId_not_found() {
-
-            var dto = new ComponentSerialInput {
-                VehicleComponentId = Guid.NewGuid(),
-                Serial1 = Util.RandomString(12),
-                Serial2 = ""
-            };
-
-            var service = new ComponentSerialService(ctx);
-            var payload = await service.CaptureComponentSerial(dto);
-            var errors = payload.Errors.ToList();
-
-            Assert.True(errors.Count == 1 && errors[0].Message == "vehicle component not found");
-        }
-
-        // todo 
-        // [Fact]
-        // public async Task cannot_create_component_scan_if_build_completed() {
-        //     // setup
-        //     var vehicle = ctx.Vehicles.FirstOrDefault();
-        //     vehicle.TimeLine.buildCompletedAt = DateTime.UtcNow;
-        //     ctx.SaveChanges();
-
-        //     vehicle = ctx.Vehicles
-        //         .Include(t => t.VehicleComponents)
-        //         .First(t => t.Id == vehicle.Id);
-
-        //     var dto = new ComponentScanDTO {
-        //         VehicleComponentId = vehicle.VehicleComponents.First().Id,
-        //         Scan1 = Util.RandomString(12),
-        //         Scan2 = ""
-        //     };
-
-        //     var service = new ComponentScanService(ctx);
-        //     var payload = await service.CreateComponentScan(dto);
-
-        //     var errors = payload.Errors.ToList();
-
-        //     Assert.True(errors.Count == 1 && errors[0].Message == "vehicle component scan already completed");
-        // }
-
-        [Fact]
-        public async Task cannot_create_component_serial_if_serial1_serial2_empty() {
+        public async Task capture_component_serial_swaps_if_serial_1_blank() {
+            // setup
             var vehicleComponent = await ctx.VehicleComponents
                 .OrderBy(t => t.ProductionStation.SortOrder)
                 .FirstOrDefaultAsync();
 
-            var dto = new ComponentSerialInput {
+            var input = new ComponentSerialInput {
                 VehicleComponentId = vehicleComponent.Id,
-                Serial1 = "",
-                Serial2 = ""
+                Serial2 = Util.RandomString(EntityFieldLen.ComponentSerial_DCWS_ResponseCode)
             };
-
+            // test
             var service = new ComponentSerialService(ctx);
-            var payload = await service.CaptureComponentSerial(dto);
+            var payload = await service.CaptureComponentSerial(input);
 
-            var errors = payload.Errors.ToList();
-            Assert.True(errors.Count == 1 && errors[0].Message == "serial1 and or serial2 required");
+            // assert
+            var componentSerial = await ctx.ComponentSerials
+                .FirstOrDefaultAsync(t => t.Id == payload.Entity.ComponentSerialId);
+
+            Assert.Equal(input.Serial2, componentSerial.Serial1);
+            Assert.Equal("", componentSerial.Serial2);
         }
 
         [Fact]
-        public async Task cannot_create_component_scan_if_less_than_min_length() {
+        public async Task error_capturing_component_serial_if_blank_serial() {
+            // setup
             var vehicleComponent = await ctx.VehicleComponents
                 .OrderBy(t => t.ProductionStation.SortOrder)
                 .FirstOrDefaultAsync();
 
-            var dto = new ComponentSerialInput {
+            var input = new ComponentSerialInput {
                 VehicleComponentId = vehicleComponent.Id,
-                Serial1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry_Min - 1),
-                Serial2 = ""
+                Serial1 = ""
             };
+            var before_count = await ctx.ComponentSerials.CountAsync();
 
+            // test
             var service = new ComponentSerialService(ctx);
-            var payload = await service.CaptureComponentSerial(dto);
+            var payload = await service.CaptureComponentSerial(input);
 
-            var errors = payload.Errors.ToList();
-            var expectedMessage = "scan entry length min";
-            var actualMessage = errors[0].Message.Substring(0, expectedMessage.Length);
-            Assert.Equal(expectedMessage, actualMessage);
+            // assert
+            var after_count = await ctx.ComponentSerials.CountAsync();
+            Assert.Equal(before_count, after_count);
+
+            var expected_error_message = "no serial numbers provided";
+            var actual_error_message = payload.Errors.Select(t => t.Message).FirstOrDefault();
+            Assert.Equal(expected_error_message, actual_error_message.Substring(0, expected_error_message.Length));
         }
 
         [Fact]
-        public async Task cannot_create_component_serial_if_one_already_exists() {
-            var vehicle = Gen_Vehicle_Amd_Model_From_Components(
-                new List<(string, string)>() {
-                    ("component_1", "station_1"),
-                    ("component_2", "station_2"),
-                });
+        public async Task error_capturing_component_serial_if_already_captured_for_specified_component() {
+            // setup
+            var vehicleComponent = await ctx.VehicleComponents
+                .OrderBy(t => t.ProductionStation.SortOrder)
+                .FirstOrDefaultAsync();
 
-            var vehicleComponent = vehicle.VehicleComponents
-                .OrderBy(t => t.ProductionStation.SortOrder).First();
-
-            var dto_1 = new ComponentSerialInput {
+            var input_1 = new ComponentSerialInput {
                 VehicleComponentId = vehicleComponent.Id,
-                Serial1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
-                Serial2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)
+                Serial1 = Util.RandomString(EntityFieldLen.ComponentSerial_DCWS_ResponseCode)
             };
-
-            var dto_2 = new ComponentSerialInput {
+            var input_2 = new ComponentSerialInput {
                 VehicleComponentId = vehicleComponent.Id,
-                Serial1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
-                Serial2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)
+                Serial1 = Util.RandomString(EntityFieldLen.ComponentSerial_DCWS_ResponseCode)
             };
+            var before_count = await ctx.ComponentSerials.CountAsync();
 
+            // test
             var service = new ComponentSerialService(ctx);
-            var payload_1 = await service.CaptureComponentSerial(dto_1);
+            var payload_1 = await service.CaptureComponentSerial(input_1);
+            var payload_2 = await service.CaptureComponentSerial(input_2);
 
-            Assert.True(payload_1.Errors.Count == 0);
-
-            var payload_2 = await service.CaptureComponentSerial(dto_2);
-
-            Assert.True(payload_2.Errors.Count > 0);
-
-            var message = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
-            Assert.Equal("Existing scan found", message);
+            var expected_error_message = "component serial already captured for this component";
+            var actual_error_message = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
+            Assert.Equal(expected_error_message, actual_error_message.Substring(0, expected_error_message.Length));
         }
 
         [Fact]
-        public async Task can_replace_existing_component_scan() {
-            var vehicle = Gen_Vehicle_Amd_Model_From_Components(
-                new List<(string, string)>() {
-                    ("component_1", "station_1"),
-                    ("component_2", "station_2"),
-                });
+        public async Task can_replace_serial_with_new_one_for_specified_component() {
+            // setup
+            var vehicleComponent = await ctx.VehicleComponents
+                .OrderBy(t => t.ProductionStation.SortOrder)
+                .FirstOrDefaultAsync();
 
-            var vehicleComponent = vehicle.VehicleComponents
-                .OrderBy(t => t.ProductionStation.SortOrder).First();
-
-            var dto_1 = new ComponentSerialInput {
+            var input_1 = new ComponentSerialInput {
                 VehicleComponentId = vehicleComponent.Id,
-                Serial1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
-                Serial2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)
+                Serial1 = Util.RandomString(EntityFieldLen.ComponentSerial_DCWS_ResponseCode),
+                Serial2 = Util.RandomString(EntityFieldLen.ComponentSerial_DCWS_ResponseCode)
             };
-
-            var dto_2 = new ComponentSerialInput {
+            var input_2 = new ComponentSerialInput {
                 VehicleComponentId = vehicleComponent.Id,
-                Serial1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
-                Serial2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
+                Serial1 = Util.RandomString(EntityFieldLen.ComponentSerial_DCWS_ResponseCode),
+                Serial2 = Util.RandomString(EntityFieldLen.ComponentSerial_DCWS_ResponseCode),
                 Replace = true
             };
 
+            // test
             var service = new ComponentSerialService(ctx);
+            var payload_1 = await service.CaptureComponentSerial(input_1);
+            var firstComponentSerial = await ctx.ComponentSerials.FirstOrDefaultAsync(t => t.Id == payload_1.Entity.ComponentSerialId);
 
-            var payload_1 = await service.CaptureComponentSerial(dto_1);
-            Assert.True(payload_1.Errors.Count == 0);
 
-            var payload_2 = await service.CaptureComponentSerial(dto_2);
-            Assert.True(payload_2.Errors.Count == 0);
+            var payload_2 = await service.CaptureComponentSerial(input_2);
+            var secondComponentSerial = await ctx.ComponentSerials.FirstOrDefaultAsync(t => t.Id == payload_2.Entity.ComponentSerialId);
 
-            // should only have one active scan
-            var count = await ctx.ComponentSerials.CountAsync(t => t.VehicleComponentId == dto_2.VehicleComponentId && t.RemovedAt == null);
-            Assert.True(1 == count, "Replacing scan should remove one leaving one.");
+            Assert.Equal(input_1.Serial1, firstComponentSerial.Serial1);
+            Assert.Equal(input_1.Serial2, firstComponentSerial.Serial2);
+
+            Assert.Equal(input_2.Serial1, secondComponentSerial.Serial1);
+            Assert.Equal(input_2.Serial2, secondComponentSerial.Serial2);
+
+            var total_count = await ctx.ComponentSerials.CountAsync();
+            var removed_count = await ctx.ComponentSerials.Where(t => t.RemovedAt != null).CountAsync();
+
+            Assert.Equal(2, total_count);
+            Assert.Equal(1, removed_count);
+
         }
 
         [Fact]
-        public async Task create_component_scan_swaps_if_scan1_empty() {
-            var vehicleComponent = await ctx.VehicleComponents
+        public async Task error_if_serial_no_already_used_by_another_entry() {
+            var serialNo = Util.RandomString(EntityFieldLen.ComponentSerial_DCWS_ResponseCode);
+
+            // setup
+
+            // first vehcle component
+            var vehicleComponent_1 = await ctx.VehicleComponents
                 .OrderBy(t => t.ProductionStation.SortOrder)
                 .FirstOrDefaultAsync();
 
-
-            var scan1 = "";
-            var scan2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry);
-
-            var dto = new ComponentSerialInput {
-                VehicleComponentId = vehicleComponent.Id,
-                Serial1 = scan1,
-                Serial2 = scan2
-            };
-
-            var before_count = await ctx.ComponentSerials.CountAsync();
-
-            var service = new ComponentSerialService(ctx);
-            var payload = await service.CaptureComponentSerial(dto);
-
-            var after_count = await ctx.ComponentSerials.CountAsync();
-            Assert.Equal(before_count + 1, after_count);
-
-            var componentScan = await ctx.ComponentSerials.FirstAsync(t => t.VehicleComponentId == vehicleComponent.Id);
-            Assert.Equal(componentScan.Serial1, scan2);
-            Assert.True(String.IsNullOrEmpty(componentScan.Serial2));
-        }
-
-
-        [Fact]
-        public async Task can_create_scan_for_same_component_in_different_stations() {
-            // creat vehicle model with 'component_2' twice, one for each station
-            var vehicle = Gen_Vehicle_Amd_Model_From_Components(
-                new List<(string, string)> {
-                    ("component_1", "station_1"),
-                    ("component_2", "station_1"),
-
-                    ("component_3", "station_2"),
-                    ("component_2", "station_2"),
-                }
-            );
-
-            var vehicle_components = vehicle.VehicleComponents
-                .OrderBy(t => t.ProductionStation.SortOrder)
-                .Where(t => t.Component.Code == "component_2").ToList();
-
-            var vehicleComponent_1 = vehicle_components[0];
-            var vehicleComponent_2 = vehicle_components[1];
-
-            var scanService = new ComponentSerialService(ctx);
-
-            // create scan for station_1, component_1
-            var dto_1 = new ComponentSerialInput {
+            var input_1 = new ComponentSerialInput {
                 VehicleComponentId = vehicleComponent_1.Id,
-                Serial1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
-                Serial2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)
+                Serial1 = serialNo
             };
 
-            var paylaod = await scanService.CaptureComponentSerial(dto_1);
-            Assert.True(0 == paylaod.Errors.Count);
-
-            // create scan for station_2, component_2
-            var dto_2 = new ComponentSerialInput {
-                VehicleComponentId = vehicleComponent_2.Id,
-                Serial1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
-                Serial2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)
-            };
-
-            var paylaod_2 = await scanService.CaptureComponentSerial(dto_2);
-            Assert.True(0 == paylaod_2.Errors.Count);
-        }
-
-        [Fact]
-        public async Task cannot_create_scan_for_same_component_out_of_order() {
-            // creat vehicle model with 'component_2' twice, one for each station
-            var vehicle = Gen_Vehicle_Amd_Model_From_Components(
-                new List<(string, string)> {
-                    ("component_1", "station_1"),
-                    ("component_2", "station_1"),
-                    ("component_3", "station_2"),
-                    ("component_2", "station_2"),
-                }
-            );
-
-            var vehicle_components = vehicle.VehicleComponents
+            // different vheicle component
+            var vehicleComponent_2 = await ctx.VehicleComponents
                 .OrderBy(t => t.ProductionStation.SortOrder)
-                .Where(t => t.Component.Code == "component_2").ToList();
+                .Skip(1)
+                .FirstOrDefaultAsync();
 
-            // deliberately choose second vehicle component to scan frist
-            var vehicleComponent_station_2 = vehicle_components[1];
-
-
-            // create scan for station_2, component_2
-            var dto_station_2 = new ComponentSerialInput {
-                VehicleComponentId = vehicleComponent_station_2.Id,
-                Serial1 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry),
-                Serial2 = Util.RandomString(EntityFieldLen.ComponentScan_ScanEntry)
+            var input_2 = new ComponentSerialInput {
+                VehicleComponentId = vehicleComponent_2.Id,
+                Serial1 = serialNo
             };
 
-            // test
-            var scanService = new ComponentSerialService(ctx);
-            var paylaod = await scanService.CaptureComponentSerial(dto_station_2);
+            // test 
+            var service = new ComponentSerialService(ctx);
+            var payload_1 = await service.CaptureComponentSerial(input_1);
+            var payload_2 = await service.CaptureComponentSerial(input_2);
 
-            // assert
-            Assert.True(1 == paylaod.Errors.Count);
-            var message = paylaod.Errors[0].Message;
-            Assert.Equal("Missing scan for station_1", message);
+            var expected_error_message = "serial number already in use by aonther entry";
+            var actual_message = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
+
+            actual_message = actual_message != null ? actual_message : "";
+            Assert.Equal(expected_error_message, actual_message.Substring(0, expected_error_message.Length));
         }
-
-
     }
 }
+
+
+
+
+
+
+
+

@@ -12,31 +12,26 @@ namespace SKD.Model {
 
         public ComponentSerialService(SkdContext ctx) => this.context = ctx;
 
-        public async Task<MutationPayload<ComponentSerialDTO>> CaptureComponentSerial(ComponentSerialInput dto) {
+        public async Task<MutationPayload<ComponentSerialDTO>> CaptureComponentSerial(ComponentSerialInput input) {
+            input = SwapAndTrimSerial(input);
+
             var payload = new MutationPayload<ComponentSerialDTO>(null);
 
-            payload.Errors = await ValidateCaptureComponentSerial<ComponentSerialInput>(dto);
+            payload.Errors = await ValidateCaptureComponentSerial<ComponentSerialInput>(input);
             if (payload.Errors.Count() > 0) {
                 return payload;
             }
 
-            // swap if scan1 empty
-            if (dto.Serial1.Trim().Length == 0) {
-                dto.Serial1 = dto.Serial2;
-                dto.Serial2 = null;
-            }
-
             var componentSerial = new ComponentSerial {
-                Serial1 = dto.Serial1,
-                Serial2 = dto.Serial2,
-                VehicleComponentId = dto.VehicleComponentId
+                Serial1 = input.Serial1,
+                Serial2 = input.Serial2,
+                VehicleComponentId = input.VehicleComponentId
             };
 
-
             // Deactivate existing scan if Replace == true
-            if (dto.Replace) {
+            if (input.Replace) {
                 var existintScans = await context.ComponentSerials
-                    .Where(t => t.VehicleComponentId == dto.VehicleComponentId && t.RemovedAt == null).ToListAsync();                
+                    .Where(t => t.VehicleComponentId == input.VehicleComponentId && t.RemovedAt == null).ToListAsync();
                 existintScans.ForEach(t => t.RemovedAt = DateTime.UtcNow);
             }
 
@@ -49,7 +44,7 @@ namespace SKD.Model {
             payload.Entity = await context.ComponentSerials
                 .Where(t => t.Id == componentSerial.Id)
                 .Select(t => new ComponentSerialDTO {
-                    Id = t.Id,
+                    ComponentSerialId = t.Id,
                     VIN = t.VehicleComponent.Vehicle.VIN,
                     LotNo = t.VehicleComponent.Vehicle.Lot.LotNo,
                     ComponentCode = t.VehicleComponent.Component.Code,
@@ -61,75 +56,74 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<List<Error>> ValidateCaptureComponentSerial<T>(ComponentSerialInput scan) where T : ComponentSerialInput {
+        public async Task<List<Error>> ValidateCaptureComponentSerial<T>(ComponentSerialInput input) where T : ComponentSerialInput {
             var errors = new List<Error>();
 
-            var vehicleComponent = await context.VehicleComponents.AsNoTracking()
-                    .Include(t => t.Component)
-                    .Include(t => t.ProductionStation)
-                    .Include(t => t.ComponentSerials)
-                .FirstOrDefaultAsync(t => t.Id == scan.VehicleComponentId);
-
-            // vehicle component id
+            var vehicleComponent = await context.VehicleComponents.FirstOrDefaultAsync(t => t.Id == input.VehicleComponentId);
             if (vehicleComponent == null) {
-                errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponentId, "vehicle component not found"));
+                errors.Add(new Error("VehicleComponentId", $"vehicle component not found: {input.VehicleComponentId}"));
                 return errors;
             }
 
-            var vehicle = vehicleComponent != null
-                ? await context.Vehicles.AsNoTracking()
-                    .Include(t => t.VehicleComponents).ThenInclude(t => t.Component)
-                    .Include(t => t.VehicleComponents).ThenInclude(t => t.ProductionStation)
-                    .Include(t => t.VehicleComponents).ThenInclude(t => t.ComponentSerials)
-                    .FirstOrDefaultAsync(t => t.Id == vehicleComponent.VehicleId)
-                : null;
-
-            // scan 1 || scan 2 set
-            if (string.IsNullOrEmpty(scan.Serial1) && string.IsNullOrEmpty(scan.Serial2)) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Serial1, "serial1 and or serial2 required"));
+            if (vehicleComponent.RemovedAt != null) {
+                errors.Add(new Error("VehicleComponentId", $"vehicle component removed: {input.VehicleComponentId}"));
                 return errors;
             }
 
-            if (scan.Serial1?.Length > 0 && scan.Serial1?.Length < EntityFieldLen.ComponentScan_ScanEntry_Min
-                ||
-                scan.Serial2?.Length > 0 && scan.Serial2?.Length < EntityFieldLen.ComponentScan_ScanEntry_Min) {
-
-                errors.Add(ErrorHelper.Create<T>(t => t.Serial1, $"scan entry length min {EntityFieldLen.ComponentScan_ScanEntry_Min} characters"));
+            // serial numbers blank
+            if (String.IsNullOrEmpty(input.Serial1) && String.IsNullOrEmpty(input.Serial2)) {
+                errors.Add(new Error("", "no serial numbers provided"));
                 return errors;
             }
 
-            // scan length
-            if (scan.Serial1?.Length > EntityFieldLen.ComponentScan_ScanEntry || scan.Serial2?.Length > EntityFieldLen.ComponentScan_ScanEntry) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Serial1, $"scan entry length max {EntityFieldLen.ComponentScan_ScanEntry} characters"));
+            // component serial entry for this vehicle component 
+            var componentSerialForVehicleComponent = await context.ComponentSerials
+                .Include(t => t.VehicleComponent).ThenInclude(t => t.Vehicle)
+                .Include(t => t.VehicleComponent).ThenInclude(t => t.Component)
+                .Include(t => t.VehicleComponent).ThenInclude(t => t.ProductionStation)
+                .Where(t => t.VehicleComponent.Id == input.VehicleComponentId)
+                .Where(t => t.RemovedAt == null)
+                .FirstOrDefaultAsync();
+
+            if (componentSerialForVehicleComponent != null && !input.Replace) {
+                var vin = componentSerialForVehicleComponent.VehicleComponent.Vehicle.VIN;
+                var stationCode = componentSerialForVehicleComponent.VehicleComponent.ProductionStation.Code;
+                var componentCode = componentSerialForVehicleComponent.VehicleComponent.Component.Code;
+                errors.Add(new Error("", $"component serial already captured for this component: {vin}-{stationCode}-{componentCode}"));
                 return errors;
             }
 
-            // cannot add component to vehicle component / unless "replace" mode
-            if (vehicleComponent.ComponentSerials.Any(t => t.RemovedAt == null)) {
-                if (!scan.Replace) {
-                    errors.Add(new Error("", "Existing scan found"));
-                    return errors;
-                }
-            }
+            // serial no already in use by different vehicle component
+            var componentSerial_for_fifferent_VehicleComponent = await context.ComponentSerials
+                .Where(t => t.RemovedAt == null)
+                .Where(t => t.VehicleComponent.Id != vehicleComponent.Id)
+                .Where(t =>
+                    t.Serial1 == input.Serial1 && t.Serial2 == input.Serial2
+                    ||
+                    t.Serial1 == input.Serial2 && t.Serial2 == input.Serial1
+                )
+                .FirstOrDefaultAsync();
 
-            // Get any vehicle component with same code in preceeding production stationss
-            var preceedingVehicleComponents = vehicle.VehicleComponents
-                .OrderBy(t => t.ProductionStation.SortOrder)
-                .Where(t => t.Component.Code == vehicleComponent.Component.Code)
-                .Where(t => t.ProductionStation.SortOrder < vehicleComponent.ProductionStation.SortOrder)
-                .ToList();
-
-            var preceeding_Unscanned_Stations = preceedingVehicleComponents
-                .Where(t => !t.ComponentSerials.Any(t => t.RemovedAt == null))
-                .Select(t => t.ProductionStation.Code).ToList();
-
-            if (preceeding_Unscanned_Stations.Any()) {
-                var station_codes = String.Join(", ", preceeding_Unscanned_Stations);
-                errors.Add(new Error("", $"Missing scan for {station_codes}"));
+            if (componentSerial_for_fifferent_VehicleComponent != null) {
+                errors.Add(new Error("", $"serial number already in use by aonther entry"));
                 return errors;
             }
 
             return errors;
+        }
+
+        private ComponentSerialInput SwapAndTrimSerial(ComponentSerialInput input) {
+            input.Serial1 = String.IsNullOrEmpty(input.Serial1) ? "" : input.Serial1.Trim();
+            input.Serial2 = String.IsNullOrEmpty(input.Serial2) ? "" : input.Serial2.Trim();
+
+            if (input.Serial1.Trim().Length == 0) {
+                return new ComponentSerialInput {
+                    VehicleComponentId = input.VehicleComponentId,
+                    Serial1 = input.Serial2,
+                    Serial2 = ""
+                };
+            }
+            return input;
         }
     }
 }

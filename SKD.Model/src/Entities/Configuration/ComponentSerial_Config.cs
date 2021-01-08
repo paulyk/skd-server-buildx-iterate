@@ -10,11 +10,11 @@ namespace SKD.Model {
             builder.HasKey(t => t.Id);
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
 
-            builder.HasIndex(t => t.Serial1);
+            builder.HasIndex(t => new { t.Serial1, t.Serial2 });
             builder.HasIndex(t => t.Serial2);
 
-            builder.Property(t => t.Serial1).HasMaxLength(EntityFieldLen.ComponentScan_ScanEntry);
-            builder.Property(t => t.Serial2).HasMaxLength(EntityFieldLen.ComponentScan_ScanEntry);
+            builder.Property(t => t.Serial1).HasMaxLength(EntityFieldLen.ComponentSerial);
+            builder.Property(t => t.Serial2).HasMaxLength(EntityFieldLen.ComponentSerial);
 
             builder.HasOne(t => t.VehicleComponent)
                 .WithMany(t => t.ComponentSerials)
