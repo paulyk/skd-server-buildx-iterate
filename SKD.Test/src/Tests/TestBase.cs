@@ -266,6 +266,32 @@ namespace SKD.Test {
             List<(string componentCode, string stationCode)> component_stations_maps
         ) {
 
+            // ensure component codes
+            component_stations_maps.Select(t => t.componentCode).Distinct().ToList().ForEach(code => {
+                if (!ctx.Components.Any(t => t.Code == code)) {
+                    ctx.Components.Add(new Component{
+                        Code = code,
+                        Name = code + " name"
+                    });
+                    ctx.SaveChanges();
+                }
+            });
+            // ensure production stations
+            component_stations_maps.Select(t => t.stationCode).Distinct().ToList().ForEach(code => {
+                if (!ctx.Components.Any(t => t.Code == code)) {
+                    var lastSorderOrder = ctx.ProductionStations.OrderByDescending(t => t.SortOrder)
+                        .Select(t => t.SortOrder)
+                        .FirstOrDefault();
+
+                    ctx.ProductionStations.Add(new ProductionStation {
+                        Code = code,
+                        Name = code + " name",
+                        SortOrder = lastSorderOrder + 1
+                    });
+                    ctx.SaveChanges();
+                }
+            });
+
             var modelCode = Gen_VehicleModel_Code();
             var model = Gen_VehicleModel(
                 modelCode: modelCode,
@@ -375,6 +401,9 @@ namespace SKD.Test {
         }
         public string Gen_ShipmentInvoiceNo() {
             return Util.RandomString(EntityFieldLen.Shipment_InvoiceNo).ToUpper();
+        }
+        public string Gen_ComponentSerialNo() {
+            return Util.RandomString(EntityFieldLen.ComponentSerial).ToUpper();
         }
 
         #endregion

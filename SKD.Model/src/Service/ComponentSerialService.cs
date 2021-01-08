@@ -59,13 +59,16 @@ namespace SKD.Model {
         public async Task<List<Error>> ValidateCaptureComponentSerial<T>(ComponentSerialInput input) where T : ComponentSerialInput {
             var errors = new List<Error>();
 
-            var vehicleComponent = await context.VehicleComponents.FirstOrDefaultAsync(t => t.Id == input.VehicleComponentId);
-            if (vehicleComponent == null) {
+            var targetVehicleCmponent = await context.VehicleComponents
+                .Include(t => t.ProductionStation)
+                .FirstOrDefaultAsync(t => t.Id == input.VehicleComponentId);
+
+            if (targetVehicleCmponent == null) {
                 errors.Add(new Error("VehicleComponentId", $"vehicle component not found: {input.VehicleComponentId}"));
                 return errors;
             }
 
-            if (vehicleComponent.RemovedAt != null) {
+            if (targetVehicleCmponent.RemovedAt != null) {
                 errors.Add(new Error("VehicleComponentId", $"vehicle component removed: {input.VehicleComponentId}"));
                 return errors;
             }
@@ -94,18 +97,61 @@ namespace SKD.Model {
             }
 
             // serial no already in use by different vehicle component
-            var componentSerial_for_fifferent_VehicleComponent = await context.ComponentSerials
+            var componentSerials_with_same_serialNo = await context.ComponentSerials
+                .Include(t => t.VehicleComponent).ThenInclude(t => t.Component)
                 .Where(t => t.RemovedAt == null)
-                .Where(t => t.VehicleComponent.Id != vehicleComponent.Id)
+                // different component
+                .Where(t => t.VehicleComponent.Id != targetVehicleCmponent.Id)
+                // exclude if same vehicle and same component code   
+                // ....... Engine component code will be scanned muliple times)
+                .Where(t => !(
+                    // same vehicle
+                    t.VehicleComponent.VehicleId == targetVehicleCmponent.VehicleId
+                    &&
+                    // same component
+                    t.VehicleComponent.ComponentId == targetVehicleCmponent.ComponentId
+                    )
+                )
+                // user could point scan serial 2 before serial 1, so we check for both
                 .Where(t =>
                     t.Serial1 == input.Serial1 && t.Serial2 == input.Serial2
                     ||
                     t.Serial1 == input.Serial2 && t.Serial2 == input.Serial1
                 )
-                .FirstOrDefaultAsync();
+                .ToListAsync();
 
-            if (componentSerial_for_fifferent_VehicleComponent != null) {
+
+            if (componentSerials_with_same_serialNo.Count() > 0) {
                 errors.Add(new Error("", $"serial number already in use by aonther entry"));
+                return errors;
+            }
+
+            /* MULTI STATION COMPONENT
+            *  Some components serials should be captured repeatedly in consequitive production sations.
+            *  They should not be captured out of order
+            */
+
+            var preeceedingRequiredComponentEntriesNotCaptured = await context.VehicleComponents
+                .OrderBy(t => t.ProductionStation.SortOrder)
+                // save vehicle         
+                .Where(t => t.Vehicle.Id == targetVehicleCmponent.VehicleId)
+                // same component id
+                .Where(t => t.ComponentId == targetVehicleCmponent.ComponentId)
+                // preceeding target vehicle component
+                .Where(t => t.ProductionStation.SortOrder < targetVehicleCmponent.ProductionStation.SortOrder)
+                // no captured serial entries
+                .Where(t => !t.ComponentSerials.Any(u => u.RemovedAt == null))
+                .Select(t => new {
+                    ProductionStationCode = t.ProductionStation.Code,
+                })
+                .ToListAsync();
+
+            if (preeceedingRequiredComponentEntriesNotCaptured.Any()) {
+                var statonCodes = preeceedingRequiredComponentEntriesNotCaptured
+                    .Select(t => t.ProductionStationCode)
+                    .Aggregate((a, b) => a + ", " + b);
+
+                errors.Add(new Error("", $"serial numbers for prior stations not captured: {statonCodes}"));
                 return errors;
             }
 
