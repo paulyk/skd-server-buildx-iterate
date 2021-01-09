@@ -144,7 +144,7 @@ namespace SKD.Test {
             var productionStations = stationCodes.ToList().Select((code, index) => new ProductionStation {
                 Code = code,
                 Name = $"{code} name",
-                SortOrder = index + 1
+                Sequence = index + 1
             });
 
 
@@ -280,14 +280,14 @@ namespace SKD.Test {
             // ensure production stations
             component_stations_maps.Select(t => t.stationCode).Distinct().ToList().ForEach(code => {
                 if (!ctx.Components.Any(t => t.Code == code)) {
-                    var lastSorderOrder = ctx.ProductionStations.OrderByDescending(t => t.SortOrder)
-                        .Select(t => t.SortOrder)
+                    var lastSorderOrder = ctx.ProductionStations.OrderByDescending(t => t.Sequence)
+                        .Select(t => t.Sequence)
                         .FirstOrDefault();
 
                     ctx.ProductionStations.Add(new ProductionStation {
                         Code = code,
                         Name = code + " name",
-                        SortOrder = lastSorderOrder + 1
+                        Sequence = lastSorderOrder + 1
                     });
                     ctx.SaveChanges();
                 }

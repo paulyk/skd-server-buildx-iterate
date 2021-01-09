@@ -134,13 +134,13 @@ namespace SKD.Model {
             */
 
             var preeceedingRequiredComponentEntriesNotCaptured = await context.VehicleComponents
-                .OrderBy(t => t.ProductionStation.SortOrder)
+                .OrderBy(t => t.ProductionStation.Sequence)
                 // save vehicle         
                 .Where(t => t.Vehicle.Id == targetVehicleCmponent.VehicleId)
                 // same component id
                 .Where(t => t.ComponentId == targetVehicleCmponent.ComponentId)
                 // preceeding target vehicle component
-                .Where(t => t.ProductionStation.SortOrder < targetVehicleCmponent.ProductionStation.SortOrder)
+                .Where(t => t.ProductionStation.Sequence < targetVehicleCmponent.ProductionStation.Sequence)
                 // no captured serial entries
                 .Where(t => !t.ComponentSerials.Any(u => u.RemovedAt == null))
                 .Select(t => new {
@@ -183,10 +183,10 @@ namespace SKD.Model {
                     ModelCode = t.Model.Code,
                     ModelName = t.Model.Name,
                     Components = t.VehicleComponents
-                        .OrderBy(t => t.ProductionStation.SortOrder)
+                        .OrderBy(t => t.ProductionStation.Sequence)
                         .Where(t => t.RemovedAt == null)
                         .Select(t => new SerialCaptureComponentDTO {
-                            ProductionStationSequence = t.ProductionStation.SortOrder,
+                            ProductionStationSequence = t.ProductionStation.Sequence,
                             ProductionStationCode = t.ProductionStation.Code,
                             ProductionStationName = t.ProductionStation.Name,
                             ComponentCode = t.Component.Code,

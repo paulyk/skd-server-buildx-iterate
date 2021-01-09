@@ -51,7 +51,7 @@ namespace SKD.Seed {
             var stations = data.ToList().Select(x => new ProductionStation() {
                 Code = x.code,
                 Name = x.name,
-                SortOrder = x.sortOrder,
+                Sequence = x.sortOrder,
                 CreatedAt = Util.RandomDateTime(DateTime.UtcNow)
             });
 

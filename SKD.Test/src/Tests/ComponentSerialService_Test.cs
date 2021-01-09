@@ -18,7 +18,7 @@ namespace SKD.Test {
         public async Task can_capture_component_serial() {
             // setup
             var vehicleComponent = await ctx.VehicleComponents
-                .OrderBy(t => t.ProductionStation.SortOrder)
+                .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
             var input = new ComponentSerialInput {
@@ -40,7 +40,7 @@ namespace SKD.Test {
         public async Task capture_component_serial_swaps_if_serial_1_blank() {
             // setup
             var vehicleComponent = await ctx.VehicleComponents
-                .OrderBy(t => t.ProductionStation.SortOrder)
+                .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
             var input = new ComponentSerialInput {
@@ -63,7 +63,7 @@ namespace SKD.Test {
         public async Task error_capturing_component_serial_if_blank_serial() {
             // setup
             var vehicleComponent = await ctx.VehicleComponents
-                .OrderBy(t => t.ProductionStation.SortOrder)
+                .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
             var input = new ComponentSerialInput {
@@ -89,7 +89,7 @@ namespace SKD.Test {
         public async Task error_capturing_component_serial_if_already_captured_for_specified_component() {
             // setup
             var vehicleComponent = await ctx.VehicleComponents
-                .OrderBy(t => t.ProductionStation.SortOrder)
+                .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
             var input_1 = new ComponentSerialInput {
@@ -116,7 +116,7 @@ namespace SKD.Test {
         public async Task can_replace_serial_with_new_one_for_specified_component() {
             // setup
             var vehicleComponent = await ctx.VehicleComponents
-                .OrderBy(t => t.ProductionStation.SortOrder)
+                .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
             var input_1 = new ComponentSerialInput {
@@ -161,7 +161,7 @@ namespace SKD.Test {
 
             // first vehcle component
             var vehicleComponent_1 = await ctx.VehicleComponents
-                .OrderBy(t => t.ProductionStation.SortOrder)
+                .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
             var input_1 = new ComponentSerialInput {
@@ -171,7 +171,7 @@ namespace SKD.Test {
 
             // different vheicle component
             var vehicleComponent_2 = await ctx.VehicleComponents
-                .OrderBy(t => t.ProductionStation.SortOrder)
+                .OrderBy(t => t.ProductionStation.Sequence)
                 .Skip(1)
                 .FirstOrDefaultAsync();
 
@@ -204,12 +204,12 @@ namespace SKD.Test {
             });
 
             var vehicleComponent_1 = await ctx.VehicleComponents
-                .OrderBy(t => t.ProductionStation.SortOrder)
+                .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
             var input_1 = new ComponentSerialInput {
                 VehicleComponentId = await ctx.VehicleComponents
-                    .OrderBy(t => t.ProductionStation.SortOrder)
+                    .OrderBy(t => t.ProductionStation.Sequence)
                     .Where(t => t.Component.Code != "EN")
                     .Select(t => t.Id)
                     .FirstOrDefaultAsync(),
@@ -218,7 +218,7 @@ namespace SKD.Test {
 
             var input_2 = new ComponentSerialInput {
                 VehicleComponentId = await ctx.VehicleComponents
-                    .OrderByDescending(t => t.ProductionStation.SortOrder)
+                    .OrderByDescending(t => t.ProductionStation.Sequence)
                     .Where(t => t.Component.Code == "EN")
                     .Select(t => t.Id)
                     .FirstOrDefaultAsync(),
@@ -260,14 +260,14 @@ namespace SKD.Test {
             var vehicleComponents = await ctx.VehicleComponents
                 .Include(t => t.Component)
                 .Include(t => t.ProductionStation)
-                .OrderBy(t => t.ProductionStation.SortOrder)
+                .OrderBy(t => t.ProductionStation.Sequence)
                 .Where(t => t.VehicleId == vehicle.Id).ToListAsync();
 
             // test
             var service = new ComponentSerialService(ctx);
             foreach (var vc in vehicleComponents) {
                 var code = vc.Component.Code;
-                var sortOrder = vc.ProductionStation.SortOrder;
+                var sortOrder = vc.ProductionStation.Sequence;
                 var serialNo = serial_numbers
                         .Where(t => t.componentCode == code)
                         .Select(t => t.serialNo)
@@ -307,7 +307,7 @@ namespace SKD.Test {
 
             var vehicleComponents = await ctx.VehicleComponents
                 .Include(t => t.Component)
-                .OrderBy(t => t.ProductionStation.SortOrder)
+                .OrderBy(t => t.ProductionStation.Sequence)
                 .Where(t => t.VehicleId == vehicle.Id)
                 .ToListAsync();
 
