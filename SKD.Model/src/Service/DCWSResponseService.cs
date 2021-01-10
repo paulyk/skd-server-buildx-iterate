@@ -38,8 +38,8 @@ namespace SKD.Model {
             }
 
             // update denormalized values
-            response.ComponentSerial.AcceptedAt = response.DcwsSuccessfulSave ? DateTime.UtcNow : (DateTime?)null;
-            response.ComponentSerial.VehicleComponent.ScanVerifiedAt = response.DcwsSuccessfulSave ? DateTime.UtcNow : (DateTime?)null;
+            response.ComponentSerial.VerifiedAt = response.DcwsSuccessfulSave ? DateTime.UtcNow : (DateTime?)null;
+            response.ComponentSerial.VehicleComponent.VerifiedAt = response.DcwsSuccessfulSave ? DateTime.UtcNow : (DateTime?)null;
 
             context.DCWSResponses.Add(payload.Entity);
             await context.SaveChangesAsync();

@@ -186,6 +186,7 @@ namespace SKD.Model {
                         .OrderBy(t => t.ProductionStation.Sequence)
                         .Where(t => t.RemovedAt == null)
                         .Select(t => new SerialCaptureComponentDTO {
+                            VehicleComponentId = t.Id,
                             ProductionStationSequence = t.ProductionStation.Sequence,
                             ProductionStationCode = t.ProductionStation.Code,
                             ProductionStationName = t.ProductionStation.Name,

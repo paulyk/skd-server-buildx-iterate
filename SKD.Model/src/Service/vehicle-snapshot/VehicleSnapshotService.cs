@@ -251,7 +251,7 @@ namespace SKD.Model {
             var componentScan = await context.ComponentSerials
                 .Where(t => t.VehicleComponent.Vehicle.KitNo == vehicle.KitNo)
                 .Where(t => t.VehicleComponent.Component.Code == engineComponentCode)
-                .Where(t => t.AcceptedAt != null && t.RemovedAt == null)
+                .Where(t => t.VerifiedAt != null && t.RemovedAt == null)
                 .FirstOrDefaultAsync();
 
             return (componentScan?.Serial1 + " " + componentScan?.Serial2).Trim();

@@ -38,8 +38,8 @@ namespace SKD.Test {
                 .Include(t => t.ComponentSerial).ThenInclude(t => t.VehicleComponent)
                 .FirstOrDefault(t => t.Id == payload.Entity.Id);
 
-            Assert.True(response.ComponentSerial.AcceptedAt != null, "component scan AcceptedAt should be set");
-            Assert.True(response.ComponentSerial.VehicleComponent.ScanVerifiedAt != null, "vehicle component ScanVerifiedAt should be set");
+            Assert.True(response.ComponentSerial.VerifiedAt != null, "component scan AcceptedAt should be set");
+            Assert.True(response.ComponentSerial.VehicleComponent.VerifiedAt != null, "vehicle component ScanVerifiedAt should be set");
         }
 
         [Fact]

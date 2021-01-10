@@ -346,8 +346,13 @@ namespace SKD.Server {
 
         public async Task<List<LotPartDTO>> GetRecentLotPartsReceived(
             [Service] LotPartService service,
-            int count = 100) {
-            return await service.GetRecentLotPartsReceived(count);
-        }
+            int count = 100
+        ) => await service.GetRecentLotPartsReceived(count);
+
+        public async Task<SerialCaptureVehicleDTO?> GetVehicleInfo_ForSerialCapture(
+            [Service] ComponentSerialService service,
+            string vin
+        ) => await service.GetVehicleInfo_ForSerialCapture(vin);
+
     }
 }

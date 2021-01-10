@@ -14,7 +14,7 @@ namespace SKD.Model {
         public ProductionStation ProductionStation { get; set; }
 
         public virtual ICollection<ComponentSerial> ComponentSerials { get; set; } = new List<ComponentSerial>();
-        public DateTime? ScanVerifiedAt { get; set; }
+        public DateTime? VerifiedAt { get; set; }
 
         public VehicleComponent(): base() {
 

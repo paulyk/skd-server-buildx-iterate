@@ -14,6 +14,7 @@ namespace SKD.Model {
     }
 
     public class SerialCaptureComponentDTO {
+        public Guid VehicleComponentId { get; set; }
         public int ProductionStationSequence { get; set; }
         public string ProductionStationCode { get; set; } = "";
         public string ProductionStationName { get; set; } = "";
