@@ -51,8 +51,11 @@ namespace SKD.Model {
                     LotNo = t.VehicleComponent.Vehicle.Lot.LotNo,
                     ComponentCode = t.VehicleComponent.Component.Code,
                     ComponentName = t.VehicleComponent.Component.Name,
+                    ProductionStationCode = t.VehicleComponent.ProductionStation.Code,
+                    ProductionStationName = t.VehicleComponent.ProductionStation.Name,
                     Serial1 = t.Serial1,
                     Serial2 = t.Serial2,
+                    VerifiedAt = t.VerifiedAt,
                     CreatedAt = t.CreatedAt
                 }).FirstOrDefaultAsync();
             return payload;

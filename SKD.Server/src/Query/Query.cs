@@ -53,11 +53,13 @@ namespace SKD.Server {
         [UseSelection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<ComponentSerial> GetComponentScans([Service] SkdContext context) =>
+        public IQueryable<ComponentSerial> GetComponentSerails([Service] SkdContext context) =>
                 context.ComponentSerials
                         .Include(t => t.VehicleComponent)
                                 .ThenInclude(t => t.Vehicle)
                                 .ThenInclude(t => t.Model)
+                        .Include(t => t.VehicleComponent).ThenInclude(t => t.Component)
+                        .Include(t => t.VehicleComponent).ThenInclude(t => t.ProductionStation)                        
                         .Include(t => t.DCWSResponses)
                         .AsQueryable();
 

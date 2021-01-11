@@ -80,16 +80,11 @@ namespace SKD.Server {
             return await service.SaveProductionStation(dto);
         }
 
-        public async Task<MutationPayload<ComponentSerialDTO>> CreateComponentScan(
+        public async Task<MutationPayload<ComponentSerialDTO>> CaptureComponentSerial(
           [Service] ComponentSerialService service,
           ComponentSerialInput input
         ) {
-            var dto = new ComponentSerialInput {
-                VehicleComponentId = input.VehicleComponentId,
-                Serial1 = input.Serial1,
-                Serial2 = input.Serial2
-            };
-            return await service.CaptureComponentSerial(dto);
+            return await service.CaptureComponentSerial(input);
         }
 
         public async Task<MutationPayload<DCWSResponse>> CreateDcwsResponse(
