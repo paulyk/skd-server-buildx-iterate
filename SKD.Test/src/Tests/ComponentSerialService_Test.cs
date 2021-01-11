@@ -193,6 +193,31 @@ namespace SKD.Test {
         }
 
         [Fact]
+        public async Task error_If_component_serial_1_and_2_the_same() {
+            // setup
+            var vehicleComponent = await ctx.VehicleComponents
+                .OrderBy(t => t.ProductionStation.Sequence)
+                .FirstOrDefaultAsync();
+
+            var serialNo =Gen_ComponentSerialNo();
+            var input = new ComponentSerialInput {
+                VehicleComponentId = vehicleComponent.Id,
+                Serial1 = serialNo,
+                Serial2 = serialNo
+            };
+            var before_count = await ctx.ComponentSerials.CountAsync();
+
+            // test
+            var service = new ComponentSerialService(ctx);
+            var payload = await service.CaptureComponentSerial(input);
+
+            // assert
+            var expected_error_message = "serial 1 and 2 are the same";
+            var actual_error_message = payload.Errors.Select(t => t.Message).FirstOrDefault();
+            Assert.Equal(expected_error_message, actual_error_message);
+        }
+
+        [Fact]
         public async Task error_if_multi_station_component_captured_out_of_sequence() {
             // setup vehicle 
             var vehicle = Gen_Vehicle_Amd_Model_From_Components(new List<(string, string)> {
@@ -330,7 +355,7 @@ namespace SKD.Test {
             Assert.Equal(expected_component_count, vehicle_info_component_count);
 
             var componentsWithSerial = vehicleInfo.Components
-                .Where(t => !String.IsNullOrEmpty(t.Serial1)).ToList();
+                .Where(t => t.Serial1 is not null or "").ToList();
 
             var with_serial_count =componentsWithSerial.Count();
             Assert.Equal(1, with_serial_count);

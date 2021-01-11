@@ -44,7 +44,7 @@ namespace SKD.Model {
                         InvoiceNo = invoiceDTO.InvoiceNo,
                         ShipDate = invoiceDTO.ShipDate,
                         Parts = invoiceDTO.Parts.Select(partDTO => new ShipmentPart {
-                            Part =  parts.First(t => t.PartNo == partDTO.PartNo.Trim()),
+                            Part = parts.First(t => t.PartNo == partDTO.PartNo.Trim()),
                             Quantity = partDTO.Quantity
                         }).ToList()
                     }).ToList()
@@ -59,9 +59,9 @@ namespace SKD.Model {
             var lotNumbers = lotPartInputs.Select(t => t.LotNo).Distinct().ToList();
             var lots = await context.VehicleLots
                 .Where(t => lotNumbers.Any(lotNo => lotNo == t.LotNo))
-                .ToListAsync(); 
+                .ToListAsync();
 
-            foreach(var lotPartInput in lotPartInputs) {
+            foreach (var lotPartInput in lotPartInputs) {
                 var lotPart = await context.LotParts
                     .Where(t => t.Lot.LotNo == lotPartInput.LotNo)
                     .Where(t => t.Part.PartNo == lotPartInput.PartNo.Trim())
@@ -112,7 +112,7 @@ namespace SKD.Model {
                 errors.Add(new Error("", $"lot number(s) not found {missingNumbersStr}..."));
                 return errors;
             }
-        
+
             // shipment dto must have lot + invoice + parts
             if (!input.Lots.Any()) {
                 errors.Add(new Error("", "shipment must have lots"));
@@ -129,7 +129,7 @@ namespace SKD.Model {
                 return errors;
             }
 
-            if (input.Lots.Any(t => t.Invoices.Any(u => u.Parts.Any(p => String.IsNullOrEmpty(p.PartNo))))) {
+            if (input.Lots.Any(t => t.Invoices.Any(u => u.Parts.Any(p => p.PartNo is null or "")))) {
                 errors.Add(new Error("", "shipment partNo cannot be empty"));
                 return errors;
             }
@@ -165,10 +165,10 @@ namespace SKD.Model {
                         LotNo = t.LotNo,
                         PartNo = u.PartNo,
                         Quantity = u.Quantity
-                    })                
-                })
+                    })
+            })
                 .SelectMany(t => t.LotParts)
-                .GroupBy(t => new { t.LotNo, t.PartNo})
+                .GroupBy(t => new { t.LotNo, t.PartNo })
                 .Select(g => new LotPartQuantityDTO {
                     LotNo = g.Key.LotNo,
                     PartNo = g.Key.PartNo,

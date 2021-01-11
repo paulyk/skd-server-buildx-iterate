@@ -151,12 +151,12 @@ namespace SKD.Model {
                 return errors;
             }
 
-            if (input.LotParts.Any(t => string.IsNullOrEmpty(t.PartNo))) {
+            if (input.LotParts.Any(t => t.PartNo is null or "")) {
                 errors.Add(new Error("", "entries with missing part number(s)"));
                 return errors;
             }
 
-            if (input.LotParts.Any(t => string.IsNullOrEmpty(t.PartDesc))) {
+            if (input.LotParts.Any(t => t.PartDesc is null or "")) {
                 errors.Add(new Error("", "entries with missing part decription(s)"));
                 return errors;
             }
@@ -252,7 +252,7 @@ namespace SKD.Model {
             }
 
             // missing model code
-            if (input.Lots.Any(t => t.Kits.Any(k => String.IsNullOrEmpty(k.ModelCode)))) {
+            if (input.Lots.Any(t => t.Kits.Any(k => k.ModelCode is null or ""))) {
                 errors.Add(new Error("", "kits with missing model code found"));
                 return errors;
             }

@@ -46,25 +46,25 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<List<Error>> ValidateDCWSResponse<T>(DCWWResponseInput dto) where T : DCWWResponseInput {
+        public async Task<List<Error>> ValidateDCWSResponse<T>(DCWWResponseInput input) where T : DCWWResponseInput {
             var errors = new List<Error>();
 
             var componentScan = await context.ComponentSerials
                 .Include(t => t.DCWSResponses)
                 .Include(t => t.VehicleComponent).ThenInclude(t => t.Vehicle)
-                .FirstOrDefaultAsync(t => t.Id == dto.ComponentScanId);
+                .FirstOrDefaultAsync(t => t.Id == input.ComponentScanId);
 
             if (componentScan == null) {
-                errors.Add(new Error("", $"component scan not found for ComponentScanId = {dto.ComponentScanId}"));
+                errors.Add(new Error("", $"component scan not found for ComponentScanId = {input.ComponentScanId}"));
                 return errors;
             }
 
             if (componentScan.VehicleComponent.RemovedAt != null) {
-                errors.Add(new Error("", $"vehicle component removed for ComponentScanId = {dto.ComponentScanId}"));
+                errors.Add(new Error("", $"vehicle component removed for ComponentScanId = {input.ComponentScanId}"));
                 return errors;
             }
 
-            if (String.IsNullOrEmpty(dto.ResponseCode)) {
+            if (input.ResponseCode is null or "") {
                 errors.Add(new Error("ResponseCode", "response code required"));
                 return errors;
             }
@@ -73,9 +73,9 @@ namespace SKD.Model {
             var duplicate  = await context.DCWSResponses
                 .OrderByDescending(t => t.CreatedAt)
                 .FirstOrDefaultAsync(
-                    t => t.ComponentScanId == dto.ComponentScanId && 
-                    t.ResponseCode == dto.ResponseCode &&
-                    t.ErrorMessage == dto.ErrorMessage);
+                    t => t.ComponentScanId == input.ComponentScanId && 
+                    t.ResponseCode == input.ResponseCode &&
+                    t.ErrorMessage == input.ErrorMessage);
 
             if (duplicate != null) {
                 errors.Add(new Error("", "duplicate"));
