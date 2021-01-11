@@ -79,8 +79,14 @@ namespace SKD.Model {
             }
 
             // serial numbers blank
-            if (String.IsNullOrEmpty(input.Serial1) && String.IsNullOrEmpty(input.Serial2)) {
+            if (input.Serial1 is null or "" && input.Serial2 is null or "") {
                 errors.Add(new Error("", "no serial numbers provided"));
+                return errors;
+            }
+
+            // serial not null and numbers identical 
+            if (input.Serial1 is not null or "" && input.Serial1 == input.Serial2) {
+                errors.Add(new Error("", "serial 1 and 2 are the same"));
                 return errors;
             }
 
@@ -164,8 +170,8 @@ namespace SKD.Model {
         }
 
         private ComponentSerialInput SwapAndTrimSerial(ComponentSerialInput input) {
-            input.Serial1 = String.IsNullOrEmpty(input.Serial1) ? "" : input.Serial1.Trim();
-            input.Serial2 = String.IsNullOrEmpty(input.Serial2) ? "" : input.Serial2.Trim();
+            input.Serial1 = input.Serial1 is null or "" ? "" : input.Serial1.Trim();
+            input.Serial2 = input.Serial2 is null or "" ? "" : input.Serial2.Trim();
 
             if (input.Serial1.Trim().Length == 0) {
                 return new ComponentSerialInput {

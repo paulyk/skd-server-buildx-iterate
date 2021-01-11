@@ -43,12 +43,12 @@ namespace SKD.Model {
         public async Task<List<Error>> ValidateCreatePlant(PlantInput input) {
             var errors = new List<Error>();
 
-            if (String.IsNullOrEmpty(input.Code) || input.Code.Length < EntityFieldLen.Plant_Code) {
+            if (input.Code is null or "" || input.Code.Length < EntityFieldLen.Plant_Code) {
                 errors.Add(new Error("Code", "invalid plant code"));
                 return errors;
             }
 
-            if (String.IsNullOrEmpty(input.Name) || input.Name.Length > EntityFieldLen.Plant_Name) {
+            if (input.Name is null or "" || input.Name.Length > EntityFieldLen.Plant_Name) {
                 errors.Add(new Error("Code", "invalid plant name"));
                 return errors;
             }
