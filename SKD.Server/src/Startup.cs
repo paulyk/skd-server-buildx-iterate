@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SKD.Model;
+using SKD.Dcws;
 using SKD.Seed;
 
 namespace SKD.Server {
@@ -26,6 +27,7 @@ namespace SKD.Server {
         public IWebHostEnvironment _env { get; }
 
         public void ConfigureServices(IServiceCollection services) {
+
 
             services.AddCors(options => {
                 options.AddDefaultPolicy(
@@ -54,7 +56,9 @@ namespace SKD.Server {
                 .AddTransient<BomService>()
                 .AddTransient<PlantService>()
                 .AddTransient<LotPartService>()
-                .AddTransient<QueryService>();
+                .AddTransient<QueryService>()
+                .AddSingleton<DcwsService>(sp => new DcwsService(Configuration["DcwsServiceAddress"]));
+                
 
             services.AddGraphQL(sp => SchemaBuilder.New()
                 .AddServices(sp)

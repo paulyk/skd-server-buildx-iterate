@@ -1,0 +1,15 @@
+{
+  "providerId": "Microsoft.Tools.ServiceModel.Svcutil",
+  "version": "2.0.2",
+  "options": {
+    "inputs": [
+      "http://19.208.1.178:9092/httpdatacollection/webservice.asmx"
+    ],
+    "namespaceMappings": [
+      "*, ServiceReference"
+    ],
+    "outputFile": "Reference.cs",
+    "targetFramework": "net5.0",
+    "typeReuseMode": "All"
+  }
+}
