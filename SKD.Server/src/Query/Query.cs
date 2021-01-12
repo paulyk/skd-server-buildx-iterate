@@ -7,6 +7,7 @@ using HotChocolate;
 using SKD.Model;
 using HotChocolate.Types.Relay;
 using HotChocolate.Types;
+using SKD.Dcws;
 
 namespace SKD.Server {
 
@@ -356,5 +357,13 @@ namespace SKD.Server {
             string vin
         ) => await service.GetVehicleInfo_ForSerialCapture(vin);
 
+        public async Task<bool> PingDcwsService(
+            [Service] DcwsService service
+        ) => await service.CanConnectToService();
+
+        public async Task<string> GetDcwsServiceVersion(
+            [Service] DcwsService service
+        ) => await service.GetServiceVersion();
+        
     }
 }
