@@ -61,14 +61,14 @@ namespace SKD.Server {
                                 .ThenInclude(t => t.Model)
                         .Include(t => t.VehicleComponent).ThenInclude(t => t.Component)
                         .Include(t => t.VehicleComponent).ThenInclude(t => t.ProductionStation)                        
-                        .Include(t => t.DCWSResponses)
+                        .Include(t => t.DcwsResponses)
                         .AsQueryable();
 
         [UsePaging]
         [UseSelection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<DCWSResponse> GetDcwsResponses([Service] SkdContext context) =>
+        public IQueryable<DcwsResponse> GetDcwsResponses([Service] SkdContext context) =>
                 context.DCWSResponses
                         .Include(t => t.ComponentSerial).ThenInclude(t => t.VehicleComponent)
                         .AsQueryable();

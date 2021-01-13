@@ -372,8 +372,8 @@ namespace SKD.Test {
 
             var componentSerialResult = createScanPayload.Entity;
             var dcwsService = new DCWSResponseService(ctx);
-            await dcwsService.CreateDCWSResponse(new DCWWResponseInput {
-                ComponentScanId = componentSerialResult.ComponentSerialId,
+            await dcwsService.SaveDcwsComponentResponse(new DcwsComponentResponseInput {
+                VehicleComponentId = componentSerialResult.ComponentSerialId,
                 ResponseCode = "NONE",
                 ErrorMessage = ""
             });

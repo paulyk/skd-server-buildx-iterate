@@ -23,12 +23,12 @@ namespace SKD.Test {
 
             // act
             var service = new DCWSResponseService(ctx);
-            var input = new DCWWResponseInput {
-                ComponentScanId = componentScan.Id,
+            var input = new DcwsComponentResponseInput {
+                VehicleComponentId = vehicleComponent.Id,
                 ResponseCode = "NONE",
                 ErrorMessage = ""
             };
-            var payload = await service.CreateDCWSResponse(input);
+            var payload = await service.SaveDcwsComponentResponse(input);
             // assert
             Assert.True(payload.Errors.Count() == 0, "error count should be 0");
             var responseCoount = ctx.DCWSResponses.Count();
@@ -43,22 +43,22 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task cannot_create_duplicate_dcws_response_code() {
+        public async Task cannot_save_duplicate_dcws_response_code() {
 
             var vehicle = ctx.Vehicles.First();
             var vehicleComponent = vehicle.VehicleComponents.First();
             var componentScan = Gen_ComponentScan(vehicleComponent.Id);
 
             var service = new DCWSResponseService(ctx);
-            var dto = new DCWWResponseInput {
-                ComponentScanId = componentScan.Id,
+            var dto = new DcwsComponentResponseInput {
+                VehicleComponentId = vehicleComponent.Id,
                 ResponseCode = "NONE",
                 ErrorMessage = ""
             };
-            var payload = await service.CreateDCWSResponse(dto);
+            var payload = await service.SaveDcwsComponentResponse(dto);
             Assert.True(payload.Errors.Count() == 0, "error count should be 0");
             // dpulicate
-            var payload_2 = await service.CreateDCWSResponse(dto);
+            var payload_2 = await service.SaveDcwsComponentResponse(dto);
             Assert.True(payload_2.Errors.Count() == 1, "should have one error");
             var errorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
             Assert.True(errorMessage == "duplicate");
