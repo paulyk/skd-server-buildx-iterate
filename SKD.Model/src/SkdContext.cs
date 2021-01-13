@@ -15,7 +15,7 @@ namespace SKD.Model {
         public DbSet<VehicleModel> VehicleModels { get; set; }
         public DbSet<VehicleComponent> VehicleComponents { get; set; }
         public DbSet<ComponentSerial> ComponentSerials { get; set; }
-        public DbSet<DCWSResponse> DCWSResponses { get; set; }
+        public DbSet<DcwsResponse> DCWSResponses { get; set; }
         public DbSet<VehicleModelComponent> VehicleModelComponents { get; set; }
         public DbSet<ProductionStation> ProductionStations { get; set; }
         public DbSet<Part> Parts { get; set; }

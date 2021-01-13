@@ -12,7 +12,7 @@ namespace SKD.Model {
 
         public DateTime? VerifiedAt { get; set; }
 
-        public ICollection<DCWSResponse> DCWSResponses { get; set; } = new List<DCWSResponse>();
+        public ICollection<DcwsResponse> DcwsResponses { get; set; } = new List<DcwsResponse>();
 
         public ComponentSerial() : base() { }
     }

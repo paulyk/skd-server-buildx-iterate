@@ -20,9 +20,9 @@ namespace SKD.Model {
                 .WithMany(t => t.ComponentSerials)
                 .HasForeignKey(t => t.VehicleComponentId);
 
-            builder.HasMany(t => t.DCWSResponses)
+            builder.HasMany(t => t.DcwsResponses)
                 .WithOne(t => t.ComponentSerial)
-                .HasForeignKey(t => t.ComponentScanId);
+                .HasForeignKey(t => t.ComponentSerialId);
         }
     }
 }

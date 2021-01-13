@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using SKD.Model;
+using SKD.Dcws;
 using HotChocolate;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -87,16 +88,16 @@ namespace SKD.Server {
             return await service.CaptureComponentSerial(input);
         }
 
-        public async Task<MutationPayload<DCWSResponse>> CreateDcwsResponse(
+        public async Task<MutationPayload<DcwsResponse>> CreateDcwsResponse(
           [Service] DCWSResponseService service,
-          DCWWResponseInput input
+          DcwsComponentResponseInput input
         ) {
-            var dto = new DCWWResponseInput {
-                ComponentScanId = input.ComponentScanId,
+            var dto = new DcwsComponentResponseInput {
+                VehicleComponentId = input.VehicleComponentId,
                 ResponseCode = input.ResponseCode,
                 ErrorMessage = input.ErrorMessage
             };
-            return await service.CreateDCWSResponse(dto);
+            return await service.SaveDcwsComponentResponse(dto);
         }
 
         public async Task<MutationPayload<ShipmentOverviewDTO>> ImportShipment(
@@ -133,6 +134,38 @@ namespace SKD.Server {
             Guid gOut;
             Guid.TryParse(str, out gOut);
             return gOut;
+        }
+
+        // Note DcwsService / DCWSResponseService confusing...
+        // move to 
+        public async Task<MutationPayload<DcwsResponse>> VerifyComponentSerial(
+            [Service] DcwsService dcwsService,
+            [Service] DCWSResponseService dcwsResponseService,
+            [Service] SkdContext context,
+            Guid vehicleComponentId
+        )  {
+            var componentSerial = await context.ComponentSerials
+                .Include(t => t.VehicleComponent).ThenInclude(t => t.Vehicle)
+                .Include(t => t.VehicleComponent).ThenInclude(t => t.Component)
+                .OrderByDescending(t => t.CreatedAt)
+                .Where(t => t.VehicleComponentId == vehicleComponentId)
+                .Where(t => t.RemovedAt == null)
+                .FirstOrDefaultAsync();
+            
+            var input = new SubmitDcwsComponentInput {
+                VIN = componentSerial.VehicleComponent.Vehicle.VIN,
+                ComponentTypeCode = componentSerial.VehicleComponent.Component.Code,
+                Serial1 = componentSerial.Serial1,
+                Serial2 = componentSerial.Serial2
+            };
+            
+            var submitDcwsComponentResponse = await dcwsService.SubmitDcwsComponent(input);
+            var dcwsResponsePayload = await dcwsResponseService.SaveDcwsComponentResponse(new DcwsComponentResponseInput {
+                VehicleComponentId = vehicleComponentId,
+                ResponseCode = submitDcwsComponentResponse.ProcessExceptionCode,                
+            });
+
+            return dcwsResponsePayload;
         }
     }
 }

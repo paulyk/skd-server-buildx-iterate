@@ -19,7 +19,7 @@ namespace SKD.Dcws {
             return true;
         }
 
-        public async Task<CdcComponentResponse> SaveComponentSerial(CdcComponentInput input) {
+        public async Task<SubmitDcwsComponentRespnse> SubmitDcwsComponent(SubmitDcwsComponentInput input) {
 
             var payload = await client.SaveCDCComponentAsync(
                 vin: input.VIN,
@@ -37,13 +37,12 @@ namespace SKD.Dcws {
             );
 
             var processExecption = payload.Body.SaveCDCComponentResult.ProcessException;
-            return new CdcComponentResponse {
+            return new SubmitDcwsComponentRespnse {
                 VIN = input.VIN,
                 ComponentTypeCode = input.ComponentTypeCode,
                 Serial1 = input.Serial1,
                 Serial2 = input.Serial2,
-                Success = processExecption == "NONE" || processExecption == "REPAIR",
-                ProcessException = processExecption
+                ProcessExceptionCode = processExecption
             };
         }
 
