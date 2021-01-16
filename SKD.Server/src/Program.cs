@@ -14,15 +14,17 @@ namespace SKD.Server {
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) {
-            var ConfigHelper = new ConfigHelper();
-
             return Host.CreateDefaultBuilder(args)
                 .ConfigureLogging(logging => {
                     logging.AddConsole();
                 })
                 .ConfigureWebHostDefaults(webBuilder => {
-                    webBuilder.UseConfiguration(ConfigHelper.GetConfig());
-                    webBuilder.UseStartup<Startup>();
+                    webBuilder
+                        .UseStartup<Startup>()
+                        .ConfigureAppConfiguration(c => {
+                            c.AddJsonFile("appsettings.json", optional: false)
+                            .AddEnvironmentVariables();
+                        });
                 });
         }
     }
