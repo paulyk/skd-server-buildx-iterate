@@ -96,9 +96,10 @@ namespace SKD.Model {
             return errors;
         }
 
-        public async Task<LotPartDTO?> GetLotPartInfo(string lotNo, string PartNo) {
+        public async Task<LotPartDTO?> GetLotPartInfo(string lotNo, string partNo) {
+            partNo = PartService.ReFormatPartNo(partNo);
             var lotPart = await context.LotParts
-                .Where(t => t.Lot.LotNo == lotNo && t.Part.PartNo == PartNo)
+                .Where(t => t.Lot.LotNo == lotNo && t.Part.PartNo == partNo)
                     .Include(t => t.Lot)
                     .Include(t => t.Part)
                     .Include(t => t.Received)

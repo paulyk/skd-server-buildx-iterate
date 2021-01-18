@@ -44,7 +44,7 @@ namespace SKD.Model {
                         InvoiceNo = invoiceDTO.InvoiceNo,
                         ShipDate = invoiceDTO.ShipDate,
                         Parts = invoiceDTO.Parts.Select(partDTO => new ShipmentPart {
-                            Part = parts.First(t => t.PartNo == partDTO.PartNo.Trim()),
+                            Part = parts.First(t => t.PartNo == PartService.ReFormatPartNo(partDTO.PartNo)),
                             Quantity = partDTO.Quantity
                         }).ToList()
                     }).ToList()
@@ -64,13 +64,13 @@ namespace SKD.Model {
             foreach (var lotPartInput in lotPartInputs) {
                 var lotPart = await context.LotParts
                     .Where(t => t.Lot.LotNo == lotPartInput.LotNo)
-                    .Where(t => t.Part.PartNo == lotPartInput.PartNo.Trim())
+                    .Where(t => t.Part.PartNo == PartService.ReFormatPartNo(lotPartInput.PartNo))
                     .FirstOrDefaultAsync();
 
                 if (lotPart == null) {
                     lotPart = new LotPart {
                         Lot = lots.First(t => t.LotNo == lotPartInput.LotNo),
-                        Part = parts.First(t => t.PartNo == lotPartInput.PartNo.Trim()),
+                        Part = parts.First(t => t.PartNo == PartService.ReFormatPartNo(lotPartInput.PartNo)),
                     };
                     context.LotParts.Add(lotPart);
                 }
