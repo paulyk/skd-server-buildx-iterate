@@ -237,8 +237,8 @@ namespace SKD.Test {
         public void can_add_parts() {
             using (var ctx = GetAppDbContext()) {
                 var parts = new List<Part> {
-                    new Part { PartNo = "p1", PartDesc = "p1 desc"},
-                    new Part { PartNo = "p2", PartDesc = "p2 desc"},
+                    new Part { PartNo = "p1", OriginalPartNo = "p1 -", PartDesc = "p1 desc"},
+                    new Part { PartNo = "p2", OriginalPartNo = "p2 -", PartDesc = "p2 desc"},
                 };
 
                 ctx.Parts.AddRange(parts);

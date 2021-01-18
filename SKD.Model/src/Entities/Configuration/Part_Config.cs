@@ -14,6 +14,7 @@ namespace SKD.Model {
             builder.HasIndex(t => t.PartDesc);
 
             builder.Property(t => t.PartNo).IsRequired().HasMaxLength(EntityFieldLen.Part_No);
+            builder.Property(t => t.OriginalPartNo).IsRequired().HasMaxLength(EntityFieldLen.Part_No);
             builder.Property(t => t.PartDesc).HasMaxLength(EntityFieldLen.Part_Desc);
 
             // relationships     

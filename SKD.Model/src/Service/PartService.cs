@@ -16,15 +16,21 @@ namespace SKD.Model {
             this.context = ctx;
         }
 
+        public static string ReFormatPartNo(string part) {
+            return Regex.Replace(part, @"(^[- ]+|[ ]|[- ]*$)", "");
+        }
+
         public async Task<List<Part>> GetEnsureParts(List<(string partNo, string partDesc)> inputParts) {
             var parts = new List<Part>();
 
             foreach (var inputPart in inputParts) {
-                if (!parts.Any(t => t.PartNo == inputPart.partNo.Trim())) {
-                    var part = await context.Parts.FirstOrDefaultAsync(t => t.PartNo == inputPart.partNo.Trim());
+                var formattedPartNo = ReFormatPartNo(inputPart.partNo);
+                if (!parts.Any(t => t.PartNo == formattedPartNo)) {
+                    var part = await context.Parts.FirstOrDefaultAsync(t => t.PartNo == formattedPartNo);
                     if (part == null) {
                         part = new Part {
-                            PartNo = inputPart.partNo.Trim(),
+                            PartNo = formattedPartNo,
+                            OriginalPartNo = inputPart.partNo,
                             PartDesc = inputPart.partDesc
                         };
                         context.Parts.Add(part);

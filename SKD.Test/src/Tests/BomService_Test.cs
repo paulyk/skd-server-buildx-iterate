@@ -64,6 +64,70 @@ namespace SKD.Test {
             Assert.Equal(expeced_parts_count, lot_parts_count);
         }
 
+
+        [Fact]
+        private async Task import_bom_lot_changes_part_no_format() {
+            // setup
+            var plant = Gen_Plant();
+            var lot1 = Gen_LotNo();
+            var lot2 = Gen_LotNo();
+
+            // trim tailing [- ]* and removes spaces
+            var part_mubers = new List<(string partNo, string reformattedPartNo)>() {
+                ("-W716936-S442", "W716936-S442"),
+                ("- W716899-  S900 -", "W716899-S900"),
+                ("- EB3B-31010-  AF3ZHE -", "EB3B-31010-AF3ZHE"),
+                ("       -  W500301-S437    -   ", "W500301-S437")
+            };
+
+            var input = new BomLotPartInput() {
+                Sequence = 1,
+                PlantCode = plant.Code,
+                LotParts = new List<BomLotPartInput.LotPart> {
+                    new BomLotPartInput.LotPart {
+                        LotNo = lot1,
+                        PartNo = part_mubers[0].partNo,
+                        PartDesc = part_mubers[0].partNo + " desc",
+                        Quantity = 1
+                    },
+                    new BomLotPartInput.LotPart {
+                        LotNo = lot1,
+                        PartNo = part_mubers[1].partNo,
+                        PartDesc = part_mubers[1].partNo + " desc",
+                        Quantity = 1
+                    },
+                    new BomLotPartInput.LotPart {
+                        LotNo = lot2,
+                        PartNo = part_mubers[2].partNo,
+                        PartDesc = part_mubers[2].partNo + " desc",
+                        Quantity = 1
+                    },
+                    new BomLotPartInput.LotPart {
+                        LotNo = lot2,
+                        PartNo = part_mubers[3].partNo,
+                        PartDesc = part_mubers[3].partNo + " desc",
+                        Quantity = 1
+                    }
+                }
+            };
+
+            // test
+            var service = new BomService(ctx);
+            var payload = await service.ImportBomLotParts(input);
+
+            var partService = new PartService(ctx);
+
+            // assert 
+            foreach(var entry in part_mubers) {
+                var part = await ctx.Parts.FirstOrDefaultAsync(t => t.PartNo == entry.reformattedPartNo);
+                Assert.NotNull(part);
+                Assert.Equal(entry.partNo, part.OriginalPartNo);
+            }
+        }
+
+
+
+
         [Fact]
         private async Task cannot_import_duplicate_bom_lot_parts_in_paylaod() {
             // setup
