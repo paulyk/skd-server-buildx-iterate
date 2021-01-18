@@ -23,9 +23,6 @@ jobs:
     - name: Build with dotnet
       run: dotnet build --configuration Release
 
-    - name: Test
-      run: dotnet test
-
     - name: dotnet publish
       run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
@@ -34,5 +31,5 @@ jobs:
       with:
         app-name: 'rma-skd-staging-server'
         slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_8f26dcec14a64028a62dcd8d4ebdc128 }}
+        publish-profile: ${{ secrets.AzureAppService_PublishProfile_5c33762e8b6b418b86a0409228077a29 }}
         package: ${{env.DOTNET_ROOT}}/myapp 
