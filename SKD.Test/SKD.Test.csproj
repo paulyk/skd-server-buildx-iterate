@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SKD.Model\SKD.Model.csproj" />
+    <ProjectReference Include="..\SKD.Dcws\SKD.Dcws.csproj" />
   </ItemGroup>
 
 </Project>
