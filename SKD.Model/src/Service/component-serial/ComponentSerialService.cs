@@ -15,7 +15,7 @@ namespace SKD.Model {
         public ComponentSerialService(SkdContext ctx) => this.context = ctx;
 
         public async Task<MutationPayload<ComponentSerialDTO>> CaptureComponentSerial(ComponentSerialInput input) {
-            input = SwapAndTrimSerial(input);
+            input = SwapSerial(input);
 
             var payload = new MutationPayload<ComponentSerialDTO>(null);
 
@@ -169,9 +169,9 @@ namespace SKD.Model {
             return errors;
         }
 
-        private ComponentSerialInput SwapAndTrimSerial(ComponentSerialInput input) {
-            input.Serial1 = input.Serial1 is null or "" ? "" : input.Serial1.Trim();
-            input.Serial2 = input.Serial2 is null or "" ? "" : input.Serial2.Trim();
+        private ComponentSerialInput SwapSerial(ComponentSerialInput input) {
+            input.Serial1 = input.Serial1 is null or "" ? "" : input.Serial1;
+            input.Serial2 = input.Serial2 is null or "" ? "" : input.Serial2;
 
             if (input.Serial1.Trim().Length == 0) {
                 return new ComponentSerialInput {

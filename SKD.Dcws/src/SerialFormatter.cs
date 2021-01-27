@@ -8,11 +8,13 @@ namespace SKD.Dcws {
             // return first + pad + theResut must be 39 chars
 
             var first16 = input.Substring(0, 16);
-            var theRest = input.Substring(16);
+            var theRest = input.Substring(16).Trim();
 
-            var padChars = "".PadLeft(39 - (first16.Length + theRest.Length), ' ');
+            var sixChars = "".PadRight(6, ' ');
 
-            return $"{first16}{padChars}{theRest}";
+            var result = $"{first16}{sixChars}{theRest}".PadRight(39, ' ');
+
+            return result;
         }
 
 

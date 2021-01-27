@@ -14,8 +14,8 @@ namespace SKD.Test {
             // first + pad + theResut must be 39 chars
 
             var tests = new List<(string input, string expected)> {
-                ("TC04A20023121484      JB3P 7000 VE     ","TC04A20023121484      JB3P 7000 VE     "),
-                ("TC04A20023121484JB3P      7000 VE  ", "TC04A20023121484    JB3P      7000 VE  ")
+                ("TC04A20023121484JB3P 7000 VE",  "TC04A20023121484      JB3P 7000 VE     "),
+                ("TC04A20023121484      JB3P 7000 VE     ",  "TC04A20023121484      JB3P 7000 VE     "),
             };
 
             var serialFormatter = new SerialFormatter();
