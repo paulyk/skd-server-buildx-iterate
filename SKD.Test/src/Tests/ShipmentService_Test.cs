@@ -85,14 +85,26 @@ namespace SKD.Test {
             var payload = await shipmentService.ImportShipment(input);
 
             // assert
-            var invoice_part = await ctx.ShipmentParts
+            var shipment_invoice_part = await ctx.ShipmentParts
                 .Where(t => t.ShipmentInvoice.ShipmentLot.LotNo == shipmentLot.LotNo)
                 .Where(t => t.ShipmentInvoice.InvoiceNo == shipmentInvoice.InvoiceNo)
                 .Where(t => t.Part.PartNo == shipmentPart.PartNo)
                 .FirstOrDefaultAsync();
 
-            var expectedQuantity = shipmentPart.Quantity * 2;
-            Assert.Equal(expectedQuantity, invoice_part.Quantity);
+            var expecteShipmentPartdQuantity = shipmentPart.Quantity * 2;
+            Assert.Equal(expecteShipmentPartdQuantity, shipment_invoice_part.Quantity);
+
+            // expect lot part quancity
+            var expected_LotPart_ShipmentQuantity =  shipmentLot.Invoices
+                .SelectMany(t => t.Parts)
+                .Where(t => t.PartNo == shipmentPart.PartNo).Sum(t => t.Quantity);
+
+            var actual_lotPart_ShipmentQuantity = await ctx.LotParts
+                .Where(t => t.Lot.LotNo == shipmentLot.LotNo)
+                .Where(t => t.Part.PartNo == shipmentPart.PartNo)
+                .Select(t => t.ShipmentQuantity).FirstOrDefaultAsync();
+
+            Assert.Equal(expected_LotPart_ShipmentQuantity, actual_lotPart_ShipmentQuantity);
         }
 
         [Fact]
