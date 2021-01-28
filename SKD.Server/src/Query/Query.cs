@@ -29,6 +29,13 @@ namespace SKD.Server {
         public IQueryable<Part> GetParts([Service] SkdContext context) =>
              context.Parts.AsNoTracking().AsQueryable();
 
+    [UsePaging]
+        [UseSelection]
+        [UseFiltering]
+        [UseSorting]
+        public IQueryable<Plant> GetPlants([Service] SkdContext context) =>
+             context.Plants.AsNoTracking().AsQueryable();             
+
         [UsePaging]
         [UseSelection]
         [UseFiltering]
