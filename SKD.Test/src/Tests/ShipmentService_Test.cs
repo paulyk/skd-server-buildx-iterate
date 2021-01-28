@@ -64,6 +64,37 @@ namespace SKD.Test {
             Assert.Equal(expected_lot_parts_count, actual_lot_parts);
         }
 
+
+        [Fact]
+        private async Task duplicate_invoice_parts_are_summarized_into_one_invoice_part() {
+            // 
+            var plant = await ctx.Plants.FirstAsync();
+            var lot = await ctx.VehicleLots.FirstAsync();
+            var sequence = 2;
+
+            var input = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence);
+            
+            var shipmentLot = input.Lots.First();
+            var shipmentInvoice = input.Lots.First().Invoices.First();
+            var shipmentPart = shipmentInvoice.Parts.First();
+            shipmentInvoice.Parts.Add(shipmentPart);
+
+            // test
+            var before_count = ctx.ShipmentParts.Count();
+            var shipmentService = new ShipmentService(ctx);
+            var payload = await shipmentService.ImportShipment(input);
+
+            // assert
+            var invoice_part = await ctx.ShipmentParts
+                .Where(t => t.ShipmentInvoice.ShipmentLot.LotNo == shipmentLot.LotNo)
+                .Where(t => t.ShipmentInvoice.InvoiceNo == shipmentInvoice.InvoiceNo)
+                .Where(t => t.Part.PartNo == shipmentPart.PartNo)
+                .FirstOrDefaultAsync();
+
+            var expectedQuantity = shipmentPart.Quantity * 2;
+            Assert.Equal(expectedQuantity, invoice_part.Quantity);
+        }
+
         [Fact]
         private async Task cannot_import_shipment_with_duplicate_plant_and_sequence() {
             var plant = await ctx.Plants.FirstAsync();
@@ -97,7 +128,7 @@ namespace SKD.Test {
 
             // test
             var payload = await shipmentService.ImportShipment(input);
-            
+
             var actual_error_message = payload.Errors.Select(t => t.Message).FirstOrDefault();
             var expected_message = "lot number(s) not found";
             Assert.Equal(expected_message, actual_error_message.Substring(0, expected_message.Length));
@@ -225,7 +256,7 @@ namespace SKD.Test {
                                 InvoiceNo = "001",
                                 Parts = new List<ShipmentPartInput> {
                                     new ShipmentPartInput {
-                                        PartNo = "part 1",
+                                        PartNo = "part-1",
                                         CustomerPartDesc = "part 1 desc",
                                         CustomerPartNo = "cust 0001",
                                         Quantity = 1
@@ -236,13 +267,13 @@ namespace SKD.Test {
                                 InvoiceNo = "002",
                                 Parts = new List<ShipmentPartInput> {
                                     new ShipmentPartInput {
-                                        PartNo = "part 1",
+                                        PartNo = "part-1",
                                         CustomerPartDesc = "part 1 desc",
                                         CustomerPartNo = "part 1 desc",
                                         Quantity = 3
                                     },
                                     new ShipmentPartInput {
-                                        PartNo = "part 2",
+                                        PartNo = "part-2",
                                         CustomerPartDesc = "part 2 desc",
                                         CustomerPartNo = "part 2 desc",
                                         Quantity = 2

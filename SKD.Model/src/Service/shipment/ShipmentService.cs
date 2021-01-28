@@ -43,18 +43,19 @@ namespace SKD.Model {
                     Invoices = lotDTO.Invoices.Select(invoiceDTO => new ShipmentInvoice {
                         InvoiceNo = invoiceDTO.InvoiceNo,
                         ShipDate = invoiceDTO.ShipDate,
-                        Parts = invoiceDTO.Parts.Select(partDTO => new ShipmentPart {
-                            Part = parts.First(t => t.PartNo == PartService.ReFormatPartNo(partDTO.PartNo)),
-                            Quantity = partDTO.Quantity
-                        }).ToList()
+                        Parts = invoiceDTO.Parts
+                            .GroupBy(t => new { PartNo = t.PartNo })
+                            .Select(g => new ShipmentPart {
+                                Part = parts.First(t => t.PartNo == PartService.ReFormatPartNo(g.Key.PartNo)),
+                                Quantity = g.Sum(x => x.Quantity)
+                            }).ToList()
                     }).ToList()
                 }).ToList()
             };
+
             context.Shipments.Add(shipment);
 
-
-            // Add / Update LotPart (s)
-
+            // Add / Update LotPart(s)
             var lotPartInputs = Get_LotPartInputs_from_ShipmentInput(input);
             var lotNumbers = lotPartInputs.Select(t => t.LotNo).Distinct().ToList();
             var lots = await context.VehicleLots
