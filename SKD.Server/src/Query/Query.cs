@@ -40,15 +40,19 @@ namespace SKD.Server {
         [UseSelection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<Vehicle> GetVehicles([Service] SkdContext context) =>
-                 context.Vehicles.AsQueryable();
+        public IQueryable<Vehicle> GetVehicles(
+            [Service] SkdContext context,
+            string plantCode
+        ) =>    context.Vehicles.Where(t => t.Lot.Plant.Code == plantCode).AsQueryable();
 
         [UsePaging]
         [UseSelection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<VehicleLot> GetVehicleLots([Service] SkdContext context) =>
-                 context.VehicleLots.AsQueryable();
+        public IQueryable<VehicleLot> GetVehicleLots(
+            [Service] SkdContext context,
+            string plantCode
+        ) => context.VehicleLots.Where(t => t.Plant.Code == plantCode).AsQueryable();
 
         [UsePaging]
         [UseSelection]
@@ -106,8 +110,10 @@ namespace SKD.Server {
         [UseSelection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<Shipment> GetShipments([Service] SkdContext context) =>
-                context.Shipments.AsQueryable();
+        public IQueryable<Shipment> GetShipments(
+            [Service] SkdContext context,
+            string plantCode
+        ) => context.Shipments.Where(t => t.Plant.Code == plantCode).AsQueryable();
 
         public async Task<ShipmentOverviewDTO?> GetShipmentOverview([Service] ShipmentService service, Guid shipmentId) =>
             await service.GetShipmentOverview(shipmentId);
