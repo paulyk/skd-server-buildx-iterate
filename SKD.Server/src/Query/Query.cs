@@ -300,9 +300,9 @@ namespace SKD.Server {
                     .Select(t => new BomListDTO {
                         Id = t.Id,
                         PlantCode = t.Plant.Code,
-                        Sequence = t.Sequence,
-                        LotCount = t.Lots.Count(),
+                        Sequence = t.Sequence,                        
                         PartCount = t.Lots.SelectMany(t => t.LotParts).Select(t => t.Part).Distinct().Count(),
+                        LotNumbers = t.Lots.Select(t => t.LotNo),
                         CreatedAt = t.CreatedAt
                     }).AsQueryable();
 
