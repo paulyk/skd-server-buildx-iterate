@@ -4,23 +4,23 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace SKD.Model {
-    public class VehicleComponent_Config : IEntityTypeConfiguration<VehicleComponent> {
-        public void Configure(EntityTypeBuilder<VehicleComponent> builder) {
+    public class KitComponent_Config : IEntityTypeConfiguration<KitComponent> {
+        public void Configure(EntityTypeBuilder<KitComponent> builder) {
 
             builder.ToTable("vehicle_component");
 
             builder.HasKey(t => t.Id);
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
 
-            builder.HasIndex(t => new { t.VehicleId, t.ComponentId, t.ProductionStationId }).IsUnique();            
+            builder.HasIndex(t => new { t.KitId, t.ComponentId, t.ProductionStationId }).IsUnique();            
 
             builder.HasOne(t => t.Component)
-                .WithMany(t => t.VehicleComponents)
+                .WithMany(t => t.KitComponents)
                 .HasForeignKey(t => t.ComponentId);
 
-            builder.HasOne(t => t.Vehicle)
-                .WithMany(t => t.VehicleComponents)
-                .HasForeignKey(t => t.VehicleId);
+            builder.HasOne(t => t.Kit)
+                .WithMany(t => t.KitComponents)
+                .HasForeignKey(t => t.KitId);
 
             builder.HasMany(t => t.ComponentSerials)
                 .WithOne(t => t.VehicleComponent)

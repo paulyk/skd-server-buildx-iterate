@@ -2,8 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace SKD.Model {
-    public class VehicleLot_Config : IEntityTypeConfiguration<VehicleLot> {
-        public void Configure(EntityTypeBuilder<VehicleLot> builder) {
+    public class Lot_Config : IEntityTypeConfiguration<Lot> {
+        public void Configure(EntityTypeBuilder<Lot> builder) {
 
             builder.ToTable("vehicle_lot");
 
@@ -14,7 +14,7 @@ namespace SKD.Model {
             builder.HasIndex(t => t.LotNo).IsUnique();
 
             // relationships
-            builder.HasMany(t => t.Vehicles)
+            builder.HasMany(t => t.Kits)
                 .WithOne(t => t.Lot)
                 .HasForeignKey(t => t.LotId);
 
@@ -23,7 +23,7 @@ namespace SKD.Model {
                 .HasForeignKey(t => t.LotId);
 
             builder.HasOne(t => t.Plant)
-                .WithMany(t => t.VehicleLots)
+                .WithMany(t => t.Lots)
                 .HasForeignKey(t => t.PlantId)
                 .OnDelete(DeleteBehavior.NoAction);
 

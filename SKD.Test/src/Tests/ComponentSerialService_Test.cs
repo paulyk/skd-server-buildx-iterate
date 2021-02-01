@@ -286,7 +286,7 @@ namespace SKD.Test {
                 .Include(t => t.Component)
                 .Include(t => t.ProductionStation)
                 .OrderBy(t => t.ProductionStation.Sequence)
-                .Where(t => t.VehicleId == vehicle.Id).ToListAsync();
+                .Where(t => t.KitId == vehicle.Id).ToListAsync();
 
             // test
             var service = new ComponentSerialService(ctx);
@@ -306,7 +306,7 @@ namespace SKD.Test {
 
             // assert
             var component_serial_entry_count = await ctx.ComponentSerials.CountAsync();
-            var expected_count = await ctx.VehicleComponents.CountAsync(t => t.VehicleId == vehicle.Id);
+            var expected_count = await ctx.VehicleComponents.CountAsync(t => t.KitId == vehicle.Id);
             Assert.Equal(expected_count, component_serial_entry_count);
 
         }
@@ -333,7 +333,7 @@ namespace SKD.Test {
             var vehicleComponents = await ctx.VehicleComponents
                 .Include(t => t.Component)
                 .OrderBy(t => t.ProductionStation.Sequence)
-                .Where(t => t.VehicleId == vehicle.Id)
+                .Where(t => t.KitId == vehicle.Id)
                 .ToListAsync();
 
             var firstVehicleComponent = vehicleComponents.First();

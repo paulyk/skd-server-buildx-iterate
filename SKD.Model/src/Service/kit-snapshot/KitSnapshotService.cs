@@ -8,18 +8,18 @@ using System.Linq;
 
 namespace SKD.Model {
 
-    public class VehicleSnapshotService {
+    public class KitSnapshotService {
 
         private readonly SkdContext context;
 
-        public VehicleSnapshotService(SkdContext ctx) {
+        public KitSnapshotService(SkdContext ctx) {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<SnapshotDTO>> GenerateSnapshot(VehicleSnapshotInput input) {
+        public async Task<MutationPayload<SnapshotDTO>> GenerateSnapshot(KitSnapshotInput input) {
 
             var payload = new MutationPayload<SnapshotDTO>(null);
-            payload.Errors = await ValidateGenerateVehicleSnapshot(input);
+            payload.Errors = await ValidateGenerateKitSnapshot(input);
             if (payload.Errors.Any()) {
                 return payload;
             }
@@ -45,7 +45,7 @@ namespace SKD.Model {
             }
 
             // create entity
-            var vehicleSnapshotRun = new VehicleSnapshotRun {
+            var vehicleSnapshotRun = new kitSnapshotRun {
                 Plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode),
                 RunDate = input.RunDate.Date,
                 Sequence = await context.VehicleSnapshotRuns
@@ -56,8 +56,8 @@ namespace SKD.Model {
             };
 
             foreach (var vehicle in qualifyingVehicles) {
-                var vehicleStatusSnapshot = new VehicleSnapshot {
-                    Vehicle = vehicle,
+                var vehicleStatusSnapshot = new KitSnapshot {
+                    Kit = vehicle,
                     ChangeStatusCode = await GetVehicle_TxSatus(vehicle),
                     TimelineEventCode = Get_VehicleLastestTimelineEventType(vehicle),
                     VIN = Get_VehicleVIN_IfBuildComplete(vehicle),
@@ -71,7 +71,7 @@ namespace SKD.Model {
                     Wholesale = GetVehicleTimelineEventDate(vehicle, TimeLineEventType.WHOLE_SALE),
                 };
 
-                vehicleSnapshotRun.VehicleSnapshots.Add(vehicleStatusSnapshot);
+                vehicleSnapshotRun.KitSnapshots.Add(vehicleStatusSnapshot);
             }
 
             // save
@@ -82,7 +82,7 @@ namespace SKD.Model {
             payload.Entity = new SnapshotDTO {
                 RunDate = input.RunDate.Date,
                 PlantCode = input.PlantCode,                
-                SnapshotCount = vehicleSnapshotRun.VehicleSnapshots.Count(),
+                SnapshotCount = vehicleSnapshotRun.KitSnapshots.Count(),
                 Sequence = vehicleSnapshotRun.Sequence
             };
 
@@ -93,8 +93,8 @@ namespace SKD.Model {
 
             var snapshotRun = await context.VehicleSnapshotRuns
                 .Include(t => t.Plant)
-                .Include(t => t.VehicleSnapshots)
-                    .ThenInclude(t => t.Vehicle)
+                .Include(t => t.KitSnapshots)
+                    .ThenInclude(t => t.Kit)
                     .ThenInclude(t => t.Lot)
                 .Where(t => t.Plant.Code == plantCode)
                 .Where(t => t.Sequence == sequence).FirstOrDefaultAsync();
@@ -110,8 +110,8 @@ namespace SKD.Model {
 
             var snapshotRun = await context.VehicleSnapshotRuns
                 .Include(t => t.Plant)
-                .Include(t => t.VehicleSnapshots)
-                    .ThenInclude(t => t.Vehicle)
+                .Include(t => t.KitSnapshots)
+                    .ThenInclude(t => t.Kit)
                     .ThenInclude(t => t.Lot)
                 .Where(t => t.Plant.Code == plantCode)
                 .Where(t => t.RunDate == runDate).FirstOrDefaultAsync();
@@ -123,7 +123,7 @@ namespace SKD.Model {
             return BuildVehicleSnapshotgRunDTO(snapshotRun);
         }
 
-        private VehicleSnapshotRunDTO BuildVehicleSnapshotgRunDTO(VehicleSnapshotRun snapshotRun) {
+        private VehicleSnapshotRunDTO BuildVehicleSnapshotgRunDTO(kitSnapshotRun snapshotRun) {
             var dto = new VehicleSnapshotRunDTO {
                 PlantCode = snapshotRun.Plant.Code,
                 RunDate = snapshotRun.RunDate.Date,
@@ -131,12 +131,12 @@ namespace SKD.Model {
                 Entries = new List<VehicleSnapshotRunDTO.Entry>()
             };
 
-            foreach (var entry in snapshotRun.VehicleSnapshots) {
+            foreach (var entry in snapshotRun.KitSnapshots) {
                 dto.Entries.Add(new VehicleSnapshotRunDTO.Entry {
                     TxType = entry.ChangeStatusCode,
                     CurrentTimelineEvent = entry.TimelineEventCode,
-                    LotNo = entry.Vehicle.Lot.LotNo,
-                    KitNo = entry.Vehicle.KitNo,
+                    LotNo = entry.Kit.Lot.LotNo,
+                    KitNo = entry.Kit.KitNo,
                     VIN = entry.VIN,
                     DealerCode = entry.DealerCode,
                     EngineSerialNumber = entry.EngineSerialNumber,
@@ -159,13 +159,13 @@ namespace SKD.Model {
                     PlantCode = t.Plant.Code,
                     Sequence = t.Sequence,
                     RunDate = t.RunDate,
-                    SnapshotCount = t.VehicleSnapshots.Count()
+                    SnapshotCount = t.KitSnapshots.Count()
                 })
                 .Take(count)
                 .ToListAsync();
         }
 
-        public async Task<List<Error>> ValidateGenerateVehicleSnapshot(VehicleSnapshotInput input) {
+        public async Task<List<Error>> ValidateGenerateKitSnapshot(KitSnapshotInput input) {
             var errors = new List<Error>();
 
             var plantExists = await context.Plants.AnyAsync(t => t.Code == input.PlantCode);
@@ -194,7 +194,7 @@ namespace SKD.Model {
 
 
         #region helper methods
-        private IQueryable<Vehicle> GetPartnerStatusQualifyingVehiclesQuery(VehicleSnapshotInput input) {
+        private IQueryable<Kit> GetPartnerStatusQualifyingVehiclesQuery(KitSnapshotInput input) {
             // filter by plant code
             var query = context.Vehicles.Where(t => t.Lot.Plant.Code == input.PlantCode).AsQueryable();
 
@@ -224,7 +224,7 @@ namespace SKD.Model {
             return query;
         }
 
-        private string Get_VehicleVIN_IfBuildComplete(Vehicle vehicle) {
+        private string Get_VehicleVIN_IfBuildComplete(Kit vehicle) {
             var buildCompletedEvent = vehicle.TimelineEvents
                 .Where(t => t.RemovedAt == null)
                 .FirstOrDefault(t => t.EventType.Code == TimeLineEventType.BULD_COMPLETED.ToString());
@@ -235,7 +235,7 @@ namespace SKD.Model {
             return vehicle.VIN;
         }
 
-        private async Task<string> GetEngineSerialNumber(Vehicle vehicle, string engineComponentCode) {
+        private async Task<string> GetEngineSerialNumber(Kit vehicle, string engineComponentCode) {
             if (engineComponentCode == null) {
                 throw new Exception("GetEngineSerialNumber: Engine component code required");
             }
@@ -249,7 +249,7 @@ namespace SKD.Model {
             }
 
             var componentScan = await context.ComponentSerials
-                .Where(t => t.VehicleComponent.Vehicle.KitNo == vehicle.KitNo)
+                .Where(t => t.VehicleComponent.Kit.KitNo == vehicle.KitNo)
                 .Where(t => t.VehicleComponent.Component.Code == engineComponentCode)
                 .Where(t => t.VerifiedAt != null && t.RemovedAt == null)
                 .FirstOrDefaultAsync();
@@ -257,7 +257,7 @@ namespace SKD.Model {
             return (componentScan?.Serial1 + " " + componentScan?.Serial2).Trim();
         }
 
-        private DateTime? GetVehicleTimelineEventDate(Vehicle vehicle, TimeLineEventType eventType) {
+        private DateTime? GetVehicleTimelineEventDate(Kit vehicle, TimeLineEventType eventType) {
             var timeLineEvnet = vehicle.TimelineEvents
                 .Where(t => t.RemovedAt == null)
                 .Where(t => t.EventType.Code == eventType.ToString())
@@ -268,11 +268,11 @@ namespace SKD.Model {
                 : (DateTime?)null;
         }
 
-        private async Task<DateTime?> GetVehicle_OriginalPlanBuildDate(Vehicle vehicle) {
+        private async Task<DateTime?> GetVehicle_OriginalPlanBuildDate(Kit vehicle) {
             // find prior OriginalPlanBuild
             var originalPlanBuild = await context.VehicleSnapshots
                 .OrderBy(t => t.CreatedAt)
-                .Where(t => t.Vehicle.Id == vehicle.Id)
+                .Where(t => t.Kit.Id == vehicle.Id)
                 .Where(t => t.OrginalPlanBuild != null)
                 .Select(t => t.OrginalPlanBuild)
                 .FirstOrDefaultAsync();
@@ -287,7 +287,7 @@ namespace SKD.Model {
             return planBuld;
         }
 
-        private string? GetDealerCode(Vehicle vehicle) {
+        private string? GetDealerCode(Kit vehicle) {
             var timeLineEvnet = vehicle.TimelineEvents
                 .Where(t => t.RemovedAt == null)
                 .Where(t => t.EventType.Code == TimeLineEventType.WHOLE_SALE.ToString())
@@ -299,7 +299,7 @@ namespace SKD.Model {
                 : null;
         }
 
-        private TimeLineEventType Get_VehicleLastestTimelineEventType(Vehicle vehicle) {
+        private TimeLineEventType Get_VehicleLastestTimelineEventType(Kit vehicle) {
             var latestTimelineEvent = vehicle.TimelineEvents
                 .Where(t => t.RemovedAt == null)
                 .OrderByDescending(t => t.CreatedAt).FirstOrDefault();
@@ -311,7 +311,7 @@ namespace SKD.Model {
             return Enum.Parse<TimeLineEventType>(latestTimelineEvent.EventType.Code);
         }
 
-        private async Task<PartnerStatus_ChangeStatus> GetVehicle_TxSatus(Vehicle vehicle) {
+        private async Task<PartnerStatus_ChangeStatus> GetVehicle_TxSatus(Kit vehicle) {
             var latestTimelineEvent = vehicle.TimelineEvents
                 .Where(t => t.RemovedAt == null)
                 .OrderByDescending(t => t.EventType.Sequecne)
@@ -325,7 +325,7 @@ namespace SKD.Model {
 
             var priorVehicleSnapshotEntry = await context.VehicleSnapshots
                 .OrderByDescending(t => t.VehicleSnapshotRun.RunDate)
-                .FirstOrDefaultAsync(t => t.VehicleId == vehicle.Id);
+                .FirstOrDefaultAsync(t => t.KitId == vehicle.Id);
 
             var priorEventCode = priorVehicleSnapshotEntry != null
                 ? priorVehicleSnapshotEntry.TimelineEventCode.ToString()

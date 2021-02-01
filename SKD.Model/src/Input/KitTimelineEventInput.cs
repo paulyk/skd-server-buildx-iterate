@@ -2,7 +2,7 @@ using System;
 
 namespace SKD.Model {
 
-    public class VehicleTimelineEventInput {
+    public class KitTimelineEventInput {
         public string KitNo { get; init; }
         public TimeLineEventType EventType { get; init; }
         public DateTime EventDate { get; init; }

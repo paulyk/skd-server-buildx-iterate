@@ -19,15 +19,15 @@ namespace SKD.Model {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<VehicleLot>> CreateVehicleLot(VehicleLotInput input) {
-            var payload = new MutationPayload<VehicleLot>(null);
+        public async Task<MutationPayload<Lot>> CreateVehicleLot(VehicleLotInput input) {
+            var payload = new MutationPayload<Lot>(null);
             payload.Errors = await ValidateCreateVehicleLot(input);
             if (payload.Errors.Any()) {
                 return payload;
             }
 
             // create vehicle records and add to vehicleLot.Vehicles
-            var vehicleLot = new VehicleLot {
+            var vehicleLot = new Lot {
                 Plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode),
                 LotNo = input.LotNo
             };
@@ -37,7 +37,7 @@ namespace SKD.Model {
                     payload.Errors.AddRange(vehiclePayload.Errors);
                     break;
                 }
-                vehicleLot.Vehicles.Add(vehiclePayload.Entity);
+                vehicleLot.Kits.Add(vehiclePayload.Entity);
             }
 
             // ensure plant code
@@ -49,20 +49,20 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<MutationPayload<VehicleLot>> AssingVehicleKitVin(AssignKitVinInput input) {
-            var payload = new MutationPayload<VehicleLot>(null);
-            payload.Errors = await ValidateAssignVehicleLotVin(input);
+        public async Task<MutationPayload<Lot>> AssingVehicleKitVin(AssignKitVinInput input) {
+            var payload = new MutationPayload<Lot>(null);
+            payload.Errors = await ValidateAssignKitVinInput(input);
             if (payload.Errors.Count() > 0) {
                 return payload;
             }
 
             // assign vin
             var vehicleLot = await context.VehicleLots
-                .Include(t => t.Vehicles)
+                .Include(t => t.Kits)
                 .FirstOrDefaultAsync(t => t.LotNo == input.LotNo);
             payload.Entity = vehicleLot;
 
-            vehicleLot.Vehicles.ToList().ForEach(vehicle => {
+            vehicleLot.Kits.ToList().ForEach(vehicle => {
                 var vin = input.Kits.First(t => t.KitNo == vehicle.KitNo).VIN;
                 vehicle.VIN = vin;
             });
@@ -70,7 +70,7 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<MutationPayload<VehicleTimelineEvent>> CreateVehicleTimelineEvent(VehicleTimelineEventInput dto) {
+        public async Task<MutationPayload<VehicleTimelineEvent>> CreateKitTimelineEvent(KitTimelineEventInput dto) {
             var payload = new MutationPayload<VehicleTimelineEvent>(null);
             payload.Errors = await ValidateCreateVehicleTimelineEvent(dto);
             if (payload.Errors.Count > 0) {
@@ -105,20 +105,20 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<MutationPayload<VehicleLot>> CreateVehicleLotTimelineEvent(VehicleLotTimelineEventInput dto) {
-            var payload = new MutationPayload<VehicleLot>(null);
+        public async Task<MutationPayload<Lot>> CreateLotTimelineEvent(VehicleLotTimelineEventInput dto) {
+            var payload = new MutationPayload<Lot>(null);
             payload.Errors = await ValidateCreateVehicleLotTimelineEvent(dto);
             if (payload.Errors.Count > 0) {
                 return payload;
             }
 
             var vehicleLot = await context.VehicleLots
-                .Include(t => t.Vehicles)
+                .Include(t => t.Kits)
                     .ThenInclude(t => t.TimelineEvents)
                     .ThenInclude(t => t.EventType)
                 .FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
 
-            foreach (var vehicle in vehicleLot.Vehicles) {
+            foreach (var vehicle in vehicleLot.Kits) {
 
                 // mark other timeline events of the same type as removed for this vehicle
                 vehicle.TimelineEvents
@@ -146,11 +146,11 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<List<Error>> ValidateAssignVehicleLotVin(AssignKitVinInput dto) {
+        public async Task<List<Error>> ValidateAssignKitVinInput(AssignKitVinInput dto) {
             var errors = new List<Error>();
 
             var vehicleLot = await context.VehicleLots.AsNoTracking()
-                .Include(t => t.Vehicles)
+                .Include(t => t.Kits)
                 .FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
 
             // lotNo
@@ -204,8 +204,8 @@ namespace SKD.Model {
             }
 
             // kit count
-            if (vehicleLot.Vehicles.Count() != dto.Kits.Count) {
-                errors.Add(new Error("lotNo", $"number of kits {dto.Kits.Count} doesn't match number of kits in lot {vehicleLot.Vehicles.Count}"));
+            if (vehicleLot.Kits.Count() != dto.Kits.Count) {
+                errors.Add(new Error("lotNo", $"number of kits {dto.Kits.Count} doesn't match number of kits in lot {vehicleLot.Kits.Count}"));
                 return errors;
             }
 
@@ -286,17 +286,17 @@ namespace SKD.Model {
             return errors;
         }
 
-        public async Task<MutationPayload<Vehicle>> CreateVehicleFromKitDTO(VehicleLotInput.Kit dto) {
+        public async Task<MutationPayload<Kit>> CreateVehicleFromKitDTO(VehicleLotInput.Kit dto) {
             var modelId = await context.VehicleModels
                 .Where(t => t.Code == dto.ModelCode)
                 .Select(t => t.Id).FirstOrDefaultAsync();
 
-            var vehicle = new Vehicle {
+            var vehicle = new Kit {
                 ModelId = modelId,
                 KitNo = dto.KitNo
             };
 
-            var payload = new MutationPayload<Vehicle>(vehicle);
+            var payload = new MutationPayload<Kit>(vehicle);
 
             // ensure vehicle.Model set
             if (vehicle.ModelId != Guid.Empty) {
@@ -311,7 +311,7 @@ namespace SKD.Model {
                 var modelCOmponents = vehicle.Model.ModelComponents.Where(t => t.RemovedAt == null).ToList();
 
                 modelCOmponents.ForEach(mapping => {
-                    vehicle.VehicleComponents.Add(new VehicleComponent() {
+                    vehicle.KitComponents.Add(new KitComponent() {
                         Component = mapping.Component,
                         ProductionStationId = mapping.ProductionStationId,
                         CreatedAt = vehicle.CreatedAt
@@ -320,11 +320,11 @@ namespace SKD.Model {
             }
 
             // validate
-            payload.Errors = await ValidateCreateVehicleKit<Vehicle>(vehicle);
+            payload.Errors = await ValidateCreateVehicleKit<Kit>(vehicle);
             return payload;
         }
 
-        public async Task<List<Error>> ValidateCreateVehicleKit<T>(T vehicle) where T : Vehicle {
+        public async Task<List<Error>> ValidateCreateVehicleKit<T>(T vehicle) where T : Kit {
             var errors = new List<Error>();
             var validator = new Validator();
 
@@ -345,13 +345,13 @@ namespace SKD.Model {
 
             // vehicle components
             if (vehicle.Model != null) {
-                if (vehicle.VehicleComponents.Count == 0) {
-                    errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponents, "Vehicle components required, but none found"));
-                } else if (vehicle.Model.ModelComponents.Where(t => t.RemovedAt == null).Count() != vehicle.VehicleComponents.Count) {
-                    errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponents, $"Vehicle components don't match model component count"));
+                if (vehicle.KitComponents.Count == 0) {
+                    errors.Add(ErrorHelper.Create<T>(t => t.KitComponents, "Vehicle components required, but none found"));
+                } else if (vehicle.Model.ModelComponents.Where(t => t.RemovedAt == null).Count() != vehicle.KitComponents.Count) {
+                    errors.Add(ErrorHelper.Create<T>(t => t.KitComponents, $"Vehicle components don't match model component count"));
                 } else {
                     // vehicle components must match model component
-                    var vehicleComponents = vehicle.VehicleComponents.OrderBy(t => t.Component.Code).ToList();
+                    var vehicleComponents = vehicle.KitComponents.OrderBy(t => t.Component.Code).ToList();
                     var modelComponents = vehicle.Model.ModelComponents.OrderBy(t => t.Component.Code).ToList();
 
                     var zipped = vehicleComponents.Zip(modelComponents, (v, m) => new {
@@ -361,7 +361,7 @@ namespace SKD.Model {
 
                     // any component mismatch
                     if (zipped.Any(item => item.vehicle_ComponentId != item.model_ComponentId)) {
-                        errors.Add(ErrorHelper.Create<T>(t => t.VehicleComponents, "Vehicle component ID doesn't match model component ID"));
+                        errors.Add(ErrorHelper.Create<T>(t => t.KitComponents, "Vehicle component ID doesn't match model component ID"));
                     }
                 }
             }
@@ -374,7 +374,7 @@ namespace SKD.Model {
             return errors;
         }
 
-        public async Task<List<Error>> ValidateCreateVehicleTimelineEvent(VehicleTimelineEventInput input) {
+        public async Task<List<Error>> ValidateCreateVehicleTimelineEvent(KitTimelineEventInput input) {
             var errors = new List<Error>();
 
             // kitNo
@@ -427,7 +427,7 @@ namespace SKD.Model {
             var errors = new List<Error>();
 
             var vehicleLot = await context.VehicleLots.AsNoTracking()
-                .Include(t => t.Vehicles).ThenInclude(t => t.TimelineEvents).ThenInclude(t => t.EventType)
+                .Include(t => t.Kits).ThenInclude(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .FirstOrDefaultAsync(t => t.LotNo == input.LotNo);
 
             // vehicle lot 
@@ -437,7 +437,7 @@ namespace SKD.Model {
             }
 
             // duplicate 
-            var duplicateTimelineEventsFound = vehicleLot.Vehicles.SelectMany(t => t.TimelineEvents)
+            var duplicateTimelineEventsFound = vehicleLot.Kits.SelectMany(t => t.TimelineEvents)
                 .OrderByDescending(t => t.CreatedAt)
                 .Where(t => t.RemovedAt == null)
                 .Where(t => t.EventType.Code == input.EventType.ToString())

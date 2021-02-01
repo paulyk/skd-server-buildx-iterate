@@ -46,7 +46,7 @@ namespace SKD.Test {
 
             var input = new AssignKitVinInput {
                 LotNo = lot.LotNo,
-                Kits = lot.Vehicles.Select(t => new AssignKitVinInput.KitVin {
+                Kits = lot.Kits.Select(t => new AssignKitVinInput.KitVin {
                     KitNo = t.KitNo,
                     VIN = Gen_VIN()
                 }).ToList()
@@ -74,7 +74,7 @@ namespace SKD.Test {
 
             var kitVinDto = new AssignKitVinInput {
                 LotNo = lot.LotNo,
-                Kits = lot.Vehicles.Select(t => new AssignKitVinInput.KitVin {
+                Kits = lot.Kits.Select(t => new AssignKitVinInput.KitVin {
                     KitNo = t.KitNo,
                     VIN = Gen_VIN()
                 }).ToList()
@@ -97,7 +97,7 @@ namespace SKD.Test {
             var lot = ctx.VehicleLots.First();
             var kitVinDto = new AssignKitVinInput {
                 LotNo = lot.LotNo,
-                Kits = lot.Vehicles.Select(t => new AssignKitVinInput.KitVin {
+                Kits = lot.Kits.Select(t => new AssignKitVinInput.KitVin {
                     KitNo = Gen_KitNo(), // generate a kit not thats different
                     VIN = Gen_VIN()
                 }).ToList()
@@ -119,7 +119,7 @@ namespace SKD.Test {
         public async Task cannot_assing_vehicle_lot_with_duplicate_kits_in_payload() {
             // setup
             var lot = ctx.VehicleLots.First();
-            var lotVehicles =  lot.Vehicles.ToList();
+            var lotVehicles =  lot.Kits.ToList();
             
 
             var kitVinDto = new AssignKitVinInput {
@@ -167,12 +167,12 @@ namespace SKD.Test {
 
 
             foreach (var entry in timelineEvents) {
-                var dto = new VehicleTimelineEventInput {
+                var dto = new KitTimelineEventInput {
                     KitNo = vehicle.KitNo,
                     EventType = Enum.Parse<TimeLineEventType>(entry.eventTypeCode),
                     EventDate = entry.eventDate,
                 };
-                var payload = await service.CreateVehicleTimelineEvent(dto);
+                var payload = await service.CreateKitTimelineEvent(dto);
                 payloads.Add(payload);
             }
 
@@ -199,12 +199,12 @@ namespace SKD.Test {
 
 
             foreach (var entry in timelineEvents) {
-                var dto = new VehicleTimelineEventInput {
+                var dto = new KitTimelineEventInput {
                     KitNo = vehicle.KitNo,
                     EventType = Enum.Parse<TimeLineEventType>(entry.eventTypeCode),
                     EventDate = entry.eventDate,
                 };
-                var payload = await service.CreateVehicleTimelineEvent(dto);
+                var payload = await service.CreateKitTimelineEvent(dto);
                 payloads.Add(payload);
             }
 
@@ -235,13 +235,13 @@ namespace SKD.Test {
             var payloads = new List<MutationPayload<VehicleTimelineEvent>>();
 
             foreach (var entry in timelineEventItems) {
-                var input = new VehicleTimelineEventInput {
+                var input = new KitTimelineEventInput {
                     KitNo = vehicle.KitNo,
                     EventType = Enum.Parse<TimeLineEventType>(entry.eventTypeCode),
                     EventDate = entry.eventDate,
                     EventNote = entry.eventNode
                 };
-                var payload = await service.CreateVehicleTimelineEvent(input);
+                var payload = await service.CreateKitTimelineEvent(input);
                 payloads.Add(payload);
             }
 
@@ -264,12 +264,12 @@ namespace SKD.Test {
             var originalDate = new DateTime(2020, 11, 28);
             var newDate = new DateTime(2020, 11, 30);
 
-            var dto = new VehicleTimelineEventInput {
+            var dto = new KitTimelineEventInput {
                 KitNo = vehicle.KitNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = originalDate
             };
-            var dto2 = new VehicleTimelineEventInput {
+            var dto2 = new KitTimelineEventInput {
                 KitNo = vehicle.KitNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = newDate
@@ -277,8 +277,8 @@ namespace SKD.Test {
 
             var service = new VehicleService(ctx);
             // test
-            await service.CreateVehicleTimelineEvent(dto);
-            await service.CreateVehicleTimelineEvent(dto2);
+            await service.CreateKitTimelineEvent(dto);
+            await service.CreateKitTimelineEvent(dto2);
 
             var after_count = ctx.VehicleTimelineEvents.Count();
 
@@ -302,13 +302,13 @@ namespace SKD.Test {
             var newDate = new DateTime(2020, 11, 30);
             var eventNote = "EN 78889";
 
-            var dto = new VehicleTimelineEventInput {
+            var dto = new KitTimelineEventInput {
                 KitNo = vehicle.KitNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = originalDate,
                 EventNote = eventNote
             };
-            var dto2 = new VehicleTimelineEventInput {
+            var dto2 = new KitTimelineEventInput {
                 KitNo = vehicle.KitNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = newDate,
@@ -317,9 +317,9 @@ namespace SKD.Test {
 
             // test
             var service = new VehicleService(ctx);
-            await service.CreateVehicleTimelineEvent(dto);
-            await service.CreateVehicleTimelineEvent(dto2);
-            var payload = await service.CreateVehicleTimelineEvent(dto2);
+            await service.CreateKitTimelineEvent(dto);
+            await service.CreateKitTimelineEvent(dto2);
+            var payload = await service.CreateKitTimelineEvent(dto2);
 
             // assert
             var after_count = ctx.VehicleTimelineEvents.Count();
@@ -334,9 +334,9 @@ namespace SKD.Test {
         public async Task can_create_vehicle_timeline_event_by_lot() {
             // setup
             var vehicleLot = ctx.VehicleLots
-                .Include(t => t.Vehicles)
+                .Include(t => t.Kits)
                 .First();
-            var vehicleCoount = vehicleLot.Vehicles.Count();
+            var vehicleCoount = vehicleLot.Kits.Count();
 
             var eventDate = new DateTime(2020, 11, 30);
             var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
@@ -349,7 +349,7 @@ namespace SKD.Test {
 
             // test
             var service = new VehicleService(ctx);
-            var payload = await service.CreateVehicleLotTimelineEvent(dto);
+            var payload = await service.CreateLotTimelineEvent(dto);
 
             var errorCount = payload.Errors.Count;
             Assert.Equal(0, errorCount);
@@ -383,12 +383,12 @@ namespace SKD.Test {
 
             // test
             var service = new VehicleService(ctx);
-            var payload = await service.CreateVehicleLotTimelineEvent(dto);
+            var payload = await service.CreateLotTimelineEvent(dto);
 
             var errorCount = payload.Errors.Count;
             Assert.Equal(0, errorCount);
 
-            var payload_2 = await service.CreateVehicleLotTimelineEvent(dto);
+            var payload_2 = await service.CreateLotTimelineEvent(dto);
             var errorCount_2 = payload_2.Errors.Count();
             Assert.Equal(1, errorCount_2);
 

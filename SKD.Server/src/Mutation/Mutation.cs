@@ -16,7 +16,7 @@ namespace SKD.Server {
         /// <summary>
         /// Create a vehicle lot
         /// </summary>
-        public async Task<MutationPayload<VehicleLot>> CreateVehicleLot(
+        public async Task<MutationPayload<Lot>> CreateVehicleLot(
             [Service] VehicleService service,
             VehicleLotInput input
         ) {
@@ -30,7 +30,7 @@ namespace SKD.Server {
             return await service.CreateVehicleModel(input);
         }
 
-        public async Task<MutationPayload<VehicleLot>> AssignVehicleKitVin(
+        public async Task<MutationPayload<Lot>> AssignVehicleKitVin(
             [Service] VehicleService service,
             AssignKitVinInput input
         ) {
@@ -39,16 +39,16 @@ namespace SKD.Server {
 
         public async Task<MutationPayload<VehicleTimelineEvent>> CreateVehicleTimelineEvent(
             [Service] VehicleService service,
-            VehicleTimelineEventInput input
+            KitTimelineEventInput input
         ) {
-            return await service.CreateVehicleTimelineEvent(input);
+            return await service.CreateKitTimelineEvent(input);
         }
 
-        public async Task<MutationPayload<VehicleLot>> CreateVehicleLotTimelineEvent(
+        public async Task<MutationPayload<Lot>> CreateVehicleLotTimelineEvent(
             [Service] VehicleService service,
             VehicleLotTimelineEventInput input
         ) {
-            return await service.CreateVehicleLotTimelineEvent(input);
+            return await service.CreateLotTimelineEvent(input);
         }
 
         /// <summary>
@@ -116,8 +116,8 @@ namespace SKD.Server {
        ) => await service.ImportBomLotParts(input);
 
         public async Task<MutationPayload<SnapshotDTO>> GenerateVehicleSnapshotRun(
-                  [Service] VehicleSnapshotService service,
-                  VehicleSnapshotInput input
+                  [Service] KitSnapshotService service,
+                  KitSnapshotInput input
         ) => await service.GenerateSnapshot(input);
 
         public async Task<MutationPayload<PlantOverviewDTO>> CreatePlant(
@@ -145,7 +145,7 @@ namespace SKD.Server {
             Guid vehicleComponentId
         )  {
             var componentSerial = await context.ComponentSerials
-                .Include(t => t.VehicleComponent).ThenInclude(t => t.Vehicle)
+                .Include(t => t.VehicleComponent).ThenInclude(t => t.Kit)
                 .Include(t => t.VehicleComponent).ThenInclude(t => t.Component)
                 .OrderByDescending(t => t.CreatedAt)
                 .Where(t => t.VehicleComponentId == vehicleComponentId)
@@ -153,7 +153,7 @@ namespace SKD.Server {
                 .FirstOrDefaultAsync();
             
             var input = new SubmitDcwsComponentInput {
-                VIN = componentSerial.VehicleComponent.Vehicle.VIN,
+                VIN = componentSerial.VehicleComponent.Kit.VIN,
                 ComponentTypeCode = componentSerial.VehicleComponent.Component.Code,
                 Serial1 = componentSerial.Serial1,
                 Serial2 = componentSerial.Serial2

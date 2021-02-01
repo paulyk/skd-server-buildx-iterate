@@ -240,12 +240,12 @@ namespace SKD.Test {
 
             // assert
             var bom = await ctx.Boms
-                .Include(t => t.Lots).ThenInclude(t => t.Vehicles)
+                .Include(t => t.Lots).ThenInclude(t => t.Kits)
                 .FirstOrDefaultAsync(t => t.Plant.Code == plant.Code);
 
             var lotCount = bom.Lots.Count();
             Assert.Equal(1, lotCount);
-            var actualKitCount = bom.Lots.Sum(t => t.Vehicles.Count());
+            var actualKitCount = bom.Lots.Sum(t => t.Kits.Count());
             Assert.Equal(kitCount, actualKitCount);
         }
 

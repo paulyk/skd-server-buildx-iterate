@@ -18,13 +18,13 @@ namespace SKD.Test {
         [Fact]
         public async Task can_generate_snapshot() {
             // setup
-            var snapshotInput = new VehicleSnapshotInput {
+            var snapshotInput = new KitSnapshotInput {
                 RunDate = DateTime.Now.Date,
                 PlantCode = ctx.Plants.Select(t => t.Code).First(),
                 EngineComponentCode = engineCode
             };
 
-            var service = new VehicleSnapshotService(ctx);
+            var service = new KitSnapshotService(ctx);
             var payload = await service.GenerateSnapshot(snapshotInput);
 
             var seqeunceNumber = payload.Entity.Sequence;
@@ -42,11 +42,11 @@ namespace SKD.Test {
         [Fact]
         public async Task can_create_full_snapshow_timeline() {
             // setup
-            var service = new VehicleSnapshotService(ctx);
+            var service = new KitSnapshotService(ctx);
             var vehicle = ctx.Vehicles.OrderBy(t => t.KitNo).First();
             var dealerCode = "D12345678";
             var eventDate = new DateTime(2020, 12, 1);
-            var snapshotInput = new VehicleSnapshotInput {
+            var snapshotInput = new KitSnapshotInput {
                 RunDate = new DateTime(2020, 12, 2),
                 PlantCode = ctx.Plants.Select(t => t.Code).First(),
                 EngineComponentCode = engineCode
@@ -154,8 +154,8 @@ namespace SKD.Test {
         [Fact]
         public async Task creates_original_plan_build_date_only_once() {
             // setup
-            var service = new VehicleSnapshotService(ctx);
-            var snapshotInput = new VehicleSnapshotInput {
+            var service = new KitSnapshotService(ctx);
+            var snapshotInput = new KitSnapshotInput {
                 RunDate = new DateTime(2020, 12, 1),
                 PlantCode = ctx.Plants.Select(t => t.Code).First(),
                 EngineComponentCode = engineCode
@@ -204,7 +204,7 @@ namespace SKD.Test {
         public async Task vehicle_can_have_multiple_timeline_events_before_first_snapshot() {
             // setup
             var eventDate = new DateTime(2020, 12, 1);
-            var snapshotInput = new VehicleSnapshotInput {
+            var snapshotInput = new KitSnapshotInput {
                 RunDate = new DateTime(2020, 12, 1),
                 PlantCode = ctx.Plants.Select(t => t.Code).First(),
                 EngineComponentCode = engineCode
@@ -214,7 +214,7 @@ namespace SKD.Test {
             await AddVehicleTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, vehicle.KitNo, "", eventDate);
             await AddVehicleTimelineEntry(TimeLineEventType.PLAN_BUILD, vehicle.KitNo, "", eventDate.AddDays(1));
 
-            var service = new VehicleSnapshotService(ctx);
+            var service = new KitSnapshotService(ctx);
             await service.GenerateSnapshot(snapshotInput);
 
             var snapshots_count = ctx.VehicleSnapshots.Count();
@@ -232,9 +232,9 @@ namespace SKD.Test {
 
             var vehicle = ctx.Vehicles.OrderBy(t => t.KitNo).First();
             await AddVehicleTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, vehicle.KitNo, "", DateTime.Now.Date);
-            var service = new VehicleSnapshotService(ctx);
+            var service = new KitSnapshotService(ctx);
 
-            var snapshotInput = new VehicleSnapshotInput {
+            var snapshotInput = new KitSnapshotInput {
                 RunDate = new DateTime(2020, 11, 24),
                 PlantCode = ctx.Plants.Select(t => t.Code).First(),
                 EngineComponentCode = engineCode
@@ -256,14 +256,14 @@ namespace SKD.Test {
             // setup plant 1
             var plantCode_1 = ctx.Plants.Select(t => t.Code).First();
 
-            var snapshotInput_1 = new VehicleSnapshotInput {
+            var snapshotInput_1 = new KitSnapshotInput {
                 PlantCode = plantCode_1,
                 EngineComponentCode = engineCode
             };
 
             var vehicle_1 = ctx.Vehicles.Where(t => t.Lot.Plant.Code == plantCode_1).OrderBy(t => t.KitNo).First();
             await AddVehicleTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, vehicle_1.KitNo, "", DateTime.Now.Date);
-            var service = new VehicleSnapshotService(ctx);
+            var service = new KitSnapshotService(ctx);
 
             snapshotInput_1.RunDate = new DateTime(2020, 11, 24);
             var payload = await service.GenerateSnapshot(snapshotInput_1);
@@ -281,7 +281,7 @@ namespace SKD.Test {
             var vehicle_2 = ctx.Vehicles.Where(t => t.Lot.Plant.Code == plantCode_2).OrderBy(t => t.KitNo).First();
             await AddVehicleTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, vehicle_2.KitNo, "", DateTime.Now.Date);
 
-            var snapshotInput_2 = new VehicleSnapshotInput {
+            var snapshotInput_2 = new KitSnapshotInput {
                 PlantCode = plantCode_2,
                 RunDate = new DateTime(2020, 12, 1),
                 EngineComponentCode = engineCode
@@ -302,12 +302,12 @@ namespace SKD.Test {
         [Fact]
         public async Task can_get_vehicle_snapshot_dates() {
             // setup
-            var service = new VehicleSnapshotService(ctx);
+            var service = new KitSnapshotService(ctx);
             var vehicle_1 = ctx.Vehicles.OrderBy(t => t.KitNo).First();
             var vehicle_2 = ctx.Vehicles.OrderBy(t => t.KitNo).Skip(1).First();
 
             // 1. vehicle snapshot run with no entries
-            var snapshotInput = new VehicleSnapshotInput {
+            var snapshotInput = new KitSnapshotInput {
                 RunDate = new DateTime(2020, 12, 1),
                 PlantCode = ctx.Plants.Select(t => t.Code).First(),
                 EngineComponentCode = engineCode
@@ -348,21 +348,21 @@ namespace SKD.Test {
             string engineComponentCode,
             DateTime date) {
 
-            var snapshotInput = new VehicleSnapshotInput {
+            var snapshotInput = new KitSnapshotInput {
                 PlantCode = plantCode,
                 EngineComponentCode = engineComponentCode,
                 RunDate = date
             };
 
             // initial
-            var service = new VehicleSnapshotService(ctx);
+            var service = new KitSnapshotService(ctx);
             var payload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
             return payload.Entries.ToList();
         }
 
         private async Task AddEngineSerialNumberComponentScan(string kitNo, string engineComponentCode, string engineSerial) {
             var engineVehicleComponent = ctx.VehicleComponents
-                .First(t => t.Vehicle.KitNo == kitNo && t.Component.Code == engineComponentCode);
+                .First(t => t.Kit.KitNo == kitNo && t.Component.Code == engineComponentCode);
             var scanService = new ComponentSerialService(ctx);
             var createScanPayload = await scanService.CaptureComponentSerial(new ComponentSerialInput {
                 VehicleComponentId = engineVehicleComponent.Id,
@@ -380,7 +380,7 @@ namespace SKD.Test {
         }
         private async Task AddVehicleTimelineEntry(TimeLineEventType eventType, string kitNo, string eventNote, DateTime eventDate) {
             var service = new VehicleService(ctx);
-            var payload = await service.CreateVehicleTimelineEvent(new VehicleTimelineEventInput {
+            var payload = await service.CreateKitTimelineEvent(new KitTimelineEventInput {
                 KitNo = kitNo,
                 EventType = eventType,
                 EventNote = eventNote,

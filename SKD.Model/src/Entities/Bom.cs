@@ -7,6 +7,6 @@ namespace SKD.Model {
         public Plant Plant { get; set; }
         public int Sequence { get; set; } 
         public bool LotPartQuantitiesMatchShipment { get; set; }
-        public ICollection<VehicleLot> Lots { get; set; } = new List<VehicleLot>();
+        public ICollection<Lot> Lots { get; set; } = new List<Lot>();
     }
 }

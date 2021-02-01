@@ -130,7 +130,7 @@ namespace SKD.Model {
             var result = await context.VehicleLots.Select(t => new LotDTO {
                 LotNo = t.LotNo,
                 CreatedAt = t.CreatedAt,
-                ModelName = t.Vehicles.Select(u => u.Model.Name).FirstOrDefault()
+                ModelName = t.Kits.Select(u => u.Model.Name).FirstOrDefault()
             }).FirstOrDefaultAsync(t => t.LotNo == lotNo);
 
             return result;

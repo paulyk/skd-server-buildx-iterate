@@ -49,7 +49,7 @@ namespace SKD.Model {
 
                 var lot = await context.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == lotGroup.Key);
                 if (lot == null) {
-                    lot = new VehicleLot {
+                    lot = new Lot {
                         LotNo = lotGroup.Key,
                         Plant = plant,
                     };
@@ -93,7 +93,7 @@ namespace SKD.Model {
             foreach (var inputLot in input.Lots) {
                 var lot = await context.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == inputLot.LotNo);
                 if (lot == null) {
-                    lot = new VehicleLot {
+                    lot = new Lot {
                         LotNo = inputLot.LotNo,
                         Plant = plant
                     };
@@ -101,7 +101,7 @@ namespace SKD.Model {
                 }
                 foreach (var inputKit in inputLot.Kits) {
                     var vehicle = await CreateVehicleKit(inputKit);
-                    lot.Vehicles.Add(vehicle);
+                    lot.Kits.Add(vehicle);
                 }
             }
 
@@ -169,19 +169,19 @@ namespace SKD.Model {
             return errors;
         }
 
-        private async Task<Vehicle> CreateVehicleKit(BomLotKitInput.Lot.LotKit input) {
-            var vehicles = new List<Vehicle>();
+        private async Task<Kit> CreateVehicleKit(BomLotKitInput.Lot.LotKit input) {
+            var vehicles = new List<Kit>();
 
             var modelId = await context.VehicleModels
                 .Where(t => t.Code == input.ModelCode)
                 .Select(t => t.Id).FirstOrDefaultAsync();
 
-            var vehicle = new Vehicle {
+            var vehicle = new Kit {
                 ModelId = modelId,
                 KitNo = input.KitNo
             };
 
-            var payload = new MutationPayload<Vehicle>(vehicle);
+            var payload = new MutationPayload<Kit>(vehicle);
 
             // ensure vehicle.Model set
             if (vehicle.ModelId != Guid.Empty) {
@@ -196,7 +196,7 @@ namespace SKD.Model {
                 var modelCOmponents = vehicle.Model.ModelComponents.Where(t => t.RemovedAt == null).ToList();
 
                 modelCOmponents.ForEach(mapping => {
-                    vehicle.VehicleComponents.Add(new VehicleComponent() {
+                    vehicle.KitComponents.Add(new KitComponent() {
                         Component = mapping.Component,
                         ProductionStationId = mapping.ProductionStationId,
                         CreatedAt = vehicle.CreatedAt
@@ -283,7 +283,7 @@ namespace SKD.Model {
                     Sequence = t.Sequence,
                     LotCount = t.Lots.Count(),
                     PartCount = t.Lots.SelectMany(u => u.LotParts).Select(u => u.Part).Distinct().Count(),
-                    VehicleCount = t.Lots.SelectMany(u => u.Vehicles).Count(),
+                    VehicleCount = t.Lots.SelectMany(u => u.Kits).Count(),
                     CreatedAt = t.CreatedAt
                 })
                 .FirstOrDefaultAsync();
@@ -300,7 +300,7 @@ namespace SKD.Model {
                     Sequence = t.Sequence,
                     LotCount = t.Lots.Count(),
                     PartCount = t.Lots.SelectMany(u => u.LotParts).Select(u => u.Part).Distinct().Count(),
-                    VehicleCount = t.Lots.SelectMany(u => u.Vehicles).Count(),
+                    VehicleCount = t.Lots.SelectMany(u => u.Kits).Count(),
                     CreatedAt = t.CreatedAt
                 })
                 .FirstOrDefaultAsync();

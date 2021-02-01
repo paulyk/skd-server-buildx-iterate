@@ -17,16 +17,16 @@ namespace SKD.Model {
             this.context = ctx;
         }
 
-        public async Task<IReadOnlyList<Vehicle>> SearchVehicles(string query) {
+        public async Task<IReadOnlyList<Kit>> SearchVehicles(string query) {
             query = query.Trim();
             if (query.Length == 0) {
-                return new List<Vehicle>();
+                return new List<Kit>();
             }
 
             // try find exact match
             var exactMatch = await context.Vehicles.AsNoTracking().FirstOrDefaultAsync(t => t.VIN == query);
             if (exactMatch != null) {
-                return new List<Vehicle>() { exactMatch };
+                return new List<Kit>() { exactMatch };
             }
 
             // find where query matches part of vin

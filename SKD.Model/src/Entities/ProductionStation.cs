@@ -7,7 +7,7 @@ namespace SKD.Model {
         public string Name { get; set; }
         public int Sequence { get; set; }
         public ICollection<VehicleModelComponent> ModelComponents { get; set; }
-        public ICollection<VehicleComponent> VehicleComponents { get; set; }
+        public ICollection<KitComponent> VehicleComponents { get; set; }
 
         public ProductionStation() : base() {}
     }

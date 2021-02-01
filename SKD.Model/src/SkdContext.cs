@@ -7,13 +7,13 @@ namespace SKD.Model {
         public DbSet<User> Users { get; set; }
 
         public DbSet<Plant> Plants { get; set; }
-        public DbSet<Vehicle> Vehicles { get; set; }
+        public DbSet<Kit> Vehicles { get; set; }
         public DbSet<VehicleTimelineEvent> VehicleTimelineEvents { get; set; }
         public DbSet<VehicleTimelineEventType> VehicleTimelineEventTypes { get; set; }
-        public DbSet<VehicleLot> VehicleLots { get; set; }
+        public DbSet<Lot> VehicleLots { get; set; }
         public DbSet<Component> Components { get; set; }
         public DbSet<VehicleModel> VehicleModels { get; set; }
-        public DbSet<VehicleComponent> VehicleComponents { get; set; }
+        public DbSet<KitComponent> VehicleComponents { get; set; }
         public DbSet<ComponentSerial> ComponentSerials { get; set; }
         public DbSet<DcwsResponse> DCWSResponses { get; set; }
         public DbSet<VehicleModelComponent> VehicleModelComponents { get; set; }
@@ -29,8 +29,8 @@ namespace SKD.Model {
         public DbSet<LotPart> LotParts { get; set; }
         public DbSet<LotPartReceived> LotPartsReceived { get; set; }
 
-        public DbSet<VehicleSnapshotRun> VehicleSnapshotRuns { get; set; }
-        public DbSet<VehicleSnapshot> VehicleSnapshots { get; set; }
+        public DbSet<kitSnapshotRun> VehicleSnapshotRuns { get; set; }
+        public DbSet<KitSnapshot> VehicleSnapshots { get; set; }
 
         public SkdContext(DbContextOptions options) : base(options) { }
 
@@ -38,10 +38,10 @@ namespace SKD.Model {
             builder.ApplyConfiguration(new Component_Config());
             builder.ApplyConfiguration(new User_Config());
             builder.ApplyConfiguration(new Plant_Config());
-            builder.ApplyConfiguration(new Vehicle_Config());
-            builder.ApplyConfiguration(new VehicleLot_Config());
+            builder.ApplyConfiguration(new Kit_Config());
+            builder.ApplyConfiguration(new Lot_Config());
             builder.ApplyConfiguration(new VehicleModel_Config());
-            builder.ApplyConfiguration(new VehicleComponent_Config());
+            builder.ApplyConfiguration(new KitComponent_Config());
             builder.ApplyConfiguration(new VehicleModelComponent_Config());
             builder.ApplyConfiguration(new ComponentSerial_Config());
             builder.ApplyConfiguration(new VehicleTimelineEventType_Config());
@@ -59,8 +59,8 @@ namespace SKD.Model {
             builder.ApplyConfiguration(new LotPart_Config());
             builder.ApplyConfiguration(new LotPartReceived_Config());
 
-            builder.ApplyConfiguration(new VehicleSnapshot_Config());
-            builder.ApplyConfiguration(new VehicleSnapshotRun_Config());
+            builder.ApplyConfiguration(new KitSnapshot_Config());
+            builder.ApplyConfiguration(new KitSnapshotRun_Config());
         }
     }
 }

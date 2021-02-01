@@ -47,8 +47,8 @@ namespace SKD.Model {
                 .Where(t => t.Id == componentSerial.Id)
                 .Select(t => new ComponentSerialDTO {
                     ComponentSerialId = t.Id,
-                    VIN = t.VehicleComponent.Vehicle.VIN,
-                    LotNo = t.VehicleComponent.Vehicle.Lot.LotNo,
+                    VIN = t.VehicleComponent.Kit.VIN,
+                    LotNo = t.VehicleComponent.Kit.Lot.LotNo,
                     ComponentCode = t.VehicleComponent.Component.Code,
                     ComponentName = t.VehicleComponent.Component.Name,
                     ProductionStationCode = t.VehicleComponent.ProductionStation.Code,
@@ -92,7 +92,7 @@ namespace SKD.Model {
 
             // component serial entry for this vehicle component 
             var componentSerialForVehicleComponent = await context.ComponentSerials
-                .Include(t => t.VehicleComponent).ThenInclude(t => t.Vehicle)
+                .Include(t => t.VehicleComponent).ThenInclude(t => t.Kit)
                 .Include(t => t.VehicleComponent).ThenInclude(t => t.Component)
                 .Include(t => t.VehicleComponent).ThenInclude(t => t.ProductionStation)
                 .Where(t => t.VehicleComponent.Id == input.VehicleComponentId)
@@ -100,7 +100,7 @@ namespace SKD.Model {
                 .FirstOrDefaultAsync();
 
             if (componentSerialForVehicleComponent != null && !input.Replace) {
-                var vin = componentSerialForVehicleComponent.VehicleComponent.Vehicle.VIN;
+                var vin = componentSerialForVehicleComponent.VehicleComponent.Kit.VIN;
                 var stationCode = componentSerialForVehicleComponent.VehicleComponent.ProductionStation.Code;
                 var componentCode = componentSerialForVehicleComponent.VehicleComponent.Component.Code;
                 errors.Add(new Error("", $"component serial already captured for this component: {vin}-{stationCode}-{componentCode}"));
@@ -117,7 +117,7 @@ namespace SKD.Model {
                 // ....... Engine component code will be scanned muliple times)
                 .Where(t => !(
                     // same vehicle
-                    t.VehicleComponent.VehicleId == targetVehicleCmponent.VehicleId
+                    t.VehicleComponent.KitId == targetVehicleCmponent.KitId
                     &&
                     // same component
                     t.VehicleComponent.ComponentId == targetVehicleCmponent.ComponentId
@@ -145,7 +145,7 @@ namespace SKD.Model {
             var preeceedingRequiredComponentEntriesNotCaptured = await context.VehicleComponents
                 .OrderBy(t => t.ProductionStation.Sequence)
                 // save vehicle         
-                .Where(t => t.Vehicle.Id == targetVehicleCmponent.VehicleId)
+                .Where(t => t.Kit.Id == targetVehicleCmponent.KitId)
                 // same component id
                 .Where(t => t.ComponentId == targetVehicleCmponent.ComponentId)
                 // preceeding target vehicle component
@@ -191,7 +191,7 @@ namespace SKD.Model {
                     LotNo = t.Lot.LotNo,
                     ModelCode = t.Model.Code,
                     ModelName = t.Model.Name,
-                    Components = t.VehicleComponents
+                    Components = t.KitComponents
                         .OrderBy(t => t.ProductionStation.Sequence)
                         .Where(t => t.RemovedAt == null)
                         .Select(t => new SerialCaptureComponentDTO {

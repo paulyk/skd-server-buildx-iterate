@@ -10,7 +10,7 @@ namespace SKD.Model {
         public int ShipmentQuantity { get; set; }
 
         public Guid LotId { get; set; }
-        public VehicleLot Lot { get; set; }
+        public Lot Lot { get; set; }
 
         public ICollection<LotPartReceived> Received { get; set; }
     }

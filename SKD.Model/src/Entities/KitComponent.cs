@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 
 namespace SKD.Model {
-    public class VehicleComponent : EntityBase {
+    public class KitComponent : EntityBase {
 
-        public Guid VehicleId { get; set; }
-        public Vehicle Vehicle { get; set; }
+        public Guid KitId { get; set; }
+        public Kit Kit { get; set; }
 
         public Guid ComponentId { get; set; }
         public Component Component { get; set; }
@@ -16,7 +16,7 @@ namespace SKD.Model {
         public virtual ICollection<ComponentSerial> ComponentSerials { get; set; } = new List<ComponentSerial>();
         public DateTime? VerifiedAt { get; set; }
 
-        public VehicleComponent(): base() {
+        public KitComponent(): base() {
 
         }
     }

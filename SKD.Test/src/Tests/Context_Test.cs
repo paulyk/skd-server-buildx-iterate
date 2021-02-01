@@ -167,11 +167,11 @@ namespace SKD.Test {
 
                 // lot
                 var lotNo = new String('X', EntityFieldLen.Vehicle_LotNo);
-                var vehicleLot = new VehicleLot { LotNo = lotNo, Bom = bom, Plant = plant };
+                var vehicleLot = new Lot { LotNo = lotNo, Bom = bom, Plant = plant };
                 ctx.VehicleLots.Add(vehicleLot);
 
                 // vehicle 
-                var vehicle = new Vehicle() {
+                var vehicle = new Kit() {
                     VIN = new String('X', EntityFieldLen.Vehicle_VIN),
                     Lot = vehicleLot,
                     Model = vehicleModel
@@ -192,7 +192,7 @@ namespace SKD.Test {
         public void cannot_add_vehicle_without_model() {
             using (var ctx = GetAppDbContext()) {
                 // setup
-                var vehicle = new Vehicle() {
+                var vehicle = new Kit() {
                     VIN = new String('X', EntityFieldLen.Vehicle_VIN),
                 };
 
@@ -215,12 +215,12 @@ namespace SKD.Test {
 
                 ctx.VehicleModels.Add(vehicleModel);
 
-                var vehicle_1 = new Vehicle() {
+                var vehicle_1 = new Kit() {
                     VIN = new String('X', EntityFieldLen.Vehicle_VIN),
                     Model = vehicleModel
                 };
 
-                var vehicle_2 = new Vehicle() {
+                var vehicle_2 = new Kit() {
                     VIN = new String('X', EntityFieldLen.Vehicle_VIN),
                     Model = vehicleModel
                 };

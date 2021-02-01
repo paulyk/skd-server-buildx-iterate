@@ -17,7 +17,7 @@ namespace SKD.Model {
             builder.Property(t => t.Name).HasMaxLength(EntityFieldLen.Plant_Name);
 
             // relationships        
-            builder.HasMany(t => t.VehicleLots)
+            builder.HasMany(t => t.Lots)
                 .WithOne(t => t.Plant)
                 .HasForeignKey(t => t.PlantId);           
 

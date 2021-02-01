@@ -91,7 +91,7 @@ namespace SKD.Test {
             return bom;
         }
 
-        public VehicleLot Gen_VehicleLot(Guid bomId, Guid modelId, int kitCount = 6, bool auto_assign_vin = false) {
+        public Lot Gen_VehicleLot(Guid bomId, Guid modelId, int kitCount = 6, bool auto_assign_vin = false) {
             var lotNo = Gen_LotNo("BP");
             var model = ctx.VehicleModels
                 .Include(t => t.ModelComponents)
@@ -100,11 +100,11 @@ namespace SKD.Test {
 
             var bom = ctx.Boms.First(t => t.Id == bomId);
 
-            var lot = new VehicleLot {
+            var lot = new Lot {
                 Bom = bom,
                 LotNo = lotNo,
                 PlantId = bom.Plant.Id,
-                Vehicles = Enumerable.Range(1, kitCount)
+                Kits = Enumerable.Range(1, kitCount)
                     .Select(kitSeq => VehicleForKitSeq(model, kitSeq))
                     .ToList()
             };
@@ -112,12 +112,12 @@ namespace SKD.Test {
             ctx.SaveChanges();
             return lot;
 
-            Vehicle VehicleForKitSeq(VehicleModel model, int kitSeq) {
-                var vehicle = new Vehicle {
+            Kit VehicleForKitSeq(VehicleModel model, int kitSeq) {
+                var vehicle = new Kit {
                     Model = model,
                     KitNo = Gen_KitNo(lotNo, kitSeq),
                     VIN = auto_assign_vin ? Gen_VIN() : "",
-                    VehicleComponents = model.ModelComponents.Select(mc => new VehicleComponent {
+                    KitComponents = model.ModelComponents.Select(mc => new KitComponent {
                         ComponentId = mc.ComponentId,
                         ProductionStationId = mc.ProductionStationId
                     }).ToList()
@@ -208,14 +208,14 @@ namespace SKD.Test {
             return componentScan;
         }
 
-        public Vehicle Gen_Vehicle_Entity(
+        public Kit Gen_Vehicle_Entity(
             string kitNo,
             string lotNo,
             string modelCode
         ) {
             var lot = ctx.VehicleLots.First(t => t.LotNo == lotNo);
             var model = ctx.VehicleModels.First(t => t.Code == modelCode);
-            var vehicle = new Vehicle {
+            var vehicle = new Kit {
                 Lot = lot,
                 Model = model,
                 KitNo = kitNo
@@ -223,7 +223,7 @@ namespace SKD.Test {
             return vehicle;
         }
 
-        public Vehicle Gen_Vehicle_From_Model(
+        public Kit Gen_Vehicle_From_Model(
             string vin,
             string kitNo,
             string lotNo,
@@ -240,20 +240,20 @@ namespace SKD.Test {
                 .Include(t => t.ModelComponents)
                 .FirstOrDefault(t => t.Code == modelCode);
 
-            var vehicleComponents = vehicleModel.ModelComponents.Select(mc => new VehicleComponent {
+            var vehicleComponents = vehicleModel.ModelComponents.Select(mc => new KitComponent {
                 ComponentId = mc.ComponentId,
                 ProductionStationId = mc.ProductionStationId
             }).ToList();
 
-            var vehicleLot = new VehicleLot { LotNo = lotNo, Plant = plant };
+            var vehicleLot = new Lot { LotNo = lotNo, Plant = plant };
             ctx.VehicleLots.Add(vehicleLot);
 
-            var vehicle = new Vehicle {
+            var vehicle = new Kit {
                 VIN = vin,
                 Lot = vehicleLot,
                 KitNo = kitNo,
                 Model = vehicleModel,
-                VehicleComponents = vehicleComponents
+                KitComponents = vehicleComponents
             };
 
             ctx.Vehicles.AddRange(vehicle);
@@ -262,7 +262,7 @@ namespace SKD.Test {
             return vehicle;
         }
 
-        public Vehicle Gen_Vehicle_Amd_Model_From_Components(
+        public Kit Gen_Vehicle_Amd_Model_From_Components(
             List<(string componentCode, string stationCode)> component_stations_maps,
             bool auto_assign_vin = false
         ) {

@@ -1,12 +1,12 @@
 using System;
 
 namespace SKD.Model {
-    public class VehicleSnapshot : EntityBase {
+    public class KitSnapshot : EntityBase {
 
         public Guid VehicleSnapshotRunId { get; set; }
-        public VehicleSnapshotRun VehicleSnapshotRun { get; set; }
-        public Guid VehicleId { get; set; }
-        public Vehicle Vehicle { get; set; }
+        public kitSnapshotRun VehicleSnapshotRun { get; set; }
+        public Guid KitId { get; set; }
+        public Kit Kit { get; set; }
         public PartnerStatus_ChangeStatus ChangeStatusCode { get; set; }
         public TimeLineEventType TimelineEventCode { get; set; }
         public string VIN { get; set; }
