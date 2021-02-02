@@ -38,7 +38,7 @@ namespace SKD.Test {
         public void Gen_Baseline_Test_Seed_Data(
             List<string> componentCodes = null
         ) { // todo add component codes
-            Gen_VehicleTimelineEventTypes();
+            Gen_KitTimelineEventTypes();
             Gen_ProductionStations("station_1", "station_2");
 
             if (componentCodes != null) {
@@ -59,7 +59,7 @@ namespace SKD.Test {
             var bom = Gen_Plant_Bom(plantCode);
             var plant = bom.Plant;
             var model = ctx.VehicleModels.First();
-            var lot = Gen_VehicleLot(bom.Id, model.Id, kitCount: 6);
+            var lot = Gen_Lot(bom.Id, model.Id, kitCount: 6);
         }
 
         private void Gen_Model_From_Existing_Component_And_Stations() {
@@ -91,7 +91,7 @@ namespace SKD.Test {
             return bom;
         }
 
-        public Lot Gen_VehicleLot(Guid bomId, Guid modelId, int kitCount = 6, bool auto_assign_vin = false) {
+        public Lot Gen_Lot(Guid bomId, Guid modelId, int kitCount = 6, bool auto_assign_vin = false) {
             var lotNo = Gen_LotNo("BP");
             var model = ctx.VehicleModels
                 .Include(t => t.ModelComponents)
@@ -208,22 +208,7 @@ namespace SKD.Test {
             return componentScan;
         }
 
-        public Kit Gen_Vehicle_Entity(
-            string kitNo,
-            string lotNo,
-            string modelCode
-        ) {
-            var lot = ctx.Lots.First(t => t.LotNo == lotNo);
-            var model = ctx.VehicleModels.First(t => t.Code == modelCode);
-            var vehicle = new Kit {
-                Lot = lot,
-                Model = model,
-                KitNo = kitNo
-            };
-            return vehicle;
-        }
-
-        public Kit Gen_Vehicle_From_Model(
+        public Kit Gen_Kit_From_Model(
             string vin,
             string kitNo,
             string lotNo,
@@ -262,7 +247,7 @@ namespace SKD.Test {
             return vehicle;
         }
 
-        public Kit Gen_Vehicle_Amd_Model_From_Components(
+        public Kit Gen_Kit_Amd_Model_From_Components(
             List<(string componentCode, string stationCode)> component_stations_maps,
             bool auto_assign_vin = false
         ) {
@@ -302,27 +287,12 @@ namespace SKD.Test {
             // cretre vehicle based on that model
             var bom = ctx.Boms.Include(t => t.Plant).First();
             var plant = bom.Plant;
-            var lot = Gen_VehicleLot(bom.Id, model.Id, auto_assign_vin: auto_assign_vin);
+            var lot = Gen_Lot(bom.Id, model.Id, auto_assign_vin: auto_assign_vin);
 
             var vehicle = ctx.Kits
                 .Include(t => t.Lot)
                 .First(t => t.Lot.Id == lot.Id);
             return vehicle;
-        }
-
-        public VehicleLotInput Gen_VehicleLotInput(
-            string lotNo,
-            string plantCode,
-            string modelCode,
-            List<string> kitNos) {
-            return new VehicleLotInput {
-                LotNo = lotNo,
-                PlantCode = plantCode,
-                Kits = kitNos.Select(kitNo => new VehicleLotInput.Kit {
-                    KitNo = kitNo,
-                    ModelCode = modelCode,
-                }).ToList()
-            };
         }
 
         public void SetEntityCreatedAt<T>(Guid id, DateTime date) where T : EntityBase {
@@ -331,7 +301,7 @@ namespace SKD.Test {
             ctx.SaveChanges();
         }
 
-        public void Gen_VehicleTimelineEventTypes() {
+        public void Gen_KitTimelineEventTypes() {
             var eventTypes = new List<KitTimelineEventType> {
                 new KitTimelineEventType {
                     Code = TimeLineEventType.CUSTOM_RECEIVED.ToString(),

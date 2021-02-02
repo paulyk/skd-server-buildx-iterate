@@ -7,12 +7,37 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 
 namespace SKD.Test {
-    public class VehicleServiceTest : TestBase {
+    public class KitServiceTest : TestBase {
 
-        public VehicleServiceTest() {
+        public KitServiceTest() {
             ctx = GetAppDbContext();
             Gen_Baseline_Test_Seed_Data();
         }
+
+
+        // public async Task can_create_vehicle_lot() {
+        //     // setup
+        //     var plant = Gen_Plant();
+        //     var modelCode = Gen_VehicleModel_Code();
+        //     var model = Gen_VehicleModel(modelCode, new List<(string, string)> {
+        //         ("component_1", "station_1"),
+        //         ("component_2", "station_2")
+        //     });
+        //     var lotNo = Gen_LotNo();
+        //     var kitNos = new List<string> { Gen_KitNo(), Gen_KitNo() };
+        //     var vehicleLotInput = Gen_VehicleLot_Input(lotNo, plant.Code, modelCode, kitNos);
+
+        //     var before_count = await ctx.VehicleLots.CountAsync();
+        //     // test
+        //     var service = new VehicleService(ctx);
+        //     var paylaod = await service.CreateVehicleLot(vehicleLotInput);
+        //     var after_count = await ctx.VehicleLots.CountAsync();
+
+        //     // assert
+        //     Assert.Equal(before_count + 1, after_count);
+
+        // }
+
 
         [Fact]
         public async Task can_assing_kit_vins() {
@@ -91,7 +116,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task cannot_assing_lot_vins_with_duplicate_kits_in_payload() {
+        public async Task cannot_assing_lot_with_duplicate_kits_in_payload() {
             // setup
             var lot = ctx.Lots.First();
             var lotVehicles =  lot.Kits.ToList();
@@ -166,7 +191,7 @@ namespace SKD.Test {
             };
 
             // test
-            var vehicle = ctx.Kits.First();
+            var kit = ctx.Kits.First();
             var service = new KitService(ctx);
             var payloads = new List<MutationPayload<KitTimelineEvent>>();
 
@@ -175,7 +200,7 @@ namespace SKD.Test {
 
             foreach (var entry in timelineEvents) {
                 var dto = new KitTimelineEventInput {
-                    KitNo = vehicle.KitNo,
+                    KitNo = kit.KitNo,
                     EventType = Enum.Parse<TimeLineEventType>(entry.eventTypeCode),
                     EventDate = entry.eventDate,
                 };

@@ -220,7 +220,7 @@ namespace SKD.Test {
         [Fact]
         public async Task error_if_multi_station_component_captured_out_of_sequence() {
             // setup vehicle 
-            var vehicle = Gen_Vehicle_Amd_Model_From_Components(new List<(string, string)> {
+            var vehicle = Gen_Kit_Amd_Model_From_Components(new List<(string, string)> {
                 ("EN", "STATION_1"),
                 ("DA", "STATION_1"),
                 ("EN", "STATION_2"),
@@ -268,7 +268,7 @@ namespace SKD.Test {
         public async Task can_capture_full_vehicle_component_sequence() {
 
             // setup
-            var vehicle = Gen_Vehicle_Amd_Model_From_Components(new List<(string, string)> {
+            var vehicle = Gen_Kit_Amd_Model_From_Components(new List<(string, string)> {
                 ("EN", "STATION_1"),
                 ("DA", "STATION_1"),
                 ("EN", "STATION_2"),
@@ -315,7 +315,7 @@ namespace SKD.Test {
         public async Task get_vehicle_for_serial_capture_query_works() {
 
             // setup
-            var vehicle = Gen_Vehicle_Amd_Model_From_Components(new List<(string, string)> {
+            var vehicle = Gen_Kit_Amd_Model_From_Components(new List<(string, string)> {
                 ("EN", "STATION_1"),
                 ("DA", "STATION_1"),
                 ("EN", "STATION_2"),
