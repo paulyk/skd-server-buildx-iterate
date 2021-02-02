@@ -13,15 +13,7 @@ using System.Threading.Tasks;
 namespace SKD.Server {
     public class Mutation {
 
-        /// <summary>
-        /// Create a vehicle lot
-        /// </summary>
-        public async Task<MutationPayload<Lot>> CreateLot(
-            [Service] KitService service,
-            VehicleLotInput input
-        ) {
-            return await service.CreateLot(input);
-        }
+      
 
         public async Task<MutationPayload<VehicleModel>> CreateVehicleModel(
             [Service] VehicleModelService service,
