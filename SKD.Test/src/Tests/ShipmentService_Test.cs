@@ -18,7 +18,7 @@ namespace SKD.Test {
         private async Task can_import_shipment() {
             // 
             var plant = await ctx.Plants.FirstAsync();
-            var lot = await ctx.VehicleLots.FirstAsync();
+            var lot = await ctx.Lots.FirstAsync();
             var sequence = 2;
 
             var input = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence);
@@ -69,7 +69,7 @@ namespace SKD.Test {
         private async Task duplicate_invoice_parts_are_summarized_into_one_invoice_part() {
             // 
             var plant = await ctx.Plants.FirstAsync();
-            var lot = await ctx.VehicleLots.FirstAsync();
+            var lot = await ctx.Lots.FirstAsync();
             var sequence = 2;
 
             var input = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence);
@@ -110,7 +110,7 @@ namespace SKD.Test {
         [Fact]
         private async Task cannot_import_shipment_with_duplicate_plant_and_sequence() {
             var plant = await ctx.Plants.FirstAsync();
-            var lot = await ctx.VehicleLots.FirstAsync();
+            var lot = await ctx.Lots.FirstAsync();
             var sequence = 2;
             var input = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence);
             var shipmentService = new ShipmentService(ctx);
@@ -150,7 +150,7 @@ namespace SKD.Test {
         private async Task cannot_import_shipment_with_no_pards() {
             // setup
             var plant = await ctx.Plants.FirstAsync();
-            var lot = await ctx.VehicleLots.FirstAsync();
+            var lot = await ctx.Lots.FirstAsync();
 
             var input = new ShipmentInput() {
                 PlantCode = plant.Code,
@@ -184,7 +184,7 @@ namespace SKD.Test {
         private async Task cannot_import_shipment_invoice_with_no_parts() {
             // setup
             var plant = await ctx.Plants.FirstAsync();
-            var lot = await ctx.VehicleLots.FirstAsync();
+            var lot = await ctx.Lots.FirstAsync();
             var input = new ShipmentInput() {
                 PlantCode = plant.Code,
                 Sequence = 1,
@@ -216,7 +216,7 @@ namespace SKD.Test {
         private async Task cannot_import_shipment_lot_with_no_invoices() {
             // setup
             var plant = await ctx.Plants.FirstAsync();
-            var lot = await ctx.VehicleLots.FirstAsync();
+            var lot = await ctx.Lots.FirstAsync();
             var input = new ShipmentInput() {
                 PlantCode = plant.Code,
                 Sequence = 1,
@@ -243,7 +243,7 @@ namespace SKD.Test {
         public async Task shipment_lot_part_to_lotpart_input_works() {
             // setup
             var plant = await ctx.Plants.FirstAsync();
-            var lot = await ctx.VehicleLots.FirstAsync();
+            var lot = await ctx.Lots.FirstAsync();
             var shipmentInput = Gen_ShipmentInput(plant.Code, lot.LotNo, 6);
 
             // test

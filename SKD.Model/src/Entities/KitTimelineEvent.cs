@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 
 namespace SKD.Model {
-    public class VehicleTimelineEvent : EntityBase {
+    public class KitTimelineEvent : EntityBase {
         public Guid VehicleTimelineEventTypeId { get; set; }
-        public VehicleTimelineEventType EventType { get; set;}
+        public KitTimelineEventType EventType { get; set;}
         public DateTime EventDate { get; set; }
         public string EventNote { get; set; }
 

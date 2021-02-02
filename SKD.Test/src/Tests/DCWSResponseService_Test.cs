@@ -17,7 +17,7 @@ namespace SKD.Test {
         [Fact]
         public async Task can_create_dcws_response() {
             // setup
-            var vehicle = ctx.Vehicles.First();
+            var vehicle = ctx.Kits.First();
             var vehicleComponent = vehicle.KitComponents.First();
             var componentScan = Gen_ComponentScan(vehicleComponent.Id);
 
@@ -45,7 +45,7 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_save_duplicate_dcws_response_code() {
 
-            var vehicle = ctx.Vehicles.First();
+            var vehicle = ctx.Kits.First();
             var vehicleComponent = vehicle.KitComponents.First();
             var componentScan = Gen_ComponentScan(vehicleComponent.Id);
 

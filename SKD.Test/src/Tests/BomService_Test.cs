@@ -57,7 +57,7 @@ namespace SKD.Test {
             Assert.Equal(expected_Lot_count, payload.Entity.LotCount);
             Assert.Equal(expeced_parts_count, payload.Entity.PartCount);
 
-            var lot_parts_count = ctx.VehicleLots.Count(t => t.Bom.Id == payload.Entity.Id);
+            var lot_parts_count = ctx.Lots.Count(t => t.Bom.Id == payload.Entity.Id);
             Assert.Equal(expected_Lot_count, lot_parts_count);
 
             var parts_count = ctx.Parts.Count();

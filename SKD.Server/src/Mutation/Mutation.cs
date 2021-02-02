@@ -16,11 +16,11 @@ namespace SKD.Server {
         /// <summary>
         /// Create a vehicle lot
         /// </summary>
-        public async Task<MutationPayload<Lot>> CreateVehicleLot(
-            [Service] VehicleService service,
+        public async Task<MutationPayload<Lot>> CreateLot(
+            [Service] KitService service,
             VehicleLotInput input
         ) {
-            return await service.CreateVehicleLot(input);
+            return await service.CreateLot(input);
         }
 
         public async Task<MutationPayload<VehicleModel>> CreateVehicleModel(
@@ -31,21 +31,21 @@ namespace SKD.Server {
         }
 
         public async Task<MutationPayload<Lot>> AssignVehicleKitVin(
-            [Service] VehicleService service,
+            [Service] KitService service,
             AssignKitVinInput input
         ) {
-            return await service.AssingVehicleKitVin(input);
+            return await service.AssingKitVin(input);
         }
 
-        public async Task<MutationPayload<VehicleTimelineEvent>> CreateVehicleTimelineEvent(
-            [Service] VehicleService service,
+        public async Task<MutationPayload<KitTimelineEvent>> CreateVehicleTimelineEvent(
+            [Service] KitService service,
             KitTimelineEventInput input
         ) {
             return await service.CreateKitTimelineEvent(input);
         }
 
         public async Task<MutationPayload<Lot>> CreateVehicleLotTimelineEvent(
-            [Service] VehicleService service,
+            [Service] KitService service,
             VehicleLotTimelineEventInput input
         ) {
             return await service.CreateLotTimelineEvent(input);

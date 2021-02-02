@@ -47,7 +47,7 @@ namespace SKD.Model {
             // bom lot parts
             foreach (var lotGroup in input.LotParts.GroupBy(t => t.LotNo)) {
 
-                var lot = await context.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == lotGroup.Key);
+                var lot = await context.Lots.FirstOrDefaultAsync(t => t.LotNo == lotGroup.Key);
                 if (lot == null) {
                     lot = new Lot {
                         LotNo = lotGroup.Key,
@@ -91,7 +91,7 @@ namespace SKD.Model {
 
 
             foreach (var inputLot in input.Lots) {
-                var lot = await context.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == inputLot.LotNo);
+                var lot = await context.Lots.FirstOrDefaultAsync(t => t.LotNo == inputLot.LotNo);
                 if (lot == null) {
                     lot = new Lot {
                         LotNo = inputLot.LotNo,
@@ -223,7 +223,7 @@ namespace SKD.Model {
 
             // kits alread imported
             var newKitNumbers = input.Lots.SelectMany(t => t.Kits).Select(t => t.KitNo).ToList();
-            var alreadyImportedKitNumbers = await context.Vehicles
+            var alreadyImportedKitNumbers = await context.Kits
                 .AnyAsync(t => newKitNumbers.Any(newKitNo => newKitNo == t.KitNo));
 
             if (alreadyImportedKitNumbers) {

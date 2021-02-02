@@ -58,7 +58,7 @@ namespace SKD.Model {
             // Add / Update LotPart(s)
             var lotPartInputs = Get_LotPartInputs_from_ShipmentInput(input);
             var lotNumbers = lotPartInputs.Select(t => t.LotNo).Distinct().ToList();
-            var lots = await context.VehicleLots
+            var lots = await context.Lots
                 .Where(t => lotNumbers.Any(lotNo => lotNo == t.LotNo))
                 .ToListAsync();
 
@@ -102,7 +102,7 @@ namespace SKD.Model {
 
             // mossing lot numbers
             var incommingLotNumbers = input.Lots.Select(t => t.LotNo).Distinct().ToList();
-            var existingLotNumbers = await context.VehicleLots
+            var existingLotNumbers = await context.Lots
                 .Where(t => incommingLotNumbers.Any(lotNo => lotNo == t.LotNo))
                 .Select(t => t.LotNo)
                 .ToListAsync();

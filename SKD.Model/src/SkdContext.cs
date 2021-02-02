@@ -7,10 +7,10 @@ namespace SKD.Model {
         public DbSet<User> Users { get; set; }
 
         public DbSet<Plant> Plants { get; set; }
-        public DbSet<Kit> Vehicles { get; set; }
-        public DbSet<VehicleTimelineEvent> VehicleTimelineEvents { get; set; }
-        public DbSet<VehicleTimelineEventType> VehicleTimelineEventTypes { get; set; }
-        public DbSet<Lot> VehicleLots { get; set; }
+        public DbSet<Kit> Kits { get; set; }
+        public DbSet<KitTimelineEvent> KitTimelineEvents { get; set; }
+        public DbSet<KitTimelineEventType> VehicleTimelineEventTypes { get; set; }
+        public DbSet<Lot> Lots { get; set; }
         public DbSet<Component> Components { get; set; }
         public DbSet<VehicleModel> VehicleModels { get; set; }
         public DbSet<KitComponent> VehicleComponents { get; set; }
@@ -29,8 +29,8 @@ namespace SKD.Model {
         public DbSet<LotPart> LotParts { get; set; }
         public DbSet<LotPartReceived> LotPartsReceived { get; set; }
 
-        public DbSet<kitSnapshotRun> VehicleSnapshotRuns { get; set; }
-        public DbSet<KitSnapshot> VehicleSnapshots { get; set; }
+        public DbSet<kitSnapshotRun> KitSnapshotRuns { get; set; }
+        public DbSet<KitSnapshot> KitSnapshots { get; set; }
 
         public SkdContext(DbContextOptions options) : base(options) { }
 
@@ -44,8 +44,8 @@ namespace SKD.Model {
             builder.ApplyConfiguration(new KitComponent_Config());
             builder.ApplyConfiguration(new VehicleModelComponent_Config());
             builder.ApplyConfiguration(new ComponentSerial_Config());
-            builder.ApplyConfiguration(new VehicleTimelineEventType_Config());
-            builder.ApplyConfiguration(new VehicleTimelineEvent_Config());
+            builder.ApplyConfiguration(new KitTimelineEventType_Config());
+            builder.ApplyConfiguration(new KitTimelineEvent_Config());
             builder.ApplyConfiguration(new DCWSResponse_Config());
             builder.ApplyConfiguration(new ProductionStation_Config());
             builder.ApplyConfiguration(new Part_Config());

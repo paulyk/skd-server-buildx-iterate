@@ -11,17 +11,17 @@ using Microsoft.Extensions.Logging;
 
 namespace SKD.Model {
 
-    public class VehicleService {
+    public class KitService {
 
         private readonly SkdContext context;
 
-        public VehicleService(SkdContext ctx) {
+        public KitService(SkdContext ctx) {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<Lot>> CreateVehicleLot(VehicleLotInput input) {
+        public async Task<MutationPayload<Lot>> CreateLot(VehicleLotInput input) {
             var payload = new MutationPayload<Lot>(null);
-            payload.Errors = await ValidateCreateVehicleLot(input);
+            payload.Errors = await ValidateCreateLot(input);
             if (payload.Errors.Any()) {
                 return payload;
             }
@@ -41,7 +41,7 @@ namespace SKD.Model {
             }
 
             // ensure plant code
-            context.VehicleLots.Add(vehicleLot);
+            context.Lots.Add(vehicleLot);
 
             // persist
             await context.SaveChangesAsync();
@@ -49,7 +49,7 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<MutationPayload<Lot>> AssingVehicleKitVin(AssignKitVinInput input) {
+        public async Task<MutationPayload<Lot>> AssingKitVin(AssignKitVinInput input) {
             var payload = new MutationPayload<Lot>(null);
             payload.Errors = await ValidateAssignKitVinInput(input);
             if (payload.Errors.Count() > 0) {
@@ -57,7 +57,7 @@ namespace SKD.Model {
             }
 
             // assign vin
-            var vehicleLot = await context.VehicleLots
+            var vehicleLot = await context.Lots
                 .Include(t => t.Kits)
                 .FirstOrDefaultAsync(t => t.LotNo == input.LotNo);
             payload.Entity = vehicleLot;
@@ -70,14 +70,14 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<MutationPayload<VehicleTimelineEvent>> CreateKitTimelineEvent(KitTimelineEventInput dto) {
-            var payload = new MutationPayload<VehicleTimelineEvent>(null);
+        public async Task<MutationPayload<KitTimelineEvent>> CreateKitTimelineEvent(KitTimelineEventInput dto) {
+            var payload = new MutationPayload<KitTimelineEvent>(null);
             payload.Errors = await ValidateCreateVehicleTimelineEvent(dto);
             if (payload.Errors.Count > 0) {
                 return payload;
             }
 
-            var vehicle = await context.Vehicles
+            var vehicle = await context.Kits
                 .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .FirstOrDefaultAsync(t => t.KitNo == dto.KitNo);
 
@@ -91,7 +91,7 @@ namespace SKD.Model {
                 });
 
             // create timeline event and add to vehicle
-            var newTimelineEvent = new VehicleTimelineEvent {
+            var newTimelineEvent = new KitTimelineEvent {
                 EventType = await context.VehicleTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == dto.EventType.ToString()),
                 EventDate = dto.EventDate,
                 EventNote = dto.EventNote
@@ -112,7 +112,7 @@ namespace SKD.Model {
                 return payload;
             }
 
-            var vehicleLot = await context.VehicleLots
+            var vehicleLot = await context.Lots
                 .Include(t => t.Kits)
                     .ThenInclude(t => t.TimelineEvents)
                     .ThenInclude(t => t.EventType)
@@ -130,7 +130,7 @@ namespace SKD.Model {
                     });
 
                 // create timeline event and add to vehicle
-                var newTimelineEvent = new VehicleTimelineEvent {
+                var newTimelineEvent = new KitTimelineEvent {
                     EventType = await context.VehicleTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == dto.EventType.ToString()),
                     EventDate = dto.EventDate,
                     EventNote = dto.EventNote
@@ -149,7 +149,7 @@ namespace SKD.Model {
         public async Task<List<Error>> ValidateAssignKitVinInput(AssignKitVinInput dto) {
             var errors = new List<Error>();
 
-            var vehicleLot = await context.VehicleLots.AsNoTracking()
+            var vehicleLot = await context.Lots.AsNoTracking()
                 .Include(t => t.Kits)
                 .FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
 
@@ -179,7 +179,7 @@ namespace SKD.Model {
             // duplicatev vins
             var duplicate_vins = new List<string>();
             foreach (var kit in dto.Kits) {
-                var existing = await context.Vehicles.AsNoTracking().AnyAsync(t => t.VIN == kit.VIN);
+                var existing = await context.Kits.AsNoTracking().AnyAsync(t => t.VIN == kit.VIN);
                 if (existing) {
                     duplicate_vins.Add(kit.VIN);
                 }
@@ -193,7 +193,7 @@ namespace SKD.Model {
             // Wehicles with matching kit numbers not found
             var kit_numbers_not_found = new List<string>();
             foreach (var kit in dto.Kits) {
-                var exists = await context.Vehicles.AsNoTracking().AnyAsync(t => t.KitNo == kit.KitNo);
+                var exists = await context.Kits.AsNoTracking().AnyAsync(t => t.KitNo == kit.KitNo);
                 if (!exists) {
                     kit_numbers_not_found.Add(kit.KitNo);
                 }
@@ -224,7 +224,7 @@ namespace SKD.Model {
 
             return errors;
         }
-        public async Task<List<Error>> ValidateCreateVehicleLot(VehicleLotInput input) {
+        public async Task<List<Error>> ValidateCreateLot(VehicleLotInput input) {
             var errors = new List<Error>();
 
             var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
@@ -233,7 +233,7 @@ namespace SKD.Model {
                 return errors;
             }
 
-            var existingLot = await context.VehicleLots.AsNoTracking().FirstOrDefaultAsync(t => t.LotNo == input.LotNo);
+            var existingLot = await context.Lots.AsNoTracking().FirstOrDefaultAsync(t => t.LotNo == input.LotNo);
             if (existingLot != null) {
                 errors.Add(new Error("lotNo", "duplicate vehicle lot"));
                 return errors;
@@ -256,7 +256,7 @@ namespace SKD.Model {
                 return errors;
             }
 
-            if (await context.VehicleLots.AnyAsync(t => t.LotNo == input.LotNo)) {
+            if (await context.Lots.AnyAsync(t => t.LotNo == input.LotNo)) {
                 errors.Add(new Error("LotNo", "duplicate vehicle lot"));
                 return errors;
             }
@@ -329,7 +329,7 @@ namespace SKD.Model {
             var validator = new Validator();
 
             // check duplicate kit no
-            if (await context.Vehicles.AnyAsync(t => t.KitNo == vehicle.KitNo && t.Id != vehicle.Id)) {
+            if (await context.Kits.AnyAsync(t => t.KitNo == vehicle.KitNo && t.Id != vehicle.Id)) {
                 errors.Add(ErrorHelper.Create<T>(t => t.VIN, "duplicate KitNo"));
             }
 
@@ -378,7 +378,7 @@ namespace SKD.Model {
             var errors = new List<Error>();
 
             // kitNo
-            var vehicle = await context.Vehicles.AsNoTracking()
+            var vehicle = await context.Kits.AsNoTracking()
                 .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .FirstOrDefaultAsync(t => t.KitNo == input.KitNo);
             if (vehicle == null) {
@@ -426,7 +426,7 @@ namespace SKD.Model {
         public async Task<List<Error>> ValidateCreateVehicleLotTimelineEvent(VehicleLotTimelineEventInput input) {
             var errors = new List<Error>();
 
-            var vehicleLot = await context.VehicleLots.AsNoTracking()
+            var vehicleLot = await context.Lots.AsNoTracking()
                 .Include(t => t.Kits).ThenInclude(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .FirstOrDefaultAsync(t => t.LotNo == input.LotNo);
 

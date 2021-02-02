@@ -168,7 +168,7 @@ namespace SKD.Test {
                 // lot
                 var lotNo = new String('X', EntityFieldLen.Vehicle_LotNo);
                 var vehicleLot = new Lot { LotNo = lotNo, Bom = bom, Plant = plant };
-                ctx.VehicleLots.Add(vehicleLot);
+                ctx.Lots.Add(vehicleLot);
 
                 // vehicle 
                 var vehicle = new Kit() {
@@ -177,7 +177,7 @@ namespace SKD.Test {
                     Model = vehicleModel
                 };
 
-                ctx.Vehicles.Add(vehicle);
+                ctx.Kits.Add(vehicle);
 
                 // test
                 ctx.SaveChanges();
@@ -196,7 +196,7 @@ namespace SKD.Test {
                     VIN = new String('X', EntityFieldLen.Vehicle_VIN),
                 };
 
-                ctx.Vehicles.Add(vehicle);
+                ctx.Kits.Add(vehicle);
 
                 // test + assert
                 Assert.Throws<DbUpdateException>(() => ctx.SaveChanges());
@@ -225,8 +225,8 @@ namespace SKD.Test {
                     Model = vehicleModel
                 };
 
-                ctx.Vehicles.Add(vehicle_1);
-                ctx.Vehicles.Add(vehicle_2);
+                ctx.Kits.Add(vehicle_1);
+                ctx.Kits.Add(vehicle_2);
 
                 // test + assert
                 Assert.Throws<DbUpdateException>(() => ctx.SaveChanges());

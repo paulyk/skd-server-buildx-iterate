@@ -45,7 +45,7 @@ namespace SKD.Server {
 
             services
                 .AddTransient<SearchService>()
-                .AddTransient<VehicleService>()
+                .AddTransient<KitService>()
                 .AddTransient<KitSnapshotService>()
                 .AddTransient<VehicleModelService>()
                 .AddTransient<ComponentService>()

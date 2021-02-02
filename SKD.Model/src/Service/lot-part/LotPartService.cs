@@ -54,7 +54,7 @@ namespace SKD.Model {
         public async Task<List<Error>> ValidateCreateLotPartReceipt(ReceiveLotPartInput input) {
             var errors = new List<Error>();
 
-            var lot = await context.VehicleLots.FirstOrDefaultAsync(t => t.LotNo == input.LotNo);
+            var lot = await context.Lots.FirstOrDefaultAsync(t => t.LotNo == input.LotNo);
             if (lot == null) {
                 errors.Add(new Error("LotNo", $"lot not found {input.LotNo}"));
                 return errors;
@@ -127,7 +127,7 @@ namespace SKD.Model {
         }
 
         public async Task<LotDTO?> GetLotInfo(string lotNo) {
-            var result = await context.VehicleLots.Select(t => new LotDTO {
+            var result = await context.Lots.Select(t => new LotDTO {
                 LotNo = t.LotNo,
                 CreatedAt = t.CreatedAt,
                 ModelName = t.Kits.Select(u => u.Model.Name).FirstOrDefault()

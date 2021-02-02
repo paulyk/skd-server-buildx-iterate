@@ -17,20 +17,20 @@ namespace SKD.Seed {
         public async Task Seed_VehicleTimelineVentType() {
 
             // in order by when they should occur
-            var eventTypes = new List<VehicleTimelineEventType> {
-                new VehicleTimelineEventType {
+            var eventTypes = new List<KitTimelineEventType> {
+                new KitTimelineEventType {
                     Code = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
                 },
-                new VehicleTimelineEventType {
+                new KitTimelineEventType {
                     Code = TimeLineEventType.PLAN_BUILD.ToString(),
                 },
-                new VehicleTimelineEventType {
+                new KitTimelineEventType {
                     Code = TimeLineEventType.BULD_COMPLETED.ToString(),
                 },
-                new VehicleTimelineEventType {
+                new KitTimelineEventType {
                     Code = TimeLineEventType.GATE_RELEASED.ToString(),
                 },
-                new VehicleTimelineEventType {
+                new KitTimelineEventType {
                     Code = TimeLineEventType.WHOLE_SALE.ToString(),
                 },
             };

@@ -2,8 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace SKD.Model {
-    public class VehicleTimelineEvent_Config : IEntityTypeConfiguration<VehicleTimelineEvent> {
-        public void Configure(EntityTypeBuilder<VehicleTimelineEvent> builder) {
+    public class KitTimelineEvent_Config : IEntityTypeConfiguration<KitTimelineEvent> {
+        public void Configure(EntityTypeBuilder<KitTimelineEvent> builder) {
 
             builder.ToTable("vehicle_timeline_event");
                 

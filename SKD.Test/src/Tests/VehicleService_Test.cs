@@ -42,7 +42,7 @@ namespace SKD.Test {
         [Fact]
         public async Task can_assing_vehicle_kit_vins() {
             // setup
-            var lot = ctx.VehicleLots.First();
+            var lot = ctx.Lots.First();
 
             var input = new AssignKitVinInput {
                 LotNo = lot.LotNo,
@@ -53,16 +53,16 @@ namespace SKD.Test {
             };
 
             // test
-            var vehicles = await ctx.Vehicles.Where(t => t.Lot.LotNo == lot.LotNo).ToListAsync();
+            var vehicles = await ctx.Kits.Where(t => t.Lot.LotNo == lot.LotNo).ToListAsync();
             var lot_vehicles_count = vehicles.Count();
             var with_vin_count = vehicles.Count(t => t.VIN != "");
             Assert.Equal(0, with_vin_count);
 
-            var service = new VehicleService(ctx);
-            var payload = await service.AssingVehicleKitVin(input);
+            var service = new KitService(ctx);
+            var payload = await service.AssingKitVin(input);
 
             // assert
-            vehicles = await ctx.Vehicles.Where(t => t.Lot.LotNo == lot.LotNo).ToListAsync();
+            vehicles = await ctx.Kits.Where(t => t.Lot.LotNo == lot.LotNo).ToListAsync();
             with_vin_count = vehicles.Count(t => t.VIN != "");
             Assert.Equal(lot_vehicles_count, with_vin_count);
         }
@@ -70,7 +70,7 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_assing_vehicle_kit_vins_if_vins_already_assigned() {
             // setup
-            var lot = ctx.VehicleLots.First();
+            var lot = ctx.Lots.First();
 
             var kitVinDto = new AssignKitVinInput {
                 LotNo = lot.LotNo,
@@ -81,9 +81,9 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new VehicleService(ctx);
-            var payload_2 = await service.AssingVehicleKitVin(kitVinDto);
-            var payload_3 = await service.AssingVehicleKitVin(kitVinDto);
+            var service = new KitService(ctx);
+            var payload_2 = await service.AssingKitVin(kitVinDto);
+            var payload_3 = await service.AssingKitVin(kitVinDto);
 
             // assert
             var errorMessage = payload_3.Errors.Select(t => t.Message).FirstOrDefault();
@@ -94,7 +94,7 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_assing_vehicle_lot_vins_kits_not_found() {
             // setup
-            var lot = ctx.VehicleLots.First();
+            var lot = ctx.Lots.First();
             var kitVinDto = new AssignKitVinInput {
                 LotNo = lot.LotNo,
                 Kits = lot.Kits.Select(t => new AssignKitVinInput.KitVin {
@@ -104,8 +104,8 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new VehicleService(ctx);
-            var payload = await service.AssingVehicleKitVin(kitVinDto);
+            var service = new KitService(ctx);
+            var payload = await service.AssingKitVin(kitVinDto);
 
             // assert
             var expectedError = "kit numbers not found";
@@ -118,7 +118,7 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_assing_vehicle_lot_with_duplicate_kits_in_payload() {
             // setup
-            var lot = ctx.VehicleLots.First();
+            var lot = ctx.Lots.First();
             var lotVehicles =  lot.Kits.ToList();
             
 
@@ -136,8 +136,8 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new VehicleService(ctx);
-            var payload_2 = await service.AssingVehicleKitVin(kitVinDto);
+            var service = new KitService(ctx);
+            var payload_2 = await service.AssingKitVin(kitVinDto);
 
             // assert
             var expectedError = "duplicate kitNo(s) in payload";
@@ -158,12 +158,12 @@ namespace SKD.Test {
             };
 
             // test
-            var vehicle = ctx.Vehicles.First();
+            var vehicle = ctx.Kits.First();
 
-            var service = new VehicleService(ctx);
-            var payloads = new List<MutationPayload<VehicleTimelineEvent>>();
+            var service = new KitService(ctx);
+            var payloads = new List<MutationPayload<KitTimelineEvent>>();
 
-            var before_count = ctx.VehicleTimelineEvents.Count();
+            var before_count = ctx.KitTimelineEvents.Count();
 
 
             foreach (var entry in timelineEvents) {
@@ -177,7 +177,7 @@ namespace SKD.Test {
             }
 
             // assert
-            var after_count = ctx.VehicleTimelineEvents.Count();
+            var after_count = ctx.KitTimelineEvents.Count();
             Assert.Equal(0, before_count);
             Assert.Equal(timelineEvents.Count, after_count);
         }
@@ -191,11 +191,11 @@ namespace SKD.Test {
             };
 
             // test
-            var vehicle = ctx.Vehicles.First();
-            var service = new VehicleService(ctx);
-            var payloads = new List<MutationPayload<VehicleTimelineEvent>>();
+            var vehicle = ctx.Kits.First();
+            var service = new KitService(ctx);
+            var payloads = new List<MutationPayload<KitTimelineEvent>>();
 
-            var before_count = ctx.VehicleTimelineEvents.Count();
+            var before_count = ctx.KitTimelineEvents.Count();
 
 
             foreach (var entry in timelineEvents) {
@@ -219,7 +219,7 @@ namespace SKD.Test {
         [Fact]
         public async Task create_vehicle_timeline_event_with_note() {
             // setup
-            var vehicle = ctx.Vehicles.First();
+            var vehicle = ctx.Kits.First();
             var eventNote = "DLR_9977";
 
             var timelineEventItems = new List<(string eventTypeCode, DateTime eventDate, string eventNode)>() {
@@ -231,8 +231,8 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new VehicleService(ctx);
-            var payloads = new List<MutationPayload<VehicleTimelineEvent>>();
+            var service = new KitService(ctx);
+            var payloads = new List<MutationPayload<KitTimelineEvent>>();
 
             foreach (var entry in timelineEventItems) {
                 var input = new KitTimelineEventInput {
@@ -246,7 +246,7 @@ namespace SKD.Test {
             }
 
             // assert
-            var timelineEvents = ctx.VehicleTimelineEvents.ToList();
+            var timelineEvents = ctx.KitTimelineEvents.ToList();
 
             Assert.Equal(timelineEventItems.Count, timelineEvents.Count);
 
@@ -258,8 +258,8 @@ namespace SKD.Test {
         [Fact]
         public async Task create_vehicle_timline_event_removes_prior_events_of_the_same_type() {
             // setup
-            var vehicle = ctx.Vehicles.First();
-            var before_count = ctx.VehicleTimelineEvents.Count();
+            var vehicle = ctx.Kits.First();
+            var before_count = ctx.KitTimelineEvents.Count();
 
             var originalDate = new DateTime(2020, 11, 28);
             var newDate = new DateTime(2020, 11, 30);
@@ -275,19 +275,19 @@ namespace SKD.Test {
                 EventDate = newDate
             };
 
-            var service = new VehicleService(ctx);
+            var service = new KitService(ctx);
             // test
             await service.CreateKitTimelineEvent(dto);
             await service.CreateKitTimelineEvent(dto2);
 
-            var after_count = ctx.VehicleTimelineEvents.Count();
+            var after_count = ctx.KitTimelineEvents.Count();
 
             // assert
             Assert.Equal(0, before_count);
             Assert.Equal(2, after_count);
 
-            var originalEntry = ctx.VehicleTimelineEvents.FirstOrDefault(t => t.Vehicle.VIN == vehicle.VIN && t.RemovedAt != null);
-            var latestEntry = ctx.VehicleTimelineEvents.FirstOrDefault(t => t.Vehicle.VIN == vehicle.VIN && t.RemovedAt == null);
+            var originalEntry = ctx.KitTimelineEvents.FirstOrDefault(t => t.Vehicle.VIN == vehicle.VIN && t.RemovedAt != null);
+            var latestEntry = ctx.KitTimelineEvents.FirstOrDefault(t => t.Vehicle.VIN == vehicle.VIN && t.RemovedAt == null);
 
             Assert.Equal(originalEntry.EventDate, originalDate);
             Assert.Equal(newDate, latestEntry.EventDate);
@@ -296,7 +296,7 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_add_duplicate_vehicle_timline_event_if_same_type_and_date_and_note() {
             // setup
-            var vehicle = ctx.Vehicles.First();
+            var vehicle = ctx.Kits.First();
 
             var originalDate = new DateTime(2020, 11, 28);
             var newDate = new DateTime(2020, 11, 30);
@@ -316,13 +316,13 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new VehicleService(ctx);
+            var service = new KitService(ctx);
             await service.CreateKitTimelineEvent(dto);
             await service.CreateKitTimelineEvent(dto2);
             var payload = await service.CreateKitTimelineEvent(dto2);
 
             // assert
-            var after_count = ctx.VehicleTimelineEvents.Count();
+            var after_count = ctx.KitTimelineEvents.Count();
             Assert.Equal(2, after_count);
             var errorsMessage = payload.Errors.Select(t => t.Message).First();
             var expectedMessage = "duplicate vehicle timeline event";
@@ -333,7 +333,7 @@ namespace SKD.Test {
         [Fact]
         public async Task can_create_vehicle_timeline_event_by_lot() {
             // setup
-            var vehicleLot = ctx.VehicleLots
+            var vehicleLot = ctx.Lots
                 .Include(t => t.Kits)
                 .First();
             var vehicleCoount = vehicleLot.Kits.Count();
@@ -348,13 +348,13 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new VehicleService(ctx);
+            var service = new KitService(ctx);
             var payload = await service.CreateLotTimelineEvent(dto);
 
             var errorCount = payload.Errors.Count;
             Assert.Equal(0, errorCount);
 
-            var timelineEvents = ctx.VehicleTimelineEvents.Where(t => t.Vehicle.Lot.LotNo == dto.LotNo)
+            var timelineEvents = ctx.KitTimelineEvents.Where(t => t.Vehicle.Lot.LotNo == dto.LotNo)
                 .Include(t => t.Vehicle)
                 .Include(t => t.EventType).ToList();
 
@@ -370,7 +370,7 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_create_vehicle_timeline_event_by_lot_with_dupliate_date() {
             // setup
-            var vehicleLot = ctx.VehicleLots.First();
+            var vehicleLot = ctx.Lots.First();
 
             var eventDate = new DateTime(2020, 11, 30);
             var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
@@ -382,7 +382,7 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new VehicleService(ctx);
+            var service = new KitService(ctx);
             var payload = await service.CreateLotTimelineEvent(dto);
 
             var errorCount = payload.Errors.Count;

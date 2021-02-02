@@ -18,7 +18,7 @@ namespace SKD.Model {
         FPWS        // Wholesale Date         
     }
 
-    public class VehicleSnapshotRunDTO {
+    public class KitSnapshotRunDTO {
         public DateTime RunDate { get; set; }
         public int Sequence { get; set; }
         public string PlantCode { get; set; }

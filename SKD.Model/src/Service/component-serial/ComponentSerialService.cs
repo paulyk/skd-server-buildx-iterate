@@ -184,7 +184,7 @@ namespace SKD.Model {
         }
 
         public async Task<SerialCaptureVehicleDTO?> GetVehicleInfo_ForSerialCapture(string vin) {
-            return await context.Vehicles
+            return await context.Kits
                 .Where(t => t.VIN == vin)
                 .Select(t => new SerialCaptureVehicleDTO {
                     VIN = t.VIN,

@@ -10,7 +10,7 @@ namespace SKD.Model {
         GATE_RELEASED,
         WHOLE_SALE
     }
-    public partial class VehicleTimelineEventType : EntityBase {
+    public partial class KitTimelineEventType : EntityBase {
         public string Code { get; set; } = "";
         public string Description { get; set; } = "";
         public int Sequecne { get; set; }

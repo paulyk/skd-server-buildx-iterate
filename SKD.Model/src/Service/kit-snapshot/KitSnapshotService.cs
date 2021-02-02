@@ -48,7 +48,7 @@ namespace SKD.Model {
             var vehicleSnapshotRun = new kitSnapshotRun {
                 Plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode),
                 RunDate = input.RunDate.Date,
-                Sequence = await context.VehicleSnapshotRuns
+                Sequence = await context.KitSnapshotRuns
                     .Where(t => t.Plant.Code == input.PlantCode)
                     .OrderByDescending(t => t.Sequence)
                     .Select(t => t.Sequence)
@@ -75,7 +75,7 @@ namespace SKD.Model {
             }
 
             // save
-            context.VehicleSnapshotRuns.Add(vehicleSnapshotRun);
+            context.KitSnapshotRuns.Add(vehicleSnapshotRun);
             var entity = await context.SaveChangesAsync();
 
             // dto
@@ -89,9 +89,9 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<VehicleSnapshotRunDTO?> GetSnapshotRunBySequence(string plantCode, int sequence) {
+        public async Task<KitSnapshotRunDTO?> GetSnapshotRunBySequence(string plantCode, int sequence) {
 
-            var snapshotRun = await context.VehicleSnapshotRuns
+            var snapshotRun = await context.KitSnapshotRuns
                 .Include(t => t.Plant)
                 .Include(t => t.KitSnapshots)
                     .ThenInclude(t => t.Kit)
@@ -106,9 +106,9 @@ namespace SKD.Model {
             return BuildVehicleSnapshotgRunDTO(snapshotRun);
         }
 
-        public async Task<VehicleSnapshotRunDTO?> GetSnapshotRunByDate(string plantCode, DateTime runDate) {
+        public async Task<KitSnapshotRunDTO?> GetSnapshotRunByDate(string plantCode, DateTime runDate) {
 
-            var snapshotRun = await context.VehicleSnapshotRuns
+            var snapshotRun = await context.KitSnapshotRuns
                 .Include(t => t.Plant)
                 .Include(t => t.KitSnapshots)
                     .ThenInclude(t => t.Kit)
@@ -123,16 +123,16 @@ namespace SKD.Model {
             return BuildVehicleSnapshotgRunDTO(snapshotRun);
         }
 
-        private VehicleSnapshotRunDTO BuildVehicleSnapshotgRunDTO(kitSnapshotRun snapshotRun) {
-            var dto = new VehicleSnapshotRunDTO {
+        private KitSnapshotRunDTO BuildVehicleSnapshotgRunDTO(kitSnapshotRun snapshotRun) {
+            var dto = new KitSnapshotRunDTO {
                 PlantCode = snapshotRun.Plant.Code,
                 RunDate = snapshotRun.RunDate.Date,
                 Sequence = snapshotRun.Sequence,
-                Entries = new List<VehicleSnapshotRunDTO.Entry>()
+                Entries = new List<KitSnapshotRunDTO.Entry>()
             };
 
             foreach (var entry in snapshotRun.KitSnapshots) {
-                dto.Entries.Add(new VehicleSnapshotRunDTO.Entry {
+                dto.Entries.Add(new KitSnapshotRunDTO.Entry {
                     TxType = entry.ChangeStatusCode,
                     CurrentTimelineEvent = entry.TimelineEventCode,
                     LotNo = entry.Kit.Lot.LotNo,
@@ -153,7 +153,7 @@ namespace SKD.Model {
         }
 
         public async Task<List<SnapshotDTO>> GetSnapshotRuns(string plantCode, int count = 50) {
-            return await context.VehicleSnapshotRuns
+            return await context.KitSnapshotRuns
                 .OrderByDescending(t => t.RunDate)
                 .Select(t => new SnapshotDTO {
                     PlantCode = t.Plant.Code,
@@ -182,7 +182,7 @@ namespace SKD.Model {
                 return errors;
             }
 
-            var alreadyGenerated = await context.VehicleSnapshotRuns
+            var alreadyGenerated = await context.KitSnapshotRuns
                 .AnyAsync(t => t.Plant.Code == input.PlantCode && t.RunDate.Date == input.RunDate.Date);
 
             if (alreadyGenerated) {
@@ -196,7 +196,7 @@ namespace SKD.Model {
         #region helper methods
         private IQueryable<Kit> GetPartnerStatusQualifyingVehiclesQuery(KitSnapshotInput input) {
             // filter by plant code
-            var query = context.Vehicles.Where(t => t.Lot.Plant.Code == input.PlantCode).AsQueryable();
+            var query = context.Kits.Where(t => t.Lot.Plant.Code == input.PlantCode).AsQueryable();
 
             // filter by custome recived
             query = query
@@ -270,7 +270,7 @@ namespace SKD.Model {
 
         private async Task<DateTime?> GetVehicle_OriginalPlanBuildDate(Kit vehicle) {
             // find prior OriginalPlanBuild
-            var originalPlanBuild = await context.VehicleSnapshots
+            var originalPlanBuild = await context.KitSnapshots
                 .OrderBy(t => t.CreatedAt)
                 .Where(t => t.Kit.Id == vehicle.Id)
                 .Where(t => t.OrginalPlanBuild != null)
@@ -323,7 +323,7 @@ namespace SKD.Model {
 
             var currentEventCode = latestTimelineEvent.EventType.Code;
 
-            var priorVehicleSnapshotEntry = await context.VehicleSnapshots
+            var priorVehicleSnapshotEntry = await context.KitSnapshots
                 .OrderByDescending(t => t.VehicleSnapshotRun.RunDate)
                 .FirstOrDefaultAsync(t => t.KitId == vehicle.Id);
 

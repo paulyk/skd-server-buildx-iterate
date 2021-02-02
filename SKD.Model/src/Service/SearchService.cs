@@ -24,16 +24,16 @@ namespace SKD.Model {
             }
 
             // try find exact match
-            var exactMatch = await context.Vehicles.AsNoTracking().FirstOrDefaultAsync(t => t.VIN == query);
+            var exactMatch = await context.Kits.AsNoTracking().FirstOrDefaultAsync(t => t.VIN == query);
             if (exactMatch != null) {
                 return new List<Kit>() { exactMatch };
             }
 
             // find where query matches part of vin
-            var byVIN = await context.Vehicles.AsNoTracking().Where(t => t.VIN.Contains(query)).ToListAsync();
+            var byVIN = await context.Kits.AsNoTracking().Where(t => t.VIN.Contains(query)).ToListAsync();
 
             // find where matches
-            var byModel = await context.Vehicles
+            var byModel = await context.Kits
                 .AsNoTracking()
                 .Where(t => t.Model.Code.Contains(query) || t.Model.Name.Contains(query))
                 .ToListAsync();

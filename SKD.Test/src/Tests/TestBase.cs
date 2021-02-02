@@ -108,7 +108,7 @@ namespace SKD.Test {
                     .Select(kitSeq => VehicleForKitSeq(model, kitSeq))
                     .ToList()
             };
-            ctx.VehicleLots.Add(lot);
+            ctx.Lots.Add(lot);
             ctx.SaveChanges();
             return lot;
 
@@ -213,7 +213,7 @@ namespace SKD.Test {
             string lotNo,
             string modelCode
         ) {
-            var lot = ctx.VehicleLots.First(t => t.LotNo == lotNo);
+            var lot = ctx.Lots.First(t => t.LotNo == lotNo);
             var model = ctx.VehicleModels.First(t => t.Code == modelCode);
             var vehicle = new Kit {
                 Lot = lot,
@@ -246,7 +246,7 @@ namespace SKD.Test {
             }).ToList();
 
             var vehicleLot = new Lot { LotNo = lotNo, Plant = plant };
-            ctx.VehicleLots.Add(vehicleLot);
+            ctx.Lots.Add(vehicleLot);
 
             var vehicle = new Kit {
                 VIN = vin,
@@ -256,7 +256,7 @@ namespace SKD.Test {
                 KitComponents = vehicleComponents
             };
 
-            ctx.Vehicles.AddRange(vehicle);
+            ctx.Kits.AddRange(vehicle);
             ctx.SaveChanges();
 
             return vehicle;
@@ -304,7 +304,7 @@ namespace SKD.Test {
             var plant = bom.Plant;
             var lot = Gen_VehicleLot(bom.Id, model.Id, auto_assign_vin: auto_assign_vin);
 
-            var vehicle = ctx.Vehicles
+            var vehicle = ctx.Kits
                 .Include(t => t.Lot)
                 .First(t => t.Lot.Id == lot.Id);
             return vehicle;
@@ -332,20 +332,20 @@ namespace SKD.Test {
         }
 
         public void Gen_VehicleTimelineEventTypes() {
-            var eventTypes = new List<VehicleTimelineEventType> {
-                new VehicleTimelineEventType {
+            var eventTypes = new List<KitTimelineEventType> {
+                new KitTimelineEventType {
                     Code = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
                 },
-                new VehicleTimelineEventType {
+                new KitTimelineEventType {
                     Code = TimeLineEventType.PLAN_BUILD.ToString(),
                 },
-                new VehicleTimelineEventType {
+                new KitTimelineEventType {
                     Code = TimeLineEventType.BULD_COMPLETED.ToString(),
                 },
-                new VehicleTimelineEventType {
+                new KitTimelineEventType {
                     Code = TimeLineEventType.GATE_RELEASED.ToString(),
                 },
-                new VehicleTimelineEventType {
+                new KitTimelineEventType {
                     Code = TimeLineEventType.WHOLE_SALE.ToString(),
                 },
             };
