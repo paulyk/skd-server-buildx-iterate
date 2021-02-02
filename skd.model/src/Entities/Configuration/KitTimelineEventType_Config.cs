@@ -5,7 +5,7 @@ namespace SKD.Model {
     public class KitTimelineEventType_Config : IEntityTypeConfiguration<KitTimelineEventType> {
         public void Configure(EntityTypeBuilder<KitTimelineEventType> builder) {
 
-            builder.ToTable("vehicle_timeline_event_type");
+            builder.ToTable("kit_timeline_event_type");
                 
             builder.HasKey(t => t.Id);
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();

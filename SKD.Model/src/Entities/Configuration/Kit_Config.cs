@@ -5,7 +5,7 @@ namespace SKD.Model {
     public class Kit_Config : IEntityTypeConfiguration<Kit> {
         public void Configure(EntityTypeBuilder<Kit> builder) {
 
-            builder.ToTable("vehicle");
+            builder.ToTable("kit");
                 
             builder.HasKey(t => t.Id);
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();

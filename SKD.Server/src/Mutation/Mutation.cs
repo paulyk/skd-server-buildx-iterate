@@ -140,7 +140,7 @@ namespace SKD.Server {
                 .Include(t => t.KitComponent).ThenInclude(t => t.Kit)
                 .Include(t => t.KitComponent).ThenInclude(t => t.Component)
                 .OrderByDescending(t => t.CreatedAt)
-                .Where(t => t.VehicleComponentId == vehicleComponentId)
+                .Where(t => t.KitComponentId == vehicleComponentId)
                 .Where(t => t.RemovedAt == null)
                 .FirstOrDefaultAsync();
             

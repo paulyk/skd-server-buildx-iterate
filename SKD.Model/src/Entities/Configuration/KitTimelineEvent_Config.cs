@@ -5,7 +5,7 @@ namespace SKD.Model {
     public class KitTimelineEvent_Config : IEntityTypeConfiguration<KitTimelineEvent> {
         public void Configure(EntityTypeBuilder<KitTimelineEvent> builder) {
 
-            builder.ToTable("vehicle_timeline_event");
+            builder.ToTable("kit_timeline_event");
                 
             builder.HasKey(t => t.Id);
             builder.HasIndex(t => t.CreatedAt);

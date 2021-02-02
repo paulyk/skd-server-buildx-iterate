@@ -324,7 +324,7 @@ namespace SKD.Model {
             var currentEventCode = latestTimelineEvent.EventType.Code;
 
             var priorVehicleSnapshotEntry = await context.KitSnapshots
-                .OrderByDescending(t => t.VehicleSnapshotRun.RunDate)
+                .OrderByDescending(t => t.KitSnapshotRun.RunDate)
                 .FirstOrDefaultAsync(t => t.KitId == vehicle.Id);
 
             var priorEventCode = priorVehicleSnapshotEntry != null

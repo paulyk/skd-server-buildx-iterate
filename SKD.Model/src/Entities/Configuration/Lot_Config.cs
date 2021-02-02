@@ -5,7 +5,7 @@ namespace SKD.Model {
     public class Lot_Config : IEntityTypeConfiguration<Lot> {
         public void Configure(EntityTypeBuilder<Lot> builder) {
 
-            builder.ToTable("vehicle_lot");
+            builder.ToTable("lot");
 
             builder.HasKey(t => t.Id);
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();

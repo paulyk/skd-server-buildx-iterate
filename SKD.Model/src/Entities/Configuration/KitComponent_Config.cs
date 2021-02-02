@@ -7,7 +7,7 @@ namespace SKD.Model {
     public class KitComponent_Config : IEntityTypeConfiguration<KitComponent> {
         public void Configure(EntityTypeBuilder<KitComponent> builder) {
 
-            builder.ToTable("vehicle_component");
+            builder.ToTable("kit_component");
 
             builder.HasKey(t => t.Id);
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
@@ -24,7 +24,7 @@ namespace SKD.Model {
 
             builder.HasMany(t => t.ComponentSerials)
                 .WithOne(t => t.KitComponent)
-                .HasForeignKey(t => t.VehicleComponentId);
+                .HasForeignKey(t => t.KitComponentId);
 
         }
     }

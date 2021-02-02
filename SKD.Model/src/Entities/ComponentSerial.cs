@@ -5,7 +5,7 @@ namespace SKD.Model {
 
     public class ComponentSerial : EntityBase {
 
-        public Guid VehicleComponentId { get; set; }
+        public Guid KitComponentId { get; set; }
         public virtual KitComponent KitComponent { get; set; }
         public string Serial1 { get; set; } = "";
         public string Serial2 { get; set; } = "";

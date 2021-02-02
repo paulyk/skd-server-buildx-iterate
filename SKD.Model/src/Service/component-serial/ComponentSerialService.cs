@@ -27,13 +27,13 @@ namespace SKD.Model {
             var componentSerial = new ComponentSerial {
                 Serial1 = input.Serial1,
                 Serial2 = input.Serial2,
-                VehicleComponentId = input.VehicleComponentId
+                KitComponentId = input.VehicleComponentId
             };
 
             // Deactivate existing scan if Replace == true
             if (input.Replace) {
                 var existintScans = await context.ComponentSerials
-                    .Where(t => t.VehicleComponentId == input.VehicleComponentId && t.RemovedAt == null).ToListAsync();
+                    .Where(t => t.KitComponentId == input.VehicleComponentId && t.RemovedAt == null).ToListAsync();
                 existintScans.ForEach(t => t.RemovedAt = DateTime.UtcNow);
             }
 

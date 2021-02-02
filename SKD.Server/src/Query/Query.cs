@@ -290,7 +290,7 @@ namespace SKD.Server {
         public async Task<ComponentSerial?> GetExistingComponentScan([Service] SkdContext context, Guid vehicleComponentId) =>
                await context.ComponentSerials.AsNoTracking()
                         .Include(t => t.KitComponent)
-                        .FirstOrDefaultAsync(t => t.VehicleComponentId == vehicleComponentId && t.RemovedAt == null);
+                        .FirstOrDefaultAsync(t => t.KitComponentId == vehicleComponentId && t.RemovedAt == null);
 
         [UsePaging]
         [UseSorting]
