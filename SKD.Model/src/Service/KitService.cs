@@ -18,7 +18,7 @@ namespace SKD.Model {
         public KitService(SkdContext ctx) {
             this.context = ctx;
         }
-        
+
         public async Task<MutationPayload<Lot>> AssingKitVin(AssignKitVinInput input) {
             var payload = new MutationPayload<Lot>(null);
             payload.Errors = await ValidateAssignKitVinInput(input);
@@ -75,7 +75,7 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<MutationPayload<Lot>> CreateLotTimelineEvent(VehicleLotTimelineEventInput dto) {
+        public async Task<MutationPayload<Lot>> CreateLotTimelineEvent(LotTimelineEventInput dto) {
             var payload = new MutationPayload<Lot>(null);
             payload.Errors = await ValidateCreateVehicleLotTimelineEvent(dto);
             if (payload.Errors.Count > 0) {
@@ -244,7 +244,7 @@ namespace SKD.Model {
             return errors;
         }
 
-        public async Task<List<Error>> ValidateCreateVehicleLotTimelineEvent(VehicleLotTimelineEventInput input) {
+        public async Task<List<Error>> ValidateCreateVehicleLotTimelineEvent(LotTimelineEventInput input) {
             var errors = new List<Error>();
 
             var vehicleLot = await context.Lots.AsNoTracking()

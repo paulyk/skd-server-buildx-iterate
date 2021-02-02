@@ -261,8 +261,8 @@ namespace SKD.Test {
             Assert.Equal(0, before_count);
             Assert.Equal(2, after_count);
 
-            var originalEntry = ctx.KitTimelineEvents.FirstOrDefault(t => t.Vehicle.VIN == vehicle.VIN && t.RemovedAt != null);
-            var latestEntry = ctx.KitTimelineEvents.FirstOrDefault(t => t.Vehicle.VIN == vehicle.VIN && t.RemovedAt == null);
+            var originalEntry = ctx.KitTimelineEvents.FirstOrDefault(t => t.Kit.VIN == vehicle.VIN && t.RemovedAt != null);
+            var latestEntry = ctx.KitTimelineEvents.FirstOrDefault(t => t.Kit.VIN == vehicle.VIN && t.RemovedAt == null);
 
             Assert.Equal(originalEntry.EventDate, originalDate);
             Assert.Equal(newDate, latestEntry.EventDate);
@@ -315,7 +315,7 @@ namespace SKD.Test {
 
             var eventDate = new DateTime(2020, 11, 30);
             var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
-            var dto = new VehicleLotTimelineEventInput {
+            var dto = new LotTimelineEventInput {
                 LotNo = vehicleLot.LotNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = eventDate,
@@ -329,8 +329,8 @@ namespace SKD.Test {
             var errorCount = payload.Errors.Count;
             Assert.Equal(0, errorCount);
 
-            var timelineEvents = ctx.KitTimelineEvents.Where(t => t.Vehicle.Lot.LotNo == dto.LotNo)
-                .Include(t => t.Vehicle)
+            var timelineEvents = ctx.KitTimelineEvents.Where(t => t.Kit.Lot.LotNo == dto.LotNo)
+                .Include(t => t.Kit)
                 .Include(t => t.EventType).ToList();
 
             var timelineEventCount = timelineEvents.Count();
@@ -349,7 +349,7 @@ namespace SKD.Test {
 
             var eventDate = new DateTime(2020, 11, 30);
             var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
-            var dto = new VehicleLotTimelineEventInput {
+            var dto = new LotTimelineEventInput {
                 LotNo = vehicleLot.LotNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = eventDate,

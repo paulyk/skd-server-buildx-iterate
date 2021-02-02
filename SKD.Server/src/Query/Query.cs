@@ -82,11 +82,11 @@ namespace SKD.Server {
         [UseSorting]
         public IQueryable<ComponentSerial> GetComponentSerails([Service] SkdContext context) =>
                 context.ComponentSerials
-                        .Include(t => t.VehicleComponent)
+                        .Include(t => t.KitComponent)
                                 .ThenInclude(t => t.Kit)
                                 .ThenInclude(t => t.Model)
-                        .Include(t => t.VehicleComponent).ThenInclude(t => t.Component)
-                        .Include(t => t.VehicleComponent).ThenInclude(t => t.ProductionStation)                        
+                        .Include(t => t.KitComponent).ThenInclude(t => t.Component)
+                        .Include(t => t.KitComponent).ThenInclude(t => t.ProductionStation)                        
                         .Include(t => t.DcwsResponses)
                         .AsQueryable();
 
@@ -96,7 +96,7 @@ namespace SKD.Server {
         [UseSorting]
         public IQueryable<DcwsResponse> GetDcwsResponses([Service] SkdContext context) =>
                 context.DCWSResponses
-                        .Include(t => t.ComponentSerial).ThenInclude(t => t.VehicleComponent)
+                        .Include(t => t.ComponentSerial).ThenInclude(t => t.KitComponent)
                         .AsQueryable();
 
         [UsePaging]
@@ -284,12 +284,12 @@ namespace SKD.Server {
 
         public async Task<ComponentSerial?> GetComponentScanById([Service] SkdContext context, Guid id) =>
                 await context.ComponentSerials.AsNoTracking()
-                        .Include(t => t.VehicleComponent).ThenInclude(t => t.Kit)
+                        .Include(t => t.KitComponent).ThenInclude(t => t.Kit)
                         .FirstOrDefaultAsync(t => t.Id == id);
 
         public async Task<ComponentSerial?> GetExistingComponentScan([Service] SkdContext context, Guid vehicleComponentId) =>
                await context.ComponentSerials.AsNoTracking()
-                        .Include(t => t.VehicleComponent)
+                        .Include(t => t.KitComponent)
                         .FirstOrDefaultAsync(t => t.VehicleComponentId == vehicleComponentId && t.RemovedAt == null);
 
         [UsePaging]

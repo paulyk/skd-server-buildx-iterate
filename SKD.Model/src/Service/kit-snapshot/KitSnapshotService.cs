@@ -249,8 +249,8 @@ namespace SKD.Model {
             }
 
             var componentScan = await context.ComponentSerials
-                .Where(t => t.VehicleComponent.Kit.KitNo == vehicle.KitNo)
-                .Where(t => t.VehicleComponent.Component.Code == engineComponentCode)
+                .Where(t => t.KitComponent.Kit.KitNo == vehicle.KitNo)
+                .Where(t => t.KitComponent.Component.Code == engineComponentCode)
                 .Where(t => t.VerifiedAt != null && t.RemovedAt == null)
                 .FirstOrDefaultAsync();
 

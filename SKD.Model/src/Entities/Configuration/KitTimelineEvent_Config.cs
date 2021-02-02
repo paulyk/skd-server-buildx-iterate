@@ -13,7 +13,7 @@ namespace SKD.Model {
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
             builder.Property(t => t.EventNote).HasMaxLength(EntityFieldLen.Event_Note);
 
-            builder.HasOne(t => t.Vehicle)
+            builder.HasOne(t => t.Kit)
                 .WithMany(t => t.TimelineEvents)
                 .HasForeignKey(t => t.VehicleId);
         }

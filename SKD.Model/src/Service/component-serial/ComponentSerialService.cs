@@ -47,12 +47,12 @@ namespace SKD.Model {
                 .Where(t => t.Id == componentSerial.Id)
                 .Select(t => new ComponentSerialDTO {
                     ComponentSerialId = t.Id,
-                    VIN = t.VehicleComponent.Kit.VIN,
-                    LotNo = t.VehicleComponent.Kit.Lot.LotNo,
-                    ComponentCode = t.VehicleComponent.Component.Code,
-                    ComponentName = t.VehicleComponent.Component.Name,
-                    ProductionStationCode = t.VehicleComponent.ProductionStation.Code,
-                    ProductionStationName = t.VehicleComponent.ProductionStation.Name,
+                    VIN = t.KitComponent.Kit.VIN,
+                    LotNo = t.KitComponent.Kit.Lot.LotNo,
+                    ComponentCode = t.KitComponent.Component.Code,
+                    ComponentName = t.KitComponent.Component.Name,
+                    ProductionStationCode = t.KitComponent.ProductionStation.Code,
+                    ProductionStationName = t.KitComponent.ProductionStation.Name,
                     Serial1 = t.Serial1,
                     Serial2 = t.Serial2,
                     VerifiedAt = t.VerifiedAt,
@@ -92,35 +92,35 @@ namespace SKD.Model {
 
             // component serial entry for this vehicle component 
             var componentSerialForVehicleComponent = await context.ComponentSerials
-                .Include(t => t.VehicleComponent).ThenInclude(t => t.Kit)
-                .Include(t => t.VehicleComponent).ThenInclude(t => t.Component)
-                .Include(t => t.VehicleComponent).ThenInclude(t => t.ProductionStation)
-                .Where(t => t.VehicleComponent.Id == input.VehicleComponentId)
+                .Include(t => t.KitComponent).ThenInclude(t => t.Kit)
+                .Include(t => t.KitComponent).ThenInclude(t => t.Component)
+                .Include(t => t.KitComponent).ThenInclude(t => t.ProductionStation)
+                .Where(t => t.KitComponent.Id == input.VehicleComponentId)
                 .Where(t => t.RemovedAt == null)
                 .FirstOrDefaultAsync();
 
             if (componentSerialForVehicleComponent != null && !input.Replace) {
-                var vin = componentSerialForVehicleComponent.VehicleComponent.Kit.VIN;
-                var stationCode = componentSerialForVehicleComponent.VehicleComponent.ProductionStation.Code;
-                var componentCode = componentSerialForVehicleComponent.VehicleComponent.Component.Code;
+                var vin = componentSerialForVehicleComponent.KitComponent.Kit.VIN;
+                var stationCode = componentSerialForVehicleComponent.KitComponent.ProductionStation.Code;
+                var componentCode = componentSerialForVehicleComponent.KitComponent.Component.Code;
                 errors.Add(new Error("", $"component serial already captured for this component: {vin}-{stationCode}-{componentCode}"));
                 return errors;
             }
 
             // serial no already in use by different vehicle component
             var componentSerials_with_same_serialNo = await context.ComponentSerials
-                .Include(t => t.VehicleComponent).ThenInclude(t => t.Component)
+                .Include(t => t.KitComponent).ThenInclude(t => t.Component)
                 .Where(t => t.RemovedAt == null)
                 // different component
-                .Where(t => t.VehicleComponent.Id != targetVehicleCmponent.Id)
+                .Where(t => t.KitComponent.Id != targetVehicleCmponent.Id)
                 // exclude if same vehicle and same component code   
                 // ....... Engine component code will be scanned muliple times)
                 .Where(t => !(
                     // same vehicle
-                    t.VehicleComponent.KitId == targetVehicleCmponent.KitId
+                    t.KitComponent.KitId == targetVehicleCmponent.KitId
                     &&
                     // same component
-                    t.VehicleComponent.ComponentId == targetVehicleCmponent.ComponentId
+                    t.KitComponent.ComponentId == targetVehicleCmponent.ComponentId
                     )
                 )
                 // user could point scan serial 2 before serial 1, so we check for both

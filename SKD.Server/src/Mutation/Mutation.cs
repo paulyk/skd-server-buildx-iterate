@@ -38,7 +38,7 @@ namespace SKD.Server {
 
         public async Task<MutationPayload<Lot>> CreateVehicleLotTimelineEvent(
             [Service] KitService service,
-            VehicleLotTimelineEventInput input
+            LotTimelineEventInput input
         ) {
             return await service.CreateLotTimelineEvent(input);
         }
@@ -137,16 +137,16 @@ namespace SKD.Server {
             Guid vehicleComponentId
         )  {
             var componentSerial = await context.ComponentSerials
-                .Include(t => t.VehicleComponent).ThenInclude(t => t.Kit)
-                .Include(t => t.VehicleComponent).ThenInclude(t => t.Component)
+                .Include(t => t.KitComponent).ThenInclude(t => t.Kit)
+                .Include(t => t.KitComponent).ThenInclude(t => t.Component)
                 .OrderByDescending(t => t.CreatedAt)
                 .Where(t => t.VehicleComponentId == vehicleComponentId)
                 .Where(t => t.RemovedAt == null)
                 .FirstOrDefaultAsync();
             
             var input = new SubmitDcwsComponentInput {
-                VIN = componentSerial.VehicleComponent.Kit.VIN,
-                ComponentTypeCode = componentSerial.VehicleComponent.Component.Code,
+                VIN = componentSerial.KitComponent.Kit.VIN,
+                ComponentTypeCode = componentSerial.KitComponent.Component.Code,
                 Serial1 = componentSerial.Serial1,
                 Serial2 = componentSerial.Serial2
             };

@@ -30,7 +30,7 @@ namespace SKD.Model {
                 .HasForeignKey(t => t.KitId);
 
             builder.HasMany(t => t.TimelineEvents)
-                .WithOne(t => t.Vehicle)
+                .WithOne(t => t.Kit)
                 .HasForeignKey(t => t.VehicleId);
 
             builder.HasMany(t => t.Snapshots)

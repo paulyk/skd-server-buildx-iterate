@@ -23,7 +23,7 @@ namespace SKD.Model {
                 .HasForeignKey(t => t.KitId);
 
             builder.HasMany(t => t.ComponentSerials)
-                .WithOne(t => t.VehicleComponent)
+                .WithOne(t => t.KitComponent)
                 .HasForeignKey(t => t.VehicleComponentId);
 
         }
