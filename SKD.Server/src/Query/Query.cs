@@ -29,12 +29,12 @@ namespace SKD.Server {
         public IQueryable<Part> GetParts([Service] SkdContext context) =>
              context.Parts.AsNoTracking().AsQueryable();
 
-    [UsePaging]
+        [UsePaging]
         [UseSelection]
         [UseFiltering]
         [UseSorting]
         public IQueryable<Plant> GetPlants([Service] SkdContext context) =>
-             context.Plants.AsNoTracking().AsQueryable();             
+                 context.Plants.AsNoTracking().AsQueryable();
 
         [UsePaging]
         [UseSelection]
@@ -43,7 +43,7 @@ namespace SKD.Server {
         public IQueryable<Kit> GetVehicles(
             [Service] SkdContext context,
             string plantCode
-        ) =>    context.Kits.Where(t => t.Lot.Plant.Code == plantCode).AsQueryable();
+        ) => context.Kits.Where(t => t.Lot.Plant.Code == plantCode).AsQueryable();
 
         [UsePaging]
         [UseSelection]
@@ -86,7 +86,7 @@ namespace SKD.Server {
                                 .ThenInclude(t => t.Kit)
                                 .ThenInclude(t => t.Model)
                         .Include(t => t.KitComponent).ThenInclude(t => t.Component)
-                        .Include(t => t.KitComponent).ThenInclude(t => t.ProductionStation)                        
+                        .Include(t => t.KitComponent).ThenInclude(t => t.ProductionStation)
                         .Include(t => t.DcwsResponses)
                         .AsQueryable();
 
@@ -206,13 +206,17 @@ namespace SKD.Server {
                 return (LotOverviewDTO?)null;
             }
 
-            var vehicle = vehicleLot.Kits.First();
+            var vehicle = vehicleLot.Kits.FirstOrDefault();
             var timelineEvents = vehicleLot.Kits.SelectMany(t => t.TimelineEvents);
 
-            var customReceivedEvent = vehicle.TimelineEvents
-                .OrderByDescending(t => t.CreatedAt)
-                .Where(t => t.RemovedAt == null)
-                .FirstOrDefault(t => t.EventType.Code == TimeLineEventType.CUSTOM_RECEIVED.ToString());
+
+            KitTimelineEvent? customReceivedEvent = null;
+            if (vehicle != null) {
+                customReceivedEvent = vehicle.TimelineEvents
+                    .OrderByDescending(t => t.CreatedAt)
+                    .Where(t => t.RemovedAt == null)
+                    .FirstOrDefault(t => t.EventType.Code == TimeLineEventType.CUSTOM_RECEIVED.ToString());
+            }
 
             return new LotOverviewDTO {
                 Id = vehicleLot.Id,
@@ -220,16 +224,18 @@ namespace SKD.Server {
                 BomId = vehicleLot.Bom.Id,
                 BomSequenceNo = vehicleLot.Bom.Sequence,
                 PlantCode = vehicleLot.Plant.Code,
-                ModelCode = vehicle.Model.Code,
-                ModelName = vehicle.Model.Name,
+                ModelCode = vehicle != null ? vehicle.Model.Code : "",
+                ModelName = vehicle != null ?  vehicle.Model.Name : "",
                 CreatedAt = vehicleLot.CreatedAt,
-                CustomReceived = new TimelineEventDTO {
-                    EventType = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
-                    EventDate = customReceivedEvent != null ? customReceivedEvent.EventDate : (DateTime?)null,
-                    EventNote = customReceivedEvent != null ? customReceivedEvent.EventNote : null,
-                    CreatedAt = customReceivedEvent != null ? customReceivedEvent.CreatedAt : (DateTime?)null,
-                    RemovedAt = customReceivedEvent != null ? customReceivedEvent.RemovedAt : (DateTime?)null
-                }
+                CustomReceived = customReceivedEvent != null 
+                    ? new TimelineEventDTO {
+                        EventType = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
+                        EventDate = customReceivedEvent != null ? customReceivedEvent.EventDate : (DateTime?)null,
+                        EventNote = customReceivedEvent != null ? customReceivedEvent.EventNote : null,
+                        CreatedAt = customReceivedEvent != null ? customReceivedEvent.CreatedAt : (DateTime?)null,
+                        RemovedAt = customReceivedEvent != null ? customReceivedEvent.RemovedAt : (DateTime?)null                
+                    }
+                    : null
             };
         }
 
@@ -300,7 +306,7 @@ namespace SKD.Server {
                     .Select(t => new BomListDTO {
                         Id = t.Id,
                         PlantCode = t.Plant.Code,
-                        Sequence = t.Sequence,                        
+                        Sequence = t.Sequence,
                         PartCount = t.Lots.SelectMany(t => t.LotParts).Select(t => t.Part).Distinct().Count(),
                         LotNumbers = t.Lots.Select(t => t.LotNo),
                         CreatedAt = t.CreatedAt
@@ -392,6 +398,6 @@ namespace SKD.Server {
         public async Task<string> GetDcwsServiceVersion(
             [Service] DcwsService service
         ) => await service.GetServiceVersion();
-        
+
     }
 }
