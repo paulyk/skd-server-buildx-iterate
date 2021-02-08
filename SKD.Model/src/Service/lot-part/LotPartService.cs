@@ -137,9 +137,8 @@ namespace SKD.Model {
         }
 
         public async Task<List<LotPartDTO>> GetRecentLotPartsReceived(int count) {
-            return await context.LotPartsReceived
+            var result =  await context.LotPartsReceived
                 .OrderByDescending(t => t.CreatedAt)
-                .Where(t => t.RemovedAt == null)
                 .Select(t =>  new LotPartDTO {
                     LotNo = t.LotPart.Lot.LotNo,
                     PartNo = t.LotPart.Part.PartNo,
@@ -148,8 +147,11 @@ namespace SKD.Model {
                     ShipmentQuantity = t.LotPart.ShipmentQuantity,
                     ReceivedQuantity = t.Quantity,
                     ImportDate = t.LotPart.CreatedAt,
+                    RemovedDate = t.RemovedAt,
                     ReceivedDate = t.CreatedAt
                 }).ToListAsync();
+
+            return result;
         }
 
     }

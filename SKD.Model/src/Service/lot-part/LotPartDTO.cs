@@ -9,6 +9,7 @@ namespace SKD.Model {
         public int ShipmentQuantity { get; set; }
         public int ReceivedQuantity { get; set; }
         public DateTime ImportDate { get; set; }
+        public DateTime? RemovedDate { get; set; }
         public DateTime? ReceivedDate {get; set; }
     }
 }
