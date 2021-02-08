@@ -14,9 +14,11 @@ namespace SKD.Model {
     public class KitService {
 
         private readonly SkdContext context;
+        private readonly DateTime currentDate;
 
-        public KitService(SkdContext ctx) {
+        public KitService(SkdContext ctx, DateTime currentDate) {
             this.context = ctx;
+            this.currentDate = currentDate;
         }
 
         public async Task<MutationPayload<Lot>> AssingKitVin(AssignKitVinInput input) {
@@ -194,7 +196,7 @@ namespace SKD.Model {
 
             return errors;
         }
-        
+
         public async Task<List<Error>> ValidateCreateVehicleTimelineEvent(KitTimelineEventInput input) {
             var errors = new List<Error>();
 
@@ -226,19 +228,27 @@ namespace SKD.Model {
             var currentTimelineEventType = await context.VehicleTimelineEventTypes
                 .FirstOrDefaultAsync(t => t.Code == input.EventType.ToString());
 
-            var missingTimlineSequences =  Enumerable.Range(1, currentTimelineEventType.Sequecne - 1)
+            var missingTimlineSequences = Enumerable.Range(1, currentTimelineEventType.Sequecne - 1)
                 .Where(seq => !vehicle.TimelineEvents
                 .Any(t => t.EventType.Sequecne == seq)).ToList();
 
-            
+
             if (missingTimlineSequences.Count > 0) {
                 var mssingTimelineEventCodes = await context.VehicleTimelineEventTypes
-                    .Where(t => missingTimlineSequences.Any(missingSeq => t.Sequecne == missingSeq ))
+                    .Where(t => missingTimlineSequences.Any(missingSeq => t.Sequecne == missingSeq))
                     .Select(t => t.Code).ToListAsync();
-                    
-                var text = mssingTimelineEventCodes.Aggregate((a,b) => a +", " + b);
+
+                var text = mssingTimelineEventCodes.Aggregate((a, b) => a + ", " + b);
                 errors.Add(new Error("", $"prior timeline events mssing {text}"));
                 return errors;
+            }
+
+            // CUSTOM_RECEIVED 
+            if (input.EventType == TimeLineEventType.CUSTOM_RECEIVED) {
+                if (currentDate <= input.EventDate) {
+                    errors.Add(new Error("VIN", $"custom received date must be before current date"));
+                    return errors;
+                }
             }
 
             return errors;
@@ -269,6 +279,14 @@ namespace SKD.Model {
                 var dateStr = input.EventDate.ToShortDateString();
                 errors.Add(new Error("VIN", $"duplicate vehicle timeline event: {input.LotNo}, Type: {input.EventType.ToString()} Date: {dateStr} "));
                 return errors;
+            }
+
+            // CUSTOM_RECEIVED 
+            if (input.EventType == TimeLineEventType.CUSTOM_RECEIVED) {
+                if (input.EventDate >= currentDate) {
+                    errors.Add(new Error("VIN", $"custom received date must be before current date"));
+                    return errors;
+                }
             }
 
             return errors;

@@ -33,7 +33,7 @@ namespace SKD.Test {
             var with_vin_count = vehicles.Count(t => t.VIN != "");
             Assert.Equal(0, with_vin_count);
 
-            var service = new KitService(ctx);
+            var service = new KitService(ctx, DateTime.Now);
             var payload = await service.AssingKitVin(input);
 
             // assert
@@ -56,7 +56,7 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new KitService(ctx);
+            var service = new KitService(ctx, DateTime.Now);
             var payload_2 = await service.AssingKitVin(kitVinDto);
             var payload_3 = await service.AssingKitVin(kitVinDto);
 
@@ -79,7 +79,7 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new KitService(ctx);
+            var service = new KitService(ctx, DateTime.Now);
             var payload = await service.AssingKitVin(kitVinDto);
 
             // assert
@@ -111,7 +111,7 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new KitService(ctx);
+            var service = new KitService(ctx, DateTime.Now);
             var payload_2 = await service.AssingKitVin(kitVinDto);
 
             // assert
@@ -135,7 +135,7 @@ namespace SKD.Test {
             // test
             var vehicle = ctx.Kits.First();
 
-            var service = new KitService(ctx);
+            var service = new KitService(ctx, DateTime.Now);
             var payloads = new List<MutationPayload<KitTimelineEvent>>();
 
             var before_count = ctx.KitTimelineEvents.Count();
@@ -167,7 +167,7 @@ namespace SKD.Test {
 
             // test
             var vehicle = ctx.Kits.First();
-            var service = new KitService(ctx);
+            var service = new KitService(ctx, DateTime.Now);
             var payloads = new List<MutationPayload<KitTimelineEvent>>();
 
             var before_count = ctx.KitTimelineEvents.Count();
@@ -206,7 +206,7 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new KitService(ctx);
+            var service = new KitService(ctx, DateTime.Now);
             var payloads = new List<MutationPayload<KitTimelineEvent>>();
 
             foreach (var entry in timelineEventItems) {
@@ -250,7 +250,7 @@ namespace SKD.Test {
                 EventDate = newDate
             };
 
-            var service = new KitService(ctx);
+            var service = new KitService(ctx, DateTime.Now);
             // test
             await service.CreateKitTimelineEvent(dto);
             await service.CreateKitTimelineEvent(dto2);
@@ -291,7 +291,7 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new KitService(ctx);
+            var service = new KitService(ctx, DateTime.Now);
             await service.CreateKitTimelineEvent(dto);
             await service.CreateKitTimelineEvent(dto2);
             var payload = await service.CreateKitTimelineEvent(dto2);
@@ -323,7 +323,7 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new KitService(ctx);
+            var service = new KitService(ctx, DateTime.Now);
             var payload = await service.CreateLotTimelineEvent(dto);
 
             var errorCount = payload.Errors.Count;
@@ -357,7 +357,7 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new KitService(ctx);
+            var service = new KitService(ctx, DateTime.Now);
             var payload = await service.CreateLotTimelineEvent(dto);
 
             var errorCount = payload.Errors.Count;

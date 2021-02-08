@@ -379,7 +379,7 @@ namespace SKD.Test {
             });
         }
         private async Task AddVehicleTimelineEntry(TimeLineEventType eventType, string kitNo, string eventNote, DateTime eventDate) {
-            var service = new KitService(ctx);
+            var service = new KitService(ctx, DateTime.Now);
             var payload = await service.CreateKitTimelineEvent(new KitTimelineEventInput {
                 KitNo = kitNo,
                 EventType = eventType,

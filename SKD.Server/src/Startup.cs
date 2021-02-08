@@ -45,7 +45,8 @@ namespace SKD.Server {
 
             services
                 .AddTransient<SearchService>()
-                .AddTransient<KitService>()
+                .AddTransient<KitService>(sp => 
+                    new KitService(sp.GetRequiredService<SkdContext>(), DateTime.Now))
                 .AddTransient<KitSnapshotService>()
                 .AddTransient<VehicleModelService>()
                 .AddTransient<ComponentService>()
@@ -58,7 +59,7 @@ namespace SKD.Server {
                 .AddTransient<LotPartService>()
                 .AddTransient<QueryService>()
                 .AddSingleton<DcwsService>(sp => new DcwsService(Configuration["DcwsServiceAddress"]));
-                
+
 
             services.AddGraphQL(sp => SchemaBuilder.New()
                 .AddServices(sp)
