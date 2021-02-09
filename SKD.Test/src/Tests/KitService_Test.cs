@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 namespace SKD.Test {
     public class KitServiceTest : TestBase {
 
+
+        int planBuildLeadTimeDays = 2;
         public KitServiceTest() {
             ctx = GetAppDbContext();
             Gen_Baseline_Test_Seed_Data();
@@ -33,7 +35,7 @@ namespace SKD.Test {
             var with_vin_count = vehicles.Count(t => t.VIN != "");
             Assert.Equal(0, with_vin_count);
 
-            var service = new KitService(ctx, DateTime.Now);
+            var service = new KitService(ctx, DateTime.Now, planBuildLeadTimeDays);
             var payload = await service.AssingKitVin(input);
 
             // assert
@@ -56,7 +58,7 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new KitService(ctx, DateTime.Now);
+            var service = new KitService(ctx, DateTime.Now, planBuildLeadTimeDays);
             var payload_2 = await service.AssingKitVin(kitVinDto);
             var payload_3 = await service.AssingKitVin(kitVinDto);
 
@@ -79,7 +81,7 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new KitService(ctx, DateTime.Now);
+            var service = new KitService(ctx, DateTime.Now, planBuildLeadTimeDays);
             var payload = await service.AssingKitVin(kitVinDto);
 
             // assert
@@ -111,7 +113,7 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new KitService(ctx, DateTime.Now);
+            var service = new KitService(ctx, DateTime.Now, planBuildLeadTimeDays);
             var payload_2 = await service.AssingKitVin(kitVinDto);
 
             // assert
@@ -133,9 +135,9 @@ namespace SKD.Test {
             };
 
             // test
-            var vehicle = ctx.Kits.First();
+            var kit = ctx.Kits.First();
 
-            var service = new KitService(ctx, DateTime.Now);
+            var service = new KitService(ctx, DateTime.Now, planBuildLeadTimeDays);
             var payloads = new List<MutationPayload<KitTimelineEvent>>();
 
             var before_count = ctx.KitTimelineEvents.Count();
@@ -143,7 +145,7 @@ namespace SKD.Test {
 
             foreach (var entry in timelineEvents) {
                 var dto = new KitTimelineEventInput {
-                    KitNo = vehicle.KitNo,
+                    KitNo = kit.KitNo,
                     EventType = Enum.Parse<TimeLineEventType>(entry.eventTypeCode),
                     EventDate = entry.eventDate,
                 };
@@ -161,19 +163,19 @@ namespace SKD.Test {
         public async Task error_if_custom_receive_date_greater_than_current_date() {
 
             // test
-            var vehicle = ctx.Kits.First();
+            var kit = ctx.Kits.First();
 
             var currentDate = DateTime.Now.Date;
-            var service = new KitService(ctx, currentDate);
+            var service = new KitService(ctx, currentDate, planBuildLeadTimeDays);
 
             var input_1 = new KitTimelineEventInput {
-                KitNo = vehicle.KitNo,
+                KitNo = kit.KitNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = currentDate
             };
 
             var input_2 = new KitTimelineEventInput {
-                KitNo = vehicle.KitNo,
+                KitNo = kit.KitNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = currentDate.AddDays(-1)
             };
@@ -194,19 +196,17 @@ namespace SKD.Test {
 
         [Fact]
         public async Task cannot_create_kit_timeline_events_out_of_sequence() {
-            var currentDate = DateTime.Now.Date;
-            var timelineEvents = new List<(string eventTypeCode, DateTime eventDate)>() {
-                (TimeLineEventType.CUSTOM_RECEIVED.ToString(), currentDate.AddDays(-6)),
-                (TimeLineEventType.BULD_COMPLETED.ToString(), currentDate.AddDays(-4)),
+            // setup
+            var baseDate = DateTime.Now.Date;
+            var timelineEvents = new List<(string eventTypeCode, DateTime trxDate, DateTime eventDate)>() {
+                (TimeLineEventType.CUSTOM_RECEIVED.ToString(), baseDate.AddDays(7),  baseDate.AddDays(6)),
+                (TimeLineEventType.BULD_COMPLETED.ToString(), baseDate.AddDays(2), baseDate.AddDays(2)),
             };
 
             // test
             var kit = ctx.Kits.First();
-            var service = new KitService(ctx, currentDate);
+            KitService service = null;
             var payloads = new List<MutationPayload<KitTimelineEvent>>();
-
-            var before_count = ctx.KitTimelineEvents.Count();
-
 
             foreach (var entry in timelineEvents) {
                 var dto = new KitTimelineEventInput {
@@ -214,6 +214,7 @@ namespace SKD.Test {
                     EventType = Enum.Parse<TimeLineEventType>(entry.eventTypeCode),
                     EventDate = entry.eventDate,
                 };
+                service = new KitService(ctx, entry.trxDate, planBuildLeadTimeDays); 
                 var payload = await service.CreateKitTimelineEvent(dto);
                 payloads.Add(payload);
             }
@@ -221,7 +222,7 @@ namespace SKD.Test {
             var lastPayload = payloads[1];
 
             // assert
-            var expectedMessage = "prior timeline events mssing PLAN_BUILD";
+            var expectedMessage = "prior timeline event(s) mssing PLAN_BUILD";
             var actualMessage = lastPayload.Errors.Select(t => t.Message).FirstOrDefault();
             Assert.Equal(expectedMessage, actualMessage);
         }
@@ -229,28 +230,31 @@ namespace SKD.Test {
         [Fact]
         public async Task create_kit_timeline_event_with_note() {
             // setup
-            var vehicle = ctx.Kits.First();
+            var kit = ctx.Kits.First();
             var eventNote = "DLR_9977";
 
-            var timelineEventItems = new List<(string eventTypeCode, DateTime eventDate, string eventNode)>() {
-                (TimeLineEventType.CUSTOM_RECEIVED.ToString(), new DateTime(2020, 11, 20), eventNote),
-                (TimeLineEventType.PLAN_BUILD.ToString(), new DateTime(2020, 11, 21), eventNote),
-                (TimeLineEventType.BULD_COMPLETED.ToString(), new DateTime(2020, 11, 22), eventNote),
-                (TimeLineEventType.GATE_RELEASED.ToString(), new DateTime(2020, 11, 23), eventNote),
-                (TimeLineEventType.WHOLE_SALE.ToString(), new DateTime(2020, 11, 24), eventNote),
+            var baseDate = DateTime.Now.Date;
+            var timelineEventItems = new List<(string eventTypeCode,DateTime trxDate, DateTime eventDate, string eventNode)>() {
+                (TimeLineEventType.CUSTOM_RECEIVED.ToString(), baseDate.AddDays(2), baseDate.AddDays(1) , eventNote),
+                (TimeLineEventType.PLAN_BUILD.ToString(), baseDate.AddDays(3), baseDate.AddDays(5), eventNote),
+                (TimeLineEventType.BULD_COMPLETED.ToString(), baseDate.AddDays(8), baseDate.AddDays(8), eventNote),
+                (TimeLineEventType.GATE_RELEASED.ToString(), baseDate.AddDays(10), baseDate.AddDays(10), eventNote),
+                (TimeLineEventType.WHOLE_SALE.ToString(), baseDate.AddDays(11), baseDate.AddDays(11), eventNote),
             };
 
             // test
-            var service = new KitService(ctx, DateTime.Now);
+            KitService service = null;
+            
             var payloads = new List<MutationPayload<KitTimelineEvent>>();
 
             foreach (var entry in timelineEventItems) {
                 var input = new KitTimelineEventInput {
-                    KitNo = vehicle.KitNo,
+                    KitNo = kit.KitNo,
                     EventType = Enum.Parse<TimeLineEventType>(entry.eventTypeCode),
                     EventDate = entry.eventDate,
                     EventNote = entry.eventNode
                 };
+                 service = new KitService(ctx,  entry.trxDate, planBuildLeadTimeDays);
                 var payload = await service.CreateKitTimelineEvent(input);
                 payloads.Add(payload);
             }
@@ -268,24 +272,24 @@ namespace SKD.Test {
         [Fact]
         public async Task create_kit_timline_event_removes_prior_events_of_the_same_type() {
             // setup
-            var vehicle = ctx.Kits.First();
+            var kit = ctx.Kits.First();
             var before_count = ctx.KitTimelineEvents.Count();
 
             var originalDate = new DateTime(2020, 11, 28);
             var newDate = new DateTime(2020, 11, 30);
 
             var dto = new KitTimelineEventInput {
-                KitNo = vehicle.KitNo,
+                KitNo = kit.KitNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = originalDate
             };
             var dto2 = new KitTimelineEventInput {
-                KitNo = vehicle.KitNo,
+                KitNo = kit.KitNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = newDate
             };
 
-            var service = new KitService(ctx, DateTime.Now);
+            var service = new KitService(ctx, DateTime.Now, planBuildLeadTimeDays);
             // test
             await service.CreateKitTimelineEvent(dto);
             await service.CreateKitTimelineEvent(dto2);
@@ -296,8 +300,8 @@ namespace SKD.Test {
             Assert.Equal(0, before_count);
             Assert.Equal(2, after_count);
 
-            var originalEntry = ctx.KitTimelineEvents.FirstOrDefault(t => t.Kit.VIN == vehicle.VIN && t.RemovedAt != null);
-            var latestEntry = ctx.KitTimelineEvents.FirstOrDefault(t => t.Kit.VIN == vehicle.VIN && t.RemovedAt == null);
+            var originalEntry = ctx.KitTimelineEvents.FirstOrDefault(t => t.Kit.VIN == kit.VIN && t.RemovedAt != null);
+            var latestEntry = ctx.KitTimelineEvents.FirstOrDefault(t => t.Kit.VIN == kit.VIN && t.RemovedAt == null);
 
             Assert.Equal(originalEntry.EventDate, originalDate);
             Assert.Equal(newDate, latestEntry.EventDate);
@@ -306,27 +310,27 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_add_duplicate_kit_timline_event_if_same_type_and_date_and_note() {
             // setup
-            var vehicle = ctx.Kits.First();
+            var kit = ctx.Kits.First();
 
             var originalDate = new DateTime(2020, 11, 28);
             var newDate = new DateTime(2020, 11, 30);
             var eventNote = "EN 78889";
 
             var dto = new KitTimelineEventInput {
-                KitNo = vehicle.KitNo,
+                KitNo = kit.KitNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = originalDate,
                 EventNote = eventNote
             };
             var dto2 = new KitTimelineEventInput {
-                KitNo = vehicle.KitNo,
+                KitNo = kit.KitNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = newDate,
                 EventNote = eventNote
             };
 
             // test
-            var service = new KitService(ctx, DateTime.Now);
+            var service = new KitService(ctx, DateTime.Now, planBuildLeadTimeDays);
             await service.CreateKitTimelineEvent(dto);
             await service.CreateKitTimelineEvent(dto2);
             var payload = await service.CreateKitTimelineEvent(dto2);
@@ -335,7 +339,7 @@ namespace SKD.Test {
             var after_count = ctx.KitTimelineEvents.Count();
             Assert.Equal(2, after_count);
             var errorsMessage = payload.Errors.Select(t => t.Message).First();
-            var expectedMessage = "duplicate vehicle timeline event";
+            var expectedMessage = "duplicate kit timeline event";
 
             Assert.Equal(expectedMessage, errorsMessage.Substring(0, expectedMessage.Length));
         }
@@ -358,7 +362,7 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new KitService(ctx, DateTime.Now);
+            var service = new KitService(ctx, DateTime.Now, planBuildLeadTimeDays);
             var payload = await service.CreateLotTimelineEvent(dto);
 
             var errorCount = payload.Errors.Count;
@@ -382,31 +386,32 @@ namespace SKD.Test {
             // setup
             var vehicleLot = ctx.Lots.First();
 
-            var eventDate = new DateTime(2020, 11, 30);
+            var baseDate = DateTime.Now.Date;
+            var event_date = baseDate.AddDays(1);
+            var event_date_trx = baseDate.AddDays(2);
             var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
-            var dto = new LotTimelineEventInput {
+            var input = new LotTimelineEventInput {
                 LotNo = vehicleLot.LotNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
-                EventDate = eventDate,
+                EventDate = event_date,
                 EventNote = eventNote
             };
 
             // test
-            var service = new KitService(ctx, DateTime.Now);
-            var payload = await service.CreateLotTimelineEvent(dto);
+            var service = new KitService(ctx, event_date_trx, planBuildLeadTimeDays);
+            var payload = await service.CreateLotTimelineEvent(input);
 
             var errorCount = payload.Errors.Count;
             Assert.Equal(0, errorCount);
 
-            var payload_2 = await service.CreateLotTimelineEvent(dto);
+            var payload_2 = await service.CreateLotTimelineEvent(input);
             var errorCount_2 = payload_2.Errors.Count();
             Assert.Equal(1, errorCount_2);
 
             var errorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
-            var expectedMessage = "duplicate vehicle timeline event";
-            Assert.Equal(expectedMessage, errorMessage.Substring(0, expectedMessage.Length));
+            var expectedMessage = "duplicate kit timeline event";
+            var actualMessage = errorMessage.Substring(0, expectedMessage.Length);
+            Assert.Equal(expectedMessage, actualMessage);
         }
-
-
     }
 }

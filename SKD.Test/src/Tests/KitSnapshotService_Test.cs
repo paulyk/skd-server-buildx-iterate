@@ -11,6 +11,7 @@ namespace SKD.Test {
 
         string engineCode = "EN";
         int wholeSateCutOffDays = 7;
+        int planBuildLeadTimeDays = 2;
 
         public KitSnapshotServiceTest() {
             ctx = GetAppDbContext();
@@ -452,7 +453,7 @@ namespace SKD.Test {
             DateTime trxDate,
             DateTime eventDate
         ) {
-            var service = new KitService(ctx, trxDate);
+            var service = new KitService(ctx, trxDate, planBuildLeadTimeDays);
             var payload = await service.CreateKitTimelineEvent(new KitTimelineEventInput {
                 KitNo = kitNo,
                 EventType = eventType,

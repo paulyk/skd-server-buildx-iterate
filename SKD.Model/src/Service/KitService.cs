@@ -15,10 +15,12 @@ namespace SKD.Model {
 
         private readonly SkdContext context;
         private readonly DateTime currentDate;
+        public readonly int planBuildLeadTimeDays = 6;
 
-        public KitService(SkdContext ctx, DateTime currentDate) {
+        public KitService(SkdContext ctx, DateTime currentDate, int planBuildLeadTimeDays) {
             this.context = ctx;
             this.currentDate = currentDate;
+            this.planBuildLeadTimeDays = planBuildLeadTimeDays;
         }
 
         public async Task<MutationPayload<Lot>> AssingKitVin(AssignKitVinInput input) {
@@ -201,16 +203,16 @@ namespace SKD.Model {
             var errors = new List<Error>();
 
             // kitNo
-            var vehicle = await context.Kits.AsNoTracking()
+            var kit = await context.Kits.AsNoTracking()
                 .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .FirstOrDefaultAsync(t => t.KitNo == input.KitNo);
-            if (vehicle == null) {
-                errors.Add(new Error("KitNo", $"vehicle not found for kitNo: {input.KitNo}"));
+            if (kit == null) {
+                errors.Add(new Error("KitNo", $"kit not found for kitNo: {input.KitNo}"));
                 return errors;
             }
 
-            // duplicate vehicle timeline event
-            var duplicate = vehicle.TimelineEvents
+            // duplicate kit timeline event
+            var duplicate = kit.TimelineEvents
                 .OrderByDescending(t => t.CreatedAt)
                 .Where(t => t.RemovedAt == null)
                 .Where(t => t.EventType.Code == input.EventType.ToString())
@@ -220,7 +222,7 @@ namespace SKD.Model {
 
             if (duplicate != null) {
                 var dateStr = input.EventDate.ToShortDateString();
-                errors.Add(new Error("VIN", $"duplicate vehicle timeline event: {input.EventType.ToString()} {dateStr} "));
+                errors.Add(new Error("", $"duplicate kit timeline event: {input.EventType.ToString()} {dateStr} "));
                 return errors;
             }
 
@@ -229,7 +231,7 @@ namespace SKD.Model {
                 .FirstOrDefaultAsync(t => t.Code == input.EventType.ToString());
 
             var missingTimlineSequences = Enumerable.Range(1, currentTimelineEventType.Sequecne - 1)
-                .Where(seq => !vehicle.TimelineEvents
+                .Where(seq => !kit.TimelineEvents
                 .Any(t => t.EventType.Sequecne == seq)).ToList();
 
 
@@ -239,14 +241,30 @@ namespace SKD.Model {
                     .Select(t => t.Code).ToListAsync();
 
                 var text = mssingTimelineEventCodes.Aggregate((a, b) => a + ", " + b);
-                errors.Add(new Error("", $"prior timeline events mssing {text}"));
+                errors.Add(new Error("", $"prior timeline event(s) mssing {text}"));
                 return errors;
             }
 
             // CUSTOM_RECEIVED 
             if (input.EventType == TimeLineEventType.CUSTOM_RECEIVED) {
                 if (currentDate <= input.EventDate) {
-                    errors.Add(new Error("VIN", $"custom received date must be before current date"));
+                    errors.Add(new Error("", $"custom received date must be before current date"));
+                    return errors;
+                }
+            }
+
+            // PLAN_BUILD 
+            if (input.EventType == TimeLineEventType.PLAN_BUILD) {
+                var custom_receive_date = kit.TimelineEvents
+                    .Where(t => t.RemovedAt == null)
+                    .Where(t => t.EventType.Code == TimeLineEventType.CUSTOM_RECEIVED.ToString())
+                    .Select(t => t.EventDate).First();
+
+                var custom_receive_plus_lead_time_date = custom_receive_date.AddDays(planBuildLeadTimeDays);
+
+                var plan_build_date = input.EventDate;
+                if (plan_build_date <= custom_receive_plus_lead_time_date) {
+                    errors.Add(new Error("", $"plan build must greater custom receive by {planBuildLeadTimeDays} days"));
                     return errors;
                 }
             }
@@ -257,18 +275,18 @@ namespace SKD.Model {
         public async Task<List<Error>> ValidateCreateVehicleLotTimelineEvent(LotTimelineEventInput input) {
             var errors = new List<Error>();
 
-            var vehicleLot = await context.Lots.AsNoTracking()
+            var lot = await context.Lots.AsNoTracking()
                 .Include(t => t.Kits).ThenInclude(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .FirstOrDefaultAsync(t => t.LotNo == input.LotNo);
 
             // vehicle lot 
-            if (vehicleLot == null) {
-                errors.Add(new Error("VIN", $"vehicle lot not found for lotNo: {input.LotNo}"));
+            if (lot == null) {
+                errors.Add(new Error("VIN", $"lot not found for lotNo: {input.LotNo}"));
                 return errors;
             }
 
             // duplicate 
-            var duplicateTimelineEventsFound = vehicleLot.Kits.SelectMany(t => t.TimelineEvents)
+            var duplicateTimelineEventsFound = lot.Kits.SelectMany(t => t.TimelineEvents)
                 .OrderByDescending(t => t.CreatedAt)
                 .Where(t => t.RemovedAt == null)
                 .Where(t => t.EventType.Code == input.EventType.ToString())
@@ -277,7 +295,7 @@ namespace SKD.Model {
 
             if (duplicateTimelineEventsFound.Count > 0) {
                 var dateStr = input.EventDate.ToShortDateString();
-                errors.Add(new Error("VIN", $"duplicate vehicle timeline event: {input.LotNo}, Type: {input.EventType.ToString()} Date: {dateStr} "));
+                errors.Add(new Error("", $"duplicate kit timeline event: {input.LotNo}, Type: {input.EventType.ToString()} Date: {dateStr} "));
                 return errors;
             }
 

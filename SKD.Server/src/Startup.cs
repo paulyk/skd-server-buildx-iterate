@@ -28,6 +28,7 @@ namespace SKD.Server {
 
         public void ConfigureServices(IServiceCollection services) {
 
+            var planBuildLeadTimeDays = Int16.Parse(Configuration["planBuildLeadTimeDays"]);
 
             services.AddCors(options => {
                 options.AddDefaultPolicy(
@@ -46,7 +47,7 @@ namespace SKD.Server {
             services
                 .AddTransient<SearchService>()
                 .AddTransient<KitService>(sp => 
-                    new KitService(sp.GetRequiredService<SkdContext>(), DateTime.Now))
+                    new KitService(sp.GetRequiredService<SkdContext>(), DateTime.Now, planBuildLeadTimeDays))
                 .AddTransient<KitSnapshotService>()
                 .AddTransient<VehicleModelService>()
                 .AddTransient<ComponentService>()
