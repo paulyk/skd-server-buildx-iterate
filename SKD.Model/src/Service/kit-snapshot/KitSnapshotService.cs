@@ -12,6 +12,7 @@ namespace SKD.Model {
 
         private readonly SkdContext context;
 
+        private readonly int wholeSateCutOffDays = 7;
         public KitSnapshotService(SkdContext ctx) {
             this.context = ctx;
         }
@@ -186,7 +187,7 @@ namespace SKD.Model {
                 .AnyAsync(t => t.Plant.Code == input.PlantCode && t.RunDate.Date == input.RunDate.Date);
 
             if (alreadyGenerated) {
-                errors.Add(new Error("", $"already generated vehicle snapshot for plant {input.PlantCode},  date ${DateTime.UtcNow.Date}"));
+                errors.Add(new Error("", $"already generated kit snapshot for plant {input.PlantCode},  date ${DateTime.UtcNow.Date}"));
             }
 
             return errors;
@@ -217,7 +218,7 @@ namespace SKD.Model {
                     t.TimelineEvents.Any(ev =>
                         ev.RemovedAt == null &&
                         ev.EventType.Code == TimeLineEventType.WHOLE_SALE.ToString() &&
-                        ev.EventDate.AddDays(7) > input.RunDate
+                        ev.EventDate.AddDays(wholeSateCutOffDays) > input.RunDate
                     )
                 ).AsQueryable();
 
