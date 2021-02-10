@@ -28,7 +28,8 @@ namespace SKD.Server {
 
         public void ConfigureServices(IServiceCollection services) {
 
-            var planBuildLeadTimeDays = Int16.Parse(Configuration["planBuildLeadTimeDays"]);
+            int planBuildLeadTimeDays = 6; 
+            Int32.TryParse(Configuration[ConfigSettingKey.PlanBuildLeadTimeDays], out planBuildLeadTimeDays);
 
             services.AddCors(options => {
                 options.AddDefaultPolicy(
@@ -39,7 +40,7 @@ namespace SKD.Server {
             });
 
             services.AddDbContext<SkdContext>(options => {
-                var connectionString = Configuration.GetConnectionString("Default");
+                var connectionString = Configuration.GetConnectionString(ConfigSettingKey.DefaultConnectionString);
                 options.UseSqlServer(connectionString,
                 b => b.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery));
             }, ServiceLifetime.Transient);
@@ -59,7 +60,7 @@ namespace SKD.Server {
                 .AddTransient<PlantService>()
                 .AddTransient<LotPartService>()
                 .AddTransient<QueryService>()
-                .AddSingleton<DcwsService>(sp => new DcwsService(Configuration["DcwsServiceAddress"]));
+                .AddSingleton<DcwsService>(sp => new DcwsService(Configuration[ConfigSettingKey.DcwsServiceAddress]));
 
 
             services.AddGraphQL(sp => SchemaBuilder.New()

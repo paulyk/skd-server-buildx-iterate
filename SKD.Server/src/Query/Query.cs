@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using HotChocolate;
@@ -13,7 +14,22 @@ namespace SKD.Server {
 
     public class Query {
 
-        public string Info() => "RMA vehicle component scanning service";
+        IConfiguration Configuration { get; }
+
+        public Query(IConfiguration configuration) {
+            Configuration = configuration;
+        }
+
+        public ConfigettingDTO GetServerConfigSettings() {
+            var planBuldLead = 0;
+            Int32.TryParse(Configuration[ConfigSettingKey.PlanBuildLeadTimeDays], out planBuldLead);
+
+            return new ConfigettingDTO {
+                DcwsServiceAddress = Configuration[ConfigSettingKey.DcwsServiceAddress],
+                PlanBuildLeadTimeDays = planBuldLead
+            };
+        }
+        public string Info() => "RMA SDK Server";
 
         [UsePaging]
         [UseSelection]
