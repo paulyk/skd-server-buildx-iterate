@@ -64,6 +64,171 @@ namespace SKD.Test {
             Assert.Equal(expeced_parts_count, lot_parts_count);
         }
 
+        [Fact]
+        private async Task re_import_bom_lot_part_will_not_cause_error() {
+            // setup
+            var plant = Gen_Plant();
+            var lot1 = Gen_LotNo();
+            var lot2 = Gen_LotNo();
+
+            var input = new BomLotPartInput() {
+                Sequence = 1,
+                PlantCode = plant.Code,
+                LotParts = new List<BomLotPartInput.LotPart> {
+                    new BomLotPartInput.LotPart {
+                        LotNo = lot1,
+                        PartNo = "part_1",
+                        PartDesc = "part-1 desc",
+                        Quantity = 1
+                    },
+                    new BomLotPartInput.LotPart {
+                        LotNo = lot1,
+                        PartNo = "part_2",
+                        PartDesc = "part_2 desc",
+                        Quantity = 1
+                    },
+                    new BomLotPartInput.LotPart {
+                        LotNo = lot2,
+                        PartNo = "part_1",
+                        PartDesc = "part_1 desc",
+                        Quantity = 1
+                    }
+                }
+            };
+
+            // test
+            var service = new BomService(ctx);
+            var payload = await service.ImportBomLotParts(input);
+            var first_run_lot_part_count = await ctx.LotParts.CountAsync();
+
+            payload = await service.ImportBomLotParts(input);
+            var second_run_lot_part_count = await ctx.LotParts.CountAsync();
+
+            // assert
+            Assert.True(first_run_lot_part_count > 0);
+            Assert.Equal(first_run_lot_part_count, second_run_lot_part_count);
+
+            var error_count = payload.Errors.Count();
+            Assert.Equal(0, error_count);
+        }
+
+        [Fact]
+        private async Task import_bom_lot_part_will_update_bom_quantity_of_existing_lot_part() {
+            // setup
+            var plant = Gen_Plant();
+            var lot1 = Gen_LotNo();
+            var lot2 = Gen_LotNo();
+
+            var input_1 = new BomLotPartInput() {
+                Sequence = 1,
+                PlantCode = plant.Code,
+                LotParts = new List<BomLotPartInput.LotPart> {
+                    new BomLotPartInput.LotPart {
+                        LotNo = lot1,
+                        PartNo = "part_1",
+                        PartDesc = "part-1 desc",
+                        Quantity = 1
+                    },
+                    new BomLotPartInput.LotPart {
+                        LotNo = lot1,
+                        PartNo = "part_2",
+                        PartDesc = "part_2 desc",
+                        Quantity = 1
+                    },
+                    new BomLotPartInput.LotPart {
+                        LotNo = lot2,
+                        PartNo = "part_1",
+                        PartDesc = "part_1 desc",
+                        Quantity = 1
+                    }
+                }
+            };
+
+            var input_2 = input_1.DeepCopy();
+            var lotParToModify = input_2.LotParts.First(t => t.LotNo == lot1 && t.PartNo == "part_1");
+            lotParToModify.Quantity = 2;
+
+            // test
+            var service = new BomService(ctx);
+            var payload = await service.ImportBomLotParts(input_1);
+
+            // assert same as input
+            var expected_lot_part_count = input_1.LotParts.Count();
+            var actual_lot_parts_count = await ctx.LotParts.CountAsync();
+            Assert.Equal(expected_lot_part_count, actual_lot_parts_count);
+
+            var payload_2 = await service.ImportBomLotParts(input_2);
+            expected_lot_part_count = input_2.LotParts.Count() + 1;
+            actual_lot_parts_count = await ctx.LotParts.CountAsync();
+            Assert.Equal(expected_lot_part_count, actual_lot_parts_count);
+
+            var removed_count = await ctx.LotParts.CountAsync(t => t.RemovedAt != null);
+            Assert.Equal(1, removed_count);
+
+            var modifiedPart = await ctx.LotParts
+                .Where(t => t.Lot.LotNo == lotParToModify.LotNo)
+                .Where(t => t.Part.PartNo == lotParToModify.PartNo)
+                .Where(t => t.RemovedAt == null)
+                .FirstOrDefaultAsync();
+
+            Assert.Equal(lotParToModify.Quantity, modifiedPart.BomQuantity);
+        }
+
+        [Fact]
+        private async Task import_bom_lot_part_will_remove_omitted_part() {
+            // setup
+            var plant = Gen_Plant();
+            var lot1 = Gen_LotNo();
+            var lot2 = Gen_LotNo();
+
+            var input_1 = new BomLotPartInput() {
+                Sequence = 1,
+                PlantCode = plant.Code,
+                LotParts = new List<BomLotPartInput.LotPart> {
+                    new BomLotPartInput.LotPart {
+                        LotNo = lot1,
+                        PartNo = "part_1",
+                        PartDesc = "part-1 desc",
+                        Quantity = 1
+                    },
+                    new BomLotPartInput.LotPart {
+                        LotNo = lot1,
+                        PartNo = "part_2",
+                        PartDesc = "part_2 desc",
+                        Quantity = 1
+                    },
+                    new BomLotPartInput.LotPart {
+                        LotNo = lot2,
+                        PartNo = "part_1",
+                        PartDesc = "part_1 desc",
+                        Quantity = 1
+                    },
+                    new BomLotPartInput.LotPart {
+                        LotNo = lot2,
+                        PartNo = "part_2",
+                        PartDesc = "part_1 desc",
+                        Quantity = 2
+                    }
+                }
+            };
+
+            var input_2 = input_1.DeepCopy();
+            input_2.LotParts = input_2.LotParts.Where(t => !(t.LotNo == lot2 && t.PartNo == "part_2")).ToList();
+
+            // test
+            var service = new BomService(ctx);
+            var payload = await service.ImportBomLotParts(input_1);
+
+            var actual_lot_parts_count = await ctx.LotParts.Where(t => t.RemovedAt == null).CountAsync();
+            var expected_lot_parts_count = input_1.LotParts.Count();
+            Assert.Equal(actual_lot_parts_count, actual_lot_parts_count);
+
+            var payload_2 = await service.ImportBomLotParts(input_2);
+
+            actual_lot_parts_count = await ctx.LotParts.Where(t => t.RemovedAt == null).CountAsync();
+            expected_lot_parts_count = input_2.LotParts.Count();
+            Assert.Equal(actual_lot_parts_count, actual_lot_parts_count);
+        }
 
         [Fact]
         private async Task import_bom_lot_changes_part_no_format() {
@@ -118,15 +283,12 @@ namespace SKD.Test {
             var partService = new PartService(ctx);
 
             // assert 
-            foreach(var entry in part_mubers) {
+            foreach (var entry in part_mubers) {
                 var part = await ctx.Parts.FirstOrDefaultAsync(t => t.PartNo == entry.reformattedPartNo);
                 Assert.NotNull(part);
                 Assert.Equal(entry.partNo, part.OriginalPartNo);
             }
         }
-
-
-
 
         [Fact]
         private async Task cannot_import_duplicate_bom_lot_parts_in_paylaod() {
@@ -166,44 +328,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        private async Task cannot_import_bom_lot_parts_if_already_imported() {
-            // setup
-            var plant = Gen_Plant();
-            var lotNo = Gen_LotNo();
-
-            var input = new BomLotPartInput() {
-                Sequence = 1,
-                PlantCode = plant.Code,
-                LotParts = new List<BomLotPartInput.LotPart> {
-                    new BomLotPartInput.LotPart {
-                        LotNo = lotNo,
-                        PartNo = "part_1",
-                        PartDesc = "part_1 desc",
-                        Quantity = 1
-                    },
-                    new BomLotPartInput.LotPart {
-                        LotNo = lotNo,
-                        PartNo = "part_2",
-                        PartDesc = "part_2 desc",
-                        Quantity = 3
-                    }
-                }
-            };
-
-            // test
-            var service = new BomService(ctx);
-            var payload = await service.ImportBomLotParts(input);
-            var payload_2 = await service.ImportBomLotParts(input);
-
-            // assert
-            var errorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
-            var expectedMessage = "lot parts already imported";
-            Assert.Equal(expectedMessage, errorMessage);
-        }
-
-
-        [Fact]
-        private async Task cannot_import_if_no_vehicle_lot_parts() {
+        private async Task cannot_import_if_no_lot_parts() {
             // setup
             var plant = Gen_Plant();
             var dto = new BomLotPartInput() {
@@ -310,5 +435,25 @@ namespace SKD.Test {
             };
         }
 
+        private BomLotPartInput GetBomLotPoartInput(Plant plant, List<string> lotNos, List<string> partNos) {
+
+            var lotParts = new List<BomLotPartInput.LotPart>();
+            foreach(var lotNo in lotNos) {
+                foreach(var partNo in partNos) {
+                    lotParts.Add(new BomLotPartInput.LotPart{
+                        LotNo = lotNo,
+                        PartNo = partNo,
+                        PartDesc = partNo + "_desc",
+                        Quantity = 2
+                    });
+                }
+            }
+            
+             return new BomLotPartInput() {
+                Sequence = 1,
+                PlantCode = plant.Code,
+                LotParts = lotParts
+            };
+        }
     }
 }

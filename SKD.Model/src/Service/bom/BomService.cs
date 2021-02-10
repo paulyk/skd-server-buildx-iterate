@@ -44,9 +44,10 @@ namespace SKD.Model {
                 .Select(t => (t.PartNo, t.PartDesc)).ToList();
             var parts = await partService.GetEnsureParts(inputParts);
 
-            // bom lot parts
+            // add / update lot parts
             foreach (var lotGroup in input.LotParts.GroupBy(t => t.LotNo)) {
 
+                // ensure lot 
                 var lot = await context.Lots.FirstOrDefaultAsync(t => t.LotNo == lotGroup.Key);
                 if (lot == null) {
                     lot = new Lot {
@@ -56,13 +57,48 @@ namespace SKD.Model {
                 }
                 bom.Lots.Add(lot);
 
+                // add / update lot parts
                 foreach (var lotGroupItem in lotGroup) {
-                    var lotPart = new LotPart {
-                        Part = parts.First(t => t.PartNo == PartService.ReFormatPartNo(lotGroupItem.PartNo)),
-                        BomQuantity = lotGroupItem.Quantity
-                    };
-                    lot.LotParts.Add(lotPart);
+
+                    var existingLotPart = await context.LotParts
+                        .Where(t => t.Lot.LotNo == lotGroupItem.LotNo)
+                        .Where(t => t.Part.PartNo == lotGroupItem.PartNo)
+                        .FirstOrDefaultAsync();
+
+                    // if new lotPart or lotPart bom quantity changed then add
+                    if (existingLotPart == null || existingLotPart.BomQuantity != lotGroupItem.Quantity) {
+                        // add new because null or because BomQuantity changed
+                        var newLotPart = new LotPart {
+                            Part = parts.First(t => t.PartNo == PartService.ReFormatPartNo(lotGroupItem.PartNo)),
+                            BomQuantity = lotGroupItem.Quantity
+                        };
+                        lot.LotParts.Add(newLotPart);
+
+                        if (existingLotPart != null) {
+                            // since existing lot part was replace, we remove existing
+                            existingLotPart.RemovedAt = DateTime.UtcNow;
+                        }
+                    }
                 }
+            }
+
+            // remove lot parts no 
+            foreach (var lotGroup in input.LotParts.GroupBy(t => t.LotNo)) {
+
+                // if part is no longer part of LOT it will not be in the BomLotPartInput
+                // for each lot find parts that are not in the corresponding BomLotPartInput and flag them as removed
+                var existingLotParts = await context.LotParts
+                    .Where(t => t.Lot.LotNo == lotGroup.Key)
+                    .Where(t => t.RemovedAt == null)
+                    .ToListAsync();
+
+                var removedLotParts = existingLotParts
+                    .Where(t => !input.LotParts.Any(i => i.LotNo == t.Lot.LotNo && i.PartNo == t.Part.PartNo))
+                    .ToList();
+
+                removedLotParts.ForEach(lotPart => {
+                    lotPart.RemovedAt = DateTime.UtcNow;
+                });
             }
 
             await context.SaveChangesAsync();
@@ -121,18 +157,6 @@ namespace SKD.Model {
 
             if (!input.LotParts.Any()) {
                 errors.Add(new Error("", "no lot parts found"));
-                return errors;
-            }
-
-            // already imported
-            var newLotNumbers = input.LotParts.Select(t => t.LotNo).ToArray();
-
-            var alreadyImportedLotParts = await context.LotParts
-                .Where(t => t.Lot.Plant.Code == input.PlantCode)
-                .AnyAsync(t => newLotNumbers.Any(newLotNo => newLotNo == t.Lot.LotNo));
-
-            if (alreadyImportedLotParts) {
-                errors.Add(new Error("", "lot parts already imported"));
                 return errors;
             }
 

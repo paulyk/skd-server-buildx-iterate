@@ -9,7 +9,7 @@ namespace SKD.Model {
             builder.HasKey(t => t.Id);
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
 
-            builder.HasIndex(t => new { t.LotId, t.PartId }).IsUnique();
+            builder.HasIndex(t => new { t.LotId, t.PartId });
 
             builder.Property(t => t.BomQuantity).IsRequired();
 

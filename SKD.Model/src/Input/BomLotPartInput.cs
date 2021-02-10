@@ -11,7 +11,7 @@ namespace SKD.Model {
             public string LotNo { get; init; }
             public string PartNo { get; init; }
             public string PartDesc { get; init; }
-            public int Quantity { get; init; }
+            public int Quantity { get; set; }
         }        
     }
 }
