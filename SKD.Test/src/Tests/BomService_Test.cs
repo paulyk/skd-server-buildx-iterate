@@ -21,30 +21,7 @@ namespace SKD.Test {
             var lot1 = Gen_LotNo();
             var lot2 = Gen_LotNo();
 
-            var input = new BomLotPartInput() {
-                Sequence = 1,
-                PlantCode = plant.Code,
-                LotParts = new List<BomLotPartInput.LotPart> {
-                    new BomLotPartInput.LotPart {
-                        LotNo = lot1,
-                        PartNo = "part_1",
-                        PartDesc = "part-1 desc",
-                        Quantity = 1
-                    },
-                    new BomLotPartInput.LotPart {
-                        LotNo = lot1,
-                        PartNo = "part_2",
-                        PartDesc = "part_2 desc",
-                        Quantity = 1
-                    },
-                    new BomLotPartInput.LotPart {
-                        LotNo = lot2,
-                        PartNo = "part_1",
-                        PartDesc = "part_1 desc",
-                        Quantity = 1
-                    }
-                }
-            };
+            var input = GetBomLotPoartInput(plant, new List<string> { lot1, lot2, }, new List<string> { "part-1", "part-2" });
 
             // test
             var service = new BomService(ctx);
@@ -71,30 +48,7 @@ namespace SKD.Test {
             var lot1 = Gen_LotNo();
             var lot2 = Gen_LotNo();
 
-            var input = new BomLotPartInput() {
-                Sequence = 1,
-                PlantCode = plant.Code,
-                LotParts = new List<BomLotPartInput.LotPart> {
-                    new BomLotPartInput.LotPart {
-                        LotNo = lot1,
-                        PartNo = "part_1",
-                        PartDesc = "part-1 desc",
-                        Quantity = 1
-                    },
-                    new BomLotPartInput.LotPart {
-                        LotNo = lot1,
-                        PartNo = "part_2",
-                        PartDesc = "part_2 desc",
-                        Quantity = 1
-                    },
-                    new BomLotPartInput.LotPart {
-                        LotNo = lot2,
-                        PartNo = "part_1",
-                        PartDesc = "part_1 desc",
-                        Quantity = 1
-                    }
-                }
-            };
+            var input = GetBomLotPoartInput(plant, new List<string> { lot1, lot2, }, new List<string> { "part-1", "part-2" });
 
             // test
             var service = new BomService(ctx);
@@ -116,46 +70,27 @@ namespace SKD.Test {
         private async Task import_bom_lot_part_will_update_bom_quantity_of_existing_lot_part() {
             // setup
             var plant = Gen_Plant();
-            var lot1 = Gen_LotNo();
-            var lot2 = Gen_LotNo();
+            var lotNos = new List<string> { Gen_LotNo(), Gen_LotNo() };
+            var partNos = new List<string> { "part_1", "part_2"  };
 
-            var input_1 = new BomLotPartInput() {
-                Sequence = 1,
-                PlantCode = plant.Code,
-                LotParts = new List<BomLotPartInput.LotPart> {
-                    new BomLotPartInput.LotPart {
-                        LotNo = lot1,
-                        PartNo = "part_1",
-                        PartDesc = "part-1 desc",
-                        Quantity = 1
-                    },
-                    new BomLotPartInput.LotPart {
-                        LotNo = lot1,
-                        PartNo = "part_2",
-                        PartDesc = "part_2 desc",
-                        Quantity = 1
-                    },
-                    new BomLotPartInput.LotPart {
-                        LotNo = lot2,
-                        PartNo = "part_1",
-                        PartDesc = "part_1 desc",
-                        Quantity = 1
-                    }
-                }
-            };
+            var input_1 = GetBomLotPoartInput(plant, lotNos, partNos );
 
-            var input_2 = input_1.DeepCopy();
-            var lotParToModify = input_2.LotParts.First(t => t.LotNo == lot1 && t.PartNo == "part_1");
-            lotParToModify.Quantity = 2;
 
-            // test
+            // import initial lots
             var service = new BomService(ctx);
             var payload = await service.ImportBomLotParts(input_1);
 
-            // assert same as input
+            // assert 
             var expected_lot_part_count = input_1.LotParts.Count();
             var actual_lot_parts_count = await ctx.LotParts.CountAsync();
             Assert.Equal(expected_lot_part_count, actual_lot_parts_count);
+
+            // import again with one part removed
+            var lotNo = lotNos[0];
+            var partNo = partNos[0];
+            var input_2 = input_1.DeepCopy();
+            var lotParToModify = input_2.LotParts.First(t => t.LotNo == lotNo && t.PartNo == partNo);
+            lotParToModify.Quantity = lotParToModify.Quantity + 2;
 
             var payload_2 = await service.ImportBomLotParts(input_2);
             expected_lot_part_count = input_2.LotParts.Count() + 1;
@@ -181,52 +116,25 @@ namespace SKD.Test {
             var lot1 = Gen_LotNo();
             var lot2 = Gen_LotNo();
 
-            var input_1 = new BomLotPartInput() {
-                Sequence = 1,
-                PlantCode = plant.Code,
-                LotParts = new List<BomLotPartInput.LotPart> {
-                    new BomLotPartInput.LotPart {
-                        LotNo = lot1,
-                        PartNo = "part_1",
-                        PartDesc = "part-1 desc",
-                        Quantity = 1
-                    },
-                    new BomLotPartInput.LotPart {
-                        LotNo = lot1,
-                        PartNo = "part_2",
-                        PartDesc = "part_2 desc",
-                        Quantity = 1
-                    },
-                    new BomLotPartInput.LotPart {
-                        LotNo = lot2,
-                        PartNo = "part_1",
-                        PartDesc = "part_1 desc",
-                        Quantity = 1
-                    },
-                    new BomLotPartInput.LotPart {
-                        LotNo = lot2,
-                        PartNo = "part_2",
-                        PartDesc = "part_1 desc",
-                        Quantity = 2
-                    }
-                }
-            };
+            var service = new BomService(ctx);            
 
-            var input_2 = input_1.DeepCopy();
-            input_2.LotParts = input_2.LotParts.Where(t => !(t.LotNo == lot2 && t.PartNo == "part_2")).ToList();
-
-            // test
-            var service = new BomService(ctx);
-            var payload = await service.ImportBomLotParts(input_1);
+            // import lot1 and lot2
+            var input = GetBomLotPoartInput(plant, new List<string> { lot1, lot2, }, new List<string> { "part-1", "part-2" });
+            var payload = await service.ImportBomLotParts(input);
 
             var actual_lot_parts_count = await ctx.LotParts.Where(t => t.RemovedAt == null).CountAsync();
-            var expected_lot_parts_count = input_1.LotParts.Count();
+            var expected_lot_parts_count = input.LotParts.Count();
             Assert.Equal(actual_lot_parts_count, actual_lot_parts_count);
 
-            var payload_2 = await service.ImportBomLotParts(input_2);
+            // remove lot2, part_2 from input and import again
+            input.LotParts = input.LotParts
+                .Where(t => !(t.LotNo == lot2 && t.PartNo == "part_2"))
+                .ToList();
+
+            var payload_2 = await service.ImportBomLotParts(input);
 
             actual_lot_parts_count = await ctx.LotParts.Where(t => t.RemovedAt == null).CountAsync();
-            expected_lot_parts_count = input_2.LotParts.Count();
+            expected_lot_parts_count = input.LotParts.Count();
             Assert.Equal(actual_lot_parts_count, actual_lot_parts_count);
         }
 
@@ -435,12 +343,16 @@ namespace SKD.Test {
             };
         }
 
-        private BomLotPartInput GetBomLotPoartInput(Plant plant, List<string> lotNos, List<string> partNos) {
+        private BomLotPartInput GetBomLotPoartInput(
+            Plant plant,
+            List<string> lotNos,
+            List<string> partNos
+        ) {
 
             var lotParts = new List<BomLotPartInput.LotPart>();
-            foreach(var lotNo in lotNos) {
-                foreach(var partNo in partNos) {
-                    lotParts.Add(new BomLotPartInput.LotPart{
+            foreach (var lotNo in lotNos) {
+                foreach (var partNo in partNos) {
+                    lotParts.Add(new BomLotPartInput.LotPart {
                         LotNo = lotNo,
                         PartNo = partNo,
                         PartDesc = partNo + "_desc",
@@ -448,8 +360,8 @@ namespace SKD.Test {
                     });
                 }
             }
-            
-             return new BomLotPartInput() {
+
+            return new BomLotPartInput() {
                 Sequence = 1,
                 PlantCode = plant.Code,
                 LotParts = lotParts

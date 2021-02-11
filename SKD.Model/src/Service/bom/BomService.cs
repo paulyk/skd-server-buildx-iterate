@@ -75,14 +75,15 @@ namespace SKD.Model {
                         lot.LotParts.Add(newLotPart);
 
                         if (existingLotPart != null) {
-                            // since existing lot part was replace, we remove existing
+                            // since a new lot part was added with a different quantity
+                            // flag the existing one as REMOVED
                             existingLotPart.RemovedAt = DateTime.UtcNow;
                         }
                     }
                 }
             }
 
-            // remove lot parts no 
+            // remove lot that are in the LotParts table, but not in the input paylload 
             foreach (var lotGroup in input.LotParts.GroupBy(t => t.LotNo)) {
 
                 // if part is no longer part of LOT it will not be in the BomLotPartInput
