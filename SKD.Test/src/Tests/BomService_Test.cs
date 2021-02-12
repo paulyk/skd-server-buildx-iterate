@@ -15,6 +15,28 @@ namespace SKD.Test {
         }
 
         [Fact]
+        private async Task import_lot_parts_works() {
+            // setup
+            var plant = Gen_Plant();
+            var lot1 = Gen_LotNo();
+            var lot2 = Gen_LotNo();
+            var lot3 = Gen_LotNo();
+
+            var service = new BomService(ctx);
+            
+            // test
+            var input_1 = GetBomLotPoartInput(plant, new List<string> {lot1, lot2 }, new List<string> {"part-1", "part-2"});
+            var payload = await service.ImportBomLotParts_2(input_1);
+
+            var input_2 = GetBomLotPoartInput(plant, new List<string> {lot3 }, new List<string> {"part-1", "part-2"});
+            payload = await service.ImportBomLotParts_2(input_1);
+
+            var lot_count = await ctx.Lots.CountAsync();
+            Assert.Equal(3, lot_count);
+        }
+
+        /*
+        [Fact]
         private async Task can_import_bom_lot_parts() {
             // setup
             var plant = Gen_Plant();
@@ -326,6 +348,7 @@ namespace SKD.Test {
             Assert.Equal(expectedMessage, errorMessage);
 
         }
+        */
 
         private BomLotKitInput Gen_BomLotKitInput(string plantCode, string lotNo, string modelCode, int kitCount = 6) {
             return new BomLotKitInput() {

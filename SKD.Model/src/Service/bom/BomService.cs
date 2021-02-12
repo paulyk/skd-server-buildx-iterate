@@ -16,6 +16,27 @@ namespace SKD.Model {
             this.context = ctx;
         }
 
+        public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotParts_2(BomLotPartInput input) {
+            var payload = new MutationPayload<BomOverviewDTO>(null);
+            payload.Errors = await ValidateVehicleLotPartsInput<BomLotPartInput>(input);
+            if (payload.Errors.Count > 0) {
+                return payload;
+            }
+
+            var parts = GetEnsureParts(input);
+
+            var lots = await GetEnsureLots(input);
+
+            await AddUpdateLotParts(input, lots);
+
+            await FlatRemovedLotParts(input, lots);
+
+            await context.SaveChangesAsync();
+
+            payload.Entity = new BomOverviewDTO();
+            return payload;
+        }
+
         ///<summary>
         /// Import vehicle lot part and quantity associated with a BOM  sequence
         ///</summary>
@@ -103,9 +124,72 @@ namespace SKD.Model {
             }
 
             await context.SaveChangesAsync();
-            payload.Entity = await GetBomOverview(bom.Id);
+            payload.Entity = await GetBomOverview(bom.Sequence);
             return payload;
         }
+
+        #region hidden
+
+        private async Task<List<Part>> GetEnsureParts(BomLotPartInput input) {
+            var partService = new PartService(context);
+            List<(string, string)> inputParts = input.LotParts
+                .Select(t => (t.PartNo, t.PartDesc)).ToList();
+            return await partService.GetEnsureParts(inputParts);
+        }
+
+        private async Task<List<Lot>> GetEnsureLots(BomLotPartInput input) {
+            // determine existing lots and new lot numbers
+            var input_LotNos = input.LotParts.Select(t => t.LotNo).Distinct().ToList();
+
+            var existingLots = await context.Lots
+                .Include(t => t.Bom)
+                .Where(t => input_LotNos.Any(lotNo => lotNo == t.LotNo)).ToListAsync();
+
+            var new_LotNos = input_LotNos.Except(existingLots.Select(t => t.LotNo)).ToList();
+
+            // validate
+            if (existingLots.Select(t => t.BomId).Distinct().Count() > 1) {
+                throw new Exception("more than one bom represented in input lots");
+            }
+
+            // add bom, or update bom sequence
+            var bom = existingLots.Any() ? existingLots.First().Bom : null;
+            if (bom != null) {
+                if (bom.Sequence != input.Sequence) {
+                    bom.Sequence = input.Sequence;
+                }
+            } else {
+                var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
+                bom = new Bom {
+                    Plant = plant,
+                    Sequence = input.Sequence
+                };
+                context.Boms.Add(bom);
+            }
+
+            // new lots            
+            var newLots = new List<Lot>();
+            if (new_LotNos.Any()) {
+                newLots = new_LotNos.Select(lotNo => new Lot {
+                    LotNo = lotNo,
+                    Bom = bom
+                }).ToList();
+                context.Lots.AddRange(newLots);
+            }
+
+            return existingLots.Concat(newLots).ToList();
+        }
+
+        private async Task AddUpdateLotParts(BomLotPartInput input, IEnumerable<Lot> lots) {
+            await Task.Delay(10);
+        }
+
+        private async Task FlatRemovedLotParts(BomLotPartInput input, IEnumerable<Lot> lots) {
+            await Task.Delay(1000);
+
+        }
+
+        #endregion
 
         ///<summary>
         /// Import vehicle lot and kits associated with a plant and BOM sequence
@@ -143,7 +227,7 @@ namespace SKD.Model {
             }
 
             await context.SaveChangesAsync();
-            payload.Entity = await GetBomOverview(bom.Id);
+            payload.Entity = await GetBomOverview(bom.Sequence);
             return payload;
         }
 
@@ -302,6 +386,23 @@ namespace SKD.Model {
         public async Task<BomOverviewDTO> GetBomOverview(Guid id) {
             var bom = await context.Boms
                 .Where(t => t.Id == id)
+                .Select(t => new BomOverviewDTO {
+                    Id = t.Id,
+                    PlantCode = t.Plant.Code,
+                    Sequence = t.Sequence,
+                    LotCount = t.Lots.Count(),
+                    PartCount = t.Lots.SelectMany(u => u.LotParts).Select(u => u.Part).Distinct().Count(),
+                    VehicleCount = t.Lots.SelectMany(u => u.Kits).Count(),
+                    CreatedAt = t.CreatedAt
+                })
+                .FirstOrDefaultAsync();
+
+            return bom;
+        }
+
+        public async Task<BomOverviewDTO> GetBomOverview(int bomSequenceNo) {
+            var bom = await context.Boms
+                .Where(t => t.Sequence == bomSequenceNo)
                 .Select(t => new BomOverviewDTO {
                     Id = t.Id,
                     PlantCode = t.Plant.Code,
