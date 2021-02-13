@@ -38,22 +38,13 @@ namespace SKD.Test {
                 }),
             }));
 
-            var input_2 = GenBomLotPartInput(
-                new TestBomLotInput(plant.Code, ++bomFileSequnce, new List<TestLotInput> {
-                    new TestLotInput(lot3, new List<TestLotPartInput>{
-                        new TestLotPartInput("part-1", 3),
-                        new TestLotPartInput("part-2", 4),
-                    }),
-                }));
-
             var payload = await service.ImportBomLotParts_2(input_1);
             var lot_count = await ctx.Lots.CountAsync();
             Assert.Equal(initial_lot_count + 2, lot_count);
 
-            payload = await service.ImportBomLotParts_2(input_2);
-
-            lot_count = await ctx.Lots.CountAsync();
-            Assert.Equal(initial_lot_count + 3, lot_count);
+            var exptected_part_count = input_1.LotParts.Select(t => t.PartNo).Distinct().Count();
+            var actual_part_count = await ctx.Parts.CountAsync();
+            Assert.Equal(exptected_part_count, actual_part_count);
         }
 
 
@@ -61,18 +52,15 @@ namespace SKD.Test {
         private async Task multiple_bom_imorts_updates_lots_correctly() {
             // setup
             var plant = Gen_Plant();
-            var lot1 = Gen_LotNo();
-            var lot2 = Gen_LotNo();
-            var lot3 = Gen_LotNo();
-            var lot4 = Gen_LotNo();
-            var lot5 = Gen_LotNo();
-            var lot6 = Gen_LotNo();
+            var lot1 = Gen_LotNo("BP".PadRight(EntityFieldLen.LotNo - 2,'0') + "01");
+            var lot2 = Gen_LotNo("BP".PadRight(EntityFieldLen.LotNo - 2,'0') + "02");
+            var lot3 = Gen_LotNo("BP".PadRight(EntityFieldLen.LotNo - 2,'0') + "03");
             var bomFileSequnce = 1;
             var initial_lot_count = await ctx.Lots.CountAsync();
 
             var service = new BomService(ctx);
 
-            // test
+            // Initial 2 lots 2 parts
             var input_1 = GenBomLotPartInput(new TestBomLotInput(plant.Code, bomFileSequnce, new List<TestLotInput> {
                 new TestLotInput(lot1, new List<TestLotPartInput>{
                     new TestLotPartInput("part-1", 2),
@@ -83,12 +71,69 @@ namespace SKD.Test {
                     new TestLotPartInput("part-2", 4),
                 }),
             }));
-
             await service.ImportBomLotParts_2(input_1);
             var lot_count = await ctx.Lots.CountAsync();
-            Assert.Equal(initial_lot_count + 2, lot_count);
+            var exptected_lot_count = initial_lot_count + 2;
+            Assert.Equal(exptected_lot_count, lot_count);
 
-            // sert that there are 3 lots 
+            // add new lot, with 2 new parts
+            var input_2 = GenBomLotPartInput(new TestBomLotInput(plant.Code, bomFileSequnce, new List<TestLotInput> {
+                new TestLotInput(lot1, new List<TestLotPartInput>{
+                    new TestLotPartInput("part-1", 2),
+                    new TestLotPartInput("part-2", 4),
+                }),
+                new TestLotInput(lot2, new List<TestLotPartInput>{
+                    new TestLotPartInput("part-1", 3),
+                    new TestLotPartInput("part-2", 4),
+                }),
+                new TestLotInput(lot3, new List<TestLotPartInput>{
+                    new TestLotPartInput("part-3", 3),
+                    new TestLotPartInput("part-4", 4),
+                }),
+            }));
+            await service.ImportBomLotParts_2(input_2);
+
+            lot_count = await ctx.Lots.CountAsync();
+            exptected_lot_count = initial_lot_count + input_2.LotParts.Select(t => t.LotNo).Distinct().Count();
+            Assert.Equal(exptected_lot_count, lot_count);
+
+            // update quantity on lot1 part-2
+            var lot1_part_2_quanity = input_1.LotParts.First(t => t.LotNo == lot1 && t.PartNo == "part-2").Quantity;
+            var lot1_part_2_new_quanity =  20;
+
+            var input_3 = GenBomLotPartInput(new TestBomLotInput(plant.Code, bomFileSequnce, new List<TestLotInput> {
+                new TestLotInput(lot1, new List<TestLotPartInput>{
+                    new TestLotPartInput("part-1", 2),
+                    new TestLotPartInput("part-2", lot1_part_2_new_quanity),
+                }),
+                new TestLotInput(lot2, new List<TestLotPartInput>{
+                    new TestLotPartInput("part-1", 3),
+                    new TestLotPartInput("part-2", 4),
+                }),
+                new TestLotInput(lot3, new List<TestLotPartInput>{
+                    new TestLotPartInput("part-3", 3),
+                    new TestLotPartInput("part-4", 4),
+                }),
+            }));
+            await service.ImportBomLotParts_2(input_3);
+
+            var lotParts = await ctx.LotParts.Include(t => t.Lot).Include(t => t.Part).ToListAsync();
+            foreach(var lotPart in lotParts.Where(t => t.RemovedAt ==  null)) {
+                var inputLotPart = input_3.LotParts
+                    .First(t => t.LotNo == lotPart.Lot.LotNo && t.PartNo == lotPart.Part.PartNo);
+                // quantities eupdate
+                Assert.Equal(inputLotPart.Quantity, lotPart.BomQuantity);
+            }
+
+            var removeLotPart = lotParts.Where(t => t.RemovedAt != null).First();
+            Assert.Equal(lot1_part_2_quanity, removeLotPart.BomQuantity);
+
+        
+
+
+
+
+
 
         }
 

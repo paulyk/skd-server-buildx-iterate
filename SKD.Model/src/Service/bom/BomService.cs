@@ -23,11 +23,11 @@ namespace SKD.Model {
                 return payload;
             }
 
-            var parts = GetEnsureParts(input);
+            var parts = await GetEnsureParts(input);
 
             var lots = await GetEnsureLots(input);
 
-            await AddUpdateLotParts(input, lots);
+            await Add_Update_Remove_LotParts(input, lots, parts);
 
             await FlagRemovedLotParts(input, lots);
 
@@ -190,8 +190,44 @@ namespace SKD.Model {
             return existingLots.Concat(newLots).ToList();
         }
 
-        private async Task AddUpdateLotParts(BomLotPartInput input, IEnumerable<Lot> lots) {
-            await Task.Delay(10);
+        private async Task Add_Update_Remove_LotParts(
+            BomLotPartInput input,
+            IEnumerable<Lot> lots,
+            IEnumerable<Part> parts
+        ) {
+
+            foreach (var lotGroup in input.LotParts.GroupBy(t => t.LotNo)) {
+                var lot = lots.First(t => t.LotNo == lotGroup.Key);
+                foreach (var inputLotPart in lotGroup) {
+
+                    var existingLotPart = await context.LotParts
+                        .Where(t => t.Lot.LotNo == inputLotPart.LotNo)
+                        .Where(t => t.Part.PartNo == inputLotPart.PartNo)
+                        .FirstOrDefaultAsync();
+
+                    if (existingLotPart == null || existingLotPart.BomQuantity != inputLotPart.Quantity) {
+                        // add new because null or because BomQuantity changed
+                        var newLotPart = new LotPart {
+                            Part = parts.First(t => t.PartNo == PartService.ReFormatPartNo(inputLotPart.PartNo)),
+                            BomQuantity = inputLotPart.Quantity,
+                        };
+                        lot.LotParts.Add(newLotPart);
+
+                        if (existingLotPart != null) {
+                            // since a new lot part was added with a different quantity
+                            // flag the existing one as REMOVED
+                            existingLotPart.RemovedAt = DateTime.UtcNow;
+                        }
+                    }
+                }
+            }
+
+            /*
+               for each lot in input.Lots
+                    remove all the db.LotParts that are not in input.LotParts
+            */
+
+
         }
 
         private async Task FlagRemovedLotParts(BomLotPartInput input, IEnumerable<Lot> lots) {
