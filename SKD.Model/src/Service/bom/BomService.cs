@@ -29,9 +29,18 @@ namespace SKD.Model {
 
             await AddUpdateLotParts(input, lots);
 
-            await FlatRemovedLotParts(input, lots);
+            await FlagRemovedLotParts(input, lots);
 
-            await context.SaveChangesAsync();
+            try {
+
+                await context.SaveChangesAsync();
+                // do some work
+            } catch (Exception? ex) {
+                while (ex != null) {
+                    Console.WriteLine(ex.Message);
+                    ex = ex.InnerException;
+                }
+            }
 
             payload.Entity = new BomOverviewDTO();
             return payload;
@@ -153,13 +162,13 @@ namespace SKD.Model {
             }
 
             // add bom, or update bom sequence
+            var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
             var bom = existingLots.Any() ? existingLots.First().Bom : null;
             if (bom != null) {
                 if (bom.Sequence != input.Sequence) {
                     bom.Sequence = input.Sequence;
                 }
             } else {
-                var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
                 bom = new Bom {
                     Plant = plant,
                     Sequence = input.Sequence
@@ -167,10 +176,11 @@ namespace SKD.Model {
                 context.Boms.Add(bom);
             }
 
-            // new lots            
+            // // new lots            
             var newLots = new List<Lot>();
             if (new_LotNos.Any()) {
                 newLots = new_LotNos.Select(lotNo => new Lot {
+                    Plant = plant,
                     LotNo = lotNo,
                     Bom = bom
                 }).ToList();
@@ -184,8 +194,8 @@ namespace SKD.Model {
             await Task.Delay(10);
         }
 
-        private async Task FlatRemovedLotParts(BomLotPartInput input, IEnumerable<Lot> lots) {
-            await Task.Delay(1000);
+        private async Task FlagRemovedLotParts(BomLotPartInput input, IEnumerable<Lot> lots) {
+            await Task.Delay(10);
 
         }
 
