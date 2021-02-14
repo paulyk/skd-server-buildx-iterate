@@ -16,7 +16,11 @@ namespace SKD.Model {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotParts_2(BomLotPartInput input) {
+
+        ///<summary>
+        /// Import lot part and quantity associated with a BOM  sequence
+        ///</summary>
+        public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotParts(BomLotPartInput input) {
             var payload = new MutationPayload<BomOverviewDTO>(null);
             payload.Errors = await ValidateVehicleLotPartsInput<BomLotPartInput>(input);
             if (payload.Errors.Count > 0) {
@@ -29,117 +33,19 @@ namespace SKD.Model {
 
             await Add_Update_Remove_LotParts(input, lots, parts);
 
-            await FlagRemovedLotParts(input, lots);
-
-            try {
-
-                await context.SaveChangesAsync();
-                // do some work
-            } catch (Exception? ex) {
-                while (ex != null) {
-                    Console.WriteLine(ex.Message);
-                    ex = ex.InnerException;
-                }
-            }
-
+            await context.SaveChangesAsync();
             payload.Entity = new BomOverviewDTO();
             return payload;
         }
 
-        ///<summary>
-        /// Import vehicle lot part and quantity associated with a BOM  sequence
-        ///</summary>
-        public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotParts(BomLotPartInput input) {
-            var payload = new MutationPayload<BomOverviewDTO>(null);
-            payload.Errors = await ValidateVehicleLotPartsInput<BomLotPartInput>(input);
-            if (payload.Errors.Count > 0) {
-                return payload;
-            }
 
-            var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
-
-            // create / get bom
-            var bom = await context.Boms.FirstOrDefaultAsync(t => t.Plant.Code == input.PlantCode && t.Sequence == input.Sequence);
-            if (bom == null) {
-                bom = new Bom {
-                    Plant = plant,
-                    Sequence = input.Sequence
-                };
-                context.Boms.Add(bom);
-            }
-
-            // ensure parts
-            var partService = new PartService(context);
-            List<(string, string)> inputParts = input.LotParts
-                .Select(t => (t.PartNo, t.PartDesc)).ToList();
-            var parts = await partService.GetEnsureParts(inputParts);
-
-            // add / update lot parts
-            foreach (var lotGroup in input.LotParts.GroupBy(t => t.LotNo)) {
-
-                // ensure lot 
-                var lot = await context.Lots.FirstOrDefaultAsync(t => t.LotNo == lotGroup.Key);
-                if (lot == null) {
-                    lot = new Lot {
-                        LotNo = lotGroup.Key,
-                        Plant = plant,
-                    };
-                }
-                bom.Lots.Add(lot);
-
-                // add / update lot parts
-                foreach (var lotGroupItem in lotGroup) {
-
-                    var existingLotPart = await context.LotParts
-                        .Where(t => t.Lot.LotNo == lotGroupItem.LotNo)
-                        .Where(t => t.Part.PartNo == lotGroupItem.PartNo)
-                        .FirstOrDefaultAsync();
-
-                    // if new lotPart or lotPart bom quantity changed then add
-                    if (existingLotPart == null || existingLotPart.BomQuantity != lotGroupItem.Quantity) {
-                        // add new because null or because BomQuantity changed
-                        var newLotPart = new LotPart {
-                            Part = parts.First(t => t.PartNo == PartService.ReFormatPartNo(lotGroupItem.PartNo)),
-                            BomQuantity = lotGroupItem.Quantity
-                        };
-                        lot.LotParts.Add(newLotPart);
-
-                        if (existingLotPart != null) {
-                            // since a new lot part was added with a different quantity
-                            // flag the existing one as REMOVED
-                            existingLotPart.RemovedAt = DateTime.UtcNow;
-                        }
-                    }
-                }
-            }
-
-            // remove lot that are in the LotParts table, but not in the input paylload 
-            foreach (var lotGroup in input.LotParts.GroupBy(t => t.LotNo)) {
-
-                // if part is no longer part of LOT it will not be in the BomLotPartInput
-                // for each lot find parts that are not in the corresponding BomLotPartInput and flag them as removed
-                var existingLotParts = await context.LotParts
-                    .Where(t => t.Lot.LotNo == lotGroup.Key)
-                    .Where(t => t.RemovedAt == null)
-                    .ToListAsync();
-
-                var removedLotParts = existingLotParts
-                    .Where(t => !input.LotParts.Any(i => i.LotNo == t.Lot.LotNo && i.PartNo == t.Part.PartNo))
-                    .ToList();
-
-                removedLotParts.ForEach(lotPart => {
-                    lotPart.RemovedAt = DateTime.UtcNow;
-                });
-            }
-
-            await context.SaveChangesAsync();
-            payload.Entity = await GetBomOverview(bom.Sequence);
-            return payload;
-        }
-
-        #region hidden
+        #region import bom lot helpers
 
         private async Task<List<Part>> GetEnsureParts(BomLotPartInput input) {
+            input.LotParts.ToList().ForEach(t => {
+                t.PartNo = PartService.ReFormatPartNo(t.PartNo);
+            });
+
             var partService = new PartService(context);
             List<(string, string)> inputParts = input.LotParts
                 .Select(t => (t.PartNo, t.PartDesc)).ToList();
@@ -208,7 +114,7 @@ namespace SKD.Model {
                     if (existingLotPart == null || existingLotPart.BomQuantity != inputLotPart.Quantity) {
                         // add new because null or because BomQuantity changed
                         var newLotPart = new LotPart {
-                            Part = parts.First(t => t.PartNo == PartService.ReFormatPartNo(inputLotPart.PartNo)),
+                            Part = parts.First(t => t.PartNo == inputLotPart.PartNo),
                             BomQuantity = inputLotPart.Quantity,
                         };
                         lot.LotParts.Add(newLotPart);
@@ -223,15 +129,22 @@ namespace SKD.Model {
             }
 
             /*
-               for each lot in input.Lots
-                    remove all the db.LotParts that are not in input.LotParts
+            "Remove" any lotPart that is in LotPart table,  
+            but is not found in the BomLotPartInput payload
             */
+            var inputLotNos = input.LotParts.Select(t => t.LotNo).Distinct().ToList();
+            var existingLotParts = await context.LotParts
+                .Where(t => t.RemovedAt == null)
+                .Where(lotPart => inputLotNos.Any(inputLotNo => lotPart.Lot.LotNo == inputLotNo))
+                .ToListAsync();
 
+            var removedLotParts = existingLotParts
+                .Where(t => !input.LotParts.Any(i => i.LotNo == t.Lot.LotNo && i.PartNo == t.Part.PartNo))
+                .ToList();
 
-        }
-
-        private async Task FlagRemovedLotParts(BomLotPartInput input, IEnumerable<Lot> lots) {
-            await Task.Delay(10);
+            removedLotParts.ForEach(lotPart => {
+                lotPart.RemovedAt = DateTime.UtcNow;
+            });
 
         }
 

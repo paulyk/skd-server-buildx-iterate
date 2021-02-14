@@ -24,12 +24,11 @@ namespace SKD.Model {
             var parts = new List<Part>();
 
             foreach (var inputPart in inputParts) {
-                var formattedPartNo = ReFormatPartNo(inputPart.partNo);
-                if (!parts.Any(t => t.PartNo == formattedPartNo)) {
-                    var part = await context.Parts.FirstOrDefaultAsync(t => t.PartNo == formattedPartNo);
+                if (!parts.Any(t => t.PartNo == inputPart.partNo)) {
+                    var part = await context.Parts.FirstOrDefaultAsync(t => t.PartNo == inputPart.partNo);
                     if (part == null) {
                         part = new Part {
-                            PartNo = formattedPartNo,
+                            PartNo = inputPart.partNo,
                             OriginalPartNo = inputPart.partNo,
                             PartDesc = inputPart.partDesc
                         };

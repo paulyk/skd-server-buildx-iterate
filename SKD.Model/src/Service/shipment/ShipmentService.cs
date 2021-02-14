@@ -24,12 +24,7 @@ namespace SKD.Model {
             }
 
             // ensure parts
-            var partService = new PartService(context);
-            List<(string, string)> inputParts = input.Lots
-                .SelectMany(t => t.Invoices)
-                .SelectMany(t => t.Parts)
-                .Select(t => (t.PartNo, t.CustomerPartDesc)).ToList();
-            var parts = await partService.GetEnsureParts(inputParts);
+            var parts = await GetEnsureParts(input);
 
             // plant
             var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
@@ -46,7 +41,7 @@ namespace SKD.Model {
                         Parts = invoiceDTO.Parts
                             .GroupBy(t => new { PartNo = t.PartNo })
                             .Select(g => new ShipmentPart {
-                                Part = parts.First(t => t.PartNo == PartService.ReFormatPartNo(g.Key.PartNo)),
+                                Part = parts.FirstOrDefault(t => t.PartNo == g.Key.PartNo),
                                 Quantity = g.Sum(x => x.Quantity)
                             }).ToList()
                     }).ToList()
@@ -83,6 +78,18 @@ namespace SKD.Model {
 
             payload.Entity = await GetShipmentOverview(shipment.Id);
             return payload;
+        }
+
+          private async Task<List<Part>> GetEnsureParts(ShipmentInput input) {
+            input.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.Parts).ToList().ForEach(p => {
+                p.PartNo = PartService.ReFormatPartNo(p.PartNo);
+            });
+            var partService = new PartService(context);
+            List<(string, string)> inputParts = input.Lots
+                .SelectMany(t => t.Invoices)
+                .SelectMany(t => t.Parts)
+                .Select(t => (t.PartNo, t.CustomerPartDesc)).ToList();
+            return await partService.GetEnsureParts(inputParts);
         }
 
         public async Task<List<Error>> ValidateShipmentInput<T>(ShipmentInput input) where T : ShipmentInput {
