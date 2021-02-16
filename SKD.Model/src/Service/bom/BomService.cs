@@ -34,7 +34,7 @@ namespace SKD.Model {
             await Add_Update_Remove_LotParts(input, lots, parts);
 
             await context.SaveChangesAsync();
-            payload.Entity = new BomOverviewDTO();
+            payload.Entity = await GetBomOverview(lots.First().BomId);
             return payload;
         }
 
@@ -134,6 +134,7 @@ namespace SKD.Model {
             */
             var inputLotNos = input.LotParts.Select(t => t.LotNo).Distinct().ToList();
             var existingLotParts = await context.LotParts
+                .Include(t => t.Lot).Include(t => t.Part)
                 .Where(t => t.RemovedAt == null)
                 .Where(lotPart => inputLotNos.Any(inputLotNo => lotPart.Lot.LotNo == inputLotNo))
                 .ToListAsync();

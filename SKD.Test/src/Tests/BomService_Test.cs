@@ -199,9 +199,6 @@ namespace SKD.Test {
             Assert.True("part-2" == removed_lot_parts.First().Part.PartNo);
         }
 
-      
-
-
         [Fact]
         private async Task import_bom_lot_changes_part_no_format() {
             // setup

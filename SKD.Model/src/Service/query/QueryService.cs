@@ -25,6 +25,7 @@ namespace SKD.Model {
                     PartDesc = t.Part.PartDesc,
                     BomQuantity  = t.BomQuantity,
                     ShipmentQuantity = t.ShipmentQuantity,
+                    RemovedDate = t.RemovedAt,
 
                     ReceivedDate = t.Received.OrderByDescending(t => t.CreatedAt)
                         .Where(t => t.RemovedAt == null)
