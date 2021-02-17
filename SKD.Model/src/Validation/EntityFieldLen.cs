@@ -24,6 +24,7 @@ namespace SKD.Model {
         public static int Vehicle_KitNo = 17;
 
         public static int VehicleModel_Code = 11;
+        public static int VehicleModel_CodeLen = 6;
         public static int VehicleModel_Name = 100;
         public static int VehicleModel_Type = 4;
 

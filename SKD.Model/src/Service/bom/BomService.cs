@@ -61,6 +61,10 @@ namespace SKD.Model {
                 .Where(t => input_LotNos.Any(lotNo => lotNo == t.LotNo)).ToListAsync();
 
             var new_LotNos = input_LotNos.Except(existingLots.Select(t => t.LotNo)).ToList();
+            
+            // get vehicle models for new lots
+            var modelCodes = new_LotNos.Select(t => t.Substring(0,EntityFieldLen.VehicleModel_CodeLen));
+            var models = await context.VehicleModels.Where(t => modelCodes.Any(modelCode => t.Code == modelCode)).ToListAsync();
 
             // validate
             if (existingLots.Select(t => t.BomId).Distinct().Count() > 1) {
@@ -86,8 +90,9 @@ namespace SKD.Model {
             var newLots = new List<Lot>();
             if (new_LotNos.Any()) {
                 newLots = new_LotNos.Select(lotNo => new Lot {
+                    Model = models.First(t => t.Code == lotNo.Substring(0,EntityFieldLen.VehicleModel_CodeLen)),
                     Plant = plant,
-                    LotNo = lotNo,
+                    LotNo = lotNo,                
                     Bom = bom
                 }).ToList();
                 context.Lots.AddRange(newLots);
@@ -161,6 +166,8 @@ namespace SKD.Model {
                 return payload;
             }
             var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
+            var modelCode = input.Lots.SelectMany(t => t.Kits).Select(t => t.ModelCode).First();
+            var model = await context.VehicleModels.FirstOrDefaultAsync(t => t.Code == modelCode);
             var bom = await context.Boms.FirstOrDefaultAsync(t => t.Plant.Code == input.PlantCode && t.Sequence == input.Sequence);
             if (bom == null) {
                 bom = new Bom {
@@ -176,6 +183,7 @@ namespace SKD.Model {
                 if (lot == null) {
                     lot = new Lot {
                         LotNo = inputLot.LotNo,
+                        Model = model,
                         Plant = plant
                     };
                     bom.Lots.Add(lot);

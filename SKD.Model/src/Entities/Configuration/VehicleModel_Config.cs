@@ -15,6 +15,7 @@ namespace SKD.Model {
 
             builder.Ignore(t => t.ActiveComponentMappings);
 
+            // relationships            
             builder.Property(t => t.Code)
                 .IsRequired()
                 .HasMaxLength(EntityFieldLen.VehicleModel_Code);
@@ -22,6 +23,10 @@ namespace SKD.Model {
             builder.Property(t => t.Name)
                 .IsRequired()
                 .HasMaxLength(EntityFieldLen.VehicleModel_Name);
+
+            builder.HasMany(t => t.Lots)
+                .WithOne(t => t.Model)
+                .HasForeignKey(t => t.ModelId);
 
             builder.HasMany(t => t.Vehicles)
                 .WithOne(t => t.Model)

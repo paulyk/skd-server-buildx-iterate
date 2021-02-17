@@ -13,7 +13,11 @@ namespace SKD.Model {
             builder.Property(t => t.LotNo).HasMaxLength(EntityFieldLen.Vehicle_LotNo);
             builder.HasIndex(t => t.LotNo).IsUnique();
 
-            // relationships
+            // relationships            
+            builder.HasOne(t => t.Model)
+                .WithMany(t => t.Lots)
+                .HasForeignKey(t => t.ModelId);
+
             builder.HasMany(t => t.Kits)
                 .WithOne(t => t.Lot)
                 .HasForeignKey(t => t.LotId);

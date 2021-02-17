@@ -145,17 +145,16 @@ namespace SKD.Test {
 
 
         [Fact]
-        public void can_add_vehicle() {
+        public void can_add_kit() {
             using (var ctx = GetAppDbContext()) {
                 // setup
-
-                // model
                 var vehicleModel = new VehicleModel() {
-                    Code = new String('X', EntityFieldLen.VehicleModel_Code),
+                    Code = new String('X', EntityFieldLen.VehicleModel_CodeLen),
                     Name = new String('X', EntityFieldLen.VehicleModel_Name),
                     Type = new String('X', EntityFieldLen.VehicleModel_Type),
                 };
                 ctx.VehicleModels.Add(vehicleModel);
+                ctx.SaveChanges();
 
                 // plant
                 var plant = new Plant { Code = Gen_PlantCode() };
@@ -166,25 +165,30 @@ namespace SKD.Test {
                 ctx.Boms.Add(bom);
 
                 // lot
+                var model = ctx.VehicleModels.First();
                 var lotNo = new String('X', EntityFieldLen.Vehicle_LotNo);
-                var vehicleLot = new Lot { LotNo = lotNo, Bom = bom, Plant = plant };
-                ctx.Lots.Add(vehicleLot);
+                var lot = new Lot { 
+                    LotNo = Gen_LotNo(model.Code, 1),
+                    Model = model,
+                    Bom = bom, 
+                    Plant = plant };
+                ctx.Lots.Add(lot);
 
-                // vehicle 
-                var vehicle = new Kit() {
+                // kit 
+                var kit = new Kit() {
                     VIN = new String('X', EntityFieldLen.Vehicle_VIN),
-                    Lot = vehicleLot,
+                    Lot = lot,
                     Model = vehicleModel
                 };
 
-                ctx.Kits.Add(vehicle);
+                ctx.Kits.Add(kit);
 
                 // test
                 ctx.SaveChanges();
 
                 // assert
-                var vehicleCount = ctx.VehicleModels.Count();
-                Assert.Equal(1, vehicleCount);
+                var kitCount = ctx.VehicleModels.Count();
+                Assert.Equal(1, kitCount);
             }
         }
 

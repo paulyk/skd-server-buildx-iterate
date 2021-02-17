@@ -15,7 +15,7 @@ namespace SKD.Test {
 
         public KitSnapshotServiceTest() {
             ctx = GetAppDbContext();
-            Gen_Baseline_Test_Seed_Data(componentCodes: new List<string> { "DA", "PA", engineCode });
+            Gen_Baseline_Test_Seed_Data(generateLot: true, componentCodes: new List<string> { "DA", "PA", engineCode });
         }
 
         [Fact]
@@ -337,8 +337,9 @@ namespace SKD.Test {
             Assert.Equal(2, payload.Entity.Sequence);
 
             // setup plant 2
-            var plantCode_2 = Gen_PlantCode();
-            Gen_Plant_Bom_Lot_and_Kits(plantCode_2);
+            var plantCode_2 = Gen_PlantCode();         
+            
+            Gen_Bom_Lot_and_Kits(plantCode_2);
 
             var kit_2 = ctx.Kits.Where(t => t.Lot.Plant.Code == plantCode_2).OrderBy(t => t.KitNo).First();
             await AddKitTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, kit_2.KitNo, "", custom_receive_date_trx, custom_receive_date);

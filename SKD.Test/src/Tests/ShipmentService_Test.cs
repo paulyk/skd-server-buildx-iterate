@@ -133,7 +133,7 @@ namespace SKD.Test {
         [Fact]
         private async Task cannot_import_shipment_if_lot_numbers_not_found() {
             var plant = await ctx.Plants.FirstAsync();
-            var lotNo = Gen_LotNo();
+            var lotNo = Util.RandomString(EntityFieldLen.LotNo);
             var sequence = 2;
             var input = Gen_ShipmentInput(plant.Code, lotNo, sequence);
             var shipmentService = new ShipmentService(ctx);

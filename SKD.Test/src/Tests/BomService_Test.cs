@@ -11,16 +11,16 @@ namespace SKD.Test {
 
         public BomService_Test() {
             ctx = GetAppDbContext();
-            Gen_Baseline_Test_Seed_Data();
+            Gen_Baseline_Test_Seed_Data(generateLot: false);
         }
 
         [Fact]
         private async Task import_lot_parts_works() {
             // setup
             var plant = Gen_Plant();
-            var lot1 = Gen_LotNo();
-            var lot2 = Gen_LotNo();
-            var lot3 = Gen_LotNo();
+            var modelCode = await ctx.VehicleModels.Select(t => t.Code).FirstOrDefaultAsync();
+            var lot1 = Gen_LotNo(modelCode, 1);
+            var lot2 = Gen_LotNo(modelCode, 2);            
             var bomFileSequnce = 1;
             var initial_lot_count = await ctx.Lots.CountAsync();
 
@@ -52,7 +52,7 @@ namespace SKD.Test {
             Assert.Equal(exptected_part_count, actual_part_count);
 
             // assert lot part quantity
-            var lotNos = input.LotParts.Select(t => t.LotNo).ToList();
+            var lotNos = input.LotParts.Select(t => t.LotNo).Distinct().ToList();
             var lotParts = await ctx.LotParts.Include(t => t.Part).Where(t => lotNos.Any(lotNo => lotNo == t.Lot.LotNo)).ToListAsync();
             input.LotParts.ToList().ForEach(inputLotPart => {
                 LotPart lotPart = lotParts.First(t => t.Lot.LotNo == inputLotPart.LotNo && t.Part.PartNo == inputLotPart.PartNo);
@@ -62,12 +62,13 @@ namespace SKD.Test {
 
 
         [Fact]
-        private async Task multiple_bom_imorts_updates_lots_correctly() {
+        private async Task multiple_bom_imports_update_lots_correctly() {
             // setup
             var plant = Gen_Plant();
-            var lot1 = Gen_LotNo("BP".PadRight(EntityFieldLen.LotNo - 2,'0') + "01");
-            var lot2 = Gen_LotNo("BP".PadRight(EntityFieldLen.LotNo - 2,'0') + "02");
-            var lot3 = Gen_LotNo("BP".PadRight(EntityFieldLen.LotNo - 2,'0') + "03");
+            var modelCode = await ctx.VehicleModels.Select(t =>t.Code).FirstOrDefaultAsync();
+            var lot1 = Gen_LotNo(modelCode, 1);
+            var lot2 = Gen_LotNo(modelCode, 2);
+            var lot3 = Gen_LotNo(modelCode, 3);
             var bomFileSequnce = 1;
             var initial_lot_count = await ctx.Lots.CountAsync();
 
@@ -167,7 +168,8 @@ namespace SKD.Test {
         private async Task import_bom_lot_part_will_remove_omitted_part() {
             // setup
             var plant = Gen_Plant();
-            var lot1 = Gen_LotNo();
+            var modelCode = await ctx.VehicleModels.Select(t =>t.Code).FirstOrDefaultAsync();
+            var lot1 = Gen_LotNo(modelCode, 1);
             var bomFileSequnce = 1;
 
             var service = new BomService(ctx);            
@@ -203,8 +205,8 @@ namespace SKD.Test {
         private async Task import_bom_lot_changes_part_no_format() {
             // setup
             var plant = Gen_Plant();
-            var lot1 = Gen_LotNo();
-            var lot2 = Gen_LotNo();
+            var lot1 = Gen_LotNo(1);
+            var lot2 = Gen_LotNo(2);
 
             // trim tailing [- ]* and removes spaces
             var part_mubers = new List<(string partNo, string reformattedPartNo)>() {
@@ -265,7 +267,7 @@ namespace SKD.Test {
         private async Task cannot_import_duplicate_bom_lot_parts_in_paylaod() {
             // setup
             var plant = Gen_Plant();
-            var lotNo = Gen_LotNo();
+            var lotNo = Gen_LotNo(1);
 
             var dto = new BomLotPartInput() {
                 Sequence = 1,
@@ -322,12 +324,12 @@ namespace SKD.Test {
         }
 
         [Fact]
-        private async Task can_import_bom_lot_kits_from_bom() {
+        private async Task can_import_bom_lot_kits() {
 
             // setup
             var plant = Gen_Plant();
             var model = await ctx.VehicleModels.FirstOrDefaultAsync();
-            var lotNo = Gen_LotNo();
+            var lotNo = Gen_LotNo(1);
             var kitCount = 6;
 
             var input = Gen_BomLotKitInput(plant.Code, lotNo, model.Code, kitCount);
@@ -352,7 +354,7 @@ namespace SKD.Test {
             // setup
             var plant = Gen_Plant();
             var modelCode = Gen_VehicleModel_Code();
-            var lotNo = Gen_LotNo();
+            var lotNo = Gen_LotNo(1);
             var kitCount = 6;
 
             var input = Gen_BomLotKitInput(plant.Code, lotNo, modelCode, kitCount);
@@ -374,7 +376,7 @@ namespace SKD.Test {
         private async Task cannot_import_bom_lot_kits_already_imported() {
             // setup
             var plant = Gen_Plant();
-            var lotNo = Gen_LotNo();
+            var lotNo = Gen_LotNo(1);
             var model = await ctx.VehicleModels.FirstOrDefaultAsync();
             var kitCount = 6;
 
@@ -397,7 +399,7 @@ namespace SKD.Test {
                 Sequence = 1,
                 Lots = new List<BomLotKitInput.Lot> {
                     new BomLotKitInput.Lot {
-                        LotNo = Gen_LotNo(),
+                        LotNo = Gen_LotNo(modelCode, 1),
                         Kits = Enumerable.Range(1,kitCount).Select(num => new BomLotKitInput.Lot.LotKit {
                             KitNo = Gen_KitNo(lotNo, num),
                             ModelCode = modelCode

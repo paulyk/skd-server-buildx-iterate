@@ -11,7 +11,7 @@ namespace SKD.Test {
 
         public LotPartService_Test() {
             ctx = GetAppDbContext();
-
+            Gen_Baseline_Test_Seed_Data(generateLot: false);
         }
 
         [Fact]
@@ -160,19 +160,19 @@ namespace SKD.Test {
                 PlantCode = plantCode,
                 LotParts = new List<BomLotPartInput.LotPart> {
                     new BomLotPartInput.LotPart {
-                        LotNo = Gen_LotNo(),
+                        LotNo = Gen_LotNo(1),
                         PartNo = Gen_PartNo(),
                         PartDesc = Gen_PartDesc(),
                         Quantity = 2
                     },
                     new BomLotPartInput.LotPart {
-                        LotNo = Gen_LotNo(),
+                        LotNo = Gen_LotNo(2),
                         PartNo = Gen_PartNo(),
                         PartDesc = Gen_PartDesc(),
                         Quantity = 3
                     },
                     new BomLotPartInput.LotPart {
-                        LotNo = Gen_LotNo(),
+                        LotNo = Gen_LotNo(3),
                         PartNo = Gen_PartNo(),
                         PartDesc = Gen_PartDesc(),
                         Quantity = 4
