@@ -178,7 +178,6 @@ namespace SKD.Test {
                 var kit = new Kit() {
                     VIN = new String('X', EntityFieldLen.Vehicle_VIN),
                     Lot = lot,
-                    Model = vehicleModel
                 };
 
                 ctx.Kits.Add(kit);
@@ -221,16 +220,13 @@ namespace SKD.Test {
 
                 var vehicle_1 = new Kit() {
                     VIN = new String('X', EntityFieldLen.Vehicle_VIN),
-                    Model = vehicleModel
                 };
 
                 var vehicle_2 = new Kit() {
                     VIN = new String('X', EntityFieldLen.Vehicle_VIN),
-                    Model = vehicleModel
                 };
 
-                ctx.Kits.Add(vehicle_1);
-                ctx.Kits.Add(vehicle_2);
+                ctx.Kits.AddRange(vehicle_1, vehicle_2);
 
                 // test + assert
                 Assert.Throws<DbUpdateException>(() => ctx.SaveChanges());

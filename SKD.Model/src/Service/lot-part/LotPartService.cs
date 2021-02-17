@@ -129,8 +129,8 @@ namespace SKD.Model {
         public async Task<LotDTO?> GetLotInfo(string lotNo) {
             var result = await context.Lots.Select(t => new LotDTO {
                 LotNo = t.LotNo,
+                ModelName = t.Model.Name,
                 CreatedAt = t.CreatedAt,
-                ModelName = t.Kits.Select(u => u.Model.Name).FirstOrDefault()
             }).FirstOrDefaultAsync(t => t.LotNo == lotNo);
 
             return result;

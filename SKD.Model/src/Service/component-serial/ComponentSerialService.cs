@@ -189,8 +189,8 @@ namespace SKD.Model {
                 .Select(t => new SerialCaptureVehicleDTO {
                     VIN = t.VIN,
                     LotNo = t.Lot.LotNo,
-                    ModelCode = t.Model.Code,
-                    ModelName = t.Model.Name,
+                    ModelCode = t.Lot.Model.Code,
+                    ModelName = t.Lot.Model.Name,
                     Components = t.KitComponents
                         .OrderBy(t => t.ProductionStation.Sequence)
                         .Where(t => t.RemovedAt == null)

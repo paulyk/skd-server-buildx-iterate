@@ -121,7 +121,6 @@ namespace SKD.Test {
 
             Kit VehicleForKitSeq(VehicleModel model, int kitSeq) {
                 var vehicle = new Kit {
-                    Model = model,
                     KitNo = Gen_KitNo(lotNo, kitSeq),
                     VIN = auto_assign_vin ? Gen_VIN() : "",
                     KitComponents = model.ModelComponents.Select(mc => new KitComponent {
@@ -244,7 +243,6 @@ namespace SKD.Test {
                 VIN = vin,
                 Lot = vehicleLot,
                 KitNo = kitNo,
-                Model = vehicleModel,
                 KitComponents = vehicleComponents
             };
 

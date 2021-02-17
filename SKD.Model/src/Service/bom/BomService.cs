@@ -61,9 +61,9 @@ namespace SKD.Model {
                 .Where(t => input_LotNos.Any(lotNo => lotNo == t.LotNo)).ToListAsync();
 
             var new_LotNos = input_LotNos.Except(existingLots.Select(t => t.LotNo)).ToList();
-            
+
             // get vehicle models for new lots
-            var modelCodes = new_LotNos.Select(t => t.Substring(0,EntityFieldLen.VehicleModel_CodeLen));
+            var modelCodes = new_LotNos.Select(t => t.Substring(0, EntityFieldLen.VehicleModel_CodeLen));
             var models = await context.VehicleModels.Where(t => modelCodes.Any(modelCode => t.Code == modelCode)).ToListAsync();
 
             // validate
@@ -90,9 +90,9 @@ namespace SKD.Model {
             var newLots = new List<Lot>();
             if (new_LotNos.Any()) {
                 newLots = new_LotNos.Select(lotNo => new Lot {
-                    Model = models.First(t => t.Code == lotNo.Substring(0,EntityFieldLen.VehicleModel_CodeLen)),
+                    Model = models.First(t => t.Code == lotNo.Substring(0, EntityFieldLen.VehicleModel_CodeLen)),
                     Plant = plant,
-                    LotNo = lotNo,                
+                    LotNo = lotNo,
                     Bom = bom
                 }).ToList();
                 context.Lots.AddRange(newLots);
@@ -247,41 +247,27 @@ namespace SKD.Model {
         }
 
         private async Task<Kit> CreateVehicleKit(BomLotKitInput.Lot.LotKit input) {
-            var vehicles = new List<Kit>();
+            var kits = new List<Kit>();
 
-            var modelId = await context.VehicleModels
+            var model = await context.VehicleModels
+                .Include(t => t.ModelComponents)
                 .Where(t => t.Code == input.ModelCode)
-                .Select(t => t.Id).FirstOrDefaultAsync();
+                .FirstOrDefaultAsync();
 
-            var vehicle = new Kit {
-                ModelId = modelId,
+
+            var kit = new Kit {
                 KitNo = input.KitNo
             };
 
-            var payload = new MutationPayload<Kit>(vehicle);
-
-            // ensure vehicle.Model set
-            if (vehicle.ModelId != Guid.Empty) {
-                vehicle.Model = await context.VehicleModels
-                    .Include(t => t.ModelComponents).ThenInclude(t => t.Component)
-                    .Include(t => t.ModelComponents).ThenInclude(t => t.ProductionStation)
-                    .FirstOrDefaultAsync(t => t.Id == vehicle.ModelId);
-            }
-
-            if (vehicle.Model != null) {
-                // add vehicle components
-                var modelCOmponents = vehicle.Model.ModelComponents.Where(t => t.RemovedAt == null).ToList();
-
-                modelCOmponents.ForEach(mapping => {
-                    vehicle.KitComponents.Add(new KitComponent() {
-                        Component = mapping.Component,
-                        ProductionStationId = mapping.ProductionStationId,
-                        CreatedAt = vehicle.CreatedAt
-                    });
+            model.ModelComponents.ToList().ForEach(mapping => {
+                kit.KitComponents.Add(new KitComponent() {
+                    ComponentId = mapping.ComponentId,
+                    ProductionStationId = mapping.ProductionStationId,
+                    CreatedAt = kit.CreatedAt
                 });
-            }
+            });
 
-            return vehicle;
+            return kit;
         }
 
         public async Task<List<Error>> ValidateBomLotKitInput<T>(BomLotKitInput input) where T : BomLotKitInput {

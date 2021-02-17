@@ -100,6 +100,7 @@ namespace SKD.Server {
                 context.ComponentSerials
                         .Include(t => t.KitComponent)
                                 .ThenInclude(t => t.Kit)
+                                .ThenInclude(t => t.Lot)
                                 .ThenInclude(t => t.Model)
                         .Include(t => t.KitComponent).ThenInclude(t => t.Component)
                         .Include(t => t.KitComponent).ThenInclude(t => t.ProductionStation)
@@ -140,7 +141,7 @@ namespace SKD.Server {
                     .Include(t => t.KitComponents).ThenInclude(t => t.Component)
                     .Include(t => t.KitComponents).ThenInclude(t => t.ProductionStation)
                     .Include(t => t.KitComponents).ThenInclude(t => t.ComponentSerials)
-                    .Include(t => t.Model)
+                    .Include(t => t.Lot).ThenInclude(t => t.Model)
                     .Include(t => t.TimelineEvents)
                     .FirstOrDefaultAsync(t => t.Id == id);
 
@@ -153,7 +154,7 @@ namespace SKD.Server {
                     .Include(t => t.KitComponents).ThenInclude(t => t.Component)
                     .Include(t => t.KitComponents).ThenInclude(t => t.ProductionStation)
                     .Include(t => t.KitComponents).ThenInclude(t => t.ComponentSerials)
-                    .Include(t => t.Model)
+                    .Include(t => t.Lot).ThenInclude(t => t.Model)
                     .Include(t => t.TimelineEvents)
                     .FirstOrDefaultAsync(t => t.VIN == vinOrKitNo || t.KitNo == vinOrKitNo);
 
@@ -204,26 +205,26 @@ namespace SKD.Server {
 
         public async Task<Lot?> GetVehicleLotByLotNo([Service] SkdContext context, string lotNo) =>
                 await context.Lots.AsNoTracking()
-                        .Include(t => t.Kits).ThenInclude(t => t.Model)
+                        .Include(t => t.Model)
                         .Include(t => t.Kits)
                                 .ThenInclude(t => t.TimelineEvents)
                                 .ThenInclude(t => t.EventType)
                         .FirstOrDefaultAsync(t => t.LotNo == lotNo);
 
         public async Task<LotOverviewDTO?> GetLotOverview([Service] SkdContext context, string lotNo) {
-            var vehicleLot = await context.Lots.OrderBy(t => t.LotNo).AsNoTracking()
+            var lot = await context.Lots.OrderBy(t => t.LotNo).AsNoTracking()
                 .Include(t => t.Kits).ThenInclude(t => t.TimelineEvents).ThenInclude(t => t.EventType)
-                .Include(t => t.Kits).ThenInclude(t => t.Model)
+                .Include(t => t.Model)
                 .Include(t => t.Plant)
                 .Include(t => t.Bom)
                 .FirstOrDefaultAsync(t => t.LotNo == lotNo);
 
-            if (vehicleLot == null) {
+            if (lot == null) {
                 return (LotOverviewDTO?)null;
             }
 
-            var vehicle = vehicleLot.Kits.FirstOrDefault();
-            var timelineEvents = vehicleLot.Kits.SelectMany(t => t.TimelineEvents);
+            var vehicle = lot.Kits.FirstOrDefault();
+            var timelineEvents = lot.Kits.SelectMany(t => t.TimelineEvents);
 
 
             KitTimelineEvent? customReceivedEvent = null;
@@ -235,14 +236,14 @@ namespace SKD.Server {
             }
 
             return new LotOverviewDTO {
-                Id = vehicleLot.Id,
-                LotNo = vehicleLot.LotNo,
-                BomId = vehicleLot.Bom.Id,
-                BomSequenceNo = vehicleLot.Bom.Sequence,
-                PlantCode = vehicleLot.Plant.Code,
-                ModelCode = vehicle != null ? vehicle.Model.Code : "",
-                ModelName = vehicle != null ?  vehicle.Model.Name : "",
-                CreatedAt = vehicleLot.CreatedAt,
+                Id = lot.Id,
+                LotNo = lot.LotNo,
+                BomId = lot.Bom.Id,
+                BomSequenceNo = lot.Bom.Sequence,
+                PlantCode = lot.Plant.Code,
+                ModelCode = lot.Model.Code,
+                ModelName = lot.Model.Name,
+                CreatedAt = lot.CreatedAt,
                 CustomReceived = customReceivedEvent != null 
                     ? new TimelineEventDTO {
                         EventType = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
@@ -266,7 +267,7 @@ namespace SKD.Server {
         public async Task<List<Kit>> GetVehiclesByLot([Service] SkdContext context, string lotNo) =>
                  await context.Kits.OrderBy(t => t.Lot).AsNoTracking()
                     .Where(t => t.Lot.LotNo == lotNo)
-                        .Include(t => t.Model)
+                        .Include(t => t.Lot).ThenInclude(t => t.Model)
                         .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                     .ToListAsync();
 
@@ -285,25 +286,6 @@ namespace SKD.Server {
                         .Include(t => t.Component)
                         .Include(t => t.ComponentSerials)
                         .FirstOrDefaultAsync(t => t.Kit.VIN == vin && t.Component.Code == componentCode);
-
-        public async Task<VehicleOrComponentDTO> GetVehicleOrComponent([Service] SkdContext context, string vinOrCode) {
-            Component component = await context.Components.AsNoTracking().FirstOrDefaultAsync(t => t.Code == vinOrCode);
-            Kit? vehicle = null;
-
-            if (component == null) {
-                vehicle = await context.Kits
-                        .Include(t => t.Model)
-                        .Include(t => t.KitComponents).ThenInclude(t => t.Component)
-                        .FirstOrDefaultAsync(t => t.VIN == vinOrCode);
-            }
-
-            return new VehicleOrComponentDTO {
-                Code = vinOrCode,
-                Vehicle = vehicle,
-                Component = component
-            };
-        }
-
         public async Task<ComponentSerial?> GetComponentScanById([Service] SkdContext context, Guid id) =>
                 await context.ComponentSerials.AsNoTracking()
                         .Include(t => t.KitComponent).ThenInclude(t => t.Kit)

@@ -16,11 +16,6 @@ namespace SKD.Model {
             builder.Property(t => t.KitNo).IsRequired().HasMaxLength(EntityFieldLen.Vehicle_KitNo);
             builder.Property(t => t.VIN).HasMaxLength(EntityFieldLen.Vehicle_VIN);
 
-            // relationships
-            builder.HasOne(t => t.Model)
-                .WithMany(t => t.Vehicles)
-                .HasForeignKey(t => t.ModelId);
-
             builder.HasOne(t => t.Lot)
                 .WithMany(t => t.Kits)
                 .HasForeignKey(t => t.LotId);

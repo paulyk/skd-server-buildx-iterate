@@ -27,10 +27,6 @@ namespace SKD.Model {
             builder.HasMany(t => t.Lots)
                 .WithOne(t => t.Model)
                 .HasForeignKey(t => t.ModelId);
-
-            builder.HasMany(t => t.Vehicles)
-                .WithOne(t => t.Model)
-                .HasForeignKey(t => t.ModelId);
         }
     }
 }

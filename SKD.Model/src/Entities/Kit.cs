@@ -5,9 +5,6 @@ namespace SKD.Model {
     public partial class Kit : EntityBase {
         public virtual string VIN { get; set; } = "";
         public string KitNo { get; set; } = "";
-
-        public Guid ModelId { get; set; }        
-        public virtual VehicleModel Model { get; set; }
         
         public Guid LotId { get; set; }        
         public virtual Lot Lot { get; set; }

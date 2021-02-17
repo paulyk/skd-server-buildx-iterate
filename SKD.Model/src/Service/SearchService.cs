@@ -35,7 +35,7 @@ namespace SKD.Model {
             // find where matches
             var byModel = await context.Kits
                 .AsNoTracking()
-                .Where(t => t.Model.Code.Contains(query) || t.Model.Name.Contains(query))
+                .Where(t => t.Lot.Model.Code.Contains(query) || t.Lot.Model.Name.Contains(query))
                 .ToListAsync();
 
             return byVIN.Union(byModel).ToList();
