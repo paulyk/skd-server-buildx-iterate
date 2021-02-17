@@ -16,7 +16,8 @@ namespace SKD.Model {
             // relationships            
             builder.HasOne(t => t.Model)
                 .WithMany(t => t.Lots)
-                .HasForeignKey(t => t.ModelId);
+                .HasForeignKey(t => t.ModelId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(t => t.Kits)
                 .WithOne(t => t.Lot)
@@ -29,7 +30,7 @@ namespace SKD.Model {
             builder.HasOne(t => t.Plant)
                 .WithMany(t => t.Lots)
                 .HasForeignKey(t => t.PlantId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(t => t.Bom)
                 .WithMany(t => t.Lots)
