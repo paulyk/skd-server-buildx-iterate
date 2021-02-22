@@ -135,7 +135,7 @@ namespace SKD.Server {
         public async Task<ShipmentOverviewDTO?> GetShipmentOverview([Service] ShipmentService service, Guid shipmentId) =>
             await service.GetShipmentOverview(shipmentId);
 
-        public async Task<Kit?> GetVehicleById([Service] SkdContext context, Guid id) {
+        public async Task<Kit?> GetKitById([Service] SkdContext context, Guid id) {
             var result = await context.Kits.AsNoTracking()
                     .Include(t => t.Lot)
                     .Include(t => t.KitComponents).ThenInclude(t => t.Component)
@@ -148,7 +148,7 @@ namespace SKD.Server {
             return result;
         }
 
-        public async Task<Kit?> GetVehicleByVinOrKitNo([Service] SkdContext context, string vinOrKitNo) {
+        public async Task<Kit?> GetKitByKitNo([Service] SkdContext context, string kitNo) {
             var result = await context.Kits.AsNoTracking()
                     .Include(t => t.Lot)
                     .Include(t => t.KitComponents).ThenInclude(t => t.Component)
@@ -156,16 +156,19 @@ namespace SKD.Server {
                     .Include(t => t.KitComponents).ThenInclude(t => t.ComponentSerials)
                     .Include(t => t.Lot).ThenInclude(t => t.Model)
                     .Include(t => t.TimelineEvents)
-                    .FirstOrDefaultAsync(t => t.VIN == vinOrKitNo || t.KitNo == vinOrKitNo);
+                    .FirstOrDefaultAsync(t => t.KitNo == kitNo);
 
             return result;
         }
 
-        public async Task<VehicleTimelineDTO?> GetVehicleTimeline([Service] SkdContext context, string vinOrKitNo) {
+        public async Task<VehicleTimelineDTO?> GetVehicleTimeline(
+            [Service] SkdContext context, 
+            string kitNo
+        ) {
             var vehicle = await context.Kits.AsNoTracking()
                     .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                     .Include(t => t.Lot)
-                    .FirstOrDefaultAsync(t => t.VIN == vinOrKitNo || t.KitNo == vinOrKitNo);
+                    .FirstOrDefaultAsync(t => t.KitNo == kitNo);
 
             if (vehicle == null) {
                 return (VehicleTimelineDTO?)null;
