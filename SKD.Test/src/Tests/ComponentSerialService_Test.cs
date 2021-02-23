@@ -351,10 +351,10 @@ namespace SKD.Test {
             var kitInfo = await service.GetKitInfo_ForSerialCapture(kit.VIN);
 
             var expected_component_count = kitComponents.Count();
-            var kit_info_component_count = kitInfo.Components.Count();
+            var kit_info_component_count = kitInfo.KitComponents.Count();
             Assert.Equal(expected_component_count, kit_info_component_count);
 
-            var componentsWithSerial = kitInfo.Components
+            var componentsWithSerial = kitInfo.KitComponents
                 .Where(t => t.Serial1 is not null or "").ToList();
 
             var with_serial_count =componentsWithSerial.Count();

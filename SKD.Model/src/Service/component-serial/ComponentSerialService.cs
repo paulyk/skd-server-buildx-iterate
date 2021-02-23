@@ -183,22 +183,23 @@ namespace SKD.Model {
             return input;
         }
 
-        public async Task<SerialCaptureVehicleDTO?> GetKitInfo_ForSerialCapture(string vin) {
-            return await context.Kits
+        public async Task<SerialCaptureKitDTO?> GetKitInfo_ForSerialCapture(string vin) {
+            var result = await context.Kits
                 .Where(t => t.VIN == vin)
-                .Select(t => new SerialCaptureVehicleDTO {
+                .Select(t => new SerialCaptureKitDTO {
+                    KitNo = t.KitNo,
                     VIN = t.VIN,
                     LotNo = t.Lot.LotNo,
                     ModelCode = t.Lot.Model.Code,
                     ModelName = t.Lot.Model.Name,
-                    Components = t.KitComponents
+                    KitComponents = t.KitComponents
                         .OrderBy(t => t.ProductionStation.Sequence)
                         .Where(t => t.RemovedAt == null)
                         .Select(t => new SerialCaptureComponentDTO {
                             KitComponentId = t.Id,
-                            ProductionStationSequence = t.ProductionStation.Sequence,
-                            ProductionStationCode = t.ProductionStation.Code,
-                            ProductionStationName = t.ProductionStation.Name,
+                            StationSequence = t.ProductionStation.Sequence,
+                            StationCode = t.ProductionStation.Code,
+                            StationName = t.ProductionStation.Name,
                             ComponentCode = t.Component.Code,
                             ComponentName = t.Component.Name,
                             Serial1 = t.ComponentSerials.Where(u => u.RemovedAt == null).Select(u => u.Serial1).FirstOrDefault(),
@@ -207,7 +208,8 @@ namespace SKD.Model {
                         }).ToList()
                 })
                 .FirstOrDefaultAsync();
-        }
 
+            return result;
+        }
     }
 }

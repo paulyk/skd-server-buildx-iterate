@@ -229,7 +229,6 @@ namespace SKD.Server {
             var vehicle = lot.Kits.FirstOrDefault();
             var timelineEvents = lot.Kits.SelectMany(t => t.TimelineEvents);
 
-
             KitTimelineEvent? customReceivedEvent = null;
             if (vehicle != null) {
                 customReceivedEvent = vehicle.TimelineEvents
@@ -387,7 +386,7 @@ namespace SKD.Server {
             int count = 100
         ) => await service.GetRecentLotPartsReceived(count);
 
-        public async Task<SerialCaptureVehicleDTO?> GetKitInfo_ForSerialCapture(
+        public async Task<SerialCaptureKitDTO?> GetKitInfo_ForSerialCapture(
             [Service] ComponentSerialService service,
             string vin
         ) => await service.GetKitInfo_ForSerialCapture(vin);
