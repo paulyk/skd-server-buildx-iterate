@@ -27,13 +27,13 @@ namespace SKD.Model {
             var componentSerial = new ComponentSerial {
                 Serial1 = input.Serial1,
                 Serial2 = input.Serial2,
-                KitComponentId = input.VehicleComponentId
+                KitComponentId = input.KitComponentId
             };
 
             // Deactivate existing scan if Replace == true
             if (input.Replace) {
                 var existintScans = await context.ComponentSerials
-                    .Where(t => t.KitComponentId == input.VehicleComponentId && t.RemovedAt == null).ToListAsync();
+                    .Where(t => t.KitComponentId == input.KitComponentId && t.RemovedAt == null).ToListAsync();
                 existintScans.ForEach(t => t.RemovedAt = DateTime.UtcNow);
             }
 
@@ -64,17 +64,17 @@ namespace SKD.Model {
         public async Task<List<Error>> ValidateCaptureComponentSerial<T>(ComponentSerialInput input) where T : ComponentSerialInput {
             var errors = new List<Error>();
 
-            var targetVehicleCmponent = await context.VehicleComponents
+            var targetKitCmponent = await context.KitComponents
                 .Include(t => t.ProductionStation)
-                .FirstOrDefaultAsync(t => t.Id == input.VehicleComponentId);
+                .FirstOrDefaultAsync(t => t.Id == input.KitComponentId);
 
-            if (targetVehicleCmponent == null) {
-                errors.Add(new Error("VehicleComponentId", $"vehicle component not found: {input.VehicleComponentId}"));
+            if (targetKitCmponent == null) {
+                errors.Add(new Error("KitComponentId", $"kit component not found: {input.KitComponentId}"));
                 return errors;
             }
 
-            if (targetVehicleCmponent.RemovedAt != null) {
-                errors.Add(new Error("VehicleComponentId", $"vehicle component removed: {input.VehicleComponentId}"));
+            if (targetKitCmponent.RemovedAt != null) {
+                errors.Add(new Error("KitComponentId", $"kit component removed: {input.KitComponentId}"));
                 return errors;
             }
 
@@ -90,37 +90,37 @@ namespace SKD.Model {
                 return errors;
             }
 
-            // component serial entry for this vehicle component 
-            var componentSerialForVehicleComponent = await context.ComponentSerials
+            // component serial entry for this kit component 
+            var componentSerialForKitComponent = await context.ComponentSerials
                 .Include(t => t.KitComponent).ThenInclude(t => t.Kit)
                 .Include(t => t.KitComponent).ThenInclude(t => t.Component)
                 .Include(t => t.KitComponent).ThenInclude(t => t.ProductionStation)
-                .Where(t => t.KitComponent.Id == input.VehicleComponentId)
+                .Where(t => t.KitComponent.Id == input.KitComponentId)
                 .Where(t => t.RemovedAt == null)
                 .FirstOrDefaultAsync();
 
-            if (componentSerialForVehicleComponent != null && !input.Replace) {
-                var vin = componentSerialForVehicleComponent.KitComponent.Kit.VIN;
-                var stationCode = componentSerialForVehicleComponent.KitComponent.ProductionStation.Code;
-                var componentCode = componentSerialForVehicleComponent.KitComponent.Component.Code;
+            if (componentSerialForKitComponent != null && !input.Replace) {
+                var vin = componentSerialForKitComponent.KitComponent.Kit.VIN;
+                var stationCode = componentSerialForKitComponent.KitComponent.ProductionStation.Code;
+                var componentCode = componentSerialForKitComponent.KitComponent.Component.Code;
                 errors.Add(new Error("", $"component serial already captured for this component: {vin}-{stationCode}-{componentCode}"));
                 return errors;
             }
 
-            // serial no already in use by different vehicle component
+            // serial no already in use by different kit component
             var componentSerials_with_same_serialNo = await context.ComponentSerials
                 .Include(t => t.KitComponent).ThenInclude(t => t.Component)
                 .Where(t => t.RemovedAt == null)
                 // different component
-                .Where(t => t.KitComponent.Id != targetVehicleCmponent.Id)
-                // exclude if same vehicle and same component code   
+                .Where(t => t.KitComponent.Id != targetKitCmponent.Id)
+                // exclude if same kit and same component code   
                 // ....... Engine component code will be scanned muliple times)
                 .Where(t => !(
-                    // same vehicle
-                    t.KitComponent.KitId == targetVehicleCmponent.KitId
+                    // same kit
+                    t.KitComponent.KitId == targetKitCmponent.KitId
                     &&
                     // same component
-                    t.KitComponent.ComponentId == targetVehicleCmponent.ComponentId
+                    t.KitComponent.ComponentId == targetKitCmponent.ComponentId
                     )
                 )
                 // user could point scan serial 2 before serial 1, so we check for both
@@ -142,14 +142,14 @@ namespace SKD.Model {
             *  They should not be captured out of order
             */
 
-            var preeceedingRequiredComponentEntriesNotCaptured = await context.VehicleComponents
+            var preeceedingRequiredComponentEntriesNotCaptured = await context.KitComponents
                 .OrderBy(t => t.ProductionStation.Sequence)
-                // save vehicle         
-                .Where(t => t.Kit.Id == targetVehicleCmponent.KitId)
+                // save kit         
+                .Where(t => t.Kit.Id == targetKitCmponent.KitId)
                 // same component id
-                .Where(t => t.ComponentId == targetVehicleCmponent.ComponentId)
-                // preceeding target vehicle component
-                .Where(t => t.ProductionStation.Sequence < targetVehicleCmponent.ProductionStation.Sequence)
+                .Where(t => t.ComponentId == targetKitCmponent.ComponentId)
+                // preceeding target kit component
+                .Where(t => t.ProductionStation.Sequence < targetKitCmponent.ProductionStation.Sequence)
                 // no captured serial entries
                 .Where(t => !t.ComponentSerials.Any(u => u.RemovedAt == null))
                 .Select(t => new {
@@ -175,7 +175,7 @@ namespace SKD.Model {
 
             if (input.Serial1.Trim().Length == 0) {
                 return new ComponentSerialInput {
-                    VehicleComponentId = input.VehicleComponentId,
+                    KitComponentId = input.KitComponentId,
                     Serial1 = input.Serial2,
                     Serial2 = ""
                 };
@@ -183,7 +183,7 @@ namespace SKD.Model {
             return input;
         }
 
-        public async Task<SerialCaptureVehicleDTO?> GetVehicleInfo_ForSerialCapture(string vin) {
+        public async Task<SerialCaptureVehicleDTO?> GetKitInfo_ForSerialCapture(string vin) {
             return await context.Kits
                 .Where(t => t.VIN == vin)
                 .Select(t => new SerialCaptureVehicleDTO {
@@ -195,7 +195,7 @@ namespace SKD.Model {
                         .OrderBy(t => t.ProductionStation.Sequence)
                         .Where(t => t.RemovedAt == null)
                         .Select(t => new SerialCaptureComponentDTO {
-                            VehicleComponentId = t.Id,
+                            KitComponentId = t.Id,
                             ProductionStationSequence = t.ProductionStation.Sequence,
                             ProductionStationCode = t.ProductionStation.Code,
                             ProductionStationName = t.ProductionStation.Name,
