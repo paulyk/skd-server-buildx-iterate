@@ -17,12 +17,12 @@ namespace SKD.Test {
         [Fact]
         public async Task can_capture_component_serial() {
             // setup
-            var vehicleComponent = await ctx.VehicleComponents
+            var kitComponent = await ctx.KitComponents
                 .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
             var input = new ComponentSerialInput {
-                VehicleComponentId = vehicleComponent.Id,
+                KitComponentId = kitComponent.Id,
                 Serial1 = Gen_ComponentSerialNo()
             };
             var before_count = await ctx.ComponentSerials.CountAsync();
@@ -39,12 +39,12 @@ namespace SKD.Test {
         [Fact]
         public async Task capture_component_serial_swaps_if_serial_1_blank() {
             // setup
-            var vehicleComponent = await ctx.VehicleComponents
+            var kitComponent = await ctx.KitComponents
                 .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
             var input = new ComponentSerialInput {
-                VehicleComponentId = vehicleComponent.Id,
+                KitComponentId = kitComponent.Id,
                 Serial2 = Gen_ComponentSerialNo()
             };
             // test
@@ -62,12 +62,12 @@ namespace SKD.Test {
         [Fact]
         public async Task error_capturing_component_serial_if_blank_serial() {
             // setup
-            var vehicleComponent = await ctx.VehicleComponents
+            var kitComponent = await ctx.KitComponents
                 .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
             var input = new ComponentSerialInput {
-                VehicleComponentId = vehicleComponent.Id,
+                KitComponentId = kitComponent.Id,
                 Serial1 = ""
             };
             var before_count = await ctx.ComponentSerials.CountAsync();
@@ -88,16 +88,16 @@ namespace SKD.Test {
         [Fact]
         public async Task error_capturing_component_serial_if_already_captured_for_specified_component() {
             // setup
-            var vehicleComponent = await ctx.VehicleComponents
+            var kitComponent = await ctx.KitComponents
                 .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
             var input_1 = new ComponentSerialInput {
-                VehicleComponentId = vehicleComponent.Id,
+                KitComponentId = kitComponent.Id,
                 Serial1 = Gen_ComponentSerialNo()
             };
             var input_2 = new ComponentSerialInput {
-                VehicleComponentId = vehicleComponent.Id,
+                KitComponentId = kitComponent.Id,
                 Serial1 = Gen_ComponentSerialNo()
             };
             var before_count = await ctx.ComponentSerials.CountAsync();
@@ -115,17 +115,17 @@ namespace SKD.Test {
         [Fact]
         public async Task can_replace_serial_with_new_one_for_specified_component() {
             // setup
-            var vehicleComponent = await ctx.VehicleComponents
+            var kitComponent = await ctx.KitComponents
                 .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
             var input_1 = new ComponentSerialInput {
-                VehicleComponentId = vehicleComponent.Id,
+                KitComponentId = kitComponent.Id,
                 Serial1 = Gen_ComponentSerialNo(),
                 Serial2 = Gen_ComponentSerialNo()
             };
             var input_2 = new ComponentSerialInput {
-                VehicleComponentId = vehicleComponent.Id,
+                KitComponentId = kitComponent.Id,
                 Serial1 = Gen_ComponentSerialNo(),
                 Serial2 = Gen_ComponentSerialNo(),
                 Replace = true
@@ -160,23 +160,23 @@ namespace SKD.Test {
             var serialNo = Gen_ComponentSerialNo();
 
             // first vehcle component
-            var vehicleComponent_1 = await ctx.VehicleComponents
+            var kitComponent_1 = await ctx.KitComponents
                 .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
             var input_1 = new ComponentSerialInput {
-                VehicleComponentId = vehicleComponent_1.Id,
+                KitComponentId = kitComponent_1.Id,
                 Serial1 = serialNo
             };
 
             // different vheicle component
-            var vehicleComponent_2 = await ctx.VehicleComponents
+            var kitComponent_2 = await ctx.KitComponents
                 .OrderBy(t => t.ProductionStation.Sequence)
                 .Skip(1)
                 .FirstOrDefaultAsync();
 
             var input_2 = new ComponentSerialInput {
-                VehicleComponentId = vehicleComponent_2.Id,
+                KitComponentId = kitComponent_2.Id,
                 Serial1 = serialNo // same serial as input_1
             };
 
@@ -195,13 +195,13 @@ namespace SKD.Test {
         [Fact]
         public async Task error_If_component_serial_1_and_2_the_same() {
             // setup
-            var vehicleComponent = await ctx.VehicleComponents
+            var kitComponent = await ctx.KitComponents
                 .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
             var serialNo =Gen_ComponentSerialNo();
             var input = new ComponentSerialInput {
-                VehicleComponentId = vehicleComponent.Id,
+                KitComponentId = kitComponent.Id,
                 Serial1 = serialNo,
                 Serial2 = serialNo
             };
@@ -219,8 +219,8 @@ namespace SKD.Test {
 
         [Fact]
         public async Task error_if_multi_station_component_captured_out_of_sequence() {
-            // setup vehicle 
-            var vehicle = Gen_Kit_Amd_Model_From_Components(new List<(string, string)> {
+            // setup kit 
+            var kit = Gen_Kit_Amd_Model_From_Components(new List<(string, string)> {
                 ("EN", "STATION_1"),
                 ("DA", "STATION_1"),
                 ("EN", "STATION_2"),
@@ -228,12 +228,12 @@ namespace SKD.Test {
                 ("EN", "STATION_3")
             });
 
-            var vehicleComponent_1 = await ctx.VehicleComponents
+            var kitComponent_1 = await ctx.KitComponents
                 .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
             var input_1 = new ComponentSerialInput {
-                VehicleComponentId = await ctx.VehicleComponents
+                KitComponentId = await ctx.KitComponents
                     .OrderBy(t => t.ProductionStation.Sequence)
                     .Where(t => t.Component.Code != "EN")
                     .Select(t => t.Id)
@@ -242,7 +242,7 @@ namespace SKD.Test {
             };
 
             var input_2 = new ComponentSerialInput {
-                VehicleComponentId = await ctx.VehicleComponents
+                KitComponentId = await ctx.KitComponents
                     .OrderByDescending(t => t.ProductionStation.Sequence)
                     .Where(t => t.Component.Code == "EN")
                     .Select(t => t.Id)
@@ -265,10 +265,10 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task can_capture_full_vehicle_component_sequence() {
+        public async Task can_capture_full_kit_component_sequence() {
 
             // setup
-            var vehicle = Gen_Kit_Amd_Model_From_Components(new List<(string, string)> {
+            var kit = Gen_Kit_Amd_Model_From_Components(new List<(string, string)> {
                 ("EN", "STATION_1"),
                 ("DA", "STATION_1"),
                 ("EN", "STATION_2"),
@@ -282,15 +282,15 @@ namespace SKD.Test {
                 ("IK", "IK-RANDOM-657"),
             };
 
-            var vehicleComponents = await ctx.VehicleComponents
+            var kitComponents = await ctx.KitComponents
                 .Include(t => t.Component)
                 .Include(t => t.ProductionStation)
                 .OrderBy(t => t.ProductionStation.Sequence)
-                .Where(t => t.KitId == vehicle.Id).ToListAsync();
+                .Where(t => t.KitId == kit.Id).ToListAsync();
 
             // test
             var service = new ComponentSerialService(ctx);
-            foreach (var vc in vehicleComponents) {
+            foreach (var vc in kitComponents) {
                 var code = vc.Component.Code;
                 var sortOrder = vc.ProductionStation.Sequence;
                 var serialNo = serial_numbers
@@ -298,7 +298,7 @@ namespace SKD.Test {
                         .Select(t => t.serialNo)
                         .First();
                 var input = new ComponentSerialInput {
-                    VehicleComponentId = vc.Id,
+                    KitComponentId = vc.Id,
                     Serial1 = serialNo
                 };
                 await service.CaptureComponentSerial(input);
@@ -306,16 +306,16 @@ namespace SKD.Test {
 
             // assert
             var component_serial_entry_count = await ctx.ComponentSerials.CountAsync();
-            var expected_count = await ctx.VehicleComponents.CountAsync(t => t.KitId == vehicle.Id);
+            var expected_count = await ctx.KitComponents.CountAsync(t => t.KitId == kit.Id);
             Assert.Equal(expected_count, component_serial_entry_count);
 
         }
 
         [Fact]
-        public async Task get_vehicle_for_serial_capture_query_works() {
+        public async Task get_kit_for_serial_capture_query_works() {
 
             // setup
-            var vehicle = Gen_Kit_Amd_Model_From_Components(new List<(string, string)> {
+            var kit = Gen_Kit_Amd_Model_From_Components(new List<(string, string)> {
                 ("EN", "STATION_1"),
                 ("DA", "STATION_1"),
                 ("EN", "STATION_2"),
@@ -330,17 +330,17 @@ namespace SKD.Test {
                 ("IK", "IK-RANDOM-657"),
             };
 
-            var vehicleComponents = await ctx.VehicleComponents
+            var kitComponents = await ctx.KitComponents
                 .Include(t => t.Component)
                 .OrderBy(t => t.ProductionStation.Sequence)
-                .Where(t => t.KitId == vehicle.Id)
+                .Where(t => t.KitId == kit.Id)
                 .ToListAsync();
 
-            var firstVehicleComponent = vehicleComponents.First();
+            var firstKitComponent = kitComponents.First();
             var input = new ComponentSerialInput {
-                VehicleComponentId = firstVehicleComponent.Id,
+                KitComponentId = firstKitComponent.Id,
                 Serial1 = serial_numbers
-                    .Where(t => t.componentCode == firstVehicleComponent.Component.Code)
+                    .Where(t => t.componentCode == firstKitComponent.Component.Code)
                     .Select(t => t.serialNo)
                     .First()
             };
@@ -348,13 +348,13 @@ namespace SKD.Test {
             var service = new ComponentSerialService(ctx);
             await service.CaptureComponentSerial(input);
 
-            var vehicleInfo = await service.GetVehicleInfo_ForSerialCapture(vehicle.VIN);
+            var kitInfo = await service.GetKitInfo_ForSerialCapture(kit.VIN);
 
-            var expected_component_count = vehicleComponents.Count();
-            var vehicle_info_component_count = vehicleInfo.Components.Count();
-            Assert.Equal(expected_component_count, vehicle_info_component_count);
+            var expected_component_count = kitComponents.Count();
+            var kit_info_component_count = kitInfo.Components.Count();
+            Assert.Equal(expected_component_count, kit_info_component_count);
 
-            var componentsWithSerial = vehicleInfo.Components
+            var componentsWithSerial = kitInfo.Components
                 .Where(t => t.Serial1 is not null or "").ToList();
 
             var with_serial_count =componentsWithSerial.Count();

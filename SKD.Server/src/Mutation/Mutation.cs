@@ -134,13 +134,13 @@ namespace SKD.Server {
             [Service] DcwsService dcwsService,
             [Service] DCWSResponseService dcwsResponseService,
             [Service] SkdContext context,
-            Guid vehicleComponentId
+            Guid kitComponentId
         )  {
             var componentSerial = await context.ComponentSerials
                 .Include(t => t.KitComponent).ThenInclude(t => t.Kit)
                 .Include(t => t.KitComponent).ThenInclude(t => t.Component)
                 .OrderByDescending(t => t.CreatedAt)
-                .Where(t => t.KitComponentId == vehicleComponentId)
+                .Where(t => t.KitComponentId == kitComponentId)
                 .Where(t => t.RemovedAt == null)
                 .FirstOrDefaultAsync();
             
@@ -153,7 +153,7 @@ namespace SKD.Server {
             
             var submitDcwsComponentResponse = await dcwsService.SubmitDcwsComponent(input);
             var dcwsResponsePayload = await dcwsResponseService.SaveDcwsComponentResponse(new DcwsComponentResponseInput {
-                VehicleComponentId = vehicleComponentId,
+                VehicleComponentId = kitComponentId,
                 ResponseCode = submitDcwsComponentResponse.ProcessExceptionCode,                
             });
 

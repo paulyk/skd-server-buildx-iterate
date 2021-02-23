@@ -203,7 +203,7 @@ namespace SKD.Test {
         }
 
         public ComponentSerial Gen_ComponentScan(Guid vehicleComponentId) {
-            var vehicleComponent = ctx.VehicleComponents.FirstOrDefault(t => t.Id == vehicleComponentId);
+            var vehicleComponent = ctx.KitComponents.FirstOrDefault(t => t.Id == vehicleComponentId);
             var componentScan = new ComponentSerial {
                 KitComponentId = vehicleComponentId,
                 Serial1 = Util.RandomString(EntityFieldLen.ComponentSerial),

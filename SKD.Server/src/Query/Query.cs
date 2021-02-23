@@ -90,7 +90,7 @@ namespace SKD.Server {
         [UseFiltering]
         [UseSorting]
         public IQueryable<KitComponent> GetVehicleComponents([Service] SkdContext context) =>
-                context.VehicleComponents.AsQueryable();
+                context.KitComponents.AsQueryable();
 
         [UsePaging]
         [UseSelection]
@@ -284,7 +284,7 @@ namespace SKD.Server {
                  await context.Components.AsNoTracking().FirstOrDefaultAsync(t => t.Id == id);
 
         public async Task<KitComponent?> GetVehicleComponentByVinAndComponent([Service] SkdContext context, string vin, string componentCode) =>
-                 await context.VehicleComponents.AsNoTracking()
+                 await context.KitComponents.AsNoTracking()
                         .Include(t => t.Kit)
                         .Include(t => t.Component)
                         .Include(t => t.ComponentSerials)
@@ -387,10 +387,10 @@ namespace SKD.Server {
             int count = 100
         ) => await service.GetRecentLotPartsReceived(count);
 
-        public async Task<SerialCaptureVehicleDTO?> GetVehicleInfo_ForSerialCapture(
+        public async Task<SerialCaptureVehicleDTO?> GetKitInfo_ForSerialCapture(
             [Service] ComponentSerialService service,
             string vin
-        ) => await service.GetVehicleInfo_ForSerialCapture(vin);
+        ) => await service.GetKitInfo_ForSerialCapture(vin);
 
         public async Task<bool> PingDcwsService(
             [Service] DcwsService service

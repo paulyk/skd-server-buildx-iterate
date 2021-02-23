@@ -27,7 +27,7 @@ namespace SKD.Model {
                 return payload;
             }
 
-            var vehicleComponent = await context.VehicleComponents
+            var vehicleComponent = await context.KitComponents
                 .Include(t => t.ComponentSerials)
                 .Where(t => t.Id == input.VehicleComponentId)
                 .FirstOrDefaultAsync();
@@ -53,7 +53,7 @@ namespace SKD.Model {
         public async Task<List<Error>> ValidateDcwsComponentResponse<T>(DcwsComponentResponseInput input) where T : DcwsComponentResponseInput {
             var errors = new List<Error>();
 
-            var vehicleComponent = await context.VehicleComponents
+            var vehicleComponent = await context.KitComponents
                 .Include(t => t.ComponentSerials)
                 .Where(t => t.Id == input.VehicleComponentId)
                 .FirstOrDefaultAsync();

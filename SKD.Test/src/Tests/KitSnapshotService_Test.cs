@@ -430,11 +430,11 @@ namespace SKD.Test {
         }
 
         private async Task AddEngineSerialNumberComponentScan(string kitNo, string engineComponentCode, string engineSerial) {
-            var engineVehicleComponent = ctx.VehicleComponents
+            var engineVehicleComponent = ctx.KitComponents
                 .First(t => t.Kit.KitNo == kitNo && t.Component.Code == engineComponentCode);
             var scanService = new ComponentSerialService(ctx);
             var createScanPayload = await scanService.CaptureComponentSerial(new ComponentSerialInput {
-                VehicleComponentId = engineVehicleComponent.Id,
+                KitComponentId = engineVehicleComponent.Id,
                 Serial1 = engineSerial,
                 Serial2 = ""
             });
