@@ -311,6 +311,8 @@ namespace SKD.Test {
 
         }
 
+
+        /*
         [Fact]
         public async Task get_kit_for_serial_capture_query_works() {
 
@@ -367,6 +369,7 @@ namespace SKD.Test {
 
             Assert.Equal(expected_serial_no, component.Serial1);
         }
+        */
 
     }
 }

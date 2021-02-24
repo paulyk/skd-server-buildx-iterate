@@ -3,8 +3,8 @@ using SKD.Model;
 
 namespace SKD.Server {
 
-    public class SerialCaptureVehicleDTOType : ObjectType<SerialCaptureKitDTO> {
-        protected override void Configure(IObjectTypeDescriptor<SerialCaptureKitDTO> descriptor) {
+    public class SerialCaptureVehicleDTOType : ObjectType<BasicKitInfo> {
+        protected override void Configure(IObjectTypeDescriptor<BasicKitInfo> descriptor) {
             descriptor.Field(t => t.VIN).Name("vin");
         }
 

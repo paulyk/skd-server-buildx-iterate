@@ -386,10 +386,16 @@ namespace SKD.Server {
             int count = 100
         ) => await service.GetRecentLotPartsReceived(count);
 
-        public async Task<SerialCaptureKitDTO?> GetKitInfo_ForSerialCapture(
+        public async Task<BasicKitInfo?> GetBasicKitInfo(
             [Service] ComponentSerialService service,
             string vin
-        ) => await service.GetKitInfo_ForSerialCapture(vin);
+        ) => await service.GetBasicKitInfo(vin);
+
+        public async Task<KitComponentSerialInfo?> GetKitComponentSerialInfo(
+            [Service] ComponentSerialService service,
+            string kitNo,
+            string componentCode
+        ) => await service.GetKitComponentSerialInfo(kitNo, componentCode);
 
         public async Task<bool> PingDcwsService(
             [Service] DcwsService service
