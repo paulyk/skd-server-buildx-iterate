@@ -166,6 +166,42 @@ namespace SKD.Model {
                 return errors;
             }
 
+            /* MULTI STATION COMPONENT
+            *  Must have matching serial numbers
+            */
+
+            var prior_kit_components_with_same_compoent_code_different_serial_numbers = await context.KitComponents
+                .Include(t => t.ComponentSerials)
+                .OrderBy(t => t.ProductionStation.Sequence)
+                // save kit         
+                .Where(t => t.Kit.Id == targetKitCmponent.KitId)
+                // same component id
+                .Where(t => t.ComponentId == targetKitCmponent.ComponentId)
+                // preceeding target kit component
+                .Where(t => t.ProductionStation.Sequence < targetKitCmponent.ProductionStation.Sequence)
+                // any active component serials that do not match input.Serial1, input.Serial2
+                .Where(t =>
+                    t.ComponentSerials
+                        .Where(t => t.RemovedAt == null)
+                        .Any(u => u.Serial1 != input.Serial1 || u.Serial2 != input.Serial2)
+                )
+                .Select(t => new {
+                    Sequence = t.ProductionStation.Sequence,
+                    StationCode = t.ProductionStation.Code,
+                    Serial1 = t.ComponentSerials.Where(u => u.RemovedAt == null).First().Serial1,
+                    Serial2 = t.ComponentSerials.Where(u => u.RemovedAt == null).First().Serial2,
+                })
+                .ToListAsync();
+
+            if (prior_kit_components_with_same_compoent_code_different_serial_numbers.Any()) {
+                var entry = prior_kit_components_with_same_compoent_code_different_serial_numbers
+                    .OrderByDescending(t => t.Sequence)
+                    .Last();                    
+                var text = $"serial does not match previous station: {entry.StationCode}, {entry.Serial1}, {entry.Serial2}";
+                errors.Add(new Error("",text.Trim(' ',',')));
+                return errors;
+            }
+
             return errors;
         }
 
@@ -183,31 +219,55 @@ namespace SKD.Model {
             return input;
         }
 
-        public async Task<SerialCaptureVehicleDTO?> GetKitInfo_ForSerialCapture(string vin) {
-            return await context.Kits
+        public async Task<BasicKitInfo?> GetBasicKitInfo(string vin) {
+            var result = await context.Kits
                 .Where(t => t.VIN == vin)
-                .Select(t => new SerialCaptureVehicleDTO {
+                .Select(t => new BasicKitInfo {
+                    KitNo = t.KitNo,
                     VIN = t.VIN,
                     LotNo = t.Lot.LotNo,
                     ModelCode = t.Lot.Model.Code,
-                    ModelName = t.Lot.Model.Name,
-                    Components = t.KitComponents
-                        .OrderBy(t => t.ProductionStation.Sequence)
-                        .Where(t => t.RemovedAt == null)
-                        .Select(t => new SerialCaptureComponentDTO {
-                            KitComponentId = t.Id,
-                            ProductionStationSequence = t.ProductionStation.Sequence,
-                            ProductionStationCode = t.ProductionStation.Code,
-                            ProductionStationName = t.ProductionStation.Name,
-                            ComponentCode = t.Component.Code,
-                            ComponentName = t.Component.Name,
-                            Serial1 = t.ComponentSerials.Where(u => u.RemovedAt == null).Select(u => u.Serial1).FirstOrDefault(),
-                            Serial2 = t.ComponentSerials.Where(u => u.RemovedAt == null).Select(u => u.Serial2).FirstOrDefault(),
-                            SerialCapturedAt = t.ComponentSerials.Where(u => u.RemovedAt == null).Select(u => u.CreatedAt).FirstOrDefault(),
-                        }).ToList()
-                })
-                .FirstOrDefaultAsync();
+                    ModelName = t.Lot.Model.Name
+                }).FirstOrDefaultAsync();
+
+            return result;
         }
 
+        public async Task<KitComponentSerialInfo?> GetKitComponentSerialInfo(string kitNo, string componentCode) {
+            var data = await context.KitComponents
+                .Where(t => t.Kit.KitNo == kitNo && t.Component.Code == componentCode)
+                .Select(t => new {
+                    KitComponentId = t.Id,
+                    ComponentCode = t.Component.Code,
+                    ComponentName = t.Component.Name,
+                    StationSequence = t.ProductionStation.Sequence,
+                    StationCode = t.ProductionStation.Code,
+                    StationName = t.ProductionStation.Name,
+                    SerialCapture = t.ComponentSerials
+                        .Where(k => k.RemovedAt == null)
+                        .FirstOrDefault()
+                }).ToListAsync();
+
+            if (data.Count == 0) {
+                return (KitComponentSerialInfo?)null;
+            }
+
+            var result = new KitComponentSerialInfo {
+                ComponentCode = data[0].ComponentCode,
+                ComponentName = data[0].ComponentCode,
+                Stations = data.OrderBy(t => t.StationSequence).Select(t => new StatcionSerialInfo {
+                    KitComponentId = t.KitComponentId,
+                    StationSequence = t.StationSequence,
+                    StationCode = t.StationCode,
+                    StationName = t.StationName,
+                    Serial1 = t.SerialCapture?.Serial1,
+                    Serial2 = t.SerialCapture?.Serial2,
+                    CreatedAt = t.SerialCapture?.CreatedAt,
+                    VerifiedAt = t.SerialCapture?.VerifiedAt
+                }).ToList()
+            };
+
+            return result;
+        }
     }
 }
