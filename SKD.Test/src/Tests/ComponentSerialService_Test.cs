@@ -199,7 +199,7 @@ namespace SKD.Test {
                 .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
-            var serialNo =Gen_ComponentSerialNo();
+            var serialNo = Gen_ComponentSerialNo();
             var input = new ComponentSerialInput {
                 KitComponentId = kitComponent.Id,
                 Serial1 = serialNo,
@@ -311,66 +311,44 @@ namespace SKD.Test {
 
         }
 
-
-        /*
         [Fact]
-        public async Task get_kit_for_serial_capture_query_works() {
+        public async Task error_if_multi_station_component_serial_do_not_match() {
 
             // setup
             var kit = Gen_Kit_Amd_Model_From_Components(new List<(string, string)> {
                 ("EN", "STATION_1"),
                 ("DA", "STATION_1"),
                 ("EN", "STATION_2"),
-                ("IK", "STATION_2"),
-                ("EN", "STATION_3")
-            }, auto_assign_vin: true);
+            });
 
-
-            var serial_numbers = new List<(string componentCode, string serialNo)> {
-                ("EN", "EN-RANDOM-348"),
-                ("DA", "DA-RANDOM-995"),
-                ("IK", "IK-RANDOM-657"),
+            var test_data = new List<(string stationCode, string componentCode, string serialNo)> {
+                ("STATION_1", "EN", "EN-RANDOM-348"),
+                ("STATION_1", "DA", "DA-RANDOM-995"),
+                ("STATION_2", "EN", "EN-RANDOM-440"),
             };
 
             var kitComponents = await ctx.KitComponents
                 .Include(t => t.Component)
+                .Include(t => t.ProductionStation)
                 .OrderBy(t => t.ProductionStation.Sequence)
-                .Where(t => t.KitId == kit.Id)
-                .ToListAsync();
+                .Where(t => t.KitId == kit.Id).ToListAsync();
 
-            var firstKitComponent = kitComponents.First();
-            var input = new ComponentSerialInput {
-                KitComponentId = firstKitComponent.Id,
-                Serial1 = serial_numbers
-                    .Where(t => t.componentCode == firstKitComponent.Component.Code)
-                    .Select(t => t.serialNo)
-                    .First()
-            };
-
+            // test
+            MutationPayload<ComponentSerialDTO> payload = null;
             var service = new ComponentSerialService(ctx);
-            await service.CaptureComponentSerial(input);
+            foreach (var entry in test_data) {
+                var kitComponent = kitComponents.First(t => t.Component.Code == entry.componentCode && t.ProductionStation.Code == entry.stationCode);
+                var input = new ComponentSerialInput {
+                    KitComponentId = kitComponent.Id,
+                    Serial1 = entry.serialNo
+                };
+                payload = await service.CaptureComponentSerial(input);
+            }
 
-            var kitInfo = await service.GetKitInfo_ForSerialCapture(kit.VIN);
-
-            var expected_component_count = kitComponents.Count();
-            var kit_info_component_count = kitInfo.KitComponents.Count();
-            Assert.Equal(expected_component_count, kit_info_component_count);
-
-            var componentsWithSerial = kitInfo.KitComponents
-                .Where(t => t.Serial1 is not null or "").ToList();
-
-            var with_serial_count =componentsWithSerial.Count();
-            Assert.Equal(1, with_serial_count);
-
-            var component = componentsWithSerial.First();
-            var expected_serial_no = serial_numbers
-                .Where(t => t.componentCode == component.ComponentCode)
-                .Select(t => t.serialNo).First();
-
-            Assert.Equal(expected_serial_no, component.Serial1);
+            var expected_error_mssage = "serial does not match previews entry";
+            var actual_error_message = payload.Errors.Select(t => t.Message).FirstOrDefault();
+            Assert.Equal(expected_error_mssage, actual_error_message.Substring(0, expected_error_mssage.Length));
         }
-        */
-
     }
 }
 

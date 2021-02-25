@@ -166,6 +166,42 @@ namespace SKD.Model {
                 return errors;
             }
 
+            /* MULTI STATION COMPONENT
+            *  Must have matching serial numbers
+            */
+
+            var prior_kit_components_with_same_compoent_code_different_serial_numbers = await context.KitComponents
+                .Include(t => t.ComponentSerials)
+                .OrderBy(t => t.ProductionStation.Sequence)
+                // save kit         
+                .Where(t => t.Kit.Id == targetKitCmponent.KitId)
+                // same component id
+                .Where(t => t.ComponentId == targetKitCmponent.ComponentId)
+                // preceeding target kit component
+                .Where(t => t.ProductionStation.Sequence < targetKitCmponent.ProductionStation.Sequence)
+                // any active component serials that do not match input.Serial1, input.Serial2
+                .Where(t =>
+                    t.ComponentSerials
+                        .Where(t => t.RemovedAt == null)
+                        .Any(u => u.Serial1 != input.Serial1 || u.Serial2 != input.Serial2)
+                )
+                .Select(t => new {
+                    Sequence = t.ProductionStation.Sequence,
+                    StationCode = t.ProductionStation.Code,
+                    Serial1 = t.ComponentSerials.Where(u => u.RemovedAt == null).First().Serial1,
+                    Serial2 = t.ComponentSerials.Where(u => u.RemovedAt == null).First().Serial2,
+                })
+                .ToListAsync();
+
+            if (prior_kit_components_with_same_compoent_code_different_serial_numbers.Any()) {
+                var entry = prior_kit_components_with_same_compoent_code_different_serial_numbers
+                    .OrderByDescending(t => t.Sequence)
+                    .Last();                    
+                var text = $"serial does not match previews entry: {entry.StationCode}, {entry.Serial1}, {entry.Serial2}";
+                errors.Add(new Error("",text.Trim(' ',',')));
+                return errors;
+            }
+
             return errors;
         }
 
@@ -201,7 +237,7 @@ namespace SKD.Model {
         public async Task<KitComponentSerialInfo?> GetKitComponentSerialInfo(string kitNo, string componentCode) {
             var data = await context.KitComponents
                 .Where(t => t.Kit.KitNo == kitNo && t.Component.Code == componentCode)
-                .Select(t => new  {
+                .Select(t => new {
                     KitComponentId = t.Id,
                     ComponentCode = t.Component.Code,
                     ComponentName = t.Component.Name,
@@ -216,7 +252,7 @@ namespace SKD.Model {
             if (data.Count == 0) {
                 return (KitComponentSerialInfo?)null;
             }
-            
+
             var result = new KitComponentSerialInfo {
                 ComponentCode = data[0].ComponentCode,
                 ComponentName = data[0].ComponentCode,
