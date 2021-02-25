@@ -213,7 +213,7 @@ namespace SKD.Model {
                         .FirstOrDefault()
                 }).ToListAsync();
 
-            if (data == null) {
+            if (data.Count == 0) {
                 return (KitComponentSerialInfo?)null;
             }
             
