@@ -7,7 +7,6 @@ namespace SKD.Server {
         protected override void Configure(IObjectTypeDescriptor<ComponentSerialDTO> descriptor) {
             descriptor.Field(t => t.VIN).Name("vin");
         }
-
     }
 }
 

@@ -1,8 +1,4 @@
 using System;
-using HotChocolate;
-using HotChocolate.AspNetCore;
-using HotChocolate.AspNetCore.Playground;
-using HotChocolate.Execution.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -10,10 +6,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using SKD.Model;
 using SKD.Dcws;
 using SKD.Seed;
+using GraphQL.Server.Ui.Voyager;
+using HotChocolate.Data;
 
 namespace SKD.Server {
     public class Startup {
@@ -28,7 +25,7 @@ namespace SKD.Server {
 
         public void ConfigureServices(IServiceCollection services) {
 
-            int planBuildLeadTimeDays = 6; 
+            int planBuildLeadTimeDays = 6;
             Int32.TryParse(Configuration[ConfigSettingKey.PlanBuildLeadTimeDays], out planBuildLeadTimeDays);
 
             services.AddCors(options => {
@@ -41,30 +38,26 @@ namespace SKD.Server {
 
             services.AddDbContext<SkdContext>(options => {
                 var connectionString = Configuration.GetConnectionString(ConfigSettingKey.DefaultConnectionString);
-                options.UseSqlServer(connectionString,
-                b => b.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery));
-            }, ServiceLifetime.Transient);
+                options.UseSqlServer(connectionString);
+            });
 
             services
-                .AddTransient<SearchService>()
-                .AddTransient<KitService>(sp => 
+                .AddScoped<SearchService>()
+                .AddScoped<KitService>(sp =>
                     new KitService(sp.GetRequiredService<SkdContext>(), DateTime.Now, planBuildLeadTimeDays))
-                .AddTransient<KitSnapshotService>()
-                .AddTransient<VehicleModelService>()
-                .AddTransient<ComponentService>()
-                .AddTransient<DCWSResponseService>()
-                .AddTransient<ProductionStationService>()
-                .AddTransient<ComponentSerialService>()
-                .AddTransient<ShipmentService>()
-                .AddTransient<BomService>()
-                .AddTransient<PlantService>()
-                .AddTransient<LotPartService>()
-                .AddTransient<QueryService>()
-                .AddSingleton<DcwsService>(sp => new DcwsService(Configuration[ConfigSettingKey.DcwsServiceAddress]));
+                .AddScoped<KitSnapshotService>()
+                .AddScoped<VehicleModelService>()
+                .AddScoped<ComponentService>()
+                .AddScoped<DCWSResponseService>()
+                .AddScoped<ProductionStationService>()
+                .AddScoped<ComponentSerialService>()
+                .AddScoped<ShipmentService>()
+                .AddScoped<BomService>()
+                .AddScoped<PlantService>()
+                .AddScoped<LotPartService>()
+                .AddScoped<QueryService>().AddSingleton<DcwsService>(sp => new DcwsService(Configuration[ConfigSettingKey.DcwsServiceAddress]));
 
-
-            services.AddGraphQL(sp => SchemaBuilder.New()
-                .AddServices(sp)
+            services.AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
                 .AddType<VehicleType>()
@@ -74,7 +67,10 @@ namespace SKD.Server {
                 .AddType<VehicleTimelineDTOType>()
                 .AddType<VehicleModelType>()
                 .AddType<VehicleComponentType>()
-                .Create(), new QueryExecutionOptions { ForceSerialExecution = true });
+                .AddProjections()
+                .AddFiltering()
+                .AddSorting()
+                .AddInMemorySubscriptions();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
@@ -82,10 +78,11 @@ namespace SKD.Server {
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseRouting();
-            app.UseCors();
+            app.UseWebSockets();
 
-            app.UseWebSockets().UseGraphQL("/gql");
+            app.UseRouting();
+
+            app.UseCors();
 
             if (env.IsDevelopment()) {
                 app.Use(next => context => {
@@ -96,43 +93,28 @@ namespace SKD.Server {
                 });
             }
 
-            var opt = new PlaygroundOptions() {
-                Path = "/playground",
-                QueryPath = "/gql"
-            };
-            app.UsePlayground(opt);
+            app.UseEndpoints(ep => {
 
-            app.UseEndpoints(endpoints => {
+                ep.MapGraphQL();
 
                 if (_env.IsDevelopment()) {
-                    endpoints.MapPost("/gen_ref_data", async (context) => {
+                    ep.MapPost("/gen_ref_data", async (context) => {
                         var ctx = context.RequestServices.GetService<SkdContext>();
                         var service = new SeedDataService(ctx);
                         await service.GenerateReferencekData();
                         context.Response.StatusCode = 200;
                     });
-
-                    endpoints.MapPost("/migrate_db", async (context) => {
-                        var ctx = context.RequestServices.GetService<SkdContext>();
-                        var dbService = new DbService(ctx);
-                        await dbService.MigrateDb();
-                        context.Response.StatusCode = 200;
-                    });
-
-                    endpoints.MapPost("/reset_db", async (context) => {
-                        var ctx = context.RequestServices.GetService<SkdContext>();
-                        var dbService = new DbService(ctx);
-                        await dbService.DroCreateDb();
-                        var service = new SeedDataService(ctx);
-                        await service.GenerateReferencekData();
-                        context.Response.StatusCode = 200;
-                    });
-
-                    endpoints.MapGet("/ping", async context => {
+                    ep.MapGet("/ping", async context => {
                         await context.Response.WriteAsync("Ping!");
                     });
                 }
             });
+
+            app.UseGraphQLVoyager(new GraphQLVoyagerOptions {
+                GraphQLEndPoint = "/graphql",
+                Path = "/graphql-voyager"
+            });
+
         }
     }
 }

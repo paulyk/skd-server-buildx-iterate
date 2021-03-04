@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using HotChocolate;
 using SKD.Model;
-using HotChocolate.Types.Relay;
-using HotChocolate.Types;
 using SKD.Dcws;
+using HotChocolate.Data;
+using HotChocolate.Types;
 
 namespace SKD.Server {
 
@@ -20,6 +20,7 @@ namespace SKD.Server {
             Configuration = configuration;
         }
 
+
         public ConfigettingDTO GetServerConfigSettings() {
             var planBuldLead = 0;
             Int32.TryParse(Configuration[ConfigSettingKey.PlanBuildLeadTimeDays], out planBuldLead);
@@ -30,39 +31,43 @@ namespace SKD.Server {
             };
         }
         public string Info() => "RMA SDK Server";
-
+        
         [UsePaging]
-        [UseSelection]
+        [UseProjection]
         [UseFiltering]
         [UseSorting]
         public IQueryable<Component> GetComponents([Service] SkdContext context) =>
              context.Components.AsQueryable();
 
-        [UsePaging]
-        [UseSelection]
+        [UseProjection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<Part> GetParts([Service] SkdContext context) =>
-             context.Parts.AsNoTracking().AsQueryable();
+        public IQueryable<Part> GetParts(
+            [Service] SkdContext context,
+            int count
+        ) =>
+             context.Parts.Take(count).AsNoTracking().AsQueryable();
 
-        [UsePaging]
-        [UseSelection]
-        [UseFiltering]
-        [UseSorting]
+        [UseProjection]
         public IQueryable<Plant> GetPlants([Service] SkdContext context) =>
-                 context.Plants.AsNoTracking().AsQueryable();
+                 context.Plants;
 
-        [UsePaging]
-        [UseSelection]
+
+        [UseProjection]
         [UseFiltering]
         [UseSorting]
         public IQueryable<Kit> GetVehicles(
             [Service] SkdContext context,
-            string plantCode
-        ) => context.Kits.Where(t => t.Lot.Plant.Code == plantCode).AsQueryable();
+            string plantCode,
+            int count
+        ) => context.Kits
+            .Where(t => t.Lot.Plant.Code == plantCode)
+            .Take(count)
+            .AsQueryable();
+
 
         [UsePaging]
-        [UseSelection]
+        [UseProjection]
         [UseFiltering]
         [UseSorting]
         public IQueryable<Lot> GetVehicleLots(
@@ -70,61 +75,58 @@ namespace SKD.Server {
             string plantCode
         ) => context.Lots.Where(t => t.Plant.Code == plantCode).AsQueryable();
 
+
         [UsePaging]
-        [UseSelection]
+        [UseProjection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<VehicleModel> GetVehicleModels([Service] SkdContext context) =>
-                context.VehicleModels.AsQueryable();
+        public IQueryable<VehicleModel> GetVehicleModels(
+            [Service] SkdContext context
+        ) => context.VehicleModels;
 
         [UsePaging]
-        [UseSelection]
+        [UseProjection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<VehicleModelComponent> GetVehicleModelComponents([Service] SkdContext context) =>
-                context.VehicleModelComponents.AsQueryable();
+        public IQueryable<VehicleModelComponent> GetVehicleModelComponents(
+            [Service] SkdContext context
+        ) => context.VehicleModelComponents;
 
 
-        [UsePaging]
-        [UseSelection]
+        [UseProjection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<KitComponent> GetVehicleComponents([Service] SkdContext context) =>
-                context.KitComponents.AsQueryable();
+        public IQueryable<KitComponent> GetVehicleComponents(
+            [Service] SkdContext context
+        ) => context.KitComponents;
 
         [UsePaging]
-        [UseSelection]
+        [UseProjection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<ComponentSerial> GetComponentSerails([Service] SkdContext context) =>
-                context.ComponentSerials
-                        .Include(t => t.KitComponent)
-                                .ThenInclude(t => t.Kit)
-                                .ThenInclude(t => t.Lot)
-                                .ThenInclude(t => t.Model)
-                        .Include(t => t.KitComponent).ThenInclude(t => t.Component)
-                        .Include(t => t.KitComponent).ThenInclude(t => t.ProductionStation)
-                        .Include(t => t.DcwsResponses)
-                        .AsQueryable();
+        public IQueryable<ComponentSerial> GetComponentSerails(
+            [Service] SkdContext context
+        ) => context.ComponentSerials;
 
-        [UsePaging]
-        [UseSelection]
+
+        [UseProjection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<DcwsResponse> GetDcwsResponses([Service] SkdContext context) =>
-                context.DCWSResponses
-                        .Include(t => t.ComponentSerial).ThenInclude(t => t.KitComponent)
-                        .AsQueryable();
+        public IQueryable<DcwsResponse> GetDcwsResponses(
+            [Service] SkdContext context
+        ) => context.DCWSResponses;
+
 
         [UsePaging]
-        [UseSelection]
+        [UseProjection]
         [UseFiltering]
         [UseSorting]
         public IQueryable<ProductionStation> GetProductionStations([Service] SkdContext context) =>
-                context.ProductionStations.AsQueryable();
+                context.ProductionStations;
+
 
         [UsePaging]
-        [UseSelection]
+        [UseProjection]
         [UseFiltering]
         [UseSorting]
         public IQueryable<Shipment> GetShipments(
@@ -132,8 +134,10 @@ namespace SKD.Server {
             string plantCode
         ) => context.Shipments.Where(t => t.Plant.Code == plantCode).AsQueryable();
 
-        public async Task<ShipmentOverviewDTO?> GetShipmentOverview([Service] ShipmentService service, Guid shipmentId) =>
-            await service.GetShipmentOverview(shipmentId);
+        public async Task<ShipmentOverviewDTO?> GetShipmentOverview(
+            [Service] ShipmentService service,
+            Guid shipmentId
+        ) => await service.GetShipmentOverview(shipmentId);
 
         public async Task<Kit?> GetKitById([Service] SkdContext context, Guid id) {
             var result = await context.Kits.AsNoTracking()
@@ -162,7 +166,7 @@ namespace SKD.Server {
         }
 
         public async Task<VehicleTimelineDTO?> GetVehicleTimeline(
-            [Service] SkdContext context, 
+            [Service] SkdContext context,
             string kitNo
         ) {
             var vehicle = await context.Kits.AsNoTracking()
@@ -246,13 +250,13 @@ namespace SKD.Server {
                 ModelCode = lot.Model.Code,
                 ModelName = lot.Model.Name,
                 CreatedAt = lot.CreatedAt,
-                CustomReceived = customReceivedEvent != null 
+                CustomReceived = customReceivedEvent != null
                     ? new TimelineEventDTO {
                         EventType = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
                         EventDate = customReceivedEvent != null ? customReceivedEvent.EventDate : (DateTime?)null,
                         EventNote = customReceivedEvent != null ? customReceivedEvent.EventNote : null,
                         CreatedAt = customReceivedEvent != null ? customReceivedEvent.CreatedAt : (DateTime?)null,
-                        RemovedAt = customReceivedEvent != null ? customReceivedEvent.RemovedAt : (DateTime?)null                
+                        RemovedAt = customReceivedEvent != null ? customReceivedEvent.RemovedAt : (DateTime?)null
                     }
                     : null
             };
@@ -288,6 +292,7 @@ namespace SKD.Server {
                         .Include(t => t.Component)
                         .Include(t => t.ComponentSerials)
                         .FirstOrDefaultAsync(t => t.Kit.VIN == vin && t.Component.Code == componentCode);
+
         public async Task<ComponentSerial?> GetComponentScanById([Service] SkdContext context, Guid id) =>
                 await context.ComponentSerials.AsNoTracking()
                         .Include(t => t.KitComponent).ThenInclude(t => t.Kit)

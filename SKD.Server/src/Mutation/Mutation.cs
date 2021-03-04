@@ -9,47 +9,40 @@ using SKD.Dcws;
 using HotChocolate;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate.Data;
 
 namespace SKD.Server {
     public class Mutation {
 
-      
-
         public async Task<MutationPayload<VehicleModel>> CreateVehicleModel(
             [Service] VehicleModelService service,
             VehicleModelInput input
-        ) {
-            return await service.CreateVehicleModel(input);
-        }
+        ) => await service.CreateVehicleModel(input);
 
         public async Task<MutationPayload<Lot>> AssignVehicleKitVin(
             [Service] KitService service,
             AssignKitVinInput input
-        ) {
-            return await service.AssingKitVin(input);
-        }
+        ) => await service.AssingKitVin(input);
 
         public async Task<MutationPayload<KitTimelineEvent>> CreateVehicleTimelineEvent(
             [Service] KitService service,
             KitTimelineEventInput input
-        ) {
-            return await service.CreateKitTimelineEvent(input);
-        }
+        ) => await service.CreateKitTimelineEvent(input);
+
 
         public async Task<MutationPayload<Lot>> CreateVehicleLotTimelineEvent(
             [Service] KitService service,
             LotTimelineEventInput input
-        ) {
-            return await service.CreateLotTimelineEvent(input);
-        }
+        ) => await service.CreateLotTimelineEvent(input);
+
 
         /// <summary>
         /// Create or update a component
         /// </summary>
         public async Task<MutationPayload<Component>> SaveComponent(
-            [Service] ComponentService service1,
-            ComponentInput input
-        ) {
+                [Service] ComponentService service1,
+                ComponentInput input
+            ) {
             var dto = new Model.ComponentInput {
                 Id = ToGuid(input.Id != null ? input.Id : ""),
                 Code = input.Code,
@@ -62,9 +55,9 @@ namespace SKD.Server {
         /// Create or update a production station
         /// </summary>
         public async Task<MutationPayload<ProductionStation>> SaveProductionStation(
-            [Service] ProductionStationService service,
-            ProductionStationInput input
-        ) {
+                [Service] ProductionStationService service,
+                ProductionStationInput input
+            ) {
             var dto = new Model.ProductionStationInput {
                 Id = ToGuid(input.Id != null ? input.Id : ""),
                 Code = input.Code,
@@ -74,9 +67,9 @@ namespace SKD.Server {
         }
 
         public async Task<MutationPayload<ComponentSerialDTO>> CaptureComponentSerial(
-          [Service] ComponentSerialService service,
-          ComponentSerialInput input
-        ) {
+              [Service] ComponentSerialService service,
+              ComponentSerialInput input
+            ) {
             return await service.CaptureComponentSerial(input);
         }
 
@@ -97,24 +90,25 @@ namespace SKD.Server {
             ShipmentInput input
         ) => await service.ImportShipment(input);
 
+
         public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotKits(
-                 [Service] BomService service,
-                 BomLotKitInput input
+            [Service] BomService service,
+            BomLotKitInput input
        ) => await service.ImportBomLotKits(input);
 
         public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotParts(
-                 [Service] BomService service,
-                 BomLotPartInput input
+            [Service] BomService service,
+            BomLotPartInput input
        ) => await service.ImportBomLotParts(input);
 
         public async Task<MutationPayload<SnapshotDTO>> GenerateVehicleSnapshotRun(
-                  [Service] KitSnapshotService service,
-                  KitSnapshotInput input
+            [Service] KitSnapshotService service,
+            KitSnapshotInput input
         ) => await service.GenerateSnapshot(input);
 
         public async Task<MutationPayload<PlantOverviewDTO>> CreatePlant(
-                   [Service] PlantService service,
-                   PlantInput input
+            [Service] PlantService service,
+            PlantInput input
          ) => await service.CreatePlant(input);
 
         public async Task<MutationPayload<LotPartDTO>> CreateLotPartQuantityReceived(
@@ -128,14 +122,12 @@ namespace SKD.Server {
             return gOut;
         }
 
-        // Note DcwsService / DCWSResponseService confusing...
-        // move to 
         public async Task<MutationPayload<DcwsResponse>> VerifyComponentSerial(
             [Service] DcwsService dcwsService,
             [Service] DCWSResponseService dcwsResponseService,
             [Service] SkdContext context,
             Guid kitComponentId
-        )  {
+        ) {
             var componentSerial = await context.ComponentSerials
                 .Include(t => t.KitComponent).ThenInclude(t => t.Kit)
                 .Include(t => t.KitComponent).ThenInclude(t => t.Component)
@@ -143,18 +135,18 @@ namespace SKD.Server {
                 .Where(t => t.KitComponentId == kitComponentId)
                 .Where(t => t.RemovedAt == null)
                 .FirstOrDefaultAsync();
-            
+
             var input = new SubmitDcwsComponentInput {
                 VIN = componentSerial.KitComponent.Kit.VIN,
                 ComponentTypeCode = componentSerial.KitComponent.Component.Code,
                 Serial1 = componentSerial.Serial1,
                 Serial2 = componentSerial.Serial2
             };
-            
+
             var submitDcwsComponentResponse = await dcwsService.SubmitDcwsComponent(input);
             var dcwsResponsePayload = await dcwsResponseService.SaveDcwsComponentResponse(new DcwsComponentResponseInput {
                 VehicleComponentId = kitComponentId,
-                ResponseCode = submitDcwsComponentResponse.ProcessExceptionCode,                
+                ResponseCode = submitDcwsComponentResponse.ProcessExceptionCode,
             });
 
             return dcwsResponsePayload;

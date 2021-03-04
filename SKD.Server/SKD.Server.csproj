@@ -7,17 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="HotChocolate.AspNetCore" Version="10.5.3" />
-    <PackageReference Include="hotchocolate.aspnetcore.playground" Version="10.5.3" />
-    <PackageReference Include="HotChocolate.Subscriptions" Version="10.5.3" />
-    <PackageReference Include="HotChocolate.Subscriptions.InMemory" Version="10.5.3" />
-    <PackageReference Include="HotChocolate.Types.Filters" Version="10.5.3" />
-    <PackageReference Include="HotChocolate.Types.Selections" Version="10.5.3" />
-    <PackageReference Include="HotChocolate.Types.Sorting" Version="10.5.3" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.0">
+    <PackageReference Include="GraphQL.Server.UI.Voyager" Version="4.4.1" />
+    <PackageReference Include="HotChocolate.AspNetCore" Version="11.0.9" />
+    <PackageReference Include="HotChocolate.Data" Version="11.0.9" />
+    <PackageReference Include="HotChocolate.Data.EntityFramework" Version="11.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.3">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.3" />
   </ItemGroup>
 
   <ItemGroup>
