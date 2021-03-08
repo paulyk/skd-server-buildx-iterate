@@ -31,52 +31,49 @@ namespace SKD.Server {
             };
         }
         public string Info() => "RMA SDK Server";
-        
-        [UsePaging]
+
+        [UsePaging(MaxPageSize = 10000)]
         [UseProjection]
         [UseFiltering]
         [UseSorting]
         public IQueryable<Component> GetComponents([Service] SkdContext context) =>
              context.Components.AsQueryable();
 
+        [UsePaging(MaxPageSize = 10000)]
         [UseProjection]
         [UseFiltering]
         [UseSorting]
         public IQueryable<Part> GetParts(
-            [Service] SkdContext context,
-            int count
-        ) =>
-             context.Parts.Take(count).AsNoTracking().AsQueryable();
+            [Service] SkdContext context
+        ) => context.Parts;
 
         [UseProjection]
         public IQueryable<Plant> GetPlants([Service] SkdContext context) =>
                  context.Plants;
 
 
+        [UsePaging(MaxPageSize = 10000)]
         [UseProjection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<Kit> GetVehicles(
+        public IQueryable<Kit> GetKits(
             [Service] SkdContext context,
-            string plantCode,
-            int count
+            string plantCode
         ) => context.Kits
             .Where(t => t.Lot.Plant.Code == plantCode)
-            .Take(count)
             .AsQueryable();
 
 
-        [UsePaging]
+        [UsePaging(MaxPageSize = 10000)]
         [UseProjection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<Lot> GetVehicleLots(
+        public IQueryable<Lot> GetLots(
             [Service] SkdContext context,
             string plantCode
         ) => context.Lots.Where(t => t.Plant.Code == plantCode).AsQueryable();
 
-
-        [UsePaging]
+        [UsePaging(MaxPageSize = 10000)]
         [UseProjection]
         [UseFiltering]
         [UseSorting]
@@ -84,7 +81,7 @@ namespace SKD.Server {
             [Service] SkdContext context
         ) => context.VehicleModels;
 
-        [UsePaging]
+        [UsePaging(MaxPageSize = 10000)]
         [UseProjection]
         [UseFiltering]
         [UseSorting]
@@ -93,14 +90,15 @@ namespace SKD.Server {
         ) => context.VehicleModelComponents;
 
 
+        [UsePaging(MaxPageSize = 10000)]
         [UseProjection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<KitComponent> GetVehicleComponents(
+        public IQueryable<KitComponent> GetKitComponents(
             [Service] SkdContext context
         ) => context.KitComponents;
 
-        [UsePaging]
+        [UsePaging(MaxPageSize = 10000)]
         [UseProjection]
         [UseFiltering]
         [UseSorting]
@@ -109,6 +107,7 @@ namespace SKD.Server {
         ) => context.ComponentSerials;
 
 
+        [UsePaging(MaxPageSize = 10000)]
         [UseProjection]
         [UseFiltering]
         [UseSorting]
@@ -117,7 +116,7 @@ namespace SKD.Server {
         ) => context.DCWSResponses;
 
 
-        [UsePaging]
+        [UsePaging(MaxPageSize = 10000)]
         [UseProjection]
         [UseFiltering]
         [UseSorting]
@@ -125,7 +124,7 @@ namespace SKD.Server {
                 context.ProductionStations;
 
 
-        [UsePaging]
+        [UsePaging(MaxPageSize = 10000)]
         [UseProjection]
         [UseFiltering]
         [UseSorting]
@@ -157,14 +156,15 @@ namespace SKD.Server {
                     .Include(t => t.Lot)
                     .Include(t => t.KitComponents).ThenInclude(t => t.Component)
                     .Include(t => t.KitComponents).ThenInclude(t => t.ProductionStation)
-                    .Include(t => t.KitComponents).ThenInclude(t => t.ComponentSerials)
+                    .Include(t => t.KitComponents)
+                        .ThenInclude(t => t.ComponentSerials)
+                        .ThenInclude(t => t.DcwsResponses)
                     .Include(t => t.Lot).ThenInclude(t => t.Model)
                     .Include(t => t.TimelineEvents)
                     .FirstOrDefaultAsync(t => t.KitNo == kitNo);
 
             return result;
         }
-
         public async Task<VehicleTimelineDTO?> GetVehicleTimeline(
             [Service] SkdContext context,
             string kitNo
@@ -270,7 +270,7 @@ namespace SKD.Server {
         public async Task<List<LotPartDTO>> GetLotPartsByShipment([Service] QueryService service, Guid shipmentId) =>
             await service.GetLotPartsByShipment(shipmentId);
 
-        public async Task<List<Kit>> GetVehiclesByLot([Service] SkdContext context, string lotNo) =>
+        public async Task<List<Kit>> GetKitsByLot([Service] SkdContext context, string lotNo) =>
                  await context.Kits.OrderBy(t => t.Lot).AsNoTracking()
                     .Where(t => t.Lot.LotNo == lotNo)
                         .Include(t => t.Lot).ThenInclude(t => t.Model)
@@ -303,7 +303,7 @@ namespace SKD.Server {
                         .Include(t => t.KitComponent)
                         .FirstOrDefaultAsync(t => t.KitComponentId == vehicleComponentId && t.RemovedAt == null);
 
-        [UsePaging]
+        [UsePaging(MaxPageSize = 10000)]
         [UseSorting]
         public IQueryable<BomListDTO> GetBomList([Service] SkdContext context, string plantCode) =>
                 context.Boms.AsNoTracking()

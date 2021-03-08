@@ -38,7 +38,10 @@ namespace SKD.Server {
 
             services.AddDbContext<SkdContext>(options => {
                 var connectionString = Configuration.GetConnectionString(ConfigSettingKey.DefaultConnectionString);
-                options.UseSqlServer(connectionString);
+                options.UseSqlServer(
+                    connectionString,
+                    o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery)
+                );
             });
 
             services
@@ -85,12 +88,12 @@ namespace SKD.Server {
             app.UseCors();
 
             if (env.IsDevelopment()) {
-                app.Use(next => context => {
-                    var connectionString = Configuration.GetConnectionString("Default");
-                    Console.WriteLine(connectionString);
-                    Console.WriteLine("Request log: " + context.Request.HttpContext.Request.Path);
-                    return next(context);
-                });
+                // app.Use(next => context => {
+                //     var connectionString = Configuration.GetConnectionString("Default");
+                //     Console.WriteLine(connectionString);
+                //     Console.WriteLine("Request log: " + context.Request.HttpContext.Request.Path);
+                //     return next(context);
+                // });
             }
 
             app.UseEndpoints(ep => {
