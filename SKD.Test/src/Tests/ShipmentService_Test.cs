@@ -22,6 +22,7 @@ namespace SKD.Test {
             var sequence = 2;
 
             var input = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence);
+            var inputMetrics = GetShipmentInputMetrics(input);
 
             // test
             var before_count = ctx.ShipmentParts.Count();
@@ -31,8 +32,8 @@ namespace SKD.Test {
             // payload check:  plant code , sequence, count
             Assert.Equal(plant.Code, payload.Entity.PlantCode);
             Assert.Equal(sequence, payload.Entity.Sequence);
-            Assert.Equal(1, payload.Entity.LotCount);
-            Assert.Equal(2, payload.Entity.InvoiceCount);
+            Assert.Equal(inputMetrics.lotCount, payload.Entity.LotCount);
+            Assert.Equal(inputMetrics.invoiceCount, payload.Entity.InvoiceCount);
 
             // shipment parts count
             var expected_shipment_parts_count = input.Lots
@@ -73,7 +74,7 @@ namespace SKD.Test {
             var sequence = 2;
 
             var input = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence);
-            
+
             var shipmentLot = input.Lots.First();
             var shipmentInvoice = input.Lots.First().Invoices.First();
             var shipmentPart = shipmentInvoice.Parts.First();
@@ -95,7 +96,7 @@ namespace SKD.Test {
             Assert.Equal(expecteShipmentPartdQuantity, shipment_invoice_part.Quantity);
 
             // expect lot part quancity
-            var expected_LotPart_ShipmentQuantity =  shipmentLot.Invoices
+            var expected_LotPart_ShipmentQuantity = shipmentLot.Invoices
                 .SelectMany(t => t.Parts)
                 .Where(t => t.PartNo == shipmentPart.PartNo).Sum(t => t.Quantity);
 
@@ -244,18 +245,35 @@ namespace SKD.Test {
             // setup
             var plant = await ctx.Plants.FirstAsync();
             var lot = await ctx.Lots.FirstAsync();
-            var shipmentInput = Gen_ShipmentInput(plant.Code, lot.LotNo, 6);
+            var input = Gen_ShipmentInput(plant.Code, lot.LotNo, 6);
+            var inputMetrics = GetShipmentInputMetrics(input);
 
             // test
             var service = new ShipmentService(ctx);
-            var lotPartInputList = service.Get_LotPartInputs_from_ShipmentInput(shipmentInput);
+            var lotPartInputList = service.Get_LotPartInputs_from_ShipmentInput(input);
 
             // assert
-            var expected_lot_part_count = 2;
+            var expected_lot_part_count = 3;
             var actual_lot_part_count = lotPartInputList.Count();
             Assert.Equal(expected_lot_part_count, actual_lot_part_count);
         }
 
+        public record ShipentInputMetrics(
+            int lotCount, 
+            int invoiceCount, 
+            int invoicePartsCount, 
+            int distinctPartCount,
+            int distinctHandlingUnitCount);
+
+        public ShipentInputMetrics GetShipmentInputMetrics(ShipmentInput input) {
+            return new ShipentInputMetrics(
+                input.Lots.Count(),
+                input.Lots.SelectMany(t => t.Invoices).Count(),
+                input.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.Parts).Count(),
+                input.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.Parts).Select(t => t.PartNo).Distinct().Count(),
+                input.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.Parts).Select(t => t.HandlingUnitCode).Distinct().Count()
+            );
+        }
         public ShipmentInput Gen_ShipmentInput(string plantCode, string lotNo, int sequence) {
             var input = new ShipmentInput() {
                 PlantCode = plantCode,
@@ -268,6 +286,7 @@ namespace SKD.Test {
                                 InvoiceNo = "001",
                                 Parts = new List<ShipmentPartInput> {
                                     new ShipmentPartInput {
+                                        HandlingUnitCode = "0000001",
                                         PartNo = "part-1",
                                         CustomerPartDesc = "part 1 desc",
                                         CustomerPartNo = "cust 0001",
@@ -279,17 +298,26 @@ namespace SKD.Test {
                                 InvoiceNo = "002",
                                 Parts = new List<ShipmentPartInput> {
                                     new ShipmentPartInput {
+                                        HandlingUnitCode = "0000002",
                                         PartNo = "part-1",
                                         CustomerPartDesc = "part 1 desc",
                                         CustomerPartNo = "part 1 desc",
                                         Quantity = 3
                                     },
                                     new ShipmentPartInput {
+                                        HandlingUnitCode = "0000002",
                                         PartNo = "part-2",
                                         CustomerPartDesc = "part 2 desc",
                                         CustomerPartNo = "part 2 desc",
                                         Quantity = 2
-                                    }
+                                    },
+                                    new ShipmentPartInput {
+                                        HandlingUnitCode = "0000003",
+                                        PartNo = "part-3",
+                                        CustomerPartDesc = "part 3 desc",
+                                        CustomerPartNo = "part 3 desc",
+                                        Quantity = 4
+                                    },
                                 }
                             },
                         }

@@ -30,6 +30,33 @@ namespace SKD.Model {
             var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
 
             // create shipment
+            var shipment = CreateShipment(input, plant, parts);
+            context.Shipments.Add(shipment);
+
+            // Add / Update LotPart(s)
+            await AddUpdateLotParts(input, parts);
+
+            // save
+            await context.SaveChangesAsync();
+
+            payload.Entity = await GetShipmentOverview(shipment.Id);
+            return payload;
+        }
+
+        private async Task<List<Part>> GetEnsureParts(ShipmentInput input) {
+            input.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.Parts).ToList().ForEach(p => {
+                p.PartNo = PartService.ReFormatPartNo(p.PartNo);
+            });
+            var partService = new PartService(context);
+            List<(string, string)> inputParts = input.Lots
+                .SelectMany(t => t.Invoices)
+                .SelectMany(t => t.Parts)
+                .Select(t => (t.PartNo, t.CustomerPartDesc)).ToList();
+            return await partService.GetEnsureParts(inputParts);
+        }
+
+        private Shipment CreateShipment(ShipmentInput input, Plant plant, List<Part> parts) {
+            // create shipment
             var shipment = new Shipment() {
                 Plant = plant,
                 Sequence = input.Sequence,
@@ -48,9 +75,10 @@ namespace SKD.Model {
                 }).ToList()
             };
 
-            context.Shipments.Add(shipment);
+            return shipment;
+        }
 
-            // Add / Update LotPart(s)
+        private async Task AddUpdateLotParts(ShipmentInput input, List<Part> parts) {
             var lotPartInputs = Get_LotPartInputs_from_ShipmentInput(input);
             var lotNumbers = lotPartInputs.Select(t => t.LotNo).Distinct().ToList();
             var lots = await context.Lots
@@ -72,24 +100,6 @@ namespace SKD.Model {
                 }
                 lotPart.ShipmentQuantity = lotPartInput.Quantity;
             }
-
-            // save
-            await context.SaveChangesAsync();
-
-            payload.Entity = await GetShipmentOverview(shipment.Id);
-            return payload;
-        }
-
-          private async Task<List<Part>> GetEnsureParts(ShipmentInput input) {
-            input.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.Parts).ToList().ForEach(p => {
-                p.PartNo = PartService.ReFormatPartNo(p.PartNo);
-            });
-            var partService = new PartService(context);
-            List<(string, string)> inputParts = input.Lots
-                .SelectMany(t => t.Invoices)
-                .SelectMany(t => t.Parts)
-                .Select(t => (t.PartNo, t.CustomerPartDesc)).ToList();
-            return await partService.GetEnsureParts(inputParts);
         }
 
         public async Task<List<Error>> ValidateShipmentInput<T>(ShipmentInput input) where T : ShipmentInput {
@@ -121,22 +131,48 @@ namespace SKD.Model {
                 return errors;
             }
 
-            // shipment dto must have lot + invoice + parts
+            // shipment input must have lot + invoice + handling_units + parts
             if (!input.Lots.Any()) {
                 errors.Add(new Error("", "shipment must have lots"));
                 return errors;
             }
 
+            // lots must have invoices
             if (input.Lots.Any(t => t.Invoices.Count() == 0)) {
                 errors.Add(new Error("", "shipment lots must have invoices"));
                 return errors;
             }
 
+            // inoices must have parts
             if (input.Lots.Any(t => t.Invoices.Any(u => u.Parts.Count() == 0))) {
                 errors.Add(new Error("", "shipment invoices must have parts"));
                 return errors;
             }
 
+            // handling unit code required
+            if (input.Lots.Any(t => t.Invoices.Any(u => u.Parts.Any(p => p.HandlingUnitCode is null or "")))) {
+                errors.Add(new Error("", "shipment handling unit code cannot be empty"));
+                return errors;
+            }
+
+            // handling unit code in use by a different shipmment   
+            var inputHandlingUnitCodes = input.Lots
+                .SelectMany(t => t.Invoices)
+                .SelectMany(t => t.Parts)
+                .Select(p => p.HandlingUnitCode).Distinct().ToList();
+
+            var handlingUnitCodeAlreadyImported = await context.HandlingUnits
+                .Where(t => inputHandlingUnitCodes.Any(code => code == t.Code))
+                .Select(t => t.Code)
+                .ToListAsync();
+
+            if (handlingUnitCodeAlreadyImported.Any()) {
+                var codes = String.Join(", ", handlingUnitCodeAlreadyImported.Take(5));
+                errors.Add(new Error("", $"handling units already imported: {codes}"));
+                return errors;
+            }
+
+            // part no required
             if (input.Lots.Any(t => t.Invoices.Any(u => u.Parts.Any(p => p.PartNo is null or "")))) {
                 errors.Add(new Error("", "shipment partNo cannot be empty"));
                 return errors;
@@ -183,6 +219,5 @@ namespace SKD.Model {
                     Quantity = g.Select(u => u.Quantity).Sum()
                 }).ToList();
         }
-
     }
 }

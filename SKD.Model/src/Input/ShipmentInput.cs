@@ -24,6 +24,7 @@ namespace SKD.Model {
 
     public class ShipmentPartInput {
         public string PartNo { get; set; }
+        public string HandlingUnitCode { get; set; }
         public string CustomerPartNo { get; set; }
         public string CustomerPartDesc { get; set; }
         public int Quantity { get; set; }
