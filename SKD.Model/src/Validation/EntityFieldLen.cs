@@ -39,6 +39,7 @@ namespace SKD.Model {
         public static int VehicleComponent_PrerequisiteSequence = 50;
         public static int LotNo = 15;
         public static int Shipment_InvoiceNo = 11;
+        public static int HandlingUnit_Code = 7;
 
         public static int Bom_SequenceNo = 4;
         public static int BomPart_LotNo = 15;

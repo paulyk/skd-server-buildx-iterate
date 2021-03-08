@@ -23,6 +23,7 @@ namespace SKD.Model {
         public DbSet<Shipment> Shipments { get; set; }
         public DbSet<ShipmentLot> ShipmentLots { get; set; }
         public DbSet<ShipmentInvoice> ShipmentInvoices { get; set; }
+        public DbSet<HandlingUnit> HandlingUnits { get; set; }
         public DbSet<ShipmentPart> ShipmentParts { get; set; }
 
         public DbSet<Bom> Boms { get; set; }
@@ -53,6 +54,7 @@ namespace SKD.Model {
             builder.ApplyConfiguration(new Shipment_Config());
             builder.ApplyConfiguration(new ShipmentLot_Config());
             builder.ApplyConfiguration(new ShipmentInvoice_Config());
+            builder.ApplyConfiguration(new HandlingUnit_Config());
             builder.ApplyConfiguration(new ShipmentPart_Config());
             //
             builder.ApplyConfiguration(new Bom_Config());

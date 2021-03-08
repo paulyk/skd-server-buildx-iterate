@@ -9,5 +9,9 @@ namespace SKD.Model {
 
         public Guid ShipmentInvoiceId { get; set; }
         public ShipmentInvoice ShipmentInvoice { get; set; }
+
+        public Guid? HandlingUnitId { get; set; }
+        public HandlingUnit HandlingUnit { get; set; }
+
     }
 }
