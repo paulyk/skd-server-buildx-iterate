@@ -16,12 +16,12 @@ namespace SKD.Model {
                 .IsRequired()
                 .HasMaxLength(EntityFieldLen.Shipment_InvoiceNo);
 
-            builder.HasMany(t => t.Parts)
-                .WithOne(t => t.ShipmentInvoice)
-                .HasForeignKey(t => t.ShipmentInvoiceId);
+            // builder.HasMany(t => t.Parts)
+            //     .WithOne(t => t.ShipmentInvoice)
+            //     .HasForeignKey(t => t.ShipmentInvoiceId);
 
             builder.HasMany(t => t.HandlingUnits)
-                .WithOne(t => t.Invoice)
+                .WithOne(t => t.ShipmentInvoice)
                 .HasForeignKey(t => t.ShipmentInvoiceId);
         }
     }

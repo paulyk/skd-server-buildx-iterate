@@ -34,6 +34,7 @@ namespace SKD.Test {
             Assert.Equal(sequence, payload.Entity.Sequence);
             Assert.Equal(inputMetrics.lotCount, payload.Entity.LotCount);
             Assert.Equal(inputMetrics.invoiceCount, payload.Entity.InvoiceCount);
+            Assert.Equal(inputMetrics.handlingUnitCount, payload.Entity.HandlingUnitCount);
 
             // shipment parts count
             var expected_shipment_parts_count = input.Lots
@@ -54,20 +55,20 @@ namespace SKD.Test {
             Assert.Equal(expected_parts_count, actual_parts_count);
 
             // lot parts count
-            var expected_lot_parts_count = input.Lots
-                .Select(t => new {
-                    LotParts = t.Invoices
-                        .SelectMany(t => t.Parts)
-                        .Select(u => new { LotNo = t.LotNo, PartNo = u.PartNo }).Distinct()
-                }).SelectMany(t => t.LotParts).Count();
-
             var actual_lot_parts = ctx.LotParts.Count();
-            Assert.Equal(expected_lot_parts_count, actual_lot_parts);
+            Assert.Equal(inputMetrics.lotPartCount, actual_lot_parts);
+
+            // handling unit codes
+            var handlingUnitCodes = input.Lots
+                .SelectMany(t => t.Invoices).SelectMany(t => t.Parts)
+                .Select(t => t.HandlingUnitCode).Distinct().ToList();
+            
+            var matchingHandlingUnits = await ctx.HandlingUnits.Where(t => handlingUnitCodes.Any(code => code == t.Code)).CountAsync();
+            Assert.Equal(inputMetrics.handlingUnitCount, matchingHandlingUnits);
         }
 
-
         [Fact]
-        private async Task duplicate_invoice_parts_are_summarized_into_one_invoice_part() {
+        private async Task duplicate_handling_unit_parts_are_grouped() {
             // 
             var plant = await ctx.Plants.FirstAsync();
             var lot = await ctx.Lots.FirstAsync();
@@ -86,14 +87,14 @@ namespace SKD.Test {
             var payload = await shipmentService.ImportShipment(input);
 
             // assert
-            var shipment_invoice_part = await ctx.ShipmentParts
-                .Where(t => t.ShipmentInvoice.ShipmentLot.LotNo == shipmentLot.LotNo)
-                .Where(t => t.ShipmentInvoice.InvoiceNo == shipmentInvoice.InvoiceNo)
+            var shipment_handling_unit_parts = await ctx.ShipmentParts
+                .Where(t => t.HandlingUnit.ShipmentInvoice.ShipmentLot.LotNo == shipmentLot.LotNo)
+                .Where(t => t.HandlingUnit.ShipmentInvoice.InvoiceNo == shipmentInvoice.InvoiceNo)
                 .Where(t => t.Part.PartNo == shipmentPart.PartNo)
                 .FirstOrDefaultAsync();
 
             var expecteShipmentPartdQuantity = shipmentPart.Quantity * 2;
-            Assert.Equal(expecteShipmentPartdQuantity, shipment_invoice_part.Quantity);
+            Assert.Equal(expecteShipmentPartdQuantity, shipment_handling_unit_parts.Quantity);
 
             // expect lot part quancity
             var expected_LotPart_ShipmentQuantity = shipmentLot.Invoices
@@ -106,6 +107,31 @@ namespace SKD.Test {
                 .Select(t => t.ShipmentQuantity).FirstOrDefaultAsync();
 
             Assert.Equal(expected_LotPart_ShipmentQuantity, actual_lotPart_ShipmentQuantity);
+        }
+
+        [Fact]
+        private async Task cannot_import_shipment_duplicate_handling_units() {
+            var plant = await ctx.Plants.FirstAsync();
+            var lot = await ctx.Lots.FirstAsync();
+            var sequence = 2;            
+            var shipmentService = new ShipmentService(ctx);
+
+            var input_1 = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence);
+            var input_2 = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence + 1);
+            var inputMetrics = GetShipmentInputMetrics(input_1);
+
+            var payload_1 = await shipmentService.ImportShipment(input_1);
+
+            var actual_error_count = payload_1.Errors.Count();
+            Assert.Equal(0, actual_error_count);
+            var actual_handling_unit_count = await ctx.HandlingUnits.CountAsync();
+            Assert.Equal(actual_handling_unit_count, inputMetrics.handlingUnitCount);
+
+            // test
+            var payload_2 = await shipmentService.ImportShipment(input_2);
+            var expected_error_message = "handling units already imported";
+            string actual_error_message = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
+            Assert.Equal(expected_error_message, (actual_error_message ??= "").Substring(0, expected_error_message.Length));
         }
 
         [Fact]
@@ -253,25 +279,31 @@ namespace SKD.Test {
             var lotPartInputList = service.Get_LotPartInputs_from_ShipmentInput(input);
 
             // assert
-            var expected_lot_part_count = 3;
             var actual_lot_part_count = lotPartInputList.Count();
-            Assert.Equal(expected_lot_part_count, actual_lot_part_count);
+            Assert.Equal(inputMetrics.lotPartCount, actual_lot_part_count);
         }
 
         public record ShipentInputMetrics(
             int lotCount, 
             int invoiceCount, 
             int invoicePartsCount, 
-            int distinctPartCount,
-            int distinctHandlingUnitCount);
+            int partCount,
+            int handlingUnitCount,
+            int lotPartCount);
 
         public ShipentInputMetrics GetShipmentInputMetrics(ShipmentInput input) {
+
             return new ShipentInputMetrics(
-                input.Lots.Count(),
-                input.Lots.SelectMany(t => t.Invoices).Count(),
-                input.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.Parts).Count(),
-                input.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.Parts).Select(t => t.PartNo).Distinct().Count(),
-                input.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.Parts).Select(t => t.HandlingUnitCode).Distinct().Count()
+               lotCount: input.Lots.Count(),
+               invoiceCount: input.Lots.SelectMany(t => t.Invoices).Count(),
+               invoicePartsCount: input.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.Parts).Count(),
+               partCount:  input.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.Parts).Select(t => t.PartNo).Distinct().Count(),
+               handlingUnitCount: input.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.Parts).Select(t => t.HandlingUnitCode).Distinct().Count(),
+               lotPartCount: input.Lots.Select(t => new {
+                    lotParts = t.Invoices
+                        .SelectMany(t => t.Parts)
+                        .Select(u => new { t.LotNo, u.PartNo}).Distinct()
+                }).SelectMany(t => t.lotParts).Count()
             );
         }
         public ShipmentInput Gen_ShipmentInput(string plantCode, string lotNo, int sequence) {
@@ -318,6 +350,14 @@ namespace SKD.Test {
                                         CustomerPartNo = "part 3 desc",
                                         Quantity = 4
                                     },
+                                    new ShipmentPartInput {
+                                        HandlingUnitCode = "0000003",
+                                        PartNo = "part-4",
+                                        CustomerPartDesc = "part 4 desc",
+                                        CustomerPartNo = "part 4 desc",
+                                        Quantity = 4
+                                    },
+
                                 }
                             },
                         }

@@ -17,7 +17,7 @@ namespace SKD.Model {
                 .WithOne(t => t.HandlingUnit)
                 .HasForeignKey(t => t.HandlingUnitId);
 
-            builder.HasOne(t => t.Invoice)
+            builder.HasOne(t => t.ShipmentInvoice)
                 .WithMany(t => t.HandlingUnits)
                 .HasForeignKey(t => t.ShipmentInvoiceId);
                          

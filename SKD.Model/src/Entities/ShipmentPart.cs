@@ -7,8 +7,8 @@ namespace SKD.Model {
         public Part Part { get; set; }
         public int Quantity { get; set; }
 
-        public Guid ShipmentInvoiceId { get; set; }
-        public ShipmentInvoice ShipmentInvoice { get; set; }
+        // public Guid ShipmentInvoiceId { get; set; }
+        // public ShipmentInvoice ShipmentInvoice { get; set; }
 
         public Guid? HandlingUnitId { get; set; }
         public HandlingUnit HandlingUnit { get; set; }

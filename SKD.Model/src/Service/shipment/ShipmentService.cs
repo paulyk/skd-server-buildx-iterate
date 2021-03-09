@@ -29,9 +29,8 @@ namespace SKD.Model {
             // plant
             var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
 
-            // create shipment
-            var shipment = CreateShipment(input, plant, parts);
-            context.Shipments.Add(shipment);
+            // add shipment
+            var shipment = AddShipment(input, plant, parts);
 
             // Add / Update LotPart(s)
             await AddUpdateLotParts(input, parts);
@@ -55,7 +54,8 @@ namespace SKD.Model {
             return await partService.GetEnsureParts(inputParts);
         }
 
-        private Shipment CreateShipment(ShipmentInput input, Plant plant, List<Part> parts) {
+        private Shipment AddShipment(ShipmentInput input, Plant plant, List<Part> parts) {
+
             // create shipment
             var shipment = new Shipment() {
                 Plant = plant,
@@ -65,16 +65,20 @@ namespace SKD.Model {
                     Invoices = lotDTO.Invoices.Select(invoiceDTO => new ShipmentInvoice {
                         InvoiceNo = invoiceDTO.InvoiceNo,
                         ShipDate = invoiceDTO.ShipDate,
-                        Parts = invoiceDTO.Parts
-                            .GroupBy(t => new { PartNo = t.PartNo })
-                            .Select(g => new ShipmentPart {
-                                Part = parts.FirstOrDefault(t => t.PartNo == g.Key.PartNo),
-                                Quantity = g.Sum(x => x.Quantity)
-                            }).ToList()
+                        HandlingUnits = invoiceDTO.Parts
+                            .GroupBy(t => t.HandlingUnitCode)
+                            .Select(g => new HandlingUnit {
+                                Code = g.Key,
+                                Parts = g.GroupBy(p => p.PartNo).Select(u => new ShipmentPart {
+                                    Part = parts.FirstOrDefault(t => t.PartNo == u.Key),
+                                    Quantity = u.Sum(x => x.Quantity)
+                                }).ToList()
+                            }).ToList(),
                     }).ToList()
                 }).ToList()
             };
 
+            context.Shipments.Add(shipment);
             return shipment;
         }
 
@@ -194,9 +198,11 @@ namespace SKD.Model {
                 Sequence = t.Sequence,
                 LotCount = t.Lots.Count(),
                 InvoiceCount = t.Lots.SelectMany(t => t.Invoices).Count(),
+                HandlingUnitCount = t.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.HandlingUnits).Count(),
                 PartCount = t.Lots
                     .SelectMany(t => t.Invoices)
-                    .SelectMany(t => t.Parts).Select(t => t.Part.PartNo)
+                    .SelectMany(t => t.HandlingUnits)
+                    .SelectMany(t => t.Parts)
                     .Distinct().Count(),
                 CreatedAt = t.CreatedAt
             }).FirstOrDefaultAsync(t => t.Id == id);
