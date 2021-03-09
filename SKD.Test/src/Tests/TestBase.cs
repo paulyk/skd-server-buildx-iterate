@@ -332,8 +332,8 @@ namespace SKD.Test {
             });
 
             foreach (var eventType in eventTypes) {
-                if (ctx.VehicleTimelineEventTypes.Count(t => t.Code == eventType.Code) == 0) {
-                    ctx.VehicleTimelineEventTypes.AddRange(eventTypes);
+                if (ctx.KitTimelineEventTypes.Count(t => t.Code == eventType.Code) == 0) {
+                    ctx.KitTimelineEventTypes.AddRange(eventTypes);
                 }
             }
             ctx.SaveChanges();

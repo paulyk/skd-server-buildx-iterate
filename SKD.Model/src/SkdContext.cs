@@ -4,34 +4,32 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SKD.Model {
     public class SkdContext : DbContext {
-        public DbSet<User> Users { get; set; }
+        public DbSet<Plant> Plants => Set<Plant>();
+        public DbSet<Kit> Kits => Set<Kit>();
+        public DbSet<KitTimelineEvent> KitTimelineEvents => Set<KitTimelineEvent>();
+        public DbSet<KitTimelineEventType> KitTimelineEventTypes => Set<KitTimelineEventType>();
+        public DbSet<Lot> Lots => Set<Lot>();
+        public DbSet<Component> Components => Set<Component>();
+        public DbSet<VehicleModel> VehicleModels => Set<VehicleModel>();
+        public DbSet<KitComponent> KitComponents => Set<KitComponent>();
+        public DbSet<ComponentSerial> ComponentSerials => Set<ComponentSerial>();
+        public DbSet<DcwsResponse> DCWSResponses => Set<DcwsResponse>();
+        public DbSet<VehicleModelComponent> VehicleModelComponents => Set<VehicleModelComponent>();
+        public DbSet<ProductionStation> ProductionStations => Set<ProductionStation>();
+        public DbSet<Part> Parts => Set<Part>();
 
-        public DbSet<Plant> Plants { get; set; }
-        public DbSet<Kit> Kits { get; set; }
-        public DbSet<KitTimelineEvent> KitTimelineEvents { get; set; }
-        public DbSet<KitTimelineEventType> VehicleTimelineEventTypes { get; set; }
-        public DbSet<Lot> Lots { get; set; }
-        public DbSet<Component> Components { get; set; }
-        public DbSet<VehicleModel> VehicleModels { get; set; }
-        public DbSet<KitComponent> KitComponents { get; set; }
-        public DbSet<ComponentSerial> ComponentSerials { get; set; }
-        public DbSet<DcwsResponse> DCWSResponses { get; set; }
-        public DbSet<VehicleModelComponent> VehicleModelComponents { get; set; }
-        public DbSet<ProductionStation> ProductionStations { get; set; }
-        public DbSet<Part> Parts { get; set; }
-        
-        public DbSet<Shipment> Shipments { get; set; }
-        public DbSet<ShipmentLot> ShipmentLots { get; set; }
-        public DbSet<ShipmentInvoice> ShipmentInvoices { get; set; }
-        public DbSet<HandlingUnit> HandlingUnits { get; set; }
-        public DbSet<ShipmentPart> ShipmentParts { get; set; }
+        public DbSet<Shipment> Shipments => Set<Shipment>();
+        public DbSet<ShipmentLot> ShipmentLots => Set<ShipmentLot>();
+        public DbSet<ShipmentInvoice> ShipmentInvoices => Set<ShipmentInvoice>();
+        public DbSet<HandlingUnit> HandlingUnits => Set<HandlingUnit>();
+        public DbSet<ShipmentPart> ShipmentParts => Set<ShipmentPart>();
 
-        public DbSet<Bom> Boms { get; set; }
-        public DbSet<LotPart> LotParts { get; set; }
-        public DbSet<LotPartReceived> LotPartsReceived { get; set; }
+        public DbSet<Bom> Boms => Set<Bom>();
+        public DbSet<LotPart> LotParts => Set<LotPart>();
+        public DbSet<LotPartReceived> LotPartsReceived => Set<LotPartReceived>();
 
-        public DbSet<kitSnapshotRun> KitSnapshotRuns { get; set; }
-        public DbSet<KitSnapshot> KitSnapshots { get; set; }
+        public DbSet<kitSnapshotRun> KitSnapshotRuns => Set<kitSnapshotRun>();
+        public DbSet<KitSnapshot> KitSnapshots => Set<KitSnapshot>();
 
         public SkdContext(DbContextOptions options) : base(options) { }
 

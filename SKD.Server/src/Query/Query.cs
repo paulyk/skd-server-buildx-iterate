@@ -178,7 +178,7 @@ namespace SKD.Server {
                 return (VehicleTimelineDTO?)null;
             }
 
-            var timelineEventTypes = await context.VehicleTimelineEventTypes.AsNoTracking()
+            var timelineEventTypes = await context.KitTimelineEventTypes.AsNoTracking()
                 .OrderBy(t => t.Sequecne)
                 .Where(t => t.RemovedAt == null).ToListAsync();
 

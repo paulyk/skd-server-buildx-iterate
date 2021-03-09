@@ -66,7 +66,7 @@ namespace SKD.Model {
 
             // create timeline event and add to vehicle
             var newTimelineEvent = new KitTimelineEvent {
-                EventType = await context.VehicleTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == dto.EventType.ToString()),
+                EventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == dto.EventType.ToString()),
                 EventDate = dto.EventDate,
                 EventNote = dto.EventNote
             };
@@ -105,7 +105,7 @@ namespace SKD.Model {
 
                 // create timeline event and add to vehicle
                 var newTimelineEvent = new KitTimelineEvent {
-                    EventType = await context.VehicleTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == dto.EventType.ToString()),
+                    EventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == dto.EventType.ToString()),
                     EventDate = dto.EventDate,
                     EventNote = dto.EventNote
                 };
@@ -227,7 +227,7 @@ namespace SKD.Model {
             }
 
             // missing prerequisite timeline events
-            var currentTimelineEventType = await context.VehicleTimelineEventTypes
+            var currentTimelineEventType = await context.KitTimelineEventTypes
                 .FirstOrDefaultAsync(t => t.Code == input.EventType.ToString());
 
             var missingTimlineSequences = Enumerable.Range(1, currentTimelineEventType.Sequecne - 1)
@@ -236,7 +236,7 @@ namespace SKD.Model {
 
 
             if (missingTimlineSequences.Count > 0) {
-                var mssingTimelineEventCodes = await context.VehicleTimelineEventTypes
+                var mssingTimelineEventCodes = await context.KitTimelineEventTypes
                     .Where(t => missingTimlineSequences.Any(missingSeq => t.Sequecne == missingSeq))
                     .Select(t => t.Code).ToListAsync();
 

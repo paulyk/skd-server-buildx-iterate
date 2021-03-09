@@ -41,7 +41,7 @@ namespace SKD.Seed {
                 eventType.Sequecne = sequence++;
             });
 
-            ctx.VehicleTimelineEventTypes.AddRange(eventTypes);
+            ctx.KitTimelineEventTypes.AddRange(eventTypes);
             await ctx.SaveChangesAsync();
 
             Console.WriteLine($"Added {ctx.ProductionStations.Count()} vehicle timeline event types");
