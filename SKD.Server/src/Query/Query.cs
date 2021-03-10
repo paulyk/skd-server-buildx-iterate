@@ -20,7 +20,6 @@ namespace SKD.Server {
             Configuration = configuration;
         }
 
-
         public ConfigettingDTO GetServerConfigSettings() {
             var planBuldLead = 0;
             Int32.TryParse(Configuration[ConfigSettingKey.PlanBuildLeadTimeDays], out planBuldLead);
@@ -30,6 +29,7 @@ namespace SKD.Server {
                 PlanBuildLeadTimeDays = planBuldLead
             };
         }
+
         public string Info() => "RMA SDK Server";
 
         [UsePaging(MaxPageSize = 10000)]
@@ -129,9 +129,8 @@ namespace SKD.Server {
         [UseFiltering]
         [UseSorting]
         public IQueryable<Shipment> GetShipments(
-            [Service] SkdContext context,
-            string plantCode
-        ) => context.Shipments.Where(t => t.Plant.Code == plantCode).AsQueryable();
+            [Service] SkdContext context
+        ) => context.Shipments;
 
         public async Task<ShipmentOverviewDTO?> GetShipmentOverview(
             [Service] ShipmentService service,
