@@ -62,7 +62,7 @@ namespace SKD.Test {
             var handlingUnitCodes = input.Lots
                 .SelectMany(t => t.Invoices).SelectMany(t => t.Parts)
                 .Select(t => t.HandlingUnitCode).Distinct().ToList();
-            
+
             var matchingHandlingUnits = await ctx.HandlingUnits.Where(t => handlingUnitCodes.Any(code => code == t.Code)).CountAsync();
             Assert.Equal(inputMetrics.handlingUnitCount, matchingHandlingUnits);
         }
@@ -113,11 +113,11 @@ namespace SKD.Test {
         private async Task cannot_import_shipment_duplicate_handling_units() {
             var plant = await ctx.Plants.FirstAsync();
             var lot = await ctx.Lots.FirstAsync();
-            var sequence = 2;            
+            var sequence = 2;
             var shipmentService = new ShipmentService(ctx);
 
-            var input_1 = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence);
-            var input_2 = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence + 1);
+            var input_1 = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence, startInvoiceNo: 100);
+            var input_2 = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence + 1, startInvoiceNo: 200);
             var inputMetrics = GetShipmentInputMetrics(input_1);
 
             var payload_1 = await shipmentService.ImportShipment(input_1);
@@ -284,9 +284,9 @@ namespace SKD.Test {
         }
 
         public record ShipentInputMetrics(
-            int lotCount, 
-            int invoiceCount, 
-            int invoicePartsCount, 
+            int lotCount,
+            int invoiceCount,
+            int invoicePartsCount,
             int partCount,
             int handlingUnitCount,
             int lotPartCount);
@@ -297,16 +297,18 @@ namespace SKD.Test {
                lotCount: input.Lots.Count(),
                invoiceCount: input.Lots.SelectMany(t => t.Invoices).Count(),
                invoicePartsCount: input.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.Parts).Count(),
-               partCount:  input.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.Parts).Select(t => t.PartNo).Distinct().Count(),
+               partCount: input.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.Parts).Select(t => t.PartNo).Distinct().Count(),
                handlingUnitCount: input.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.Parts).Select(t => t.HandlingUnitCode).Distinct().Count(),
                lotPartCount: input.Lots.Select(t => new {
-                    lotParts = t.Invoices
+                   lotParts = t.Invoices
                         .SelectMany(t => t.Parts)
-                        .Select(u => new { t.LotNo, u.PartNo}).Distinct()
-                }).SelectMany(t => t.lotParts).Count()
+                        .Select(u => new { t.LotNo, u.PartNo }).Distinct()
+               }).SelectMany(t => t.lotParts).Count()
             );
         }
-        public ShipmentInput Gen_ShipmentInput(string plantCode, string lotNo, int sequence) {
+        public ShipmentInput Gen_ShipmentInput(string plantCode, string lotNo, int sequence, int startInvoiceNo = 1) {
+            var invoiceNo = startInvoiceNo;
+
             var input = new ShipmentInput() {
                 PlantCode = plantCode,
                 Sequence = sequence,
@@ -315,7 +317,7 @@ namespace SKD.Test {
                         LotNo = lotNo,
                         Invoices = new List<ShipmentInvoiceInput> {
                             new ShipmentInvoiceInput {
-                                InvoiceNo = "001",
+                                InvoiceNo = (invoiceNo++).ToString().PadLeft(EntityFieldLen.Shipment_InvoiceNo, '0'),
                                 Parts = new List<ShipmentPartInput> {
                                     new ShipmentPartInput {
                                         HandlingUnitCode = "0000001",
@@ -327,7 +329,7 @@ namespace SKD.Test {
                                 }
                             },
                             new ShipmentInvoiceInput {
-                                InvoiceNo = "002",
+                                InvoiceNo = (invoiceNo++).ToString().PadLeft(EntityFieldLen.Shipment_InvoiceNo, '0'),
                                 Parts = new List<ShipmentPartInput> {
                                     new ShipmentPartInput {
                                         HandlingUnitCode = "0000002",

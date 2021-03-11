@@ -159,7 +159,22 @@ namespace SKD.Model {
                 return errors;
             }
 
-            // handling unit code in use by a different shipmment   
+            // inoice numbers alread exists
+            var inputInvoiceNos = input.Lots
+                .SelectMany(t => t.Invoices)
+                .Select(t => t.InvoiceNo).Distinct().ToList();
+
+            var invoicesAlreadyImorted = await context.ShipmentInvoices
+                .Where(t => inputInvoiceNos.Any(invoiceNo => invoiceNo == t.InvoiceNo)).Select(t => t.InvoiceNo)
+                .ToListAsync();
+
+            if (invoicesAlreadyImorted.Any()) {
+                var invoiceNos = String.Join(", ", invoicesAlreadyImorted.Take(5));
+                errors.Add(new Error("", $"invoice numbers already imported: {invoiceNos}"));
+                return errors;
+            }
+
+            // handling units already exist
             var inputHandlingUnitCodes = input.Lots
                 .SelectMany(t => t.Invoices)
                 .SelectMany(t => t.Parts)
