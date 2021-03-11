@@ -20,7 +20,10 @@ namespace SKD.Model {
             builder.HasOne(t => t.ShipmentInvoice)
                 .WithMany(t => t.HandlingUnits)
                 .HasForeignKey(t => t.ShipmentInvoiceId);
-                         
+                        
+            builder.HasMany(t => t.Received)
+                .WithOne(t => t.HandlingUnit)
+                .HasForeignKey(t => t.HandlingUnitId);
         }
     }
 }

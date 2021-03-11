@@ -283,6 +283,70 @@ namespace SKD.Test {
             Assert.Equal(inputMetrics.lotPartCount, actual_lot_part_count);
         }
 
+        [Fact]
+        public async Task can_set_handling_unit_received() {
+            var plant = await ctx.Plants.FirstAsync();
+            var lot = await ctx.Lots.FirstAsync();
+            var sequence = 2;
+
+            var shipmentInput = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence);
+            var inputMetrics = GetShipmentInputMetrics(shipmentInput);
+
+            // test
+            var before_count = ctx.ShipmentParts.Count();
+            var shipmentService = new ShipmentService(ctx);
+            var payload = await shipmentService.ImportShipment(shipmentInput);
+
+            var handlingUnitCode = shipmentInput.Lots
+                .SelectMany(t => t.Invoices)
+                .SelectMany(t => t.Parts).Select(t =>t.HandlingUnitCode).First();
+            
+            var receiveHandlingUnitInput = new ReceiveHandlingUnitInput(handlingUnitCode, Remove: false);
+
+            var handlingUnitService = new HandlingUnitService(ctx);
+            var receivePayload = await handlingUnitService.SetHandlingUnitReceived(receiveHandlingUnitInput);
+
+            var handlingUitReceived = await ctx.HandlingUnitReceived
+                .Include(t => t.HandlingUnit)
+                .FirstOrDefaultAsync(t => t.HandlingUnit.Code == handlingUnitCode);
+            Assert.Equal(handlingUnitCode, handlingUitReceived.HandlingUnit.Code);
+        }
+
+        [Fact]
+        public async Task can_revoke_handling_unit_received() {
+            var plant = await ctx.Plants.FirstAsync();
+            var lot = await ctx.Lots.FirstAsync();
+            var sequence = 2;
+
+            var shipmentInput = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence);
+            var inputMetrics = GetShipmentInputMetrics(shipmentInput);
+
+            // test
+            var before_count = ctx.ShipmentParts.Count();
+            var shipmentService = new ShipmentService(ctx);
+            var payload = await shipmentService.ImportShipment(shipmentInput);
+
+            var handlingUnitCode = shipmentInput.Lots
+                .SelectMany(t => t.Invoices)
+                .SelectMany(t => t.Parts).Select(t =>t.HandlingUnitCode).First();
+            
+            var handlingUnitService = new HandlingUnitService(ctx);
+
+            var input_1 = new ReceiveHandlingUnitInput(handlingUnitCode, Remove: false);
+            var receivePayload = await handlingUnitService.SetHandlingUnitReceived(input_1);
+
+            var input_2 = input_1 with { Remove = true };
+
+            var removePayload = await handlingUnitService.SetHandlingUnitReceived(input_2);
+
+            var handlingUitReceived = await ctx.HandlingUnitReceived
+                .Include(t => t.HandlingUnit)
+                .FirstOrDefaultAsync(t => t.HandlingUnit.Code == handlingUnitCode);
+
+            Assert.Equal(handlingUnitCode, handlingUitReceived.HandlingUnit.Code);
+            Assert.NotNull(handlingUitReceived.RemovedAt);
+        }        
+
         public record ShipentInputMetrics(
             int lotCount,
             int invoiceCount,
@@ -306,6 +370,7 @@ namespace SKD.Test {
                }).SelectMany(t => t.lotParts).Count()
             );
         }
+
         public ShipmentInput Gen_ShipmentInput(string plantCode, string lotNo, int sequence, int startInvoiceNo = 1) {
             var invoiceNo = startInvoiceNo;
 

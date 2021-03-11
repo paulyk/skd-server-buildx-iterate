@@ -151,5 +151,10 @@ namespace SKD.Server {
 
             return dcwsResponsePayload;
         }
+
+        public async Task<MutationPayload<ReceiveHandlingUnitPayload>> SetHandlingUnitReceived(
+            [Service] HandlingUnitService service,
+            ReceiveHandlingUnitInput input
+        ) => await service.SetHandlingUnitReceived(input);
     }
 }
