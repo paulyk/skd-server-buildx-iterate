@@ -145,6 +145,11 @@ namespace SKD.Server {
             Guid shipmentId
         ) => await service.GetShipmentOverview(shipmentId);
 
+        public async Task<List<HandlingUnitOverview>> GetHandlingUnitOverviews(
+            [Service] HandlingUnitService service,
+            Guid shipmentId
+        ) => await service.GetHandlingUnitOverviews(shipmentId);
+        
         public async Task<Kit?> GetKitById([Service] SkdContext context, Guid id) {
             var result = await context.Kits.AsNoTracking()
                     .Include(t => t.Lot)

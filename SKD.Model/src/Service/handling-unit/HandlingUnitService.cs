@@ -40,7 +40,6 @@ namespace SKD.Model {
                 handlingUnit.Received.Add(handlingUnitReceived);
             }
 
-
             await context.SaveChangesAsync();
 
             payload.Entity = new ReceiveHandlingUnitPayload {
@@ -82,6 +81,38 @@ namespace SKD.Model {
             } 
 
             return errors;
+        }
+
+        public async Task<List<HandlingUnitOverview>> GetHandlingUnitOverviews(
+            Guid shipmentId
+        ) { 
+            
+            var  r =  await context.HandlingUnits            
+                .Where(t => t.ShipmentInvoice.ShipmentLot.Shipment.Id == shipmentId)
+                .Select(t => new  {
+                    PlantCode = t.ShipmentInvoice.ShipmentLot.Shipment.Plant.Code,
+                    ShipmentSequence = t.ShipmentInvoice.ShipmentLot.Shipment.Sequence,
+                    HandlingUnitCode = t.Code,
+                    LotNo = t.ShipmentInvoice.ShipmentLot.LotNo,
+                    InvoiceNo = t.ShipmentInvoice.InvoiceNo,
+                    PartCount = t.Parts.Where(t => t.RemovedAt == null).Count(),
+                    CreatedAt = t.CreatedAt,
+                    Received =  t.Received
+                        .Where(k => k.RemovedAt == null)
+                        .FirstOrDefault()
+                }).ToListAsync();   
+            
+            return r.Select(r => new HandlingUnitOverview{
+                PlantCode = r.PlantCode,
+                ShipmentSequence = r.ShipmentSequence,
+                HandlingUnitCode = r.HandlingUnitCode,
+                LotNo = r.LotNo,
+                InvoiceNo = r.InvoiceNo,
+                PartCount = r.PartCount,
+                CreatedAt = r.CreatedAt,
+                ReceivedAt = r.Received?.CreatedAt
+            }).ToList();
+
         }
     }
 }
