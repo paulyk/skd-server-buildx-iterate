@@ -78,18 +78,18 @@ namespace SKD.Model {
             if (!input.Remove && alreadyReceived) {
                 errors.Add(new Error("", $"handling unit already recieved: {input.HandlingUnitCode} "));
                 return errors;
-            } 
+            }
 
             return errors;
         }
 
         public async Task<List<HandlingUnitOverview>> GetHandlingUnitOverviews(
             Guid shipmentId
-        ) { 
-            
-            var  r =  await context.HandlingUnits            
+        ) {
+
+            var r = await context.HandlingUnits
                 .Where(t => t.ShipmentInvoice.ShipmentLot.Shipment.Id == shipmentId)
-                .Select(t => new  {
+                .Select(t => new {
                     PlantCode = t.ShipmentInvoice.ShipmentLot.Shipment.Plant.Code,
                     ShipmentSequence = t.ShipmentInvoice.ShipmentLot.Shipment.Sequence,
                     HandlingUnitCode = t.Code,
@@ -97,12 +97,11 @@ namespace SKD.Model {
                     InvoiceNo = t.ShipmentInvoice.InvoiceNo,
                     PartCount = t.Parts.Where(t => t.RemovedAt == null).Count(),
                     CreatedAt = t.CreatedAt,
-                    Received =  t.Received
-                        .Where(k => k.RemovedAt == null)
+                    ReceiveEntry = t.Received.OrderByDescending(t => t.CreatedAt)
                         .FirstOrDefault()
-                }).ToListAsync();   
-            
-            return r.Select(r => new HandlingUnitOverview{
+                }).ToListAsync();
+
+            return r.Select(r => new HandlingUnitOverview {
                 PlantCode = r.PlantCode,
                 ShipmentSequence = r.ShipmentSequence,
                 HandlingUnitCode = r.HandlingUnitCode,
@@ -110,9 +109,45 @@ namespace SKD.Model {
                 InvoiceNo = r.InvoiceNo,
                 PartCount = r.PartCount,
                 CreatedAt = r.CreatedAt,
-                ReceivedAt = r.Received?.CreatedAt
+                ReceivedAt = r.ReceiveEntry != null 
+                    ? r.ReceiveEntry.CreatedAt 
+                    : (DateTime?)null,
+                ReceiveCancledAt = r.ReceiveEntry != null  && r.ReceiveEntry.RemovedAt != null 
+                    ? r.ReceiveEntry.RemovedAt 
+                    : (DateTime?)null
             }).ToList();
+        }
 
+        public async Task<ValidateReceiveHandlingUnitPayload?> GetValidateReceiveHandlingUnit(
+            string code
+        ) {
+            var result =
+               await (from hu in context.HandlingUnits
+                      join lot in context.Lots
+                       on hu.ShipmentInvoice.ShipmentLot.LotNo equals lot.LotNo
+                      join model in context.VehicleModels
+                       on lot.ModelId equals model.Id
+                      where hu.Code == code
+                      select new ValidateReceiveHandlingUnitPayload {
+                          Code = hu.Code,
+                          InvoiceNo = hu.ShipmentInvoice.InvoiceNo,
+                          LotNo = lot.LotNo,
+                          ModelCode = model.Code,
+                          ModelName = model.Name,
+                      }).FirstOrDefaultAsync();
+
+            var received = await context.HandlingUnitReceived
+                .OrderByDescending(t => t.CreatedAt)
+                .Where(t => t.HandlingUnit.Code == code)
+                .FirstOrDefaultAsync();
+
+            if (received != null) {
+                result.ReceivedAt = received.RemovedAt == null 
+                    ? received.CreatedAt 
+                    : (DateTime?)null;
+            }
+
+            return result;
         }
     }
 }

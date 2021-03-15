@@ -10,5 +10,6 @@ namespace SKD.Model {
         public int PartCount { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? ReceivedAt { get; set; }
+        public DateTime? ReceiveCancledAt { get; set; }
     }
 }
