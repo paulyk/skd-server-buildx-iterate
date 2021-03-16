@@ -9,6 +9,7 @@ namespace SKD.Model {
         public string? LotNo { get; set; }
         public string? ModelCode  { get; set; }
         public string? ModelName { get; set; }
+        public int PartCount { get; set; }
         public DateTime? ReceivedAt { get; set; }
     }
 }

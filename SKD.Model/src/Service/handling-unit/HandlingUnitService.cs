@@ -134,6 +134,7 @@ namespace SKD.Model {
                           LotNo = lot.LotNo,
                           ModelCode = model.Code,
                           ModelName = model.Name,
+                          PartCount = hu.Parts.Count()
                       }).FirstOrDefaultAsync();
 
             var received = await context.HandlingUnitReceived
