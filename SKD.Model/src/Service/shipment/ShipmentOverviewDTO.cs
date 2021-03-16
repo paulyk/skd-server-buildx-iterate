@@ -8,6 +8,7 @@ namespace SKD.Model {
         public int LotCount { get; set; }
         public int InvoiceCount { get; set; }
         public int HandlingUnitCount { get; set; }
+        public int handlingUnitReceivedCount { get; set; }
         public int PartCount { get; set; }
         public DateTime CreatedAt {get; set; }
     }

@@ -214,6 +214,8 @@ namespace SKD.Model {
                 LotCount = t.Lots.Count(),
                 InvoiceCount = t.Lots.SelectMany(t => t.Invoices).Count(),
                 HandlingUnitCount = t.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.HandlingUnits).Count(),
+                handlingUnitReceivedCount = t.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.HandlingUnits)
+                    .Where(t => t.Received.Any(t => t.RemovedAt== null)).Count(),                
                 PartCount = t.Lots
                     .SelectMany(t => t.Invoices)
                     .SelectMany(t => t.HandlingUnits)
