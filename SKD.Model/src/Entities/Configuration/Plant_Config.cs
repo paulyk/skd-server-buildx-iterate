@@ -21,7 +21,7 @@ namespace SKD.Model {
                 .WithOne(t => t.Plant)
                 .HasForeignKey(t => t.PlantId);           
 
-            builder.HasMany(t => t.VehicleSnapshotRuns) 
+            builder.HasMany(t => t.KitSnapshotRuns) 
                 .WithOne(t => t.Plant)
                 .HasForeignKey(t => t.PlantId);
 

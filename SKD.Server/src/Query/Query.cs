@@ -373,20 +373,20 @@ namespace SKD.Server {
             return result;
         }
 
-        public async Task<KitSnapshotRunDTO?> GetVehicleSnapshotRunByDate(
+        public async Task<KitSnapshotRunDTO?> GetKitSnapshotRunByDate(
                   [Service] KitSnapshotService service,
                   string plantCode,
                   DateTime runDate
         ) => await service.GetSnapshotRunByDate(plantCode, runDate);
 
-        public async Task<KitSnapshotRunDTO?> GetVehicleSnapshotRun(
+        public async Task<KitSnapshotRunDTO?> GetKitSnapshotRun(
                   [Service] KitSnapshotService service,
                   string plantCode,
                   int sequence
         ) => await service.GetSnapshotRunBySequence(plantCode, sequence);
 
 
-        public async Task<List<SnapshotDTO>> GetRecentVehicleSnapshotRuns(
+        public async Task<List<SnapshotDTO>> GetRecentKitSnapshotRuns(
                   [Service] KitSnapshotService service,
                   string plantCode,
                   int count

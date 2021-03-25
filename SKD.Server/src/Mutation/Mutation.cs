@@ -101,7 +101,7 @@ namespace SKD.Server {
             BomLotPartInput input
        ) => await service.ImportBomLotParts(input);
 
-        public async Task<MutationPayload<SnapshotDTO>> GenerateVehicleSnapshotRun(
+        public async Task<MutationPayload<SnapshotDTO>> GenerateKitSnapshotRun(
             [Service] KitSnapshotService service,
             KitSnapshotInput input
         ) => await service.GenerateSnapshot(input);
