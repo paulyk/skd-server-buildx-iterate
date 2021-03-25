@@ -56,20 +56,21 @@ namespace SKD.Model {
                     .FirstOrDefaultAsync() + 1
             };
 
-            foreach (var vehicle in qualifyingVehicles) {
+            foreach (var kit in qualifyingVehicles) {
                 var vehicleStatusSnapshot = new KitSnapshot {
-                    Kit = vehicle,
-                    ChangeStatusCode = await GetVehicle_TxSatus(vehicle),
-                    TimelineEventCode = Get_VehicleLastestTimelineEventType(vehicle),
-                    VIN = Get_VehicleVIN_IfBuildComplete(vehicle),
-                    DealerCode = GetDealerCode(vehicle),
-                    EngineSerialNumber = await GetEngineSerialNumber(vehicle, input.EngineComponentCode),
-                    CustomReceived = GetVehicleTimelineEventDate(vehicle, TimeLineEventType.CUSTOM_RECEIVED),
-                    PlanBuild = GetVehicleTimelineEventDate(vehicle, TimeLineEventType.PLAN_BUILD),
-                    OrginalPlanBuild = await GetVehicle_OriginalPlanBuildDate(vehicle),
-                    BuildCompleted = GetVehicleTimelineEventDate(vehicle, TimeLineEventType.BULD_COMPLETED),
-                    GateRelease = GetVehicleTimelineEventDate(vehicle, TimeLineEventType.GATE_RELEASED),
-                    Wholesale = GetVehicleTimelineEventDate(vehicle, TimeLineEventType.WHOLE_SALE),
+                    Kit = kit,
+                    ChangeStatusCode = await GetVehicle_TxSatus(kit),
+                    TimelineEventCode = Get_VehicleLastestTimelineEventType(kit),
+                    VIN = Get_VehicleVIN_IfBuildComplete(kit),
+                    DealerCode = GetDealerCode(kit),
+                    EngineSerialNumber = await GetEngineSerialNumber(kit, input.EngineComponentCode),
+
+                    OrginalPlanBuild = await GetVehicle_OriginalPlanBuildDate(kit),
+                    CustomReceived = GetVehicleTimelineEventDate(kit, TimeLineEventType.CUSTOM_RECEIVED),
+                    PlanBuild = GetVehicleTimelineEventDate(kit, TimeLineEventType.PLAN_BUILD),
+                    BuildCompleted = GetVehicleTimelineEventDate(kit, TimeLineEventType.BULD_COMPLETED),
+                    GateRelease = GetVehicleTimelineEventDate(kit, TimeLineEventType.GATE_RELEASED),
+                    Wholesale = GetVehicleTimelineEventDate(kit, TimeLineEventType.WHOLE_SALE),
                 };
 
                 vehicleSnapshotRun.KitSnapshots.Add(vehicleStatusSnapshot);
@@ -183,13 +184,14 @@ namespace SKD.Model {
                 return errors;
             }
 
+            // already generated
             var alreadyGenerated = await context.KitSnapshotRuns
                 .AnyAsync(t => t.Plant.Code == input.PlantCode && t.RunDate.Date == input.RunDate.Date);
 
             if (alreadyGenerated) {
                 errors.Add(new Error("", $"already generated kit snapshot for plant {input.PlantCode},  date ${DateTime.UtcNow.Date}"));
             }
-
+        
             return errors;
         }
 
@@ -269,11 +271,11 @@ namespace SKD.Model {
                 : (DateTime?)null;
         }
 
-        private async Task<DateTime?> GetVehicle_OriginalPlanBuildDate(Kit vehicle) {
+        private async Task<DateTime?> GetVehicle_OriginalPlanBuildDate(Kit kit) {
             // find prior OriginalPlanBuild
             var originalPlanBuild = await context.KitSnapshots
                 .OrderBy(t => t.CreatedAt)
-                .Where(t => t.Kit.Id == vehicle.Id)
+                .Where(t => t.Kit.Id == kit.Id)
                 .Where(t => t.OrginalPlanBuild != null)
                 .Select(t => t.OrginalPlanBuild)
                 .FirstOrDefaultAsync();
@@ -284,7 +286,7 @@ namespace SKD.Model {
             }
 
             // Use PlanBuild date from timeline events
-            var planBuld = GetVehicleTimelineEventDate(vehicle, TimeLineEventType.PLAN_BUILD);
+            var planBuld = GetVehicleTimelineEventDate(kit, TimeLineEventType.PLAN_BUILD);
             return planBuld;
         }
 

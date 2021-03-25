@@ -187,7 +187,7 @@ namespace SKD.Test {
 
         }
 
-        [Fact]
+        // [Fact]
         public async Task creates_original_plan_build_date_only_once() {
             // setup
             var service = new KitSnapshotService(ctx);
@@ -199,14 +199,14 @@ namespace SKD.Test {
 
             var baseDate = DateTime.Now.Date;
 
-            var custom_receive_date = baseDate.AddDays(1);
-            var custom_receive_date_trx = baseDate.AddDays(2);
+            var custom_receive_date = baseDate.AddDays(-1);
+            var custom_receive_date_trx = baseDate;
 
-            var plan_build_date_trx = baseDate.AddDays(3);
-            var plan_build_date = baseDate.AddDays(4);
+            var plan_build_date_trx = baseDate.AddDays(1);
+            var plan_build_date = custom_receive_date.AddDays(planBuildLeadTimeDays);
 
-            var new_plan_build_date_trx = baseDate.AddDays(5);
-            var new_plan_build_date = baseDate.AddDays(6);
+            var new_plan_build_date_trx = baseDate.AddDays(2);
+            var new_plan_build_date = custom_receive_date.AddDays(planBuildLeadTimeDays + 1);
 
             // 1.  custom received
             await AddKitTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, kit.KitNo, "", custom_receive_date_trx, custom_receive_date);
@@ -313,53 +313,90 @@ namespace SKD.Test {
             // setup 
             var baseDate = DateTime.Now.Date;
 
-            var custom_receive_date = baseDate.AddDays(1);
-            var custom_receive_date_trx = baseDate.AddDays(2);
+            var custom_receive_date = baseDate.AddDays(-1);
+            var custom_receive_date_trx = baseDate;
+            var run_date_1 = baseDate;
+            var run_date_2 = baseDate.AddDays(1);
+            var service = new KitSnapshotService(ctx);
 
-            // plant 1
-            var plantCode_1 = ctx.Plants.Select(t => t.Code).First();
+            // plant 1P
+            var plantCode = ctx.Plants.Select(t => t.Code).First();
 
-            var snapshotInput_1 = new KitSnapshotInput {
-                PlantCode = plantCode_1,
+            var snapshotInput = new KitSnapshotInput {
+                PlantCode = plantCode,
                 EngineComponentCode = engineCode
             };
 
-            var kit_1 = ctx.Kits.Where(t => t.Lot.Plant.Code == plantCode_1).OrderBy(t => t.KitNo).First();
-            await AddKitTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, kit_1.KitNo, "", custom_receive_date_trx, custom_receive_date);
-            var service = new KitSnapshotService(ctx);
+            var kit = ctx.Kits.Where(t => t.Lot.Plant.Code == plantCode).OrderBy(t => t.KitNo).First();
+            await AddKitTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, kit.KitNo, "", custom_receive_date_trx, custom_receive_date);
 
-            snapshotInput_1.RunDate = new DateTime(2020, 11, 24);
-            var payload = await service.GenerateSnapshot(snapshotInput_1);
+            snapshotInput.RunDate = run_date_1;
+            var payload = await service.GenerateSnapshot(snapshotInput);
             Assert.Equal(1, payload.Entity.Sequence);
 
-            snapshotInput_1.RunDate = new DateTime(2020, 11, 25);
-            payload = await service.GenerateSnapshot(snapshotInput_1);
+            snapshotInput.RunDate = run_date_2;
+            payload = await service.GenerateSnapshot(snapshotInput);
             Assert.Equal(2, payload.Entity.Sequence);
 
             // setup plant 2
-            var plantCode_2 = Gen_PlantCode();         
-            
-            Gen_Bom_Lot_and_Kits(plantCode_2);
+            plantCode = Gen_PlantCode();
+            Gen_Bom_Lot_and_Kits(plantCode);
 
-            var kit_2 = ctx.Kits.Where(t => t.Lot.Plant.Code == plantCode_2).OrderBy(t => t.KitNo).First();
-            await AddKitTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, kit_2.KitNo, "", custom_receive_date_trx, custom_receive_date);
+            // plant 1
 
-            var snapshotInput_2 = new KitSnapshotInput {
-                PlantCode = plantCode_2,
-                RunDate = new DateTime(2020, 12, 1),
+            snapshotInput = new KitSnapshotInput {
+                PlantCode = plantCode,
                 EngineComponentCode = engineCode
             };
 
-            payload = await service.GenerateSnapshot(snapshotInput_2);
+            kit = ctx.Kits.Where(t => t.Lot.Plant.Code == plantCode).OrderBy(t => t.KitNo).First();
+            await AddKitTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, kit.KitNo, "", custom_receive_date_trx, custom_receive_date);
+
+            snapshotInput.RunDate = run_date_1;
+            payload = await service.GenerateSnapshot(snapshotInput);
             Assert.Equal(1, payload.Entity.Sequence);
 
-            snapshotInput_2.RunDate = new DateTime(2020, 12, 2);
-            payload = await service.GenerateSnapshot(snapshotInput_2);
+            snapshotInput.RunDate = run_date_2;
+            payload= await service.GenerateSnapshot(snapshotInput);
             Assert.Equal(2, payload.Entity.Sequence);
+
 
             // total snapshot run entries
             var kit_snapshot_runs = await ctx.KitSnapshotRuns.CountAsync();
             Assert.Equal(4, kit_snapshot_runs);
+        }
+
+        [Fact]
+        public async Task cannot_add_timline_event_if_snapshot_already_generated_with_that_event() {
+
+            // setup
+            var service = new KitSnapshotService(ctx);
+            var kit = ctx.Kits.OrderBy(t => t.KitNo).First();
+            var plantCode = ctx.Plants.Select(t => t.Code).First();
+            var customReiveDate = DateTime.Now.Date;
+            var buildDays = 7;
+
+            var eventList = new List<(TimeLineEventType eventType, DateTime trxDate, DateTime eventDate)>() {
+                (TimeLineEventType.CUSTOM_RECEIVED, customReiveDate.AddDays(1), customReiveDate),
+                (TimeLineEventType.PLAN_BUILD,      customReiveDate.AddDays(2), customReiveDate.AddDays(planBuildLeadTimeDays)),
+                (TimeLineEventType.BULD_COMPLETED,  customReiveDate.AddDays(planBuildLeadTimeDays + buildDays), customReiveDate.AddDays(planBuildLeadTimeDays + buildDays)),
+            };
+
+            var expecedErrorMessage = "cannot change date after snapshot taken";
+            foreach (var entry in eventList) {
+
+                var payload = await AddKitTimelineEntry(entry.eventType, kit.KitNo, "", entry.trxDate, entry.eventDate);
+                Assert.Equal(0, payload.Errors.Count());
+                await service.GenerateSnapshot(new KitSnapshotInput {
+                    PlantCode = plantCode,
+                    RunDate = entry.trxDate,
+                    EngineComponentCode = engineCode
+                });
+                // edit date
+                var payload_2 = await AddKitTimelineEntry(entry.eventType, kit.KitNo, "", entry.trxDate.AddDays(1), entry.eventDate.AddDays(1));
+                var actualErrorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
+                Assert.Equal(expecedErrorMessage, actualErrorMessage);
+            }
         }
 
         [Fact]
@@ -447,7 +484,7 @@ namespace SKD.Test {
                 ErrorMessage = ""
             });
         }
-        private async Task AddKitTimelineEntry(
+        private async Task<MutationPayload<KitTimelineEvent>> AddKitTimelineEntry(
             TimeLineEventType eventType,
             string kitNo,
             string eventNote,
@@ -461,6 +498,7 @@ namespace SKD.Test {
                 EventNote = eventNote,
                 EventDate = eventDate
             });
+            return payload;
         }
 
 

@@ -44,20 +44,20 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<MutationPayload<KitTimelineEvent>> CreateKitTimelineEvent(KitTimelineEventInput dto) {
+        public async Task<MutationPayload<KitTimelineEvent>> CreateKitTimelineEvent(KitTimelineEventInput input) {
             var payload = new MutationPayload<KitTimelineEvent>(null);
-            payload.Errors = await ValidateCreateVehicleTimelineEvent(dto);
+            payload.Errors = await ValidateCreateVehicleTimelineEvent(input);
             if (payload.Errors.Count > 0) {
                 return payload;
             }
 
             var vehicle = await context.Kits
                 .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
-                .FirstOrDefaultAsync(t => t.KitNo == dto.KitNo);
+                .FirstOrDefaultAsync(t => t.KitNo == input.KitNo);
 
             // mark other timeline events of the same type as removed for this vehicle
             vehicle.TimelineEvents
-                .Where(t => t.EventType.Code == dto.EventType.ToString())
+                .Where(t => t.EventType.Code == input.EventType.ToString())
                 .ToList().ForEach(timelieEvent => {
                     if (timelieEvent.RemovedAt == null) {
                         timelieEvent.RemovedAt = DateTime.UtcNow;
@@ -66,9 +66,9 @@ namespace SKD.Model {
 
             // create timeline event and add to vehicle
             var newTimelineEvent = new KitTimelineEvent {
-                EventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == dto.EventType.ToString()),
-                EventDate = dto.EventDate,
-                EventNote = dto.EventNote
+                EventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == input.EventType.ToString()),
+                EventDate = input.EventDate,
+                EventNote = input.EventNote
             };
 
             vehicle.TimelineEvents.Add(newTimelineEvent);
@@ -226,6 +226,17 @@ namespace SKD.Model {
                 return errors;
             }
 
+            // kit timeline event snapshot aready taken
+            var exitingKitSnapnshot = await context.KitSnapshots
+                .Where(t => t.Kit.KitNo == input.KitNo)
+                .Where(t => t.TimelineEventCode == input.EventType)
+                .FirstOrDefaultAsync();
+
+            if (exitingKitSnapnshot != null) {
+                errors.Add(new Error("", $"cannot change date after snapshot taken"));
+                return errors;
+            }
+
             // missing prerequisite timeline events
             var currentTimelineEventType = await context.KitTimelineEventTypes
                 .FirstOrDefaultAsync(t => t.Code == input.EventType.ToString());
@@ -263,7 +274,7 @@ namespace SKD.Model {
                 var custom_receive_plus_lead_time_date = custom_receive_date.AddDays(planBuildLeadTimeDays);
 
                 var plan_build_date = input.EventDate;
-                if (plan_build_date <= custom_receive_plus_lead_time_date) {
+                if (custom_receive_plus_lead_time_date > plan_build_date) {
                     errors.Add(new Error("", $"plan build must greater custom receive by {planBuildLeadTimeDays} days"));
                     return errors;
                 }

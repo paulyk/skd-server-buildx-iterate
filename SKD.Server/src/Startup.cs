@@ -47,7 +47,7 @@ namespace SKD.Server {
             services
                 .AddScoped<SearchService>()
                 .AddScoped<KitService>(sp =>
-                    new KitService(sp.GetRequiredService<SkdContext>(), DateTime.Now, planBuildLeadTimeDays))
+                    new KitService(sp.GetRequiredService<SkdContext>(),currentDate: DateTime.Now,  planBuildLeadTimeDays))
                 .AddScoped<KitSnapshotService>()
                 .AddScoped<VehicleModelService>()
                 .AddScoped<ComponentService>()
