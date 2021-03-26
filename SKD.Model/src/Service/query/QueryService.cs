@@ -47,7 +47,7 @@ namespace SKD.Model {
         public async Task<List<LotPartDTO>> GetLotPartsByShipment(Guid shipmentId) {
             var lotNumbers = await context.ShipmentLots   
                 .Where(t => t.Shipment.Id == shipmentId)
-                .Select(t => t.LotNo).Distinct()
+                .Select(t => t.Lot.LotNo).Distinct()
                 .ToListAsync();
 
             var result = await context.LotParts

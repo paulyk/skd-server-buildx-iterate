@@ -30,7 +30,7 @@ namespace SKD.Model {
             var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
 
             // add shipment
-            var shipment = AddShipment(input, plant, parts);
+            var shipment = await AddShipment(input, plant, parts);
 
             // Add / Update LotPart(s)
             await AddUpdateLotParts(input, parts);
@@ -54,14 +54,17 @@ namespace SKD.Model {
             return await partService.GetEnsureParts(inputParts);
         }
 
-        private Shipment AddShipment(ShipmentInput input, Plant plant, List<Part> parts) {
+        private async  Task<Shipment> AddShipment(ShipmentInput input, Plant plant, List<Part> parts) {
+            // lots
+            var lotNos = input.Lots.Select(t => t.LotNo).ToList();
+            var lots = await context.Lots.Where(t => lotNos.Any(lotNos=> lotNos == t.LotNo)).ToListAsync();
 
             // create shipment
             var shipment = new Shipment() {
                 Plant = plant,
                 Sequence = input.Sequence,
                 Lots = input.Lots.Select(lotDTO => new ShipmentLot {
-                    LotNo = lotDTO.LotNo,
+                    Lot = lots.First(t => t.LotNo == lotDTO.LotNo),
                     Invoices = lotDTO.Invoices.Select(invoiceDTO => new ShipmentInvoice {
                         InvoiceNo = invoiceDTO.InvoiceNo,
                         ShipDate = invoiceDTO.ShipDate,
@@ -109,19 +112,21 @@ namespace SKD.Model {
         public async Task<List<Error>> ValidateShipmentInput<T>(ShipmentInput input) where T : ShipmentInput {
             var errors = new List<Error>();
 
+            // plant
             var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
             if (plant == null) {
                 errors.Add(new Error("PlantCode", $"plant not found  {input.PlantCode}"));
                 return errors;
             }
 
+            // dupliate shipment plant + sequence
             var duplicateShipment = await context.Shipments.AnyAsync(t => t.Plant.Code == input.PlantCode && t.Sequence == input.Sequence);
             if (duplicateShipment) {
                 errors.Add(new Error("", $"duplicate shipment plant & sequence found {input.PlantCode} sequence {input.Sequence}"));
                 return errors;
             }
 
-            // mossing lot numbers
+            // mossing Lots
             var incommingLotNumbers = input.Lots.Select(t => t.LotNo).Distinct().ToList();
             var existingLotNumbers = await context.Lots
                 .Where(t => incommingLotNumbers.Any(lotNo => lotNo == t.LotNo))

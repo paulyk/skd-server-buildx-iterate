@@ -26,7 +26,7 @@ namespace SKD.Model {
 
             var handlingUnit = await context.HandlingUnits
                 .Include(t => t.Received)
-                .Include(t => t.ShipmentInvoice).ThenInclude(t => t.ShipmentLot)
+                .Include(t => t.ShipmentInvoice).ThenInclude(t => t.ShipmentLot).ThenInclude(t => t.Lot)
                 .FirstOrDefaultAsync(t => t.Code == input.HandlingUnitCode);
 
             HandlingUnitReceived? handlingUnitReceived = null;
@@ -44,7 +44,7 @@ namespace SKD.Model {
 
             payload.Entity = new ReceiveHandlingUnitPayload {
                 Code = handlingUnit.Code,
-                LotNo = handlingUnit.ShipmentInvoice.ShipmentLot.LotNo,
+                LotNo = handlingUnit.ShipmentInvoice.ShipmentLot.Lot.LotNo,
                 InvoiceNo = handlingUnit.ShipmentInvoice.InvoiceNo,
                 CreatedAt = handlingUnitReceived.CreatedAt,
                 RemovedAt = handlingUnitReceived.RemovedAt
@@ -93,7 +93,7 @@ namespace SKD.Model {
                     PlantCode = t.ShipmentInvoice.ShipmentLot.Shipment.Plant.Code,
                     ShipmentSequence = t.ShipmentInvoice.ShipmentLot.Shipment.Sequence,
                     HandlingUnitCode = t.Code,
-                    LotNo = t.ShipmentInvoice.ShipmentLot.LotNo,
+                    LotNo = t.ShipmentInvoice.ShipmentLot.Lot.LotNo,
                     InvoiceNo = t.ShipmentInvoice.InvoiceNo,
                     PartCount = t.Parts.Where(t => t.RemovedAt == null).Count(),
                     CreatedAt = t.CreatedAt,
@@ -124,7 +124,7 @@ namespace SKD.Model {
             var result =
                await (from hu in context.HandlingUnits
                       join lot in context.Lots
-                       on hu.ShipmentInvoice.ShipmentLot.LotNo equals lot.LotNo
+                       on hu.ShipmentInvoice.ShipmentLot.Lot.LotNo equals lot.LotNo
                       join model in context.VehicleModels
                        on lot.ModelId equals model.Id
                       where hu.Code == code

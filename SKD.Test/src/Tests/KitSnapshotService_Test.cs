@@ -187,7 +187,7 @@ namespace SKD.Test {
 
         }
 
-        // [Fact]
+        [Fact]
         public async Task creates_original_plan_build_date_only_once() {
             // setup
             var service = new KitSnapshotService(ctx);
@@ -206,10 +206,10 @@ namespace SKD.Test {
             var plan_build_date = custom_receive_date.AddDays(planBuildLeadTimeDays);
 
             var new_plan_build_date_trx = baseDate.AddDays(2);
-            var new_plan_build_date = custom_receive_date.AddDays(planBuildLeadTimeDays + 1);
+            var new_plan_build_date = custom_receive_date.AddDays(planBuildLeadTimeDays + 2);
 
             // 1.  custom received
-            await AddKitTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, kit.KitNo, "", custom_receive_date_trx, custom_receive_date);
+            await AddKitTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, kit.KitNo, "note", custom_receive_date_trx, custom_receive_date);
             snapshotInput.RunDate = custom_receive_date_trx;
             var payload = await service.GenerateSnapshot(snapshotInput);
             var snapshotRun = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, payload.Entity.Sequence.Value);
@@ -219,7 +219,7 @@ namespace SKD.Test {
             Assert.Equal(PartnerStatus_ChangeStatus.Added, kitSnapshot.TxType);
 
             // 1.  plan build 
-            await AddKitTimelineEntry(TimeLineEventType.PLAN_BUILD, kit.KitNo, "", plan_build_date_trx, plan_build_date);
+            await AddKitTimelineEntry(TimeLineEventType.PLAN_BUILD, kit.KitNo, "note", plan_build_date_trx, plan_build_date);
             snapshotInput.RunDate = plan_build_date_trx;
             payload = await service.GenerateSnapshot(snapshotInput);
             snapshotRun = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, payload.Entity.Sequence.Value);
@@ -232,7 +232,13 @@ namespace SKD.Test {
 
 
             // 1. edit plan build date does not change original
-            await AddKitTimelineEntry(TimeLineEventType.PLAN_BUILD, kit.KitNo, "", new_plan_build_date_trx, new_plan_build_date);
+            var payload_2 = await AddKitTimelineEntry(TimeLineEventType.PLAN_BUILD, kit.KitNo, "note", new_plan_build_date_trx, new_plan_build_date);
+            var expectedErrorMessage = "cannot change date after snapshot taken";
+            var actualErrorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
+            Assert.Equal(expectedErrorMessage, actualErrorMessage);
+
+            // disable the following until we allow users to modify timeline events after snapwhot taken
+            /*
             snapshotInput.RunDate = new_plan_build_date_trx;
             payload = await service.GenerateSnapshot(snapshotInput);
             snapshotRun = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, payload.Entity.Sequence.Value);
@@ -242,6 +248,7 @@ namespace SKD.Test {
             Assert.Equal(new_plan_build_date, kitSnapshot.PlanBuild);
             Assert.Equal(plan_build_date, kitSnapshot.OriginalPlanBuild);
             Assert.Equal(PartnerStatus_ChangeStatus.NoChange, kitSnapshot.TxType);
+            */
         }
 
         [Fact]
@@ -386,7 +393,8 @@ namespace SKD.Test {
             foreach (var entry in eventList) {
 
                 var payload = await AddKitTimelineEntry(entry.eventType, kit.KitNo, "", entry.trxDate, entry.eventDate);
-                Assert.Equal(0, payload.Errors.Count());
+                var actualErrorCount = payload.Errors.Count();
+                Assert.Equal(0, actualErrorCount);
                 await service.GenerateSnapshot(new KitSnapshotInput {
                     PlantCode = plantCode,
                     RunDate = entry.trxDate,

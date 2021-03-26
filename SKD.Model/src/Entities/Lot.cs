@@ -16,5 +16,6 @@ namespace SKD.Model {
 
         public ICollection<Kit> Kits { get; set; }  = new List<Kit>();
         public ICollection<LotPart> LotParts { get; set; }  = new List<LotPart>();
+        public ICollection<ShipmentLot> ShipmentLots { get; set; }  = new List<ShipmentLot>();
     }
 }

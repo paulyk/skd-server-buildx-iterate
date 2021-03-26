@@ -36,6 +36,10 @@ namespace SKD.Model {
                 .WithMany(t => t.Lots)
                 .HasForeignKey(t => t.BomId);
 
+            builder.HasMany(t => t.ShipmentLots)
+                .WithOne(t => t.Lot)
+                .HasForeignKey(t => t.LotId);
+
         }
     }
 }

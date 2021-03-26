@@ -10,15 +10,15 @@ namespace SKD.Model {
             builder.HasKey(t => t.Id);
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
 
-            builder.HasIndex(t => t.LotNo);
+            builder.HasIndex(t => t.LotId).IsUnique();
             
-            builder.Property(t => t.LotNo)
-                .IsRequired()
-                .HasMaxLength(EntityFieldLen.LotNo);
-
             builder.HasMany(t => t.Invoices)
                 .WithOne(t => t.ShipmentLot)
                 .HasForeignKey(t => t.ShipmentLotId);
+
+            builder.HasOne(t => t.Lot)
+                .WithMany(t => t.ShipmentLots)
+                .HasForeignKey(t => t.LotId);
         }
     }
 }

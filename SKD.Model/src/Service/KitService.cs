@@ -51,12 +51,12 @@ namespace SKD.Model {
                 return payload;
             }
 
-            var vehicle = await context.Kits
+            var kit = await context.Kits
                 .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .FirstOrDefaultAsync(t => t.KitNo == input.KitNo);
 
             // mark other timeline events of the same type as removed for this vehicle
-            vehicle.TimelineEvents
+            kit.TimelineEvents
                 .Where(t => t.EventType.Code == input.EventType.ToString())
                 .ToList().ForEach(timelieEvent => {
                     if (timelieEvent.RemovedAt == null) {
@@ -71,7 +71,7 @@ namespace SKD.Model {
                 EventNote = input.EventNote
             };
 
-            vehicle.TimelineEvents.Add(newTimelineEvent);
+            kit.TimelineEvents.Add(newTimelineEvent);
 
             // save
             payload.Entity = newTimelineEvent;

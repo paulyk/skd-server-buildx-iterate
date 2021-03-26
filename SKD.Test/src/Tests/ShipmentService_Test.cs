@@ -88,7 +88,7 @@ namespace SKD.Test {
 
             // assert
             var shipment_handling_unit_parts = await ctx.ShipmentParts
-                .Where(t => t.HandlingUnit.ShipmentInvoice.ShipmentLot.LotNo == shipmentLot.LotNo)
+                .Where(t => t.HandlingUnit.ShipmentInvoice.ShipmentLot.Lot.LotNo == shipmentLot.LotNo)
                 .Where(t => t.HandlingUnit.ShipmentInvoice.InvoiceNo == shipmentInvoice.InvoiceNo)
                 .Where(t => t.Part.PartNo == shipmentPart.PartNo)
                 .FirstOrDefaultAsync();
