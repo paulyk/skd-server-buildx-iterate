@@ -18,7 +18,8 @@ namespace SKD.Model {
 
             builder.HasOne(t => t.Lot)
                 .WithMany(t => t.ShipmentLots)
-                .HasForeignKey(t => t.LotId);
+                .HasForeignKey(t => t.LotId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
