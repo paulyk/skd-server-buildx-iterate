@@ -24,13 +24,13 @@ namespace SKD.Server {
             AssignKitVinInput input
         ) => await service.AssingKitVin(input);
 
-        public async Task<MutationPayload<KitTimelineEvent>> CreateVehicleTimelineEvent(
+        public async Task<MutationPayload<KitTimelineEvent>> CreateKitTimelineEvent(
             [Service] KitService service,
             KitTimelineEventInput input
         ) => await service.CreateKitTimelineEvent(input);
 
 
-        public async Task<MutationPayload<Lot>> CreateVehicleLotTimelineEvent(
+        public async Task<MutationPayload<Lot>> CreateLotTimelineEvent(
             [Service] KitService service,
             LotTimelineEventInput input
         ) => await service.CreateLotTimelineEvent(input);

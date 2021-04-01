@@ -46,7 +46,7 @@ namespace SKD.Model {
 
         public async Task<MutationPayload<KitTimelineEvent>> CreateKitTimelineEvent(KitTimelineEventInput input) {
             var payload = new MutationPayload<KitTimelineEvent>(null);
-            payload.Errors = await ValidateCreateVehicleTimelineEvent(input);
+            payload.Errors = await ValidateCreateKitTimelineEvent(input);
             if (payload.Errors.Count > 0) {
                 return payload;
             }
@@ -199,7 +199,7 @@ namespace SKD.Model {
             return errors;
         }
 
-        public async Task<List<Error>> ValidateCreateVehicleTimelineEvent(KitTimelineEventInput input) {
+        public async Task<List<Error>> ValidateCreateKitTimelineEvent(KitTimelineEventInput input) {
             var errors = new List<Error>();
 
             // kitNo
@@ -252,7 +252,7 @@ namespace SKD.Model {
                     .Select(t => t.Code).ToListAsync();
 
                 var text = mssingTimelineEventCodes.Aggregate((a, b) => a + ", " + b);
-                errors.Add(new Error("", $"prior timeline event(s) mssing {text}"));
+                errors.Add(new Error("", $"prior timeline event(s) missing {text}"));
                 return errors;
             }
 

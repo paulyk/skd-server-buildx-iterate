@@ -193,13 +193,12 @@ namespace SKD.Test {
             Assert.Equal(0, errorCount);
         }
 
-
         [Fact]
         public async Task cannot_create_kit_timeline_events_out_of_sequence() {
             // setup
             var baseDate = DateTime.Now.Date;
             var timelineEvents = new List<(string eventTypeCode, DateTime trxDate, DateTime eventDate)>() {
-                (TimeLineEventType.CUSTOM_RECEIVED.ToString(), baseDate.AddDays(7),  baseDate.AddDays(6)),
+                (TimeLineEventType.CUSTOM_RECEIVED.ToString(), baseDate.AddDays(1),  baseDate.AddDays(6)),
                 (TimeLineEventType.BULD_COMPLETED.ToString(), baseDate.AddDays(2), baseDate.AddDays(2)),
             };
 
@@ -209,22 +208,22 @@ namespace SKD.Test {
             var payloads = new List<MutationPayload<KitTimelineEvent>>();
 
             foreach (var entry in timelineEvents) {
-                var dto = new KitTimelineEventInput {
+                var input = new KitTimelineEventInput {
                     KitNo = kit.KitNo,
                     EventType = Enum.Parse<TimeLineEventType>(entry.eventTypeCode),
                     EventDate = entry.eventDate,
                 };
-                service = new KitService(ctx, entry.trxDate, planBuildLeadTimeDays); 
-                var payload = await service.CreateKitTimelineEvent(dto);
+                service = new KitService(ctx, entry.trxDate, planBuildLeadTimeDays);
+                var payload = await service.CreateKitTimelineEvent(input);
                 payloads.Add(payload);
             }
 
             var lastPayload = payloads[1];
 
             // assert
-            var expectedMessage = "prior timeline event(s) mssing PLAN_BUILD";
+            var expectedMessage = "prior timeline event(s) missing";
             var actualMessage = lastPayload.Errors.Select(t => t.Message).FirstOrDefault();
-            Assert.Equal(expectedMessage, actualMessage);
+            Assert.Equal(expectedMessage, actualMessage.Substring(0, expectedMessage.Length));
         }
 
         [Fact]
@@ -234,7 +233,7 @@ namespace SKD.Test {
             var eventNote = "DLR_9977";
 
             var baseDate = DateTime.Now.Date;
-            var timelineEventItems = new List<(string eventTypeCode,DateTime trxDate, DateTime eventDate, string eventNode)>() {
+            var timelineEventItems = new List<(string eventTypeCode, DateTime trxDate, DateTime eventDate, string eventNode)>() {
                 (TimeLineEventType.CUSTOM_RECEIVED.ToString(), baseDate.AddDays(2), baseDate.AddDays(1) , eventNote),
                 (TimeLineEventType.PLAN_BUILD.ToString(), baseDate.AddDays(3), baseDate.AddDays(5), eventNote),
                 (TimeLineEventType.BULD_COMPLETED.ToString(), baseDate.AddDays(8), baseDate.AddDays(8), eventNote),
@@ -244,7 +243,7 @@ namespace SKD.Test {
 
             // test
             KitService service = null;
-            
+
             var payloads = new List<MutationPayload<KitTimelineEvent>>();
 
             foreach (var entry in timelineEventItems) {
@@ -254,7 +253,7 @@ namespace SKD.Test {
                     EventDate = entry.eventDate,
                     EventNote = entry.eventNode
                 };
-                 service = new KitService(ctx,  entry.trxDate, planBuildLeadTimeDays);
+                service = new KitService(ctx, entry.trxDate, planBuildLeadTimeDays);
                 var payload = await service.CreateKitTimelineEvent(input);
                 payloads.Add(payload);
             }
