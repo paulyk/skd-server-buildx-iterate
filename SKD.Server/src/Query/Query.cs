@@ -136,6 +136,15 @@ namespace SKD.Server {
         [UseProjection]
         [UseFiltering]
         [UseSorting]
+        public IQueryable<ShipmentPart> GetShipmentParts(
+            [Service] SkdContext context
+        ) => context.ShipmentParts;
+
+
+        [UsePaging(MaxPageSize = 10000)]
+        [UseProjection]
+        [UseFiltering]
+        [UseSorting]
         public IQueryable<HandlingUnit> GetHandlingUnits(
             [Service] SkdContext context
         ) => context.HandlingUnits;
