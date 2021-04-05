@@ -81,7 +81,7 @@ namespace SKD.Model {
 
         public async Task<MutationPayload<Lot>> CreateLotTimelineEvent(LotTimelineEventInput dto) {
             var payload = new MutationPayload<Lot>(null);
-            payload.Errors = await ValidateCreateVehicleLotTimelineEvent(dto);
+            payload.Errors = await ValidateCreateLotTimelineEvent(dto);
             if (payload.Errors.Count > 0) {
                 return payload;
             }
@@ -206,6 +206,7 @@ namespace SKD.Model {
             var kit = await context.Kits.AsNoTracking()
                 .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .FirstOrDefaultAsync(t => t.KitNo == input.KitNo);
+                
             if (kit == null) {
                 errors.Add(new Error("KitNo", $"kit not found for kitNo: {input.KitNo}"));
                 return errors;
@@ -283,18 +284,19 @@ namespace SKD.Model {
             return errors;
         }
 
-        public async Task<List<Error>> ValidateCreateVehicleLotTimelineEvent(LotTimelineEventInput input) {
+        public async Task<List<Error>> ValidateCreateLotTimelineEvent(LotTimelineEventInput input) {
             var errors = new List<Error>();
 
             var lot = await context.Lots.AsNoTracking()
                 .Include(t => t.Kits).ThenInclude(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .FirstOrDefaultAsync(t => t.LotNo == input.LotNo);
 
-            // vehicle lot 
+            // kit lot 
             if (lot == null) {
                 errors.Add(new Error("VIN", $"lot not found for lotNo: {input.LotNo}"));
                 return errors;
             }
+
 
             // duplicate 
             var duplicateTimelineEventsFound = lot.Kits.SelectMany(t => t.TimelineEvents)
@@ -310,6 +312,12 @@ namespace SKD.Model {
                 return errors;
             }
 
+            // snapshot already taken
+            if (await SnapshotAlreadyTaken(input)) {
+                errors.Add(new Error("", $"cannot update {input.EventType.ToString()} after snapshot taken"));
+                return errors;
+            }
+
             // CUSTOM_RECEIVED 
             if (input.EventType == TimeLineEventType.CUSTOM_RECEIVED) {
                 if (input.EventDate >= currentDate) {
@@ -319,6 +327,32 @@ namespace SKD.Model {
             }
 
             return errors;
+        }
+
+        public async Task<Boolean> SnapshotAlreadyTaken(LotTimelineEventInput input) {
+
+            var kitSnapshot = await context.KitSnapshots
+                .OrderByDescending(t => t.CreatedAt)
+                .Where(t => t.Kit.Lot.LotNo == input.LotNo)
+                .FirstOrDefaultAsync();
+
+            if (kitSnapshot == null) {
+                return false;
+            }
+
+            switch(input.EventType) {
+                case TimeLineEventType.CUSTOM_RECEIVED: 
+                    return kitSnapshot.CustomReceived != null;
+                case TimeLineEventType.PLAN_BUILD: 
+                    return kitSnapshot.PlanBuild != null;
+                case TimeLineEventType.BULD_COMPLETED: 
+                    return kitSnapshot.BuildCompleted != null;
+                case TimeLineEventType.GATE_RELEASED: 
+                    return  kitSnapshot.GateRelease != null;
+                case TimeLineEventType.WHOLE_SALE: 
+                  return kitSnapshot.Wholesale != null;
+                default: return false;
+            }
         }
     }
 }

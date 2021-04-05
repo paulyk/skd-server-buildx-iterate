@@ -383,14 +383,14 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_create_kit_timeline_event_by_lot_with_dupliate_date() {
             // setup
-            var vehicleLot = ctx.Lots.First();
+            var lot = ctx.Lots.First();
 
             var baseDate = DateTime.Now.Date;
             var event_date = baseDate.AddDays(1);
             var event_date_trx = baseDate.AddDays(2);
             var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
             var input = new LotTimelineEventInput {
-                LotNo = vehicleLot.LotNo,
+                LotNo = lot.LotNo,
                 EventType = TimeLineEventType.CUSTOM_RECEIVED,
                 EventDate = event_date,
                 EventNote = eventNote
