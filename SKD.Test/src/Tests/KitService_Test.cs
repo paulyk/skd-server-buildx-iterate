@@ -21,8 +21,8 @@ namespace SKD.Test {
             // setup
             var lot = ctx.Lots.First();
 
-            var input = new AssignKitVinInput {
-                Kits = lot.Kits.Select(t => new AssignKitVinInput.KitVin {
+            var input = new ImportVinInput {
+                Kits = lot.Kits.Select(t => new ImportVinInput.KitVin {
                     LotNo = lot.LotNo,
                     KitNo = t.KitNo,
                     VIN = Gen_VIN()
@@ -36,7 +36,7 @@ namespace SKD.Test {
             Assert.Equal(0, with_vin_count);
 
             var service = new KitService(ctx, DateTime.Now, planBuildLeadTimeDays);
-            var payload = await service.AssingKitVin(input);
+            var payload = await service.ImportVIN(input);
 
             // assert
             vehicles = await ctx.Kits.Where(t => t.Lot.LotNo == lot.LotNo).ToListAsync();
@@ -45,12 +45,12 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task cannot_assing_kit_vins_if_vins_already_assigned() {
+        public async Task ignore_if_kit_vins_already_assigned_if_vins_already_assigned() {
             // setup
             var lot = ctx.Lots.First();
 
-            var kitVinDto = new AssignKitVinInput {
-                Kits = lot.Kits.Select(t => new AssignKitVinInput.KitVin {
+            var kitVinDto = new ImportVinInput {
+                Kits = lot.Kits.Select(t => new ImportVinInput.KitVin {
                     LotNo = lot.LotNo,
                     KitNo = t.KitNo,
                     VIN = Gen_VIN()
@@ -59,21 +59,21 @@ namespace SKD.Test {
 
             // test
             var service = new KitService(ctx, DateTime.Now, planBuildLeadTimeDays);
-            var payload_2 = await service.AssingKitVin(kitVinDto);
-            var payload_3 = await service.AssingKitVin(kitVinDto);
-
+            var payload_1 = await service.ImportVIN(kitVinDto);
+            var payload_2 = await service.ImportVIN(kitVinDto);
+        
             // assert
-            var errorMessage = payload_3.Errors.Select(t => t.Message).FirstOrDefault();
-            var expectedError = "duplicate VIN(s) found";
-            Assert.Equal(expectedError, errorMessage.Substring(0, expectedError.Length));
+            var expected_error_count = 0;
+            var actual_error_count= payload_2.Errors.Count();
+            Assert.Equal(expected_error_count, actual_error_count);
         }
 
         [Fact]
         public async Task cannot_assing_lot_vins_if_kits_not_found() {
             // setup
             var lot = ctx.Lots.First();
-            var kitVinDto = new AssignKitVinInput {
-                Kits = lot.Kits.Select(t => new AssignKitVinInput.KitVin {
+            var kitVinDto = new ImportVinInput {
+                Kits = lot.Kits.Select(t => new ImportVinInput.KitVin {
                     LotNo = lot.LotNo,
                     KitNo = Gen_KitNo(), // generate a kit not thats different
                     VIN = Gen_VIN()
@@ -82,7 +82,7 @@ namespace SKD.Test {
 
             // test
             var service = new KitService(ctx, DateTime.Now, planBuildLeadTimeDays);
-            var payload = await service.AssingKitVin(kitVinDto);
+            var payload = await service.ImportVIN(kitVinDto);
 
             // assert
             var expectedError = "kit numbers not found";
@@ -99,20 +99,20 @@ namespace SKD.Test {
             var lotVehicles = lot.Kits.ToList();
 
 
-            var assignKitVinInput = new AssignKitVinInput();
+            var assignKitVinInput = new ImportVinInput();
 
-            assignKitVinInput.Kits = new List<AssignKitVinInput.KitVin>() {
-                new AssignKitVinInput.KitVin {LotNo = lot.LotNo, KitNo = lotVehicles[0].KitNo, VIN = Gen_VIN() },
-                new AssignKitVinInput.KitVin {LotNo = lot.LotNo, KitNo = lotVehicles[1].KitNo, VIN = Gen_VIN() },
-                new AssignKitVinInput.KitVin {LotNo = lot.LotNo, KitNo = lotVehicles[2].KitNo, VIN = Gen_VIN() },
-                new AssignKitVinInput.KitVin {LotNo = lot.LotNo, KitNo = lotVehicles[3].KitNo, VIN = Gen_VIN() },
+            assignKitVinInput.Kits = new List<ImportVinInput.KitVin>() {
+                new ImportVinInput.KitVin {LotNo = lot.LotNo, KitNo = lotVehicles[0].KitNo, VIN = Gen_VIN() },
+                new ImportVinInput.KitVin {LotNo = lot.LotNo, KitNo = lotVehicles[1].KitNo, VIN = Gen_VIN() },
+                new ImportVinInput.KitVin {LotNo = lot.LotNo, KitNo = lotVehicles[2].KitNo, VIN = Gen_VIN() },
+                new ImportVinInput.KitVin {LotNo = lot.LotNo, KitNo = lotVehicles[3].KitNo, VIN = Gen_VIN() },
                 // duplicate kits
-                new AssignKitVinInput.KitVin {LotNo = lot.LotNo, KitNo = lotVehicles[5].KitNo, VIN = Gen_VIN() },
-                new AssignKitVinInput.KitVin {LotNo = lot.LotNo, KitNo = lotVehicles[5].KitNo, VIN = Gen_VIN() },
+                new ImportVinInput.KitVin {LotNo = lot.LotNo, KitNo = lotVehicles[5].KitNo, VIN = Gen_VIN() },
+                new ImportVinInput.KitVin {LotNo = lot.LotNo, KitNo = lotVehicles[5].KitNo, VIN = Gen_VIN() },
             };
             // test
             var service = new KitService(ctx, DateTime.Now, planBuildLeadTimeDays);
-            var payload_2 = await service.AssingKitVin(assignKitVinInput);
+            var payload_2 = await service.ImportVIN(assignKitVinInput);
 
             // assert
             var expectedError = "duplicate kitNo(s) in payload";

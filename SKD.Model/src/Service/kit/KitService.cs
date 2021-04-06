@@ -23,7 +23,7 @@ namespace SKD.Model {
             this.planBuildLeadTimeDays = planBuildLeadTimeDays;
         }
 
-        public async Task<MutationPayload<Lot>> AssingKitVin(AssignKitVinInput input) {
+        public async Task<MutationPayload<Lot>> ImportVIN(ImportVinInput input) {
             var payload = new MutationPayload<Lot>(null);
             payload.Errors = await ValidateAssignKitVinInput(input);
             if (payload.Errors.Count() > 0) {
@@ -33,8 +33,9 @@ namespace SKD.Model {
             // assign VIN to each Kit
             var kitNos = input.Kits.Select(t => t.KitNo);
             var kits = await context.Kits.Where(t => kitNos.Any(kitNo => kitNo == t.KitNo)).ToListAsync();
-            kits.ForEach(kit=> {
-                kit.VIN = input.Kits.Where(t => t.KitNo == kit.KitNo).Select(t => t.VIN).First();
+            kits.ForEach(kit => {
+                var vin = input.Kits.Where(t => t.KitNo == kit.KitNo).Select(t => t.VIN).First();
+                kit.VIN = vin;
             });
 
             await context.SaveChangesAsync();
@@ -117,7 +118,7 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<List<Error>> ValidateAssignKitVinInput(AssignKitVinInput input) {
+        public async Task<List<Error>> ValidateAssignKitVinInput(ImportVinInput input) {
             var errors = new List<Error>();
 
 
@@ -146,20 +147,24 @@ namespace SKD.Model {
                 return errors;
             }
 
-            // duplicatev vins
-            var duplicate_vins = new List<string>();
-            foreach (var kit in input.Kits) {
-                var existing = await context.Kits.AsNoTracking().AnyAsync(t => t.VIN == kit.VIN);
-                if (existing) {
-                    duplicate_vins.Add(kit.VIN);
-                }
-            }
+            // kits
+            var kits = await context.Kits
+                .Include(t => t.Lot)
+                .Where(t => kitNos.Any(kitNo => kitNo == t.KitNo))
+                .ToListAsync();
 
-            if (duplicate_vins.Any()) {
-                errors.Add(new Error("", $"duplicate VIN(s) found {String.Join(", ", duplicate_vins)}"));
+            // kits already assigned different vin
+
+            var kitsAlreadyAssignedDifferentVin = kits
+                .Where(t => !String.IsNullOrEmpty(t.VIN))
+                .Where(t => t.VIN != input.Kits.First(inputKit => inputKit.KitNo == t.KitNo).VIN)
+                .ToList();
+            
+            if (kitsAlreadyAssignedDifferentVin.Any()) {
+                errors.Add(new Error("", $"found kits with different VIN already assigned"));
                 return errors;
             }
-
+                
             // Wehicles with matching kit numbers not found
             var kit_numbers_not_found = new List<string>();
             foreach (var kit in input.Kits) {
@@ -196,7 +201,7 @@ namespace SKD.Model {
             var kit = await context.Kits.AsNoTracking()
                 .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .FirstOrDefaultAsync(t => t.KitNo == input.KitNo);
-                
+
             if (kit == null) {
                 errors.Add(new Error("KitNo", $"kit not found for kitNo: {input.KitNo}"));
                 return errors;
@@ -330,17 +335,17 @@ namespace SKD.Model {
                 return false;
             }
 
-            switch(input.EventType) {
-                case TimeLineEventType.CUSTOM_RECEIVED: 
+            switch (input.EventType) {
+                case TimeLineEventType.CUSTOM_RECEIVED:
                     return kitSnapshot.CustomReceived != null;
-                case TimeLineEventType.PLAN_BUILD: 
+                case TimeLineEventType.PLAN_BUILD:
                     return kitSnapshot.PlanBuild != null;
-                case TimeLineEventType.BULD_COMPLETED: 
+                case TimeLineEventType.BULD_COMPLETED:
                     return kitSnapshot.BuildCompleted != null;
-                case TimeLineEventType.GATE_RELEASED: 
-                    return  kitSnapshot.GateRelease != null;
-                case TimeLineEventType.WHOLE_SALE: 
-                  return kitSnapshot.Wholesale != null;
+                case TimeLineEventType.GATE_RELEASED:
+                    return kitSnapshot.GateRelease != null;
+                case TimeLineEventType.WHOLE_SALE:
+                    return kitSnapshot.Wholesale != null;
                 default: return false;
             }
         }
