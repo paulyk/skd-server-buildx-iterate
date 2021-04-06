@@ -30,16 +30,13 @@ namespace SKD.Model {
                 return payload;
             }
 
-            // assign vin
-            var vehicleLot = await context.Lots
-                .Include(t => t.Kits)
-                .FirstOrDefaultAsync(t => t.LotNo == input.LotNo);
-            payload.Entity = vehicleLot;
-
-            vehicleLot.Kits.ToList().ForEach(vehicle => {
-                var vin = input.Kits.First(t => t.KitNo == vehicle.KitNo).VIN;
-                vehicle.VIN = vin;
+            // assign VIN to each Kit
+            var kitNos = input.Kits.Select(t => t.KitNo);
+            var kits = await context.Kits.Where(t => kitNos.Any(kitNo => kitNo == t.KitNo)).ToListAsync();
+            kits.ForEach(kit=> {
+                kit.VIN = input.Kits.Where(t => t.KitNo == kit.KitNo).Select(t => t.VIN).First();
             });
+
             await context.SaveChangesAsync();
             return payload;
         }
@@ -120,39 +117,38 @@ namespace SKD.Model {
             return payload;
         }
 
-        public async Task<List<Error>> ValidateAssignKitVinInput(AssignKitVinInput dto) {
+        public async Task<List<Error>> ValidateAssignKitVinInput(AssignKitVinInput input) {
             var errors = new List<Error>();
 
-            var vehicleLot = await context.Lots.AsNoTracking()
-                .Include(t => t.Kits)
-                .FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
 
-            // lotNo
-            if (vehicleLot == null) {
-                errors.Add(new Error("lotNo", $"vehicle lot not found: {dto.LotNo}"));
-                return errors;
-            }
+            // kits not found
+            var kitNos = input.Kits.Select(t => t.KitNo).ToList();
+            var existingKitNos = await context.Kits.Where(t => kitNos.Any(kitNo => kitNo == t.KitNo))
+                .Select(t => t.KitNo)
+                .ToListAsync();
 
-            if (vehicleLot.RemovedAt != null) {
-                errors.Add(new Error("lotNo", "vehicle lot marked removed"));
+            var kitsNotFound = kitNos.Except(existingKitNos).ToList();
+            if (kitsNotFound.Any()) {
+                var kitNumbers = String.Join(", ", kitsNotFound);
+                errors.Add(new Error("", $"kit numbers not found : {kitNumbers}"));
                 return errors;
             }
 
             // invalid VIN(s)
             var validator = new Validator();
-            var invalidVins = dto.Kits
+            var invalidVins = input.Kits
                 .Select(t => t.VIN)
                 .Where(vin => !validator.Valid_KitNo(vin))
                 .ToList();
 
             if (invalidVins.Any()) {
-                errors.Add(new Error("", $"invalid VINs found in lot {String.Join(", ", invalidVins)}"));
+                errors.Add(new Error("", $"invalid VINs {String.Join(", ", invalidVins)}"));
                 return errors;
             }
 
             // duplicatev vins
             var duplicate_vins = new List<string>();
-            foreach (var kit in dto.Kits) {
+            foreach (var kit in input.Kits) {
                 var existing = await context.Kits.AsNoTracking().AnyAsync(t => t.VIN == kit.VIN);
                 if (existing) {
                     duplicate_vins.Add(kit.VIN);
@@ -166,7 +162,7 @@ namespace SKD.Model {
 
             // Wehicles with matching kit numbers not found
             var kit_numbers_not_found = new List<string>();
-            foreach (var kit in dto.Kits) {
+            foreach (var kit in input.Kits) {
                 var exists = await context.Kits.AsNoTracking().AnyAsync(t => t.KitNo == kit.KitNo);
                 if (!exists) {
                     kit_numbers_not_found.Add(kit.KitNo);
@@ -177,19 +173,13 @@ namespace SKD.Model {
                 return errors;
             }
 
-            // kit count
-            if (vehicleLot.Kits.Count() != dto.Kits.Count) {
-                errors.Add(new Error("lotNo", $"number of kits {dto.Kits.Count} doesn't match number of kits in lot {vehicleLot.Kits.Count}"));
-                return errors;
-            }
-
             // duplicate kitNos in payload
-            var duplicateKitNos = dto.Kits
+            var duplicateKitNos = input.Kits
                 .GroupBy(t => t.KitNo)
                 .Where(g => g.Count() > 1)
                 .SelectMany(g => g.ToList())
                 .Select(t => t.KitNo)
-                .Distinct();
+                .Distinct().ToList();
 
             if (duplicateKitNos.Count() > 0) {
                 errors.Add(new Error("lotNo", $"duplicate kitNo(s) in payload: {String.Join(", ", duplicateKitNos)}"));
