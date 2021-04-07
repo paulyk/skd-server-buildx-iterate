@@ -30,14 +30,24 @@ namespace SKD.Model {
                 return payload;
             }
 
-            // assign VIN to each Kit
-            var kitNos = input.Kits.Select(t => t.KitNo);
-            var kits = await context.Kits.Where(t => kitNos.Any(kitNo => kitNo == t.KitNo)).ToListAsync();
-            kits.ForEach(kit => {
-                var vin = input.Kits.Where(t => t.KitNo == kit.KitNo).Select(t => t.VIN).First();
-                kit.VIN = vin;
-            });
+            // new KitVinImport / existing        
+            var kitVinImport = new KitVinImport {
+                Plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode),
+                Sequence = input.Sequence,
+                PartnerPlantCode = input.PartnerPlantCode,
+            };            
+            context.KitVinImports.Add(kitVinImport);
 
+            foreach(var inputKitVin in input.Kits) {
+                var kit = await context.Kits.FirstOrDefaultAsync(t => t.KitNo == inputKitVin.KitNo);
+                kit.VIN = inputKitVin.VIN;
+                var kitVin = new KitVin {
+                    Kit = kit,
+                    VIN = inputKitVin.VIN
+                };
+                kitVinImport.KitVins.Add(kitVin);
+            }
+                
             await context.SaveChangesAsync();
             return payload;
         }
@@ -121,6 +131,37 @@ namespace SKD.Model {
         public async Task<List<Error>> ValidateAssignKitVinInput(ImportVinInput input) {
             var errors = new List<Error>();
 
+            // plant
+            var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
+            if (plant == null) {
+                errors.Add(new Error("", $"Plant code not found {input.PlantCode}"));
+                return errors;
+            }
+
+            // sequence 
+            if (input.Sequence == 0){
+                errors.Add(new Error("", $"Sequence number required"));
+                return errors;
+            }
+
+            // already imported 
+            var kitVinImport = await context.KitVinImports.FirstOrDefaultAsync(
+                t => t.Plant.Code == input.PlantCode && t.Sequence == input.Sequence
+            );
+
+            if (kitVinImport != null) {
+                errors.Add(new Error("", $"Already imported: plant {input.PlantCode} sequence {input.Sequence}"));
+                return errors;
+            }                
+
+            // partner code
+            if (String.IsNullOrEmpty(input.PartnerPlantCode)) {
+                errors.Add(new Error("", $"Parnter plant code required"));
+                return errors;
+             } else if (input.PartnerPlantCode.Length != EntityFieldLen.PartnerPlant_Code) {
+                errors.Add(new Error("", $"Parnter plant code not valid {input.PartnerPlantCode}"));
+                return errors;
+             }
 
             // kits not found
             var kitNos = input.Kits.Select(t => t.KitNo).ToList();

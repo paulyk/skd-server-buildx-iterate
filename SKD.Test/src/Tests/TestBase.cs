@@ -347,6 +347,9 @@ namespace SKD.Test {
             return modelCode + sequence.ToString().PadLeft(EntityFieldLen.LotNo - EntityFieldLen.VehicleModel_CodeLen, '0');
         }
 
+        public string Gen_PartnerPLantCode() {
+            return Util.RandomString(EntityFieldLen.PartnerPlant_Code);
+        }
 
         public string Gen_LotNo(int sequence) {
             var modelCode = ctx.VehicleModels.Select(t => t.Code).First();

@@ -11,6 +11,8 @@ namespace SKD.Model {
         public static int ProductionStation_Name = 100;
 
         public static int Plant_Code = 5;
+        public static int PartnerPlant_Code = 5;
+
         public static int Plant_Name = 100;
 
 
@@ -43,7 +45,6 @@ namespace SKD.Model {
 
         public static int Bom_SequenceNo = 4;
         public static int KitVinImport_Sequence = 6;
-        public static int GSDB_Code = 5;
 
         public static int BomPart_LotNo = 15;
         public static int BomPart_PartNo = 30;

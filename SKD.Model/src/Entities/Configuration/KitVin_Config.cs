@@ -19,10 +19,12 @@ namespace SKD.Model {
             builder.HasOne(t => t.Kit) 
                 .WithMany(t => t.KitVins)
                 .HasForeignKey(t => t.KitId);
-
+                
             builder.HasOne(t => t.KitVinImport)
                 .WithMany(t => t.KitVins)
-                .HasForeignKey(t => t.KitVinImportId);
+                .HasForeignKey(t => t.KitVinImportId)
+                .OnDelete(DeleteBehavior.Restrict);
+
         }
     }
 

@@ -17,11 +17,17 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task can_assing_kit_vins() {
+        public async Task can_import_kit_vin() {
             // setup
             var lot = ctx.Lots.First();
+            var plant = ctx.Plants.First();
+            var partnerPlantCode = Gen_PartnerPLantCode();
+            var sequence = 3;
 
             var input = new ImportVinInput {
+                PlantCode = plant.Code,
+                PartnerPlantCode = partnerPlantCode,
+                Sequence = sequence,
                 Kits = lot.Kits.Select(t => new ImportVinInput.KitVin {
                     LotNo = lot.LotNo,
                     KitNo = t.KitNo,
@@ -30,49 +36,42 @@ namespace SKD.Test {
             };
 
             // test
-            var vehicles = await ctx.Kits.Where(t => t.Lot.LotNo == lot.LotNo).ToListAsync();
-            var lot_vehicles_count = vehicles.Count();
-            var with_vin_count = vehicles.Count(t => t.VIN != "");
+            var kits = await ctx.Kits.Where(t => t.Lot.LotNo == lot.LotNo).ToListAsync();
+            var lot_vehicles_count = kits.Count();
+            var with_vin_count = kits.Count(t => t.VIN != "");
             Assert.Equal(0, with_vin_count);
 
             var service = new KitService(ctx, DateTime.Now, planBuildLeadTimeDays);
             var payload = await service.ImportVIN(input);
 
             // assert
-            vehicles = await ctx.Kits.Where(t => t.Lot.LotNo == lot.LotNo).ToListAsync();
-            with_vin_count = vehicles.Count(t => t.VIN != "");
+            var kitVinImport = await ctx.KitVinImports.FirstOrDefaultAsync(t => t.Plant.Code == input.PlantCode && t.Sequence == input.Sequence);
+            Assert.NotNull(kitVinImport);
+
+            var kitvin_count = await ctx.KitVins.CountAsync(t => t.KitVinImportId == kitVinImport.Id);
+            var expected_count = input.Kits.Count();
+            Assert.Equal(expected_count, kitvin_count);
+
+            // partner code
+            Assert.Equal(input.PartnerPlantCode, kitVinImport.PartnerPlantCode);
+
+            kits = await ctx.Kits.Where(t => t.Lot.LotNo == lot.LotNo).ToListAsync();
+            with_vin_count = kits.Count(t => t.VIN != "");
             Assert.Equal(lot_vehicles_count, with_vin_count);
         }
 
         [Fact]
-        public async Task ignore_if_kit_vins_already_assigned_if_vins_already_assigned() {
+        public async Task cannot_import_kit_vins_if_kits_not_found() {
             // setup
             var lot = ctx.Lots.First();
-
-            var kitVinDto = new ImportVinInput {
-                Kits = lot.Kits.Select(t => new ImportVinInput.KitVin {
-                    LotNo = lot.LotNo,
-                    KitNo = t.KitNo,
-                    VIN = Gen_VIN()
-                }).ToList()
-            };
-
-            // test
-            var service = new KitService(ctx, DateTime.Now, planBuildLeadTimeDays);
-            var payload_1 = await service.ImportVIN(kitVinDto);
-            var payload_2 = await service.ImportVIN(kitVinDto);
+            var plant = ctx.Plants.First();
+            var partnerPlantCode = Gen_PartnerPLantCode();
+            var sequence = 3;
         
-            // assert
-            var expected_error_count = 0;
-            var actual_error_count= payload_2.Errors.Count();
-            Assert.Equal(expected_error_count, actual_error_count);
-        }
-
-        [Fact]
-        public async Task cannot_assing_lot_vins_if_kits_not_found() {
-            // setup
-            var lot = ctx.Lots.First();
             var kitVinDto = new ImportVinInput {
+                PlantCode = plant.Code,
+                PartnerPlantCode = partnerPlantCode,
+                Sequence = sequence,
                 Kits = lot.Kits.Select(t => new ImportVinInput.KitVin {
                     LotNo = lot.LotNo,
                     KitNo = Gen_KitNo(), // generate a kit not thats different
@@ -93,15 +92,22 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task cannot_assing_lot_with_duplicate_kits_in_payload() {
+        public async Task cannot_import_kit_vins_with_kits_in_payload() {
             // setup
             var lot = ctx.Lots.First();
+            var plant = ctx.Plants.First();
+            var partnerPlantCode = Gen_PartnerPLantCode();
+            var sequence = 3;
+
             var lotVehicles = lot.Kits.ToList();
 
+            var input = new ImportVinInput {
+                PlantCode = plant.Code,
+                PartnerPlantCode = partnerPlantCode,
+                Sequence = sequence,
+            };
 
-            var assignKitVinInput = new ImportVinInput();
-
-            assignKitVinInput.Kits = new List<ImportVinInput.KitVin>() {
+            input.Kits = new List<ImportVinInput.KitVin>() {
                 new ImportVinInput.KitVin {LotNo = lot.LotNo, KitNo = lotVehicles[0].KitNo, VIN = Gen_VIN() },
                 new ImportVinInput.KitVin {LotNo = lot.LotNo, KitNo = lotVehicles[1].KitNo, VIN = Gen_VIN() },
                 new ImportVinInput.KitVin {LotNo = lot.LotNo, KitNo = lotVehicles[2].KitNo, VIN = Gen_VIN() },
@@ -112,7 +118,7 @@ namespace SKD.Test {
             };
             // test
             var service = new KitService(ctx, DateTime.Now, planBuildLeadTimeDays);
-            var payload_2 = await service.ImportVIN(assignKitVinInput);
+            var payload_2 = await service.ImportVIN(input);
 
             // assert
             var expectedError = "duplicate kitNo(s) in payload";

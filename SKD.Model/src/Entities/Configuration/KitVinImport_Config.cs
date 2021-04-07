@@ -16,9 +16,9 @@ namespace SKD.Model {
                 .IsRequired()
                 .HasMaxLength(EntityFieldLen.KitVinImport_Sequence);
 
-            builder.Property(t => t.GSDB_Code)
+            builder.Property(t => t.PartnerPlantCode)
                 .IsRequired()
-                .HasMaxLength(EntityFieldLen.GSDB_Code);
+                .HasMaxLength(EntityFieldLen.PartnerPlant_Code);
 
             builder.HasOne(t => t.Plant) 
                 .WithMany(t => t.KitVinImports)
