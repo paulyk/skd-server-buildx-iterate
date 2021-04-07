@@ -12,7 +12,7 @@ namespace SKD.Model {
 
             builder.HasIndex(t => new { t.KitSnapshotRunId, t.KitId }).IsUnique();
 
-            builder.Property(t => t.VIN).HasMaxLength(EntityFieldLen.Vehicle_VIN);
+            builder.Property(t => t.VIN).HasMaxLength(EntityFieldLen.VIN);
             // relationships
             builder.HasOne(t => t.Kit)
                 .WithMany(t => t.Snapshots)

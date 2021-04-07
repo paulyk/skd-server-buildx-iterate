@@ -176,7 +176,7 @@ namespace SKD.Test {
 
                 // kit 
                 var kit = new Kit() {
-                    VIN = new String('X', EntityFieldLen.Vehicle_VIN),
+                    VIN = new String('X', EntityFieldLen.VIN),
                     Lot = lot,
                 };
 
@@ -196,7 +196,7 @@ namespace SKD.Test {
             using (var ctx = GetAppDbContext()) {
                 // setup
                 var vehicle = new Kit() {
-                    VIN = new String('X', EntityFieldLen.Vehicle_VIN),
+                    VIN = new String('X', EntityFieldLen.VIN),
                 };
 
                 ctx.Kits.Add(vehicle);
@@ -219,11 +219,11 @@ namespace SKD.Test {
                 ctx.VehicleModels.Add(vehicleModel);
 
                 var vehicle_1 = new Kit() {
-                    VIN = new String('X', EntityFieldLen.Vehicle_VIN),
+                    VIN = new String('X', EntityFieldLen.VIN),
                 };
 
                 var vehicle_2 = new Kit() {
-                    VIN = new String('X', EntityFieldLen.Vehicle_VIN),
+                    VIN = new String('X', EntityFieldLen.VIN),
                 };
 
                 ctx.Kits.AddRange(vehicle_1, vehicle_2);

@@ -6,6 +6,8 @@ namespace SKD.Model {
     public class SkdContext : DbContext {
         public DbSet<Plant> Plants => Set<Plant>();
         public DbSet<Kit> Kits => Set<Kit>();
+        public DbSet<KitVinImport> KitVinImports => Set<KitVinImport>();
+        public DbSet<KitVin> KitVins => Set<KitVin>(); 
         public DbSet<KitTimelineEvent> KitTimelineEvents => Set<KitTimelineEvent>();
         public DbSet<KitTimelineEventType> KitTimelineEventTypes => Set<KitTimelineEventType>();
         public DbSet<Lot> Lots => Set<Lot>();
@@ -38,14 +40,26 @@ namespace SKD.Model {
             builder.ApplyConfiguration(new Component_Config());
             builder.ApplyConfiguration(new User_Config());
             builder.ApplyConfiguration(new Plant_Config());
+
+            builder.ApplyConfiguration(new Bom_Config());
+            
             builder.ApplyConfiguration(new Kit_Config());
+            builder.ApplyConfiguration(new KitVinImport_Config());
+            builder.ApplyConfiguration(new KitVin_Config());
+            builder.ApplyConfiguration(new KitSnapshot_Config());
+            builder.ApplyConfiguration(new KitSnapshotRun_Config());
+            builder.ApplyConfiguration(new KitTimelineEventType_Config());
+            builder.ApplyConfiguration(new KitTimelineEvent_Config());
+
             builder.ApplyConfiguration(new Lot_Config());
+            builder.ApplyConfiguration(new LotPart_Config());
+            builder.ApplyConfiguration(new LotPartReceived_Config());
+
+
             builder.ApplyConfiguration(new VehicleModel_Config());
             builder.ApplyConfiguration(new KitComponent_Config());
             builder.ApplyConfiguration(new VehicleModelComponent_Config());
             builder.ApplyConfiguration(new ComponentSerial_Config());
-            builder.ApplyConfiguration(new KitTimelineEventType_Config());
-            builder.ApplyConfiguration(new KitTimelineEvent_Config());
             builder.ApplyConfiguration(new DCWSResponse_Config());
             builder.ApplyConfiguration(new ProductionStation_Config());
             builder.ApplyConfiguration(new Part_Config());
@@ -57,12 +71,7 @@ namespace SKD.Model {
             builder.ApplyConfiguration(new HandlingUnitReceived_Config());
             builder.ApplyConfiguration(new ShipmentPart_Config());
             //
-            builder.ApplyConfiguration(new Bom_Config());
-            builder.ApplyConfiguration(new LotPart_Config());
-            builder.ApplyConfiguration(new LotPartReceived_Config());
 
-            builder.ApplyConfiguration(new KitSnapshot_Config());
-            builder.ApplyConfiguration(new KitSnapshotRun_Config());
         }
     }
 }

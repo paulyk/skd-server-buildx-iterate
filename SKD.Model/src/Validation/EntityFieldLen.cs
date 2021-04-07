@@ -19,7 +19,7 @@ namespace SKD.Model {
 
         public static int Partner_Code = 5;
 
-        public static int Vehicle_VIN = 17;
+        public static int VIN = 17;
         public static int Vehicle_LotNo = 15;
         public static int Vehicle_KitNo = 17;
 
@@ -42,6 +42,9 @@ namespace SKD.Model {
         public static int HandlingUnit_Code = 7;
 
         public static int Bom_SequenceNo = 4;
+        public static int KitVinImport_Sequence = 6;
+        public static int GSDB_Code = 5;
+
         public static int BomPart_LotNo = 15;
         public static int BomPart_PartNo = 30;
         public static int BomPart_PartDesc = 34;
