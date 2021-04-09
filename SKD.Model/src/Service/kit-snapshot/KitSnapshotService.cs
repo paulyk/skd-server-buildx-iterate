@@ -18,8 +18,12 @@ namespace SKD.Model {
         }
 
         public async Task<MutationPayload<SnapshotDTO>> GenerateSnapshot(KitSnapshotInput input) {
+            // set to current date if null
+            input.RunDate = input.RunDate.HasValue ? input.RunDate.Value : DateTime.UtcNow.Date;
 
+            
             var payload = new MutationPayload<SnapshotDTO>(null);
+            // validate
             payload.Errors = await ValidateGenerateKitSnapshot(input);
             if (payload.Errors.Any()) {
                 return payload;
@@ -36,7 +40,7 @@ namespace SKD.Model {
             // if no vehicles
             if (qualifyingKits.Count == 0) {
                 var dto = new SnapshotDTO {
-                    RunDate = input.RunDate.Date,
+                    RunDate = input.RunDate.Value.Date,
                     PlantCode = input.PlantCode,
                     SnapshotCount = 0
                 };
@@ -48,7 +52,7 @@ namespace SKD.Model {
             // create entity
             var vehicleSnapshotRun = new kitSnapshotRun {
                 Plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode),
-                RunDate = input.RunDate.Date,
+                RunDate = input.RunDate.Value.Date,
                 Sequence = await context.KitSnapshotRuns
                     .Where(t => t.Plant.Code == input.PlantCode)
                     .OrderByDescending(t => t.Sequence)
@@ -87,9 +91,9 @@ namespace SKD.Model {
                 }
             }
 
-            // dto
+            // input
             payload.Entity = new SnapshotDTO {
-                RunDate = input.RunDate.Date,
+                RunDate = input.RunDate.Value.Date,
                 PlantCode = input.PlantCode,                
                 SnapshotCount = vehicleSnapshotRun.KitSnapshots.Count(),
                 Sequence = vehicleSnapshotRun.Sequence
@@ -177,6 +181,11 @@ namespace SKD.Model {
         public async Task<List<Error>> ValidateGenerateKitSnapshot(KitSnapshotInput input) {
             var errors = new List<Error>();
 
+            if (!input.RunDate.HasValue) {
+                errors.Add(new Error("", "Run date required"));
+                return errors;
+            }
+
             var plantExists = await context.Plants.AnyAsync(t => t.Code == input.PlantCode);
             if (!plantExists) {
                 errors.Add(new Error("plantCode", "plant code not found"));
@@ -193,7 +202,7 @@ namespace SKD.Model {
 
             // already generated
             var alreadyGenerated = await context.KitSnapshotRuns
-                .AnyAsync(t => t.Plant.Code == input.PlantCode && t.RunDate.Date == input.RunDate.Date);
+                .AnyAsync(t => t.Plant.Code == input.PlantCode && t.RunDate.Date == input.RunDate.Value.Date);
 
             if (alreadyGenerated) {
                 errors.Add(new Error("", $"already generated kit snapshot for plant {input.PlantCode},  date ${DateTime.UtcNow.Date}"));

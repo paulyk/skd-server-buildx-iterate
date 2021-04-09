@@ -88,7 +88,7 @@ namespace SKD.Test {
             // 1.  empty
             snapshotInput.RunDate = dates.Where(t => t.eventType == TimelineTestEvent.BEFORE).First().date;
             await service.GenerateSnapshot(snapshotInput);
-            var snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
+            var snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             Assert.Null(snapshotPayload);
 
             // 2.  custom received
@@ -96,7 +96,7 @@ namespace SKD.Test {
             await AddKitTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, kit.KitNo, "", eventDate, eventDate.AddDays(-1));
             snapshotInput.RunDate = eventDate;
             await service.GenerateSnapshot(snapshotInput);
-            snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
+            snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             var kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
             Assert.Equal(TimeLineEventType.CUSTOM_RECEIVED, kitSnapshot.CurrentTimelineEvent);
             Assert.Equal(PartnerStatus_ChangeStatus.Added, kitSnapshot.TxType);
@@ -107,7 +107,7 @@ namespace SKD.Test {
             await service.GenerateSnapshot(snapshotInput);
             var snapshotRecordCount = await ctx.KitSnapshots.CountAsync();
             Assert.Equal(2, snapshotRecordCount);
-            snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
+            snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
             Assert.Equal(1, snapshotPayload.Entries.Count);
             Assert.Equal(TimeLineEventType.CUSTOM_RECEIVED, kitSnapshot.CurrentTimelineEvent);
@@ -119,7 +119,7 @@ namespace SKD.Test {
             await AddKitTimelineEntry(TimeLineEventType.PLAN_BUILD, kit.KitNo, "", eventDate, eventDate);
             await service.GenerateSnapshot(snapshotInput);
 
-            snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
+            snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
             Assert.Equal(TimeLineEventType.PLAN_BUILD, kitSnapshot.CurrentTimelineEvent);
             Assert.Equal(PartnerStatus_ChangeStatus.Changed, kitSnapshot.TxType);
@@ -128,7 +128,7 @@ namespace SKD.Test {
             eventDate = dates.Where(t => t.eventType == TimelineTestEvent.POST_PLAN_BUILD_NO_CHANGE).First().date;
             snapshotInput.RunDate = eventDate;
             await service.GenerateSnapshot(snapshotInput);
-            snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
+            snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
             Assert.Equal(TimeLineEventType.PLAN_BUILD, kitSnapshot.CurrentTimelineEvent);
             Assert.Equal(PartnerStatus_ChangeStatus.NoChange, kitSnapshot.TxType);
@@ -139,7 +139,7 @@ namespace SKD.Test {
             await AddKitTimelineEntry(TimeLineEventType.BULD_COMPLETED, kit.KitNo, "", eventDate, eventDate);
             await service.GenerateSnapshot(snapshotInput);
 
-            snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
+            snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
             Assert.Equal(TimeLineEventType.BULD_COMPLETED, kitSnapshot.CurrentTimelineEvent);
             Assert.Equal(PartnerStatus_ChangeStatus.Changed, kitSnapshot.TxType);
@@ -150,7 +150,7 @@ namespace SKD.Test {
             await AddKitTimelineEntry(TimeLineEventType.GATE_RELEASED, kit.KitNo, "", eventDate, eventDate);
             await service.GenerateSnapshot(snapshotInput);
 
-            snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
+            snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
             Assert.Equal(TimeLineEventType.GATE_RELEASED, kitSnapshot.CurrentTimelineEvent);
             Assert.Equal(PartnerStatus_ChangeStatus.Changed, kitSnapshot.TxType);
@@ -162,7 +162,7 @@ namespace SKD.Test {
             await AddKitTimelineEntry(TimeLineEventType.WHOLE_SALE, kit.KitNo, dealerCode, eventDate, eventDate);
             await service.GenerateSnapshot(snapshotInput);
 
-            snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
+            snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
             Assert.Equal(TimeLineEventType.WHOLE_SALE, kitSnapshot.CurrentTimelineEvent);
             Assert.Equal(PartnerStatus_ChangeStatus.Final, kitSnapshot.TxType);
@@ -173,7 +173,7 @@ namespace SKD.Test {
             eventDate = dates.Where(t => t.eventType == TimelineTestEvent.FINAL_2_DAYS_TRX).First().date;
             snapshotInput.RunDate = eventDate;
             await service.GenerateSnapshot(snapshotInput);
-            snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
+            snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
             Assert.Equal(TimeLineEventType.WHOLE_SALE, kitSnapshot.CurrentTimelineEvent);
             Assert.Equal(PartnerStatus_ChangeStatus.Final, kitSnapshot.TxType);
@@ -182,7 +182,7 @@ namespace SKD.Test {
             eventDate = dates.Where(t => t.eventType == TimelineTestEvent.FINAL_PLUS_WHOLESALE_CUTOFF).First().date;
             snapshotInput.RunDate = eventDate;
             await service.GenerateSnapshot(snapshotInput);
-            snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
+            snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             Assert.Null(snapshotPayload);
 
         }
@@ -279,7 +279,7 @@ namespace SKD.Test {
             var snapshots_count = ctx.KitSnapshots.Count();
             Assert.Equal(1, snapshots_count);
 
-            var snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
+            var snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             var kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
             Assert.Equal(TimeLineEventType.PLAN_BUILD, kitSnapshot.CurrentTimelineEvent);
             Assert.Equal(PartnerStatus_ChangeStatus.Added, kitSnapshot.TxType);
@@ -427,7 +427,7 @@ namespace SKD.Test {
             };
             snapshotInput.RunDate = baseDate;
             await service.GenerateSnapshot(snapshotInput);
-            var snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
+            var snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             Assert.Null(snapshotPayload);
             var snapshotCount = ctx.KitSnapshotRuns.Count();
             Assert.Equal(0, snapshotCount);
@@ -437,16 +437,16 @@ namespace SKD.Test {
             await AddKitTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, kit_2.KitNo, "", custom_receive_date_trx, custom_receive_date);
             snapshotInput.RunDate = custom_receive_date_trx;
             await service.GenerateSnapshot(snapshotInput);
-            snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
+            snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             Assert.Equal(2, snapshotPayload.Entries.Count);
             snapshotCount = ctx.KitSnapshotRuns.Count();
             Assert.Equal(1, snapshotCount);
 
             // 3.  no change
-            snapshotInput.RunDate = snapshotInput.RunDate.AddDays(1);
+            snapshotInput.RunDate = snapshotInput.RunDate.Value.AddDays(1);
             await service.GenerateSnapshot(snapshotInput);
 
-            snapshotInput.RunDate = snapshotInput.RunDate.AddDays(1);
+            snapshotInput.RunDate = snapshotInput.RunDate.Value.AddDays(1);
             await service.GenerateSnapshot(snapshotInput);
 
             var totalSnapshotEntries = await ctx.KitSnapshots.CountAsync();
@@ -470,7 +470,7 @@ namespace SKD.Test {
 
             // initial
             var service = new KitSnapshotService(ctx);
-            var payload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate);
+            var payload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             return payload.Entries.ToList();
         }
 
