@@ -23,9 +23,11 @@ namespace SKD.Model {
             this.planBuildLeadTimeDays = planBuildLeadTimeDays;
         }
 
+        #region import vin
+
         public async Task<MutationPayload<Lot>> ImportVIN(ImportVinInput input) {
             var payload = new MutationPayload<Lot>(null);
-            payload.Errors = await ValidateAssignKitVinInput(input);
+            payload.Errors = await ValidateImportVINInput(input);
             if (payload.Errors.Count() > 0) {
                 return payload;
             }
@@ -35,10 +37,10 @@ namespace SKD.Model {
                 Plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode),
                 Sequence = input.Sequence,
                 PartnerPlantCode = input.PartnerPlantCode,
-            };            
+            };
             context.KitVinImports.Add(kitVinImport);
 
-            foreach(var inputKitVin in input.Kits) {
+            foreach (var inputKitVin in input.Kits) {
                 var kit = await context.Kits.FirstOrDefaultAsync(t => t.KitNo == inputKitVin.KitNo);
                 kit.VIN = inputKitVin.VIN;
                 var kitVin = new KitVin {
@@ -47,88 +49,12 @@ namespace SKD.Model {
                 };
                 kitVinImport.KitVins.Add(kitVin);
             }
-                
+
             await context.SaveChangesAsync();
             return payload;
         }
 
-        public async Task<MutationPayload<KitTimelineEvent>> CreateKitTimelineEvent(KitTimelineEventInput input) {
-            var payload = new MutationPayload<KitTimelineEvent>(null);
-            payload.Errors = await ValidateCreateKitTimelineEvent(input);
-            if (payload.Errors.Count > 0) {
-                return payload;
-            }
-
-            var kit = await context.Kits
-                .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
-                .FirstOrDefaultAsync(t => t.KitNo == input.KitNo);
-
-            // mark other timeline events of the same type as removed for this vehicle
-            kit.TimelineEvents
-                .Where(t => t.EventType.Code == input.EventType.ToString())
-                .ToList().ForEach(timelieEvent => {
-                    if (timelieEvent.RemovedAt == null) {
-                        timelieEvent.RemovedAt = DateTime.UtcNow;
-                    }
-                });
-
-            // create timeline event and add to vehicle
-            var newTimelineEvent = new KitTimelineEvent {
-                EventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == input.EventType.ToString()),
-                EventDate = input.EventDate,
-                EventNote = input.EventNote
-            };
-
-            kit.TimelineEvents.Add(newTimelineEvent);
-
-            // save
-            payload.Entity = newTimelineEvent;
-            await context.SaveChangesAsync();
-            return payload;
-        }
-
-        public async Task<MutationPayload<Lot>> CreateLotTimelineEvent(LotTimelineEventInput dto) {
-            var payload = new MutationPayload<Lot>(null);
-            payload.Errors = await ValidateCreateLotTimelineEvent(dto);
-            if (payload.Errors.Count > 0) {
-                return payload;
-            }
-
-            var vehicleLot = await context.Lots
-                .Include(t => t.Kits)
-                    .ThenInclude(t => t.TimelineEvents)
-                    .ThenInclude(t => t.EventType)
-                .FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
-
-            foreach (var vehicle in vehicleLot.Kits) {
-
-                // mark other timeline events of the same type as removed for this vehicle
-                vehicle.TimelineEvents
-                    .Where(t => t.EventType.Code == dto.EventType.ToString())
-                    .ToList().ForEach(timelieEvent => {
-                        if (timelieEvent.RemovedAt == null) {
-                            timelieEvent.RemovedAt = DateTime.UtcNow;
-                        }
-                    });
-
-                // create timeline event and add to vehicle
-                var newTimelineEvent = new KitTimelineEvent {
-                    EventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == dto.EventType.ToString()),
-                    EventDate = dto.EventDate,
-                    EventNote = dto.EventNote
-                };
-
-                vehicle.TimelineEvents.Add(newTimelineEvent);
-
-            }
-
-            // // save
-            payload.Entity = vehicleLot;
-            await context.SaveChangesAsync();
-            return payload;
-        }
-
-        public async Task<List<Error>> ValidateAssignKitVinInput(ImportVinInput input) {
+        public async Task<List<Error>> ValidateImportVINInput(ImportVinInput input) {
             var errors = new List<Error>();
 
             // plant
@@ -139,7 +65,7 @@ namespace SKD.Model {
             }
 
             // sequence 
-            if (input.Sequence == 0){
+            if (input.Sequence == 0) {
                 errors.Add(new Error("", $"Sequence number required"));
                 return errors;
             }
@@ -152,16 +78,16 @@ namespace SKD.Model {
             if (kitVinImport != null) {
                 errors.Add(new Error("", $"Already imported: plant {input.PlantCode} sequence {input.Sequence}"));
                 return errors;
-            }                
+            }
 
             // partner code
             if (String.IsNullOrEmpty(input.PartnerPlantCode)) {
                 errors.Add(new Error("", $"Parnter plant code required"));
                 return errors;
-             } else if (input.PartnerPlantCode.Length != EntityFieldLen.PartnerPlant_Code) {
+            } else if (input.PartnerPlantCode.Length != EntityFieldLen.PartnerPlant_Code) {
                 errors.Add(new Error("", $"Parnter plant code not valid {input.PartnerPlantCode}"));
                 return errors;
-             }
+            }
 
             // kits not found
             var kitNos = input.Kits.Select(t => t.KitNo).ToList();
@@ -200,12 +126,12 @@ namespace SKD.Model {
                 .Where(t => !String.IsNullOrEmpty(t.VIN))
                 .Where(t => t.VIN != input.Kits.First(inputKit => inputKit.KitNo == t.KitNo).VIN)
                 .ToList();
-            
+
             if (kitsAlreadyAssignedDifferentVin.Any()) {
                 errors.Add(new Error("", $"found kits with different VIN already assigned"));
                 return errors;
             }
-                
+
             // Wehicles with matching kit numbers not found
             var kit_numbers_not_found = new List<string>();
             foreach (var kit in input.Kits) {
@@ -233,6 +159,45 @@ namespace SKD.Model {
             }
 
             return errors;
+        }
+
+
+        #endregion
+
+        #region create kit timeline event
+        public async Task<MutationPayload<KitTimelineEvent>> CreateKitTimelineEvent(KitTimelineEventInput input) {
+            var payload = new MutationPayload<KitTimelineEvent>(null);
+            payload.Errors = await ValidateCreateKitTimelineEvent(input);
+            if (payload.Errors.Count > 0) {
+                return payload;
+            }
+
+            var kit = await context.Kits
+                .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
+                .FirstOrDefaultAsync(t => t.KitNo == input.KitNo);
+
+            // mark other timeline events of the same type as removed for this vehicle
+            kit.TimelineEvents
+                .Where(t => t.EventType.Code == input.EventType.ToString())
+                .ToList().ForEach(timelieEvent => {
+                    if (timelieEvent.RemovedAt == null) {
+                        timelieEvent.RemovedAt = DateTime.UtcNow;
+                    }
+                });
+
+            // create timeline event and add to vehicle
+            var newTimelineEvent = new KitTimelineEvent {
+                EventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == input.EventType.ToString()),
+                EventDate = input.EventDate,
+                EventNote = input.EventNote
+            };
+
+            kit.TimelineEvents.Add(newTimelineEvent);
+
+            // save
+            payload.Entity = newTimelineEvent;
+            await context.SaveChangesAsync();
+            return payload;
         }
 
         public async Task<List<Error>> ValidateCreateKitTimelineEvent(KitTimelineEventInput input) {
@@ -320,6 +285,50 @@ namespace SKD.Model {
             return errors;
         }
 
+        #endregion
+
+        #region create lot timeline event
+        public async Task<MutationPayload<Lot>> CreateLotTimelineEvent(LotTimelineEventInput dto) {
+            var payload = new MutationPayload<Lot>(null);
+            payload.Errors = await ValidateCreateLotTimelineEvent(dto);
+            if (payload.Errors.Count > 0) {
+                return payload;
+            }
+
+            var vehicleLot = await context.Lots
+                .Include(t => t.Kits)
+                    .ThenInclude(t => t.TimelineEvents)
+                    .ThenInclude(t => t.EventType)
+                .FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
+
+            foreach (var vehicle in vehicleLot.Kits) {
+
+                // mark other timeline events of the same type as removed for this vehicle
+                vehicle.TimelineEvents
+                    .Where(t => t.EventType.Code == dto.EventType.ToString())
+                    .ToList().ForEach(timelieEvent => {
+                        if (timelieEvent.RemovedAt == null) {
+                            timelieEvent.RemovedAt = DateTime.UtcNow;
+                        }
+                    });
+
+                // create timeline event and add to vehicle
+                var newTimelineEvent = new KitTimelineEvent {
+                    EventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == dto.EventType.ToString()),
+                    EventDate = dto.EventDate,
+                    EventNote = dto.EventNote
+                };
+
+                vehicle.TimelineEvents.Add(newTimelineEvent);
+
+            }
+
+            // // save
+            payload.Entity = vehicleLot;
+            await context.SaveChangesAsync();
+            return payload;
+        }
+
         public async Task<List<Error>> ValidateCreateLotTimelineEvent(LotTimelineEventInput input) {
             var errors = new List<Error>();
 
@@ -365,6 +374,48 @@ namespace SKD.Model {
             return errors;
         }
 
+        #endregion
+
+
+        public async Task<MutationPayload<KitComponent>> ChangeKitComponentProductionStation(KitComponentProductionStationInput input) {
+            var payload = new MutationPayload<KitComponent>(null);
+            payload.Errors = await ValidateChangeKitCXomponentStationImput(input);
+            if (payload.Errors.Count > 0) {
+                return payload;
+            }
+
+            var kitComponent = await context.KitComponents.FirstOrDefaultAsync(t => t.Id == input.KitComponentId);
+            var productionStation = await context.ProductionStations.FirstOrDefaultAsync(t => t.Code == input.ProductionStationCode);
+
+            kitComponent.ProductionStation = productionStation;
+            // // save
+            await context.SaveChangesAsync();
+            payload.Entity = kitComponent;
+            return payload;
+        }
+
+        public async Task<List<Error>> ValidateChangeKitCXomponentStationImput(KitComponentProductionStationInput input) {
+            var errors = new List<Error>();
+
+            var kitComponent = await context.KitComponents.FirstOrDefaultAsync(t => t.Id == input.KitComponentId);
+            if (kitComponent == null) {
+                errors.Add(new Error("", $"kit component not found for ${input.KitComponentId}"));
+                return errors;
+            }
+
+            var productionStation = await context.ProductionStations.FirstOrDefaultAsync(t => t.Code == input.ProductionStationCode);
+            if (productionStation == null) {
+                errors.Add(new Error("", $"production station not found ${input.ProductionStationCode}"));
+                return errors;
+            }
+
+            if (kitComponent.ProductionStationId == productionStation.Id) {
+                errors.Add(new Error("", $"production station is already set to {input.ProductionStationCode}"));
+                return errors;
+            }
+
+            return errors;
+        }
         public async Task<Boolean> SnapshotAlreadyTaken(LotTimelineEventInput input) {
 
             var kitSnapshot = await context.KitSnapshots

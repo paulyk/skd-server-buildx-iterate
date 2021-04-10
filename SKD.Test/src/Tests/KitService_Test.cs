@@ -67,7 +67,7 @@ namespace SKD.Test {
             var plant = ctx.Plants.First();
             var partnerPlantCode = Gen_PartnerPLantCode();
             var sequence = 3;
-        
+
             var kitVinDto = new ImportVinInput {
                 PlantCode = plant.Code,
                 PartnerPlantCode = partnerPlantCode,
@@ -415,6 +415,30 @@ namespace SKD.Test {
             var expectedMessage = "duplicate kit timeline event";
             var actualMessage = errorMessage.Substring(0, expectedMessage.Length);
             Assert.Equal(expectedMessage, actualMessage);
+        }
+
+        [Fact]
+        public async Task can_change_kit_component_production_station() {
+            // setup
+            var kit = await  ctx.Kits
+                .Include(t => t.KitComponents).ThenInclude(t => t.ProductionStation)
+                .FirstOrDefaultAsync();
+            var productionStationCodes = await ctx.ProductionStations.Select(t => t.Code).ToListAsync();
+            var kitComponent = kit.KitComponents.FirstOrDefault();
+            var newStationCode = productionStationCodes.First(code => code != kitComponent.ProductionStation.Code);
+
+            var service = new KitService(ctx, DateTime.Now.Date, 6);
+
+            var paylaod = service.ChangeKitComponentProductionStation(new KitComponentProductionStationInput{
+                KitComponentId = kitComponent.Id,
+                ProductionStationCode = newStationCode
+            });
+
+            var kitComponent_2 = await ctx.KitComponents
+                .Include(t => t.ProductionStation)
+                .FirstOrDefaultAsync(t => t.Id == kitComponent.Id);
+
+            Assert.Equal(newStationCode, kitComponent_2.ProductionStation.Code);
         }
     }
 }
