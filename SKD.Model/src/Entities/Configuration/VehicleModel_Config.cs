@@ -13,8 +13,6 @@ namespace SKD.Model {
             builder.HasIndex(t => t.Code).IsUnique();
             builder.HasIndex(t => t.Name).IsUnique();
 
-            builder.Ignore(t => t.ActiveComponentMappings);
-
             // relationships            
             builder.Property(t => t.Code)
                 .IsRequired()

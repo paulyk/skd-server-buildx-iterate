@@ -5,10 +5,10 @@ namespace SKD.Model {
     public class VehicleModelInput {
         public string Code { get; init; }
         public string Name { get; init; }
-        public ICollection<ComponeentStationInput> ComponentStationDTOs { get; set; } = new List<ComponeentStationInput>();
+        public ICollection<ComponentStationInput> ComponentStationInputs { get; set; } = new List<ComponentStationInput>();
     }
 
-    public class ComponeentStationInput {
+    public class ComponentStationInput {
         public string ComponentCode { get; init; }
         public string ProductionStationCode { get; init; }
     }

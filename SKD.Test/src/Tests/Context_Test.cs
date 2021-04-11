@@ -96,7 +96,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public void cannot_add_duplicate_vehicle_model_code() {
+        public void submit_model_input_twice_has_no_side_effect() {
             using (var ctx = GetAppDbContext()) {
                 // setup
                 var modelCode = new String('A', EntityFieldLen.VehicleModel_Code);

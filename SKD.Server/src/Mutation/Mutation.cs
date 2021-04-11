@@ -14,10 +14,10 @@ using HotChocolate.Data;
 namespace SKD.Server {
     public class Mutation {
 
-        public async Task<MutationPayload<VehicleModel>> CreateVehicleModel(
+        public async Task<MutationPayload<VehicleModel>> SaveVehicleModel(
             [Service] VehicleModelService service,
             VehicleModelInput input
-        ) => await service.CreateVehicleModel(input);
+        ) => await service.SaveVehicleModel(input);
 
         public async Task<MutationPayload<Lot>> ImportVIN(
             [Service] KitService service,

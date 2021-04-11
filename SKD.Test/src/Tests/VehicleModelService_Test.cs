@@ -15,35 +15,70 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task can_create_vehicle_model() {
+        public async Task can_add_vehicle_model() {
             // setup
-            var componentCode = "component_1";
-            var stationCode = "station_1";
-            Gen_Components(componentCode);
-            Gen_ProductionStations(stationCode);
-
+            var componentCodes = new string[] { "component_1", "component_2" };
+            var stationCodes = new string[] { "station_1", "station_2" };
+            Gen_Components(componentCodes);
+            Gen_ProductionStations(stationCodes);
 
             var vehicleModel = new VehicleModelInput {
-                Code = Util.RandomString(EntityFieldLen.VehicleModel_Code),
+                Code = Gen_VehicleModel_Code(),
                 Name = Util.RandomString(EntityFieldLen.VehicleModel_Name),
-                ComponentStationDTOs = new List<ComponeentStationInput> {
-                    new ComponeentStationInput {
-                        ComponentCode = componentCode,
-                        ProductionStationCode = stationCode,
-                    }
-                }
+                ComponentStationInputs = Enumerable.Range(0, componentCodes.Length)
+                    .Select(i => new ComponentStationInput {
+                        ComponentCode = componentCodes[i],
+                        ProductionStationCode = stationCodes[i]
+                    }).ToList()
             };
 
-            // test
             var service = new VehicleModelService(ctx);
-            var before_count = await ctx.VehicleModels.CountAsync();
 
-            // save
-            var payload = await service.CreateVehicleModel(vehicleModel);
+            // test
+            var vehicle_model_before_count = await ctx.VehicleModels.CountAsync();
+            var vehicle_model_component_before_count = await ctx.VehicleModelComponents.CountAsync();
 
-            // verify
-            var after_count = await ctx.VehicleModels.CountAsync();
-            Assert.Equal(before_count + 1, after_count);
+            var payload = await service.SaveVehicleModel(vehicleModel);
+
+            // assert
+            var vehicle_model_after_count = await ctx.VehicleModels.CountAsync();
+            Assert.Equal(vehicle_model_before_count + 1, vehicle_model_after_count);
+
+            var vehicle_model_component_after_count = await ctx.VehicleModelComponents.CountAsync();
+            Assert.Equal(vehicle_model_component_before_count + componentCodes.Length, vehicle_model_component_after_count);
+        }
+
+        [Fact]
+        public async Task add_vehicle_model_twice_has_no_side_effect() {
+            // setup
+            var componentCodes = new string[] { "component_1", "component_2" };
+            var stationCodes = new string[] { "station_1", "station_2" };
+            Gen_Components(componentCodes);
+            Gen_ProductionStations(stationCodes);
+
+            var vehicleModel = new VehicleModelInput {
+                Code = Gen_VehicleModel_Code(),
+                Name = Util.RandomString(EntityFieldLen.VehicleModel_Name),
+                ComponentStationInputs = Enumerable.Range(0, componentCodes.Length)
+                    .Select(i => new ComponentStationInput {
+                        ComponentCode = componentCodes[i],
+                        ProductionStationCode = stationCodes[i]
+                    }).ToList()
+            };
+
+            var service = new VehicleModelService(ctx);
+
+            // test        
+            await service.SaveVehicleModel(vehicleModel);
+            var model_count_1 = await ctx.VehicleModels.CountAsync();
+            var model_component_count_1 = await ctx.VehicleModelComponents.CountAsync();
+
+            var payload_2 = await service.SaveVehicleModel(vehicleModel);
+            var model_count_2 = await ctx.VehicleModels.CountAsync();
+            var model_component_count_2 = await ctx.VehicleModelComponents.CountAsync();
+
+            Assert.Equal(model_count_1, model_count_2);
+            Assert.Equal(model_component_count_1, model_component_count_2);
         }
 
         [Fact]
@@ -57,7 +92,7 @@ namespace SKD.Test {
                 Code = Util.RandomString(EntityFieldLen.VehicleModel_Code),
                 Name = Util.RandomString(EntityFieldLen.VehicleModel_Name)
             };
-            var payload = await service.CreateVehicleModel(model_1);
+            var payload = await service.SaveVehicleModel(model_1);
 
             //test
             var after_count = await ctx.VehicleModels.CountAsync();
@@ -67,53 +102,7 @@ namespace SKD.Test {
             Assert.Equal(1, errorCount);
         }
 
-        [Fact]
-        public async Task cannot_add_duplicate_vehicle_model_code() {
-            // setup
-            Gen_Components("component_1");
-            Gen_ProductionStations("station_1");
 
-            var modelCode = Util.RandomString(EntityFieldLen.VehicleModel_Code);
-            var modelName = Util.RandomString(EntityFieldLen.VehicleModel_Name);
-
-            var model_1 = new VehicleModelInput {
-                Code = modelCode,
-                Name = modelName,
-                ComponentStationDTOs = new List<ComponeentStationInput> {
-                    new ComponeentStationInput {
-                        ComponentCode = "component_1",
-                        ProductionStationCode = "station_1"
-                    }
-                }
-            };
-
-            var model_2 = new VehicleModelInput {
-                Code = modelCode,
-                Name = Util.RandomString(EntityFieldLen.VehicleModel_Name),
-                ComponentStationDTOs = new List<ComponeentStationInput> {
-                    new ComponeentStationInput {
-                        ComponentCode = "component_1",
-                        ProductionStationCode = "station_1"
-                    }
-                }
-            };
-
-
-            // test
-            var service = new VehicleModelService(ctx);
-            await service.CreateVehicleModel(model_1);
-
-            var payload = await service.CreateVehicleModel(model_2);
-
-            var errorCount = payload.Errors.Count();
-            var firstError = payload.Errors.Count() > 0
-                ? payload.Errors.ToList()[0].Message
-                : null;
-
-
-            Assert.Equal(1, errorCount);
-            Assert.Equal("duplicate code", firstError);
-        }
 
         [Fact]
         public async Task cannot_add_duplicate_vehicle_model_name() {
@@ -130,8 +119,8 @@ namespace SKD.Test {
             var model_1 = new VehicleModelInput {
                 Code = modelCode,
                 Name = modelName,
-                ComponentStationDTOs = new List<ComponeentStationInput> {
-                    new ComponeentStationInput {
+                ComponentStationInputs = new List<ComponentStationInput> {
+                    new ComponentStationInput {
                         ComponentCode = "component_1",
                         ProductionStationCode = "station_1"
                     }
@@ -141,8 +130,8 @@ namespace SKD.Test {
             var model_2 = new VehicleModelInput {
                 Code = Util.RandomString(EntityFieldLen.VehicleModel_Code),
                 Name = modelName,
-                ComponentStationDTOs = new List<ComponeentStationInput> {
-                    new ComponeentStationInput {
+                ComponentStationInputs = new List<ComponentStationInput> {
+                    new ComponentStationInput {
                         ComponentCode = "component_1",
                         ProductionStationCode = "station_1"
                     }
@@ -151,9 +140,9 @@ namespace SKD.Test {
 
             // test
             var service = new VehicleModelService(ctx);
-            await service.CreateVehicleModel(model_1);
+            await service.SaveVehicleModel(model_1);
 
-            var payload = await service.CreateVehicleModel(model_2);
+            var payload = await service.SaveVehicleModel(model_2);
 
             var errorCount = payload.Errors.Count();
             var firstError = payload.Errors.Count() > 0
@@ -178,12 +167,12 @@ namespace SKD.Test {
             var vehilceModel = new VehicleModelInput {
                 Code = "Model_1",
                 Name = "Model Name",
-                ComponentStationDTOs = new List<ComponeentStationInput> {
-                    new ComponeentStationInput {
+                ComponentStationInputs = new List<ComponentStationInput> {
+                    new ComponentStationInput {
                         ComponentCode = component.Code,
                         ProductionStationCode = station.Code
                     },
-                    new ComponeentStationInput {
+                    new ComponentStationInput {
                         ComponentCode = component.Code,
                         ProductionStationCode = station.Code
                     },
@@ -192,7 +181,7 @@ namespace SKD.Test {
 
             // test
             var service = new VehicleModelService(ctx);
-            var payload = await service.CreateVehicleModel(vehilceModel);
+            var payload = await service.SaveVehicleModel(vehilceModel);
 
             // assert
             var errorCount = payload.Errors.Count();
