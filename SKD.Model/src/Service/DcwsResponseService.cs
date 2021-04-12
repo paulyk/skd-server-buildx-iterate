@@ -27,11 +27,29 @@ namespace SKD.Model {
                 return payload;
             }
 
-            var vehicleComponent = await context.KitComponents
-                .Include(t => t.ComponentSerials)
+            var kitComponent = await context.KitComponents
+                .Include(t => t.ComponentSerials).ThenInclude(t => t.DcwsResponses)
                 .Where(t => t.Id == input.VehicleComponentId)
                 .FirstOrDefaultAsync();
-            var componentSerial = vehicleComponent.ComponentSerials.Where(t =>t.RemovedAt == null).First();
+
+            var componentSerial = kitComponent.ComponentSerials.Where(t =>t.RemovedAt == null).First();
+
+            // skip if duplicate
+            var duplicate = componentSerial.DcwsResponses.ToList()
+                .OrderByDescending(t => t.CreatedAt)
+                .Where(t => t.RemovedAt == null)
+                .Where(t => t.ProcessExcptionCode == input.ResponseCode)
+                .FirstOrDefault();
+            if (duplicate != null) {
+                payload.Entity = duplicate;
+                return payload;
+            }
+
+
+            // mark existing reponses as removed
+            componentSerial.DcwsResponses.Where(t => t.RemovedAt == null).ToList().ForEach(t => {
+                t.RemovedAt = DateTime.UtcNow;
+            });
 
             var response = new DcwsResponse {
                 ProcessExcptionCode = input.ResponseCode,
@@ -39,14 +57,15 @@ namespace SKD.Model {
                 ComponentSerialId = componentSerial.Id,
                 DcwsSuccessfulSave = IsSuccessProcessExceptionCode(input.ResponseCode)
             };
-            payload.Entity = response;
 
             // update denormalized values
             componentSerial.VerifiedAt = response.DcwsSuccessfulSave ? DateTime.UtcNow : (DateTime?)null;
-            vehicleComponent.VerifiedAt = response.DcwsSuccessfulSave ? DateTime.UtcNow : (DateTime?)null;
+            kitComponent.VerifiedAt = response.DcwsSuccessfulSave ? DateTime.UtcNow : (DateTime?)null;
 
-            context.DCWSResponses.Add(payload.Entity);
+            context.DCWSResponses.Add(response);
+
             await context.SaveChangesAsync();
+            payload.Entity = response;
             return payload;
         }
 
@@ -76,19 +95,7 @@ namespace SKD.Model {
                 errors.Add(new Error("ResponseCode", "response code required"));
                 return errors;
             }
-
-            // skip if duplicate
-            var duplicate  = await context.DCWSResponses
-                .OrderByDescending(t => t.CreatedAt)
-                .FirstOrDefaultAsync(
-                    t => t.ComponentSerialId == componentSerial.Id && 
-                    t.ProcessExcptionCode == input.ResponseCode &&
-                    t.ErrorMessage == input.ErrorMessage);
-
-            if (duplicate != null) {
-                errors.Add(new Error("", "duplicate"));
-            }
-
+        
             return errors;
         }
 

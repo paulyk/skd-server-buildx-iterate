@@ -43,25 +43,66 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task cannot_save_duplicate_dcws_response_code() {
-
+        public async Task previous_dcws_response_codes_marked_removed_when_new_one_submitted() {
+            // setup
             var vehicle = ctx.Kits.First();
             var vehicleComponent = vehicle.KitComponents.First();
-            var componentScan = Gen_ComponentScan(vehicleComponent.Id);
+            var comonentSerial = Gen_ComponentScan(vehicleComponent.Id);
 
             var service = new DCWSResponseService(ctx);
-            var dto = new DcwsComponentResponseInput {
+            var input = new DcwsComponentResponseInput {
+                VehicleComponentId = vehicleComponent.Id,
+                ResponseCode = "INVALIDSCAN",
+                ErrorMessage = ""
+            };
+
+            var input_2 = new DcwsComponentResponseInput {
                 VehicleComponentId = vehicleComponent.Id,
                 ResponseCode = "NONE",
                 ErrorMessage = ""
             };
-            var payload = await service.SaveDcwsComponentResponse(dto);
-            Assert.True(payload.Errors.Count() == 0, "error count should be 0");
-            // dpulicate
-            var payload_2 = await service.SaveDcwsComponentResponse(dto);
-            Assert.True(payload_2.Errors.Count() == 1, "should have one error");
-            var errorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
-            Assert.True(errorMessage == "duplicate");
+
+            // act
+            await service.SaveDcwsComponentResponse(input);
+            await service.SaveDcwsComponentResponse(input_2);
+
+            var csr = await ctx.ComponentSerials.Include(t => t.DcwsResponses)
+                .FirstOrDefaultAsync(t => t.Id == comonentSerial.Id);
+
+            var dcws_resposne_count = csr.DcwsResponses.Count();
+            Assert.Equal(2, dcws_resposne_count);
+
+            var by_date = csr.DcwsResponses.OrderByDescending(t => t.CreatedAt).ToList();
+
+            var latestOne = by_date[0];
+            var firstOne = by_date[1];
+            // latest one not removed
+            Assert.Null(latestOne.RemovedAt);
+            Assert.NotNull(firstOne.RemovedAt);
+        }
+
+        [Fact]
+        public async Task ignores_dcws_response_if_matches_latest_entry() {
+            var vehicle = ctx.Kits.First();
+            var vehicleComponent = vehicle.KitComponents.First();
+            var comonentSerial = Gen_ComponentScan(vehicleComponent.Id);
+
+            var service = new DCWSResponseService(ctx);
+            var input = new DcwsComponentResponseInput {
+                VehicleComponentId = vehicleComponent.Id,
+                ResponseCode = "INVALIDSCAN",
+                ErrorMessage = ""
+            };
+
+            // act
+            await service.SaveDcwsComponentResponse(input);
+            await service.SaveDcwsComponentResponse(input);
+
+            var csr = await ctx.ComponentSerials.Include(t => t.DcwsResponses)
+              .FirstOrDefaultAsync(t => t.Id == comonentSerial.Id);
+
+            var dcws_resposne_count = csr.DcwsResponses.Count();
+            Assert.Equal(1, dcws_resposne_count);
         }
     }
 }

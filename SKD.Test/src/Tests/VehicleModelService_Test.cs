@@ -22,7 +22,7 @@ namespace SKD.Test {
             Gen_Components(componentCodes);
             Gen_ProductionStations(stationCodes);
 
-            var vehicleModel = new VehicleModelInput {
+            var input = new VehicleModelInput {
                 Code = Gen_VehicleModel_Code(),
                 Name = Util.RandomString(EntityFieldLen.VehicleModel_Name),
                 ComponentStationInputs = Enumerable.Range(0, componentCodes.Length)
@@ -38,7 +38,7 @@ namespace SKD.Test {
             var vehicle_model_before_count = await ctx.VehicleModels.CountAsync();
             var vehicle_model_component_before_count = await ctx.VehicleModelComponents.CountAsync();
 
-            var payload = await service.SaveVehicleModel(vehicleModel);
+            var payload = await service.SaveVehicleModel(input);
 
             // assert
             var vehicle_model_after_count = await ctx.VehicleModels.CountAsync();
@@ -56,7 +56,7 @@ namespace SKD.Test {
             Gen_Components(componentCodes);
             Gen_ProductionStations(stationCodes);
 
-            var vehicleModel = new VehicleModelInput {
+            var input = new VehicleModelInput {
                 Code = Gen_VehicleModel_Code(),
                 Name = Util.RandomString(EntityFieldLen.VehicleModel_Name),
                 ComponentStationInputs = Enumerable.Range(0, componentCodes.Length)
@@ -69,11 +69,11 @@ namespace SKD.Test {
             var service = new VehicleModelService(ctx);
 
             // test        
-            await service.SaveVehicleModel(vehicleModel);
+            await service.SaveVehicleModel(input);
             var model_count_1 = await ctx.VehicleModels.CountAsync();
             var model_component_count_1 = await ctx.VehicleModelComponents.CountAsync();
 
-            var payload_2 = await service.SaveVehicleModel(vehicleModel);
+            var payload_2 = await service.SaveVehicleModel(input);
             var model_count_2 = await ctx.VehicleModels.CountAsync();
             var model_component_count_2 = await ctx.VehicleModelComponents.CountAsync();
 
