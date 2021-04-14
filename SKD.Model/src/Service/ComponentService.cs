@@ -15,29 +15,28 @@ namespace SKD.Model {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<Component>> SaveComponent(ComponentInput dto) {
-            var component = await context.Components.FirstOrDefaultAsync(t => t.Id == dto.Id);
-
-            if (component != null) {
-                component.Code = dto.Code;
-                component.Name = dto.Name;
-            } else {
-                component = new Component { Code = dto.Code, Name = dto.Name };
-                context.Components.Add(component);
-            }
-            Trim.TrimStringProperties<Component>(component);
-
-            var payload = new MutationPayload<Component>(component);
-
-            // validate
-            payload.Errors = await ValidateCreateComponent<Component>(component);
+        public async Task<MutationPayload<Component>> SaveComponent(ComponentInput input) {
+            var payload = new MutationPayload<Component>(null);
+            payload.Errors = await ValidateCreateComponent<ComponentInput>(input);
             if (payload.Errors.Any()) {
                 return payload;
             }
 
+
+            var component = await context.Components.FirstOrDefaultAsync(t => t.Id == input.Id);
+
+            if (component == null) {
+                component = new Component();
+                context.Components.Add(component);
+            }
+
+            component.Code = input.Code;
+            component.Name = input.Name;
+            component.SerialCaptureRequirement = input.SerialCaptureRequirement;
+
+            Trim.TrimStringProperties<Component>(component);
             // save
             await context.SaveChangesAsync();
-
             payload.Entity = component;
             return payload;
         }
@@ -57,7 +56,7 @@ namespace SKD.Model {
             return payload;
         }
 
-          public async Task<MutationPayload<Component>> RestoreComponent(Guid componentId) {
+        public async Task<MutationPayload<Component>> RestoreComponent(Guid componentId) {
             var component = await context.Components.FirstOrDefaultAsync(t => t.Id == componentId);
             var payload = new MutationPayload<Component>(component);
 
@@ -86,10 +85,10 @@ namespace SKD.Model {
             return errors;
         }
 
-         public List<Error> ValidateRestoreComponent<T>(Component component) where T : Component {
+        public List<Error> ValidateRestoreComponent<T>(Component component) where T : Component {
             var errors = new List<Error>();
 
-              if (component == null) {
+            if (component == null) {
                 errors.Add(new Error("", "component not found"));
                 return errors;
             }
@@ -100,25 +99,52 @@ namespace SKD.Model {
             return errors;
         }
 
-        public async Task<List<Error>> ValidateCreateComponent<T>(Component component) where T : Component {
+        public async Task<List<Error>> ValidateCreateComponent<T>(ComponentInput input) where T : ComponentInput {
             var errors = new List<Error>();
 
-            if (component.Code.Trim().Length == 0) {
+            Component? existingComponent = null;
+            if (input.Id.HasValue) {
+                existingComponent = await context.Components.FirstOrDefaultAsync(t => t.Id == input.Id.Value);
+                if (existingComponent == null) {
+                    errors.Add(ErrorHelper.Create<T>(t => t.Id, $"component not found: {input.Id}"));
+                    return errors;
+                }
+            }
+
+            // code
+            if (input.Code.Trim().Length == 0) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Code, "code requred"));
-            } else if (component.Code.Length > EntityFieldLen.Component_Code) {
+            } else if (input.Code.Length > EntityFieldLen.Component_Code) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityFieldLen.Component_Code} characters "));
             }
-            if (component.Name.Trim().Length == 0) {
+
+            // name
+            if (input.Name.Trim().Length == 0) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Name, "name required"));
-            } else if (component.Code.Length > EntityFieldLen.Component_Name) {
+            } else if (input.Code.Length > EntityFieldLen.Component_Name) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded name max length of {EntityFieldLen.Component_Name} characters "));
             }
 
-            if (await context.Components.AnyAsync(t => t.Id != component.Id && t.Code == component.Code)) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Code, "duplicate code"));
+            // duplicate code
+            if (existingComponent != null) {
+                if (await context.Components.AnyAsync(t => t.Id != input.Id && t.Code == input.Code)) {
+                    errors.Add(ErrorHelper.Create<T>(t => t.Code, "duplicate code"));
+                }
+            } else {
+                if (await context.Components.AnyAsync(t => t.Code == input.Code)) {
+                    errors.Add(ErrorHelper.Create<T>(t => t.Code, "duplicate code"));
+                }
             }
-            if (await context.Components.AnyAsync(t => t.Id != component.Id && t.Name == component.Name)) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Name, "duplicate name"));
+
+            // duplicate name
+            if (existingComponent != null) {
+                if (await context.Components.AnyAsync(t => t.Id != input.Id && t.Name == input.Name)) {
+                    errors.Add(ErrorHelper.Create<T>(t => t.Name, "duplicate name"));
+                }
+            } else {
+                if (await context.Components.AnyAsync(t => t.Name == input.Name)) {
+                    errors.Add(ErrorHelper.Create<T>(t => t.Code, "duplicate name"));
+                }
             }
 
             return errors;

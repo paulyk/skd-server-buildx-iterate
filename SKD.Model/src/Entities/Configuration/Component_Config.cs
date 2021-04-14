@@ -12,6 +12,12 @@ namespace SKD.Model {
 
             builder.HasIndex(t => t.Code).IsUnique();
             builder.HasIndex(t => t.Name).IsUnique();
+
+            builder.Property(t => t.Code).HasMaxLength(EntityFieldLen.Component_Code);
+            builder.Property(t => t.Name).HasMaxLength(EntityFieldLen.Component_Name);
+            builder.Property(t => t.SerialCaptureRequirement)
+                .HasMaxLength(EntityFieldLen.Component_SerialCaptureRequirement)
+                .IsRequired();
                             
             builder.Property(t => t.Code)
                 .IsRequired()

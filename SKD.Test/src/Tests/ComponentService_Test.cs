@@ -17,19 +17,41 @@ namespace SKD.Test {
         [Fact]
         private async Task can_save_new_component() {
             var service = new ComponentService(ctx);
-            var componentDTO = new ComponentInput() {
+            var input = new ComponentInput() {
                 Code = Util.RandomString(EntityFieldLen.Component_Code),
                 Name = Util.RandomString(EntityFieldLen.Component_Name)
             };
 
             var before_count = await ctx.Components.CountAsync();
-            var payload = await service.SaveComponent(componentDTO);
+            var payload = await service.SaveComponent(input);
 
             Assert.NotNull(payload.Entity);
             var expectedCount = before_count + 1;
-            var actualCount = ctx.Components.Count();
+            var actualCount = await ctx.Components.CountAsync();
             Assert.Equal(expectedCount, actualCount);
-            Console.WriteLine(payload.Entity.Id);            
+        }
+
+        [Fact]
+        private async Task can_set_component_serial_requirement() {
+            var service = new ComponentService(ctx);
+            var input = new ComponentInput() {
+                Code = Util.RandomString(EntityFieldLen.Component_Code),
+                Name = Util.RandomString(EntityFieldLen.Component_Name),
+                SerialCaptureRequirement = SerialCaptureRequirement.REQUIRED
+            };
+
+            var before_count = await ctx.Components.CountAsync();
+            var payload = await service.SaveComponent(input);
+
+            var component = await ctx.Components.FirstOrDefaultAsync(t => t.Code == input.Code);
+            Assert.Equal(input.SerialCaptureRequirement, component.SerialCaptureRequirement);
+
+            // modify
+            input.Id = payload.Entity.Id;
+            input.SerialCaptureRequirement = SerialCaptureRequirement.NOT_REQUIRED;
+            await service.SaveComponent(input);
+            component = await ctx.Components.FirstOrDefaultAsync(t => t.Code == input.Code);
+            Assert.Equal(input.SerialCaptureRequirement, component.SerialCaptureRequirement);
         }
 
         [Fact]
@@ -64,30 +86,6 @@ namespace SKD.Test {
             Assert.Equal(before_CreatedAt, component.CreatedAt);
         }
 
-        [Fact]
-        private async Task validate_component_warns_duplicate_code() {
-            // setup
-            Gen_Components(Gen_ComponentCode(), Gen_ComponentCode());
-
-            var existingComponent = await ctx.Components.FirstAsync();
-
-            var component = new Component() {
-                Code = existingComponent.Code,
-                Name = new String('x', EntityFieldLen.Component_Code)
-            };
-
-            // test
-            var service = new ComponentService(ctx);
-            var errors = await service.ValidateCreateComponent<Component>(component);
-
-            // assert
-            var errorCount = errors.Count();
-            Assert.Equal(1, errorCount);
-
-            if (errors.Count > 0) {
-                Assert.Equal("duplicate code", errors.First().Message);
-            }
-        }
 
         [Fact]
         private async Task can_save_multiple_component() {
@@ -144,10 +142,10 @@ namespace SKD.Test {
             Assert.Null(payload.Entity.RemovedAt);
 
             var payload2 = await service.RemoveComponent(payload.Entity.Id);
-            Assert.NotNull( payload.Entity.RemovedAt);
+            Assert.NotNull(payload.Entity.RemovedAt);
         }
 
-         [Fact]
+        [Fact]
         private async Task can_restore_componet() {
             var service = new ComponentService(ctx);
 
@@ -162,33 +160,58 @@ namespace SKD.Test {
             Assert.Null(payload.Entity.RemovedAt);
 
             var payload2 = await service.RemoveComponent(payload.Entity.Id);
-            Assert.NotNull( payload.Entity.RemovedAt);
+            Assert.NotNull(payload.Entity.RemovedAt);
 
             // test
             var payload3 = service.RestoreComponent(payload2.Entity.Id);
-            Assert.Null( payload.Entity.RemovedAt);
+            Assert.Null(payload.Entity.RemovedAt);
         }
-       
+
+        [Fact]
+        private async Task validate_component_warns_duplicate_code() {
+            // setup
+            Gen_Components(Gen_ComponentCode(), Gen_ComponentCode());
+
+            var existingComponent = await ctx.Components.FirstAsync();
+
+            var input = new ComponentInput() {
+                Code = existingComponent.Code,
+                Name = new String('x', EntityFieldLen.Component_Name)
+            };
+
+            // test
+            var service = new ComponentService(ctx);
+            var errors = await service.ValidateCreateComponent<ComponentInput>(input);
+
+            // assert
+            var errorCount = errors.Count();
+            Assert.Equal(1, errorCount);
+
+            Assert.Equal("duplicate code", errors.First().Message);
+        }
+
         [Fact]
         private async Task validate_component_warns_duplicate_name() {
-            var before_count = ctx.Components.Count();
-            var componentService = new ComponentService(ctx);
+            // setup
+            Gen_Components(Gen_ComponentCode(), Gen_ComponentCode());
 
-            // first
-            await componentService.SaveComponent(new ComponentInput {
-                Code = "AA", Name = "AA Name"
-            });
-            var count = ctx.Components.Count();
-            Assert.Equal(before_count + 1, count);
+            var existingComponent = await ctx.Components.FirstAsync();
 
-            // try add with duplicate name
-            var payload = await componentService.SaveComponent(new ComponentInput {
-                Code = "BB", Name = "AA Name"
-            });
+            var input = new ComponentInput() {
+                Code = new String('x', EntityFieldLen.Component_Code),
+                Name = existingComponent.Name
+            };
 
-            var errorCount = payload.Errors.Count();
+            // test
+            var service = new ComponentService(ctx);
+            var errors = await service.ValidateCreateComponent<ComponentInput>(input);
+
+            // assert
+            var errorCount = errors.Count();
             Assert.Equal(1, errorCount);
-            Assert.Equal("duplicate name", payload.Errors.First().Message);
+
+            Assert.Equal("duplicate name", errors.First().Message);
         }
+
     }
 }
