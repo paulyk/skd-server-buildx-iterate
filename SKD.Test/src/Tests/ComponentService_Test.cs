@@ -37,21 +37,21 @@ namespace SKD.Test {
             var input = new ComponentInput() {
                 Code = Util.RandomString(EntityFieldLen.Component_Code),
                 Name = Util.RandomString(EntityFieldLen.Component_Name),
-                SerialCaptureRequirement = SerialCaptureRequirement.REQUIRED
+                DcwsSerialCaptureRule = DcwsSerialCaptureRule.UNKNOWN
             };
 
             var before_count = await ctx.Components.CountAsync();
             var payload = await service.SaveComponent(input);
 
             var component = await ctx.Components.FirstOrDefaultAsync(t => t.Code == input.Code);
-            Assert.Equal(input.SerialCaptureRequirement, component.SerialCaptureRequirement);
+            Assert.Equal(input.DcwsSerialCaptureRule, component.DcwsSerialCaptureRule);
 
             // modify
             input.Id = payload.Entity.Id;
-            input.SerialCaptureRequirement = SerialCaptureRequirement.NOT_REQUIRED;
+            input.DcwsSerialCaptureRule = DcwsSerialCaptureRule.UNKNOWN;
             await service.SaveComponent(input);
             component = await ctx.Components.FirstOrDefaultAsync(t => t.Code == input.Code);
-            Assert.Equal(input.SerialCaptureRequirement, component.SerialCaptureRequirement);
+            Assert.Equal(input.DcwsSerialCaptureRule, component.DcwsSerialCaptureRule);
         }
 
         [Fact]

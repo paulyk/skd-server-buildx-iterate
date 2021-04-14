@@ -32,7 +32,7 @@ namespace SKD.Model {
 
             component.Code = input.Code;
             component.Name = input.Name;
-            component.SerialCaptureRequirement = input.SerialCaptureRequirement;
+            component.DcwsSerialCaptureRule = input.DcwsSerialCaptureRule;
 
             Trim.TrimStringProperties<Component>(component);
             // save

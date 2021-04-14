@@ -5,6 +5,6 @@ namespace SKD.Model {
         public Guid? Id { get; set; }
         public string Code { get; set; }
         public string Name { get; set; }
-        public SerialCaptureRequirement SerialCaptureRequirement { get; set; }
+        public DcwsSerialCaptureRule DcwsSerialCaptureRule { get; set; }
     }
 }

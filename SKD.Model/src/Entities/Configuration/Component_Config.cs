@@ -15,7 +15,7 @@ namespace SKD.Model {
 
             builder.Property(t => t.Code).HasMaxLength(EntityFieldLen.Component_Code);
             builder.Property(t => t.Name).HasMaxLength(EntityFieldLen.Component_Name);
-            builder.Property(t => t.SerialCaptureRequirement)
+            builder.Property(t => t.DcwsSerialCaptureRule)
                 .HasMaxLength(EntityFieldLen.Component_SerialCaptureRequirement)
                 .IsRequired();
                             
