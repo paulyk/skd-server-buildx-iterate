@@ -8,7 +8,7 @@ namespace SKD.Model {
         public SkdContext CreateDbContext(string[] args) {
           
             var Configuration = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: false)
+                .AddJsonFile("developer.json", optional: false)
                 .AddEnvironmentVariables()
                 .Build();
 

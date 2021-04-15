@@ -21,8 +21,9 @@ namespace SKD.Server {
                 .ConfigureWebHostDefaults(webBuilder => {
                     webBuilder
                         .UseStartup<Startup>()
-                        .ConfigureAppConfiguration(c => {
-                            c.AddJsonFile("appsettings.json", optional: false)
+                        .ConfigureAppConfiguration(config => {
+                            config.AddJsonFile("appsettings.json", optional: false)
+                            .AddJsonFile("developer.json", optional: true)
                             .AddEnvironmentVariables();
                         });
                 });

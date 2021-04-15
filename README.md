@@ -1,9 +1,19 @@
-# Vehicle Component Tracking App
+# RMA SKD Middlware Graphql Server
 
-* Service to scan and upload component and serial numbers to Ford.
+Record and post component sseiral data to Fords "Data Collection Web Service"
+
+## Projects
+
+* skd.server
+* skd.model
+* skd.dcws
+* skd.test
+* skd.seed
+* skd.test
 
 ## run
-```
+
+```bash
 dotnet run --project SKD.Server
 ```
 
@@ -16,10 +26,16 @@ docker-compose  -f docker-compose.dev.yml up -d
 docker-compose  -f docker-compose.dev.yml down
 ```
 
-Mkake sure your `appsettings.json` connection string matches
+Create your own `developer.json`
+
+Each developer should have their own version of this `developer.json`
 
 ```json
-"server=localhost,9301;database=skd;uid=sa;pwd=DevOnlyPassword119"
+{
+    "ConnectionStrings": {
+        "Default": "server=localhost,9301;database=skd;uid=sa;pwd=DevOnlyPassword119"
+    }
+}
 ```
 
 ## running the app
@@ -27,14 +43,14 @@ Mkake sure your `appsettings.json` connection string matches
 1. ensure db server running
 2. run server
 
-```
+```bash
 docker-compose  -f docker-compose.dev.yml up -d
 dotnet run --project SKD.Server
 ```
 
 ## seed with mock data
 
-```
+```bash
 curl https://localhost:5101/seed_mock_data -X POST -d "{}"
 ```
 
@@ -50,27 +66,34 @@ dotnet tool update --global dotnet-ef
 ### Add migrations
 
 ```bash
-dotnet ef migrations add <igration-name> -o src/Migrations  --project SKD.Model 
+dotnet ef migrations add <igration-name> -o src/Migrations  --project skd.server 
 ```
 
 ### Remove migratins
+
+```bash
+dotnet ef migrations remove --project skd.server
 ```
-dotnet ef migrations remove --project SKD.Model
-```
+
 ### Update database
 
 ```bash
-dotnet ef database update --project SKD.Model
-dotnet ef database update --connection your_connection_string
+dotnet ef database update --project skd.server
+dotnet ef database update --project skd.server --connection your_connection_string
 ```
 
-### Revert to specific migration 
-```
-dotnet ef database update Migration_Name  --project SKD.Model
+### Revert to specific migration
+
+```bash
+dotnet ef database update Migration_Name --project skd.server
 dotnet ef database update Migration_Name --connection your_connection_string
+
+dotnet ef database update --project skd.server
+dotnet ef database update --project skd.server --connection "target connection string"
 ```
 
 ### List migrations
-```
-dotnet ef migrations list --project SKD.Model
+
+```bash
+dotnet ef migrations list --project skd.server
 ```
