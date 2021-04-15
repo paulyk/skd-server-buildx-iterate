@@ -21,15 +21,15 @@ services:
       - mssql
 
   mssql:
-    image: mcr.microsoft.com/mssql/server:2017-latest
+    image: mcr.microsoft.com/azure-sql-edge
     container_name: skd
+    cap_add: 
+      - SYS_PTRACE
     environment: 
-      ACCEPT_EULA: "Y"
-      SA_PASSWORD:  DevOnlyPassword119
-    volumes:
-      - mssql_volume:/var/opt/mssql/data 
+      ACCEPT_EULA: 1
+      MSSQL_SA_PASSWORD:  DevDevDude119!
     ports:
       - '9301:1433'
 
-volumes:
-  mssql_volume:
+# volumes:
+#   mssql_volume:

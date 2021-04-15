@@ -17,7 +17,7 @@ namespace SKD.Model {
         }
         public async Task<MutationPayload<VehicleModel>> SaveVehicleModel(VehicleModelInput input) {
             var payload = new MutationPayload<VehicleModel>(null);
-            payload.Errors = await ValidateCreateVehicleModel(input);
+            payload.Errors = await ValidateSaveVehicleModel(input);
             if (payload.Errors.Any()) {
                 return payload;
             }
@@ -73,10 +73,11 @@ namespace SKD.Model {
                 if (existing != null) {
                     existing.RemovedAt = null;
                 } else {
-                    vehicleModel.ModelComponents.Add(new VehicleModelComponent {
+                    var modelComponent = new VehicleModelComponent {
                         Component = await context.Components.FirstOrDefaultAsync(t => t.Code == ta.Component),
                         ProductionStation = await context.ProductionStations.FirstOrDefaultAsync(t => t.Code == ta.Station)
-                    });
+                    };
+                    vehicleModel.ModelComponents.Add(modelComponent);
                 }
             }
 
@@ -91,7 +92,7 @@ namespace SKD.Model {
             public string Station { get; set; }
         }
 
-        public async Task<List<Error>> ValidateCreateVehicleModel<T>(T input) where T : VehicleModelInput {
+        public async Task<List<Error>> ValidateSaveVehicleModel<T>(T input) where T : VehicleModelInput {
             var errors = new List<Error>();
 
             VehicleModel existingVehicleModel = null;
@@ -103,20 +104,37 @@ namespace SKD.Model {
                 }
             }
 
-            // validate code 
+            // validate mddel code format
             if (input.Code.Trim().Length == 0) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Code, "code requred"));
             } else if (input.Code.Length > EntityFieldLen.VehicleModel_Code) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityFieldLen.VehicleModel_Code} characters "));
             }
 
-            // validate name
+            // validate model name format
             if (input.Name.Trim().Length == 0) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Code, "name requred"));
             } else if (input.Name.Length > EntityFieldLen.VehicleModel_Name) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityFieldLen.VehicleModel_Name} characters "));
             }
 
+            // unknown componet codes
+            var existingComponentCodes = await context.Components.Select(t => t.Code).ToListAsync();
+            var modelComponentCodes = input.ComponentStationInputs.Select(t => t.ComponentCode).ToList();
+            var missingComponentCodes = modelComponentCodes.Except(existingComponentCodes);
+            if (missingComponentCodes.Any()) {
+                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"unknown component codes {String.Join(", ", missingComponentCodes)}"));                
+            }
+
+            // unknown production station codes
+            var existingStationCodes = await context.Components.Select(t => t.Code).ToListAsync();
+            var modelStationCodes = input.ComponentStationInputs.Select(t => t.ComponentCode).ToList();
+            var missingStationCodes = modelStationCodes.Except(existingStationCodes);
+            if (missingStationCodes.Any()) {
+                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"unknown production station codes {String.Join(", ", missingStationCodes)}"));                
+            }
+
+            // 
             if (existingVehicleModel != null) {
                 if (await context.VehicleModels.AnyAsync(t => t.Code == input.Code && t.Id != existingVehicleModel.Id)) {
                     errors.Add(ErrorHelper.Create<T>(t => t.Code, "duplicate code"));
