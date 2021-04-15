@@ -10,7 +10,7 @@ namespace SKD.Test {
     public class LotPartService_Test : TestBase {
 
         public LotPartService_Test() {
-            ctx = GetAppDbContext();
+            context = GetAppDbContext();
             Gen_Baseline_Test_Seed_Data(generateLot: false);
         }
 
@@ -20,15 +20,15 @@ namespace SKD.Test {
             var plant = Gen_Plant();
 
             var bomLotPartInput = Gen_BomLotPartInput(plant.Code);
-            var bomService = new BomService(ctx);
+            var bomService = new BomService(context);
             await bomService.ImportBomLotParts(bomLotPartInput);
 
             var shipmentInput = Gen_ShipmentInput_From_BomLotPartInput(bomLotPartInput);
-            var shipmetService = new ShipmentService(ctx);
+            var shipmetService = new ShipmentService(context);
             var shipment_payload = await shipmetService.ImportShipment(shipmentInput);
 
             // test
-            var LotPartService = new LotPartService(ctx);
+            var LotPartService = new LotPartService(context);
             foreach (var lotPart in bomLotPartInput.LotParts) {
                 var lotPartInput = new ReceiveLotPartInput {
                     LotNo = lotPart.LotNo,
@@ -40,11 +40,11 @@ namespace SKD.Test {
             }
 
             // Assert
-            var lot_parts_received_count = await ctx.LotPartsReceived.CountAsync();
+            var lot_parts_received_count = await context.LotPartsReceived.CountAsync();
             Assert.Equal(bomLotPartInput.LotParts.Count, lot_parts_received_count);
 
             foreach (var lotPart in bomLotPartInput.LotParts) {
-                var db_LotPart = await ctx.LotParts
+                var db_LotPart = await context.LotParts
                     .Where(t => t.Lot.LotNo == lotPart.LotNo)
                     .Where(t => t.Part.PartNo == lotPart.PartNo)
                     .FirstOrDefaultAsync();
@@ -59,11 +59,11 @@ namespace SKD.Test {
             var plant = Gen_Plant();
 
             var bomLotPartInput = Gen_BomLotPartInput(plant.Code);
-            var bomService = new BomService(ctx);
+            var bomService = new BomService(context);
             await bomService.ImportBomLotParts(bomLotPartInput);
 
             var shipmentInput = Gen_ShipmentInput_From_BomLotPartInput(bomLotPartInput);
-            var shipmetService = new ShipmentService(ctx);
+            var shipmetService = new ShipmentService(context);
             var shipment_payload = await shipmetService.ImportShipment(shipmentInput);
 
             var firstLotPart = bomLotPartInput.LotParts.First();
@@ -74,7 +74,7 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new LotPartService(ctx);
+            var service = new LotPartService(context);
             await service.CreateLotPartQuantityReceived(lotPartInput);
 
             //  change quantity and save
@@ -82,7 +82,7 @@ namespace SKD.Test {
             await service.CreateLotPartQuantityReceived(lotPartInput);
 
             // assert
-            var lotPart = await ctx.LotParts.Include(t => t.Received)
+            var lotPart = await context.LotParts.Include(t => t.Received)
                 .Where(t => t.Lot.LotNo == lotPartInput.LotNo)
                 .Where(t => t.Part.PartNo == lotPartInput.PartNo)
                 .FirstOrDefaultAsync();
@@ -107,11 +107,11 @@ namespace SKD.Test {
             var plant = Gen_Plant();
 
             var bomLotPartInput = Gen_BomLotPartInput(plant.Code);
-            var bomService = new BomService(ctx);
+            var bomService = new BomService(context);
             await bomService.ImportBomLotParts(bomLotPartInput);
 
             var shipmentInput = Gen_ShipmentInput_From_BomLotPartInput(bomLotPartInput);
-            var shipmetService = new ShipmentService(ctx);
+            var shipmetService = new ShipmentService(context);
             var shipment_payload = await shipmetService.ImportShipment(shipmentInput);
 
             var firstLotPart = bomLotPartInput.LotParts.First();
@@ -122,7 +122,7 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new LotPartService(ctx);
+            var service = new LotPartService(context);
             var payload_1 = await service.CreateLotPartQuantityReceived(lotPartInput);
             var payload_2 = await service.CreateLotPartQuantityReceived(lotPartInput);
 

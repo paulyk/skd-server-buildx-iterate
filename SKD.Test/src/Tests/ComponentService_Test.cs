@@ -10,47 +10,47 @@ namespace SKD.Test {
     public class ComponentServiceTest : TestBase {
 
         public ComponentServiceTest() {
-            ctx = GetAppDbContext();
+            context = GetAppDbContext();
             // GenerateSeedData();
         }
 
         [Fact]
         private async Task can_save_new_component() {
-            var service = new ComponentService(ctx);
+            var service = new ComponentService(context);
             var input = new ComponentInput() {
                 Code = Util.RandomString(EntityFieldLen.Component_Code),
                 Name = Util.RandomString(EntityFieldLen.Component_Name)
             };
 
-            var before_count = await ctx.Components.CountAsync();
+            var before_count = await context.Components.CountAsync();
             var payload = await service.SaveComponent(input);
 
             Assert.NotNull(payload.Entity);
             var expectedCount = before_count + 1;
-            var actualCount = await ctx.Components.CountAsync();
+            var actualCount = await context.Components.CountAsync();
             Assert.Equal(expectedCount, actualCount);
         }
 
         [Fact]
         private async Task can_set_component_serial_requirement() {
-            var service = new ComponentService(ctx);
+            var service = new ComponentService(context);
             var input = new ComponentInput() {
                 Code = Util.RandomString(EntityFieldLen.Component_Code),
                 Name = Util.RandomString(EntityFieldLen.Component_Name),
                 DcwsSerialCaptureRule = DcwsSerialCaptureRule.UNKNOWN
             };
 
-            var before_count = await ctx.Components.CountAsync();
+            var before_count = await context.Components.CountAsync();
             var payload = await service.SaveComponent(input);
 
-            var component = await ctx.Components.FirstOrDefaultAsync(t => t.Code == input.Code);
+            var component = await context.Components.FirstOrDefaultAsync(t => t.Code == input.Code);
             Assert.Equal(input.DcwsSerialCaptureRule, component.DcwsSerialCaptureRule);
 
             // modify
             input.Id = payload.Entity.Id;
             input.DcwsSerialCaptureRule = DcwsSerialCaptureRule.UNKNOWN;
             await service.SaveComponent(input);
-            component = await ctx.Components.FirstOrDefaultAsync(t => t.Code == input.Code);
+            component = await context.Components.FirstOrDefaultAsync(t => t.Code == input.Code);
             Assert.Equal(input.DcwsSerialCaptureRule, component.DcwsSerialCaptureRule);
         }
 
@@ -59,15 +59,15 @@ namespace SKD.Test {
             // setup
             Gen_Components(Gen_ComponentCode(), Gen_ComponentCode());
 
-            var component = await ctx.Components.FirstOrDefaultAsync();
+            var component = await context.Components.FirstOrDefaultAsync();
 
             var before_CreatedAt = component.CreatedAt;
-            var before_ComponentCount = await ctx.Components.CountAsync();
+            var before_ComponentCount = await context.Components.CountAsync();
 
             var newCode = Gen_ComponentCode();
             var newName = Gen_ComponentCode() + "name";
             // test
-            var service = new ComponentService(ctx);
+            var service = new ComponentService(context);
             var payload = await service.SaveComponent(new ComponentInput {
                 Id = component.Id,
                 Code = newCode,
@@ -75,12 +75,12 @@ namespace SKD.Test {
             });
 
             // assert
-            var after_ComponentCount = await ctx.Components.CountAsync();
+            var after_ComponentCount = await context.Components.CountAsync();
 
             Assert.Equal(before_ComponentCount, after_ComponentCount);
             Assert.True(before_CreatedAt == payload.Entity.CreatedAt, "CreatedAt should not change when on saving existing component");
 
-            var modifiedComponent = await ctx.Components.FirstOrDefaultAsync(t => t.Id == component.Id);
+            var modifiedComponent = await context.Components.FirstOrDefaultAsync(t => t.Id == component.Id);
             Assert.Equal(newCode, component.Code);
             Assert.Equal(newName, component.Name);
             Assert.Equal(before_CreatedAt, component.CreatedAt);
@@ -89,8 +89,8 @@ namespace SKD.Test {
 
         [Fact]
         private async Task can_save_multiple_component() {
-            var before_count = ctx.Components.Count();
-            var componentService = new ComponentService(ctx);
+            var before_count = context.Components.Count();
+            var componentService = new ComponentService(context);
 
             // first
             await componentService.SaveComponent(new ComponentInput {
@@ -100,7 +100,7 @@ namespace SKD.Test {
                 Code = "BB", Name = "BB Name"
             });
 
-            var atterCount = ctx.Components.Count();
+            var atterCount = context.Components.Count();
 
             Assert.Equal(before_count + 2, atterCount);
         }
@@ -109,11 +109,11 @@ namespace SKD.Test {
         private async Task can_modify_componetn_code() {
             // setup
             Gen_Components(Gen_ComponentCode(), Gen_ComponentCode());
-            var component = await ctx.Components.FirstOrDefaultAsync();
+            var component = await context.Components.FirstOrDefaultAsync();
 
             var newCode = Util.RandomString(EntityFieldLen.Component_Code).ToString();
             // test
-            var service = new ComponentService(ctx);
+            var service = new ComponentService(context);
             var payload = await service.SaveComponent(new ComponentInput {
                 Id = component.Id,
                 Code = newCode,
@@ -127,8 +127,8 @@ namespace SKD.Test {
 
         [Fact]
         private async Task can_remove_componet() {
-            var service = new ComponentService(ctx);
-            var before_count = ctx.Components.Count();
+            var service = new ComponentService(context);
+            var before_count = context.Components.Count();
 
             var dto = new ComponentInput {
                 Code = Util.RandomString(EntityFieldLen.Component_Code),
@@ -137,7 +137,7 @@ namespace SKD.Test {
 
             var payload = await service.SaveComponent(dto);
 
-            var after_count = ctx.Components.Count();
+            var after_count = context.Components.Count();
             Assert.Equal(before_count + 1, after_count);
             Assert.Null(payload.Entity.RemovedAt);
 
@@ -147,7 +147,7 @@ namespace SKD.Test {
 
         [Fact]
         private async Task can_restore_componet() {
-            var service = new ComponentService(ctx);
+            var service = new ComponentService(context);
 
             // setup
 
@@ -172,7 +172,7 @@ namespace SKD.Test {
             // setup
             Gen_Components(Gen_ComponentCode(), Gen_ComponentCode());
 
-            var existingComponent = await ctx.Components.FirstAsync();
+            var existingComponent = await context.Components.FirstAsync();
 
             var input = new ComponentInput() {
                 Code = existingComponent.Code,
@@ -180,7 +180,7 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new ComponentService(ctx);
+            var service = new ComponentService(context);
             var errors = await service.ValidateCreateComponent<ComponentInput>(input);
 
             // assert
@@ -195,7 +195,7 @@ namespace SKD.Test {
             // setup
             Gen_Components(Gen_ComponentCode(), Gen_ComponentCode());
 
-            var existingComponent = await ctx.Components.FirstAsync();
+            var existingComponent = await context.Components.FirstAsync();
 
             var input = new ComponentInput() {
                 Code = new String('x', EntityFieldLen.Component_Code),
@@ -203,7 +203,7 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new ComponentService(ctx);
+            var service = new ComponentService(context);
             var errors = await service.ValidateCreateComponent<ComponentInput>(input);
 
             // assert

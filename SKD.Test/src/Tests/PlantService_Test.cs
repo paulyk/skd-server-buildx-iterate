@@ -10,7 +10,7 @@ namespace SKD.Test {
     public class PlantService_Test : TestBase {
         
         public PlantService_Test() {
-            ctx = GetAppDbContext();
+            context = GetAppDbContext();
         }
 
         [Fact]
@@ -21,18 +21,18 @@ namespace SKD.Test {
                 Name = Get_Code(EntityFieldLen.Plant_Name)
             };
 
-            var service = new PlantService(ctx);
+            var service = new PlantService(context);
 
             // test
-            var before_count = await ctx.Plants.CountAsync();
+            var before_count = await context.Plants.CountAsync();
             var payload = await service.CreatePlant(input);
 
 
-            var after_count = await ctx.Plants.CountAsync();
+            var after_count = await context.Plants.CountAsync();
 
             Assert.Equal(before_count + 1, after_count);
 
-            var plant = await ctx.Plants.FirstOrDefaultAsync(t => t.Code == input.Code);
+            var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.Code);
             Assert.Equal(input.Code, plant.Code);
             Assert.Equal(input.Name, plant.Name);
         }

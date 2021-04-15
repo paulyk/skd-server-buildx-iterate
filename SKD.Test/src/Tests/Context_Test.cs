@@ -149,7 +149,7 @@ namespace SKD.Test {
             using (var ctx = GetAppDbContext()) {
                 // setup
                 var vehicleModel = new VehicleModel() {
-                    Code = new String('X', EntityFieldLen.VehicleModel_CodeLen),
+                    Code = new String('X', EntityFieldLen.VehicleModel_Code),
                     Name = new String('X', EntityFieldLen.VehicleModel_Name),
                     Type = new String('X', EntityFieldLen.VehicleModel_Type),
                 };

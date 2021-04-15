@@ -10,39 +10,39 @@ namespace SKD.Test {
     public class ProductionStationServiceTest : TestBase {
 
         public ProductionStationServiceTest() {
-            ctx = GetAppDbContext();
+            context = GetAppDbContext();
         }
 
         [Fact]
         private async Task can_save_new_production_station() {
-            var service = new ProductionStationService(ctx);
+            var service = new ProductionStationService(context);
             var productionStationDTO = new ProductionStationInput() {
                 Code = Util.RandomString(EntityFieldLen.ProductionStation_Code),
                 Name = Util.RandomString(EntityFieldLen.ProductionStation_Name)
             };
 
-            var before_count = await ctx.Components.CountAsync();
+            var before_count = await context.Components.CountAsync();
             var payload = await service.SaveProductionStation(productionStationDTO);
 
             Assert.NotNull(payload.Entity);
             var expectedCount = before_count + 1;
-            var actualCount = ctx.ProductionStations.Count();
+            var actualCount = context.ProductionStations.Count();
             Assert.Equal(expectedCount, actualCount);
         }
 
         [Fact]
         private async Task can_update_new_production_station() {
-            var service = new ProductionStationService(ctx);
+            var service = new ProductionStationService(context);
             var productionStationDTO = new ProductionStationInput() {
                 Code = Util.RandomString(EntityFieldLen.ProductionStation_Code),
                 Name = Util.RandomString(EntityFieldLen.ProductionStation_Name)
             };
 
-            var before_count = await ctx.Components.CountAsync();
+            var before_count = await context.Components.CountAsync();
             var payload = await service.SaveProductionStation(productionStationDTO);
 
             var expectedCount = before_count + 1;
-            var firstCount = ctx.ProductionStations.Count();
+            var firstCount = context.ProductionStations.Count();
             Assert.Equal(expectedCount, firstCount);
 
             // update
@@ -55,7 +55,7 @@ namespace SKD.Test {
                 Name = newName
             });
 
-            var secondCount = ctx.ProductionStations.Count();
+            var secondCount = context.ProductionStations.Count();
             Assert.Equal(firstCount, secondCount);
             Assert.Equal(newCode, updatedPayload.Entity.Code);
             Assert.Equal(newName, updatedPayload.Entity.Name);
@@ -65,18 +65,18 @@ namespace SKD.Test {
         [Fact]
         private async Task cannot_add_duplicate_production_station() {
             // setup
-            var service = new ProductionStationService(ctx);
+            var service = new ProductionStationService(context);
 
             var code = Util.RandomString(EntityFieldLen.ProductionStation_Code).ToString();
             var name = Util.RandomString(EntityFieldLen.ProductionStation_Name).ToString();
 
-            var count_1 = ctx.ProductionStations.Count();
+            var count_1 = context.ProductionStations.Count();
             var payload = await service.SaveProductionStation(new ProductionStationInput {
                 Code = code,
                 Name = name
             });
 
-            var count_2 = ctx.ProductionStations.Count();
+            var count_2 = context.ProductionStations.Count();
             Assert.Equal(count_1 + 1, count_2);
 
             // insert again
@@ -86,7 +86,7 @@ namespace SKD.Test {
             });
 
 
-            var count_3 = ctx.ProductionStations.Count();
+            var count_3 = context.ProductionStations.Count();
             Assert.Equal(count_2, count_3);
 
             var errorCount = payload2.Errors.Count();

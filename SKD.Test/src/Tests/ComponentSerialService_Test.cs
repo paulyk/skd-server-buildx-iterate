@@ -10,14 +10,14 @@ namespace SKD.Test {
     public class ComponentScanService_Test : TestBase {
 
         public ComponentScanService_Test() {
-            ctx = GetAppDbContext();
+            context = GetAppDbContext();
             Gen_Baseline_Test_Seed_Data();
         }
 
         [Fact]
         public async Task can_capture_component_serial() {
             // setup
-            var kitComponent = await ctx.KitComponents
+            var kitComponent = await context.KitComponents
                 .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
@@ -25,21 +25,21 @@ namespace SKD.Test {
                 KitComponentId = kitComponent.Id,
                 Serial1 = Gen_ComponentSerialNo()
             };
-            var before_count = await ctx.ComponentSerials.CountAsync();
+            var before_count = await context.ComponentSerials.CountAsync();
 
             // test
-            var service = new ComponentSerialService(ctx);
+            var service = new ComponentSerialService(context);
             var payload = await service.CaptureComponentSerial(input);
 
             // assert
-            var after_count = await ctx.ComponentSerials.CountAsync();
+            var after_count = await context.ComponentSerials.CountAsync();
             Assert.Equal(before_count + 1, after_count);
         }
 
         [Fact]
         public async Task capture_component_serial_swaps_if_serial_1_blank() {
             // setup
-            var kitComponent = await ctx.KitComponents
+            var kitComponent = await context.KitComponents
                 .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
@@ -48,11 +48,11 @@ namespace SKD.Test {
                 Serial2 = Gen_ComponentSerialNo()
             };
             // test
-            var service = new ComponentSerialService(ctx);
+            var service = new ComponentSerialService(context);
             var payload = await service.CaptureComponentSerial(input);
 
             // assert
-            var componentSerial = await ctx.ComponentSerials
+            var componentSerial = await context.ComponentSerials
                 .FirstOrDefaultAsync(t => t.Id == payload.Entity.ComponentSerialId);
 
             Assert.Equal(input.Serial2, componentSerial.Serial1);
@@ -62,7 +62,7 @@ namespace SKD.Test {
         [Fact]
         public async Task error_capturing_component_serial_if_blank_serial() {
             // setup
-            var kitComponent = await ctx.KitComponents
+            var kitComponent = await context.KitComponents
                 .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
@@ -70,14 +70,14 @@ namespace SKD.Test {
                 KitComponentId = kitComponent.Id,
                 Serial1 = ""
             };
-            var before_count = await ctx.ComponentSerials.CountAsync();
+            var before_count = await context.ComponentSerials.CountAsync();
 
             // test
-            var service = new ComponentSerialService(ctx);
+            var service = new ComponentSerialService(context);
             var payload = await service.CaptureComponentSerial(input);
 
             // assert
-            var after_count = await ctx.ComponentSerials.CountAsync();
+            var after_count = await context.ComponentSerials.CountAsync();
             Assert.Equal(before_count, after_count);
 
             var expected_error_message = "no serial numbers provided";
@@ -88,7 +88,7 @@ namespace SKD.Test {
         [Fact]
         public async Task error_capturing_component_serial_if_already_captured_for_specified_component() {
             // setup
-            var kitComponent = await ctx.KitComponents
+            var kitComponent = await context.KitComponents
                 .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
@@ -100,10 +100,10 @@ namespace SKD.Test {
                 KitComponentId = kitComponent.Id,
                 Serial1 = Gen_ComponentSerialNo()
             };
-            var before_count = await ctx.ComponentSerials.CountAsync();
+            var before_count = await context.ComponentSerials.CountAsync();
 
             // test
-            var service = new ComponentSerialService(ctx);
+            var service = new ComponentSerialService(context);
             var payload_1 = await service.CaptureComponentSerial(input_1);
             var payload_2 = await service.CaptureComponentSerial(input_2);
 
@@ -115,7 +115,7 @@ namespace SKD.Test {
         [Fact]
         public async Task can_replace_serial_with_new_one_for_specified_component() {
             // setup
-            var kitComponent = await ctx.KitComponents
+            var kitComponent = await context.KitComponents
                 .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
@@ -132,13 +132,13 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new ComponentSerialService(ctx);
+            var service = new ComponentSerialService(context);
             var payload_1 = await service.CaptureComponentSerial(input_1);
-            var firstComponentSerial = await ctx.ComponentSerials.FirstOrDefaultAsync(t => t.Id == payload_1.Entity.ComponentSerialId);
+            var firstComponentSerial = await context.ComponentSerials.FirstOrDefaultAsync(t => t.Id == payload_1.Entity.ComponentSerialId);
 
 
             var payload_2 = await service.CaptureComponentSerial(input_2);
-            var secondComponentSerial = await ctx.ComponentSerials.FirstOrDefaultAsync(t => t.Id == payload_2.Entity.ComponentSerialId);
+            var secondComponentSerial = await context.ComponentSerials.FirstOrDefaultAsync(t => t.Id == payload_2.Entity.ComponentSerialId);
 
             Assert.Equal(input_1.Serial1, firstComponentSerial.Serial1);
             Assert.Equal(input_1.Serial2, firstComponentSerial.Serial2);
@@ -146,8 +146,8 @@ namespace SKD.Test {
             Assert.Equal(input_2.Serial1, secondComponentSerial.Serial1);
             Assert.Equal(input_2.Serial2, secondComponentSerial.Serial2);
 
-            var total_count = await ctx.ComponentSerials.CountAsync();
-            var removed_count = await ctx.ComponentSerials.Where(t => t.RemovedAt != null).CountAsync();
+            var total_count = await context.ComponentSerials.CountAsync();
+            var removed_count = await context.ComponentSerials.Where(t => t.RemovedAt != null).CountAsync();
 
             Assert.Equal(2, total_count);
             Assert.Equal(1, removed_count);
@@ -160,7 +160,7 @@ namespace SKD.Test {
             var serialNo = Gen_ComponentSerialNo();
 
             // first vehcle component
-            var kitComponent_1 = await ctx.KitComponents
+            var kitComponent_1 = await context.KitComponents
                 .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
@@ -170,7 +170,7 @@ namespace SKD.Test {
             };
 
             // different vheicle component
-            var kitComponent_2 = await ctx.KitComponents
+            var kitComponent_2 = await context.KitComponents
                 .OrderBy(t => t.ProductionStation.Sequence)
                 .Skip(1)
                 .FirstOrDefaultAsync();
@@ -181,7 +181,7 @@ namespace SKD.Test {
             };
 
             // test 
-            var service = new ComponentSerialService(ctx);
+            var service = new ComponentSerialService(context);
             var payload_1 = await service.CaptureComponentSerial(input_1);
             var payload_2 = await service.CaptureComponentSerial(input_2);
 
@@ -195,7 +195,7 @@ namespace SKD.Test {
         [Fact]
         public async Task error_If_component_serial_1_and_2_the_same() {
             // setup
-            var kitComponent = await ctx.KitComponents
+            var kitComponent = await context.KitComponents
                 .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
@@ -205,10 +205,10 @@ namespace SKD.Test {
                 Serial1 = serialNo,
                 Serial2 = serialNo
             };
-            var before_count = await ctx.ComponentSerials.CountAsync();
+            var before_count = await context.ComponentSerials.CountAsync();
 
             // test
-            var service = new ComponentSerialService(ctx);
+            var service = new ComponentSerialService(context);
             var payload = await service.CaptureComponentSerial(input);
 
             // assert
@@ -228,12 +228,12 @@ namespace SKD.Test {
                 ("EN", "STATION_3")
             });
 
-            var kitComponent_1 = await ctx.KitComponents
+            var kitComponent_1 = await context.KitComponents
                 .OrderBy(t => t.ProductionStation.Sequence)
                 .FirstOrDefaultAsync();
 
             var input_1 = new ComponentSerialInput {
-                KitComponentId = await ctx.KitComponents
+                KitComponentId = await context.KitComponents
                     .OrderBy(t => t.ProductionStation.Sequence)
                     .Where(t => t.Component.Code != "EN")
                     .Select(t => t.Id)
@@ -242,7 +242,7 @@ namespace SKD.Test {
             };
 
             var input_2 = new ComponentSerialInput {
-                KitComponentId = await ctx.KitComponents
+                KitComponentId = await context.KitComponents
                     .OrderByDescending(t => t.ProductionStation.Sequence)
                     .Where(t => t.Component.Code == "EN")
                     .Select(t => t.Id)
@@ -251,10 +251,10 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new ComponentSerialService(ctx);
+            var service = new ComponentSerialService(context);
             await service.CaptureComponentSerial(input_1);
 
-            var component_serial_count = await ctx.ComponentSerials.CountAsync();
+            var component_serial_count = await context.ComponentSerials.CountAsync();
             Assert.Equal(1, component_serial_count);
 
             var payload = await service.CaptureComponentSerial(input_2);
@@ -282,14 +282,14 @@ namespace SKD.Test {
                 ("IK", "IK-RANDOM-657"),
             };
 
-            var kitComponents = await ctx.KitComponents
+            var kitComponents = await context.KitComponents
                 .Include(t => t.Component)
                 .Include(t => t.ProductionStation)
                 .OrderBy(t => t.ProductionStation.Sequence)
                 .Where(t => t.KitId == kit.Id).ToListAsync();
 
             // test
-            var service = new ComponentSerialService(ctx);
+            var service = new ComponentSerialService(context);
             foreach (var vc in kitComponents) {
                 var code = vc.Component.Code;
                 var sortOrder = vc.ProductionStation.Sequence;
@@ -305,8 +305,8 @@ namespace SKD.Test {
             }
 
             // assert
-            var component_serial_entry_count = await ctx.ComponentSerials.CountAsync();
-            var expected_count = await ctx.KitComponents.CountAsync(t => t.KitId == kit.Id);
+            var component_serial_entry_count = await context.ComponentSerials.CountAsync();
+            var expected_count = await context.KitComponents.CountAsync(t => t.KitId == kit.Id);
             Assert.Equal(expected_count, component_serial_entry_count);
 
         }
@@ -327,7 +327,7 @@ namespace SKD.Test {
                 ("STATION_2", "EN", "EN-RANDOM-440"),
             };
 
-            var kitComponents = await ctx.KitComponents
+            var kitComponents = await context.KitComponents
                 .Include(t => t.Component)
                 .Include(t => t.ProductionStation)
                 .OrderBy(t => t.ProductionStation.Sequence)
@@ -335,7 +335,7 @@ namespace SKD.Test {
 
             // test
             MutationPayload<ComponentSerialDTO> payload = null;
-            var service = new ComponentSerialService(ctx);
+            var service = new ComponentSerialService(context);
             foreach (var entry in test_data) {
                 var kitComponent = kitComponents.First(t => t.Component.Code == entry.componentCode && t.ProductionStation.Code == entry.stationCode);
                 var input = new ComponentSerialInput {

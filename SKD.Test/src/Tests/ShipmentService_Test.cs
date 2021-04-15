@@ -10,23 +10,23 @@ namespace SKD.Test {
     public class ShipmentService_Test : TestBase {
 
         public ShipmentService_Test() {
-            ctx = GetAppDbContext();
+            context = GetAppDbContext();
             Gen_Baseline_Test_Seed_Data();
         }
 
         [Fact]
         private async Task can_import_shipment() {
             // 
-            var plant = await ctx.Plants.FirstAsync();
-            var lot = await ctx.Lots.FirstAsync();
+            var plant = await context.Plants.FirstAsync();
+            var lot = await context.Lots.FirstAsync();
             var sequence = 2;
 
             var input = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence);
             var inputMetrics = GetShipmentInputMetrics(input);
 
             // test
-            var before_count = ctx.ShipmentParts.Count();
-            var shipmentService = new ShipmentService(ctx);
+            var before_count = context.ShipmentParts.Count();
+            var shipmentService = new ShipmentService(context);
             var payload = await shipmentService.ImportShipment(input);
 
             // payload check:  plant code , sequence, count
@@ -42,7 +42,7 @@ namespace SKD.Test {
                 .SelectMany(t => t.Parts)
                 .Count();
 
-            var actual_shipment_parts_count = ctx.ShipmentParts.Count();
+            var actual_shipment_parts_count = context.ShipmentParts.Count();
             Assert.Equal(expected_shipment_parts_count, actual_shipment_parts_count);
 
             // imported parts count
@@ -51,11 +51,11 @@ namespace SKD.Test {
                 .SelectMany(t => t.Parts)
                 .Select(t => t.PartNo).Distinct().Count();
 
-            var actual_parts_count = ctx.Parts.Count();
+            var actual_parts_count = context.Parts.Count();
             Assert.Equal(expected_parts_count, actual_parts_count);
 
             // lot parts count
-            var actual_lot_parts = ctx.LotParts.Count();
+            var actual_lot_parts = context.LotParts.Count();
             Assert.Equal(inputMetrics.lotPartCount, actual_lot_parts);
 
             // handling unit codes
@@ -63,15 +63,15 @@ namespace SKD.Test {
                 .SelectMany(t => t.Invoices).SelectMany(t => t.Parts)
                 .Select(t => t.HandlingUnitCode).Distinct().ToList();
 
-            var matchingHandlingUnits = await ctx.HandlingUnits.Where(t => handlingUnitCodes.Any(code => code == t.Code)).CountAsync();
+            var matchingHandlingUnits = await context.HandlingUnits.Where(t => handlingUnitCodes.Any(code => code == t.Code)).CountAsync();
             Assert.Equal(inputMetrics.handlingUnitCount, matchingHandlingUnits);
         }
 
         [Fact]
         private async Task duplicate_handling_unit_parts_are_grouped() {
             // 
-            var plant = await ctx.Plants.FirstAsync();
-            var lot = await ctx.Lots.FirstAsync();
+            var plant = await context.Plants.FirstAsync();
+            var lot = await context.Lots.FirstAsync();
             var sequence = 2;
 
             var input = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence);
@@ -82,12 +82,12 @@ namespace SKD.Test {
             shipmentInvoice.Parts.Add(shipmentPart);
 
             // test
-            var before_count = ctx.ShipmentParts.Count();
-            var shipmentService = new ShipmentService(ctx);
+            var before_count = context.ShipmentParts.Count();
+            var shipmentService = new ShipmentService(context);
             var payload = await shipmentService.ImportShipment(input);
 
             // assert
-            var shipment_handling_unit_parts = await ctx.ShipmentParts
+            var shipment_handling_unit_parts = await context.ShipmentParts
                 .Where(t => t.HandlingUnit.ShipmentInvoice.ShipmentLot.Lot.LotNo == shipmentLot.LotNo)
                 .Where(t => t.HandlingUnit.ShipmentInvoice.InvoiceNo == shipmentInvoice.InvoiceNo)
                 .Where(t => t.Part.PartNo == shipmentPart.PartNo)
@@ -101,7 +101,7 @@ namespace SKD.Test {
                 .SelectMany(t => t.Parts)
                 .Where(t => t.PartNo == shipmentPart.PartNo).Sum(t => t.Quantity);
 
-            var actual_lotPart_ShipmentQuantity = await ctx.LotParts
+            var actual_lotPart_ShipmentQuantity = await context.LotParts
                 .Where(t => t.Lot.LotNo == shipmentLot.LotNo)
                 .Where(t => t.Part.PartNo == shipmentPart.PartNo)
                 .Select(t => t.ShipmentQuantity).FirstOrDefaultAsync();
@@ -111,10 +111,10 @@ namespace SKD.Test {
 
         [Fact]
         private async Task cannot_import_shipment_duplicate_handling_units() {
-            var plant = await ctx.Plants.FirstAsync();
-            var lot = await ctx.Lots.FirstAsync();
+            var plant = await context.Plants.FirstAsync();
+            var lot = await context.Lots.FirstAsync();
             var sequence = 2;
-            var shipmentService = new ShipmentService(ctx);
+            var shipmentService = new ShipmentService(context);
 
             var input_1 = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence, startInvoiceNo: 100);
             var input_2 = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence + 1, startInvoiceNo: 200);
@@ -124,7 +124,7 @@ namespace SKD.Test {
 
             var actual_error_count = payload_1.Errors.Count();
             Assert.Equal(0, actual_error_count);
-            var actual_handling_unit_count = await ctx.HandlingUnits.CountAsync();
+            var actual_handling_unit_count = await context.HandlingUnits.CountAsync();
             Assert.Equal(actual_handling_unit_count, inputMetrics.handlingUnitCount);
 
             // test
@@ -136,15 +136,15 @@ namespace SKD.Test {
 
         [Fact]
         private async Task cannot_import_shipment_with_duplicate_plant_and_sequence() {
-            var plant = await ctx.Plants.FirstAsync();
-            var lot = await ctx.Lots.FirstAsync();
+            var plant = await context.Plants.FirstAsync();
+            var lot = await context.Lots.FirstAsync();
             var sequence = 2;
             var input = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence);
-            var shipmentService = new ShipmentService(ctx);
+            var shipmentService = new ShipmentService(context);
 
             // test
             var payload = await shipmentService.ImportShipment(input);
-            var shipmentsCount = await ctx.Shipments.CountAsync();
+            var shipmentsCount = await context.Shipments.CountAsync();
             Assert.Equal(1, shipmentsCount);
 
             var payload_1 = await shipmentService.ImportShipment(input);
@@ -159,11 +159,11 @@ namespace SKD.Test {
 
         [Fact]
         private async Task cannot_import_shipment_if_lot_numbers_not_found() {
-            var plant = await ctx.Plants.FirstAsync();
+            var plant = await context.Plants.FirstAsync();
             var lotNo = Util.RandomString(EntityFieldLen.LotNo);
             var sequence = 2;
             var input = Gen_ShipmentInput(plant.Code, lotNo, sequence);
-            var shipmentService = new ShipmentService(ctx);
+            var shipmentService = new ShipmentService(context);
 
             // test
             var payload = await shipmentService.ImportShipment(input);
@@ -176,8 +176,8 @@ namespace SKD.Test {
         [Fact]
         private async Task cannot_import_shipment_with_no_pards() {
             // setup
-            var plant = await ctx.Plants.FirstAsync();
-            var lot = await ctx.Lots.FirstAsync();
+            var plant = await context.Plants.FirstAsync();
+            var lot = await context.Lots.FirstAsync();
 
             var input = new ShipmentInput() {
                 PlantCode = plant.Code,
@@ -196,9 +196,9 @@ namespace SKD.Test {
             };
 
 
-            var before_count = ctx.ShipmentParts.Count();
+            var before_count = context.ShipmentParts.Count();
             // test
-            var shipmentService = new ShipmentService(ctx);
+            var shipmentService = new ShipmentService(context);
             var payload = await shipmentService.ImportShipment(input);
 
             // assert
@@ -210,8 +210,8 @@ namespace SKD.Test {
         [Fact]
         private async Task cannot_import_shipment_invoice_with_no_parts() {
             // setup
-            var plant = await ctx.Plants.FirstAsync();
-            var lot = await ctx.Lots.FirstAsync();
+            var plant = await context.Plants.FirstAsync();
+            var lot = await context.Lots.FirstAsync();
             var input = new ShipmentInput() {
                 PlantCode = plant.Code,
                 Sequence = 1,
@@ -228,9 +228,9 @@ namespace SKD.Test {
                 }
             };
 
-            var before_count = ctx.ShipmentParts.Count();
+            var before_count = context.ShipmentParts.Count();
             // test
-            var shipmentService = new ShipmentService(ctx);
+            var shipmentService = new ShipmentService(context);
             var payload = await shipmentService.ImportShipment(input);
 
             // assert
@@ -242,8 +242,8 @@ namespace SKD.Test {
         [Fact]
         private async Task cannot_import_shipment_lot_with_no_invoices() {
             // setup
-            var plant = await ctx.Plants.FirstAsync();
-            var lot = await ctx.Lots.FirstAsync();
+            var plant = await context.Plants.FirstAsync();
+            var lot = await context.Lots.FirstAsync();
             var input = new ShipmentInput() {
                 PlantCode = plant.Code,
                 Sequence = 1,
@@ -255,9 +255,9 @@ namespace SKD.Test {
                 }
             };
 
-            var before_count = ctx.ShipmentParts.Count();
+            var before_count = context.ShipmentParts.Count();
             // test
-            var shipmentService = new ShipmentService(ctx);
+            var shipmentService = new ShipmentService(context);
             var payload = await shipmentService.ImportShipment(input);
 
             // assert
@@ -269,13 +269,13 @@ namespace SKD.Test {
         [Fact]
         public async Task shipment_lot_part_to_lotpart_input_works() {
             // setup
-            var plant = await ctx.Plants.FirstAsync();
-            var lot = await ctx.Lots.FirstAsync();
+            var plant = await context.Plants.FirstAsync();
+            var lot = await context.Lots.FirstAsync();
             var input = Gen_ShipmentInput(plant.Code, lot.LotNo, 6);
             var inputMetrics = GetShipmentInputMetrics(input);
 
             // test
-            var service = new ShipmentService(ctx);
+            var service = new ShipmentService(context);
             var lotPartInputList = service.Get_LotPartInputs_from_ShipmentInput(input);
 
             // assert
@@ -285,16 +285,16 @@ namespace SKD.Test {
 
         [Fact]
         public async Task can_set_handling_unit_received() {
-            var plant = await ctx.Plants.FirstAsync();
-            var lot = await ctx.Lots.FirstAsync();
+            var plant = await context.Plants.FirstAsync();
+            var lot = await context.Lots.FirstAsync();
             var sequence = 2;
 
             var shipmentInput = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence);
             var inputMetrics = GetShipmentInputMetrics(shipmentInput);
 
             // test
-            var before_count = ctx.ShipmentParts.Count();
-            var shipmentService = new ShipmentService(ctx);
+            var before_count = context.ShipmentParts.Count();
+            var shipmentService = new ShipmentService(context);
             var payload = await shipmentService.ImportShipment(shipmentInput);
 
             var handlingUnitCode = shipmentInput.Lots
@@ -303,10 +303,10 @@ namespace SKD.Test {
             
             var receiveHandlingUnitInput = new ReceiveHandlingUnitInput(handlingUnitCode, Remove: false);
 
-            var handlingUnitService = new HandlingUnitService(ctx);
+            var handlingUnitService = new HandlingUnitService(context);
             var receivePayload = await handlingUnitService.SetHandlingUnitReceived(receiveHandlingUnitInput);
 
-            var handlingUitReceived = await ctx.HandlingUnitReceived
+            var handlingUitReceived = await context.HandlingUnitReceived
                 .Include(t => t.HandlingUnit)
                 .FirstOrDefaultAsync(t => t.HandlingUnit.Code == handlingUnitCode);
             Assert.Equal(handlingUnitCode, handlingUitReceived.HandlingUnit.Code);
@@ -314,23 +314,23 @@ namespace SKD.Test {
 
         [Fact]
         public async Task can_revoke_handling_unit_received() {
-            var plant = await ctx.Plants.FirstAsync();
-            var lot = await ctx.Lots.FirstAsync();
+            var plant = await context.Plants.FirstAsync();
+            var lot = await context.Lots.FirstAsync();
             var sequence = 2;
 
             var shipmentInput = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence);
             var inputMetrics = GetShipmentInputMetrics(shipmentInput);
 
             // test
-            var before_count = ctx.ShipmentParts.Count();
-            var shipmentService = new ShipmentService(ctx);
+            var before_count = context.ShipmentParts.Count();
+            var shipmentService = new ShipmentService(context);
             var payload = await shipmentService.ImportShipment(shipmentInput);
 
             var handlingUnitCode = shipmentInput.Lots
                 .SelectMany(t => t.Invoices)
                 .SelectMany(t => t.Parts).Select(t =>t.HandlingUnitCode).First();
             
-            var handlingUnitService = new HandlingUnitService(ctx);
+            var handlingUnitService = new HandlingUnitService(context);
 
             var input_1 = new ReceiveHandlingUnitInput(handlingUnitCode, Remove: false);
             var receivePayload = await handlingUnitService.SetHandlingUnitReceived(input_1);
@@ -339,7 +339,7 @@ namespace SKD.Test {
 
             var removePayload = await handlingUnitService.SetHandlingUnitReceived(input_2);
 
-            var handlingUitReceived = await ctx.HandlingUnitReceived
+            var handlingUitReceived = await context.HandlingUnitReceived
                 .Include(t => t.HandlingUnit)
                 .FirstOrDefaultAsync(t => t.HandlingUnit.Code == handlingUnitCode);
 

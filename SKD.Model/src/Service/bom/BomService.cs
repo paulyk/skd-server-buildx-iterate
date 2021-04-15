@@ -64,7 +64,7 @@ namespace SKD.Model {
             var new_LotNos = input_LotNos.Except(existingLots.Select(t => t.LotNo)).ToList();
 
             // get vehicle models for new lots
-            var modelCodes = new_LotNos.Select(t => t.Substring(0, EntityFieldLen.VehicleModel_CodeLen));
+            var modelCodes = new_LotNos.Select(t => t.Substring(0, EntityFieldLen.VehicleModel_Code));
             var models = await context.VehicleModels.Where(t => modelCodes.Any(modelCode => t.Code == modelCode)).ToListAsync();
 
             // validate
@@ -91,7 +91,7 @@ namespace SKD.Model {
             var newLots = new List<Lot>();
             if (new_LotNos.Any()) {
                 newLots = new_LotNos.Select(lotNo => new Lot {
-                    Model = models.First(t => t.Code == lotNo.Substring(0, EntityFieldLen.VehicleModel_CodeLen)),
+                    Model = models.First(t => t.Code == lotNo.Substring(0, EntityFieldLen.VehicleModel_Code)),
                     Plant = plant,
                     LotNo = lotNo,
                     Bom = bom

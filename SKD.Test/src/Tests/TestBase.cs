@@ -11,7 +11,7 @@ namespace SKD.Test {
 
     public class TestBase {
 
-        protected SkdContext ctx;
+        protected SkdContext context;
         public SkdContext GetAppDbContext() {
 
             var connection = new SqliteConnection("DataSource=:memory:");
@@ -51,7 +51,7 @@ namespace SKD.Test {
             var bom = Gen_Plant_Bom();
             if (generateLot) {
                 var plant = bom.Plant;
-                var model = ctx.VehicleModels.First();
+                var model = context.VehicleModels.First();
                 var lot = Gen_Lot(bom.Id, model.Id, kitCount: 6);
             }
         }
@@ -63,14 +63,14 @@ namespace SKD.Test {
         public void Gen_Bom_Lot_and_Kits(string plantCode = null) {
             var bom = Gen_Plant_Bom(plantCode);
             var plant = bom.Plant;
-            var model = ctx.VehicleModels.First();
+            var model = context.VehicleModels.First();
             var lot = Gen_Lot(bom.Id, model.Id, kitCount: 6);
         }
 
         public void Gen_Model_From_Existing_Component_And_Stations() {
 
-            var components = ctx.Components.ToList();
-            var productionStations = ctx.ProductionStations.ToList();
+            var components = context.Components.ToList();
+            var productionStations = context.ProductionStations.ToList();
 
             var component_station_mappings = components
                 .Select(component => productionStations.Select(station =>
@@ -85,26 +85,26 @@ namespace SKD.Test {
         }
 
         public Bom Gen_Bom(string plantCode = null) {
-            var plant = ctx.Plants.First(t => t.Code == plantCode);
+            var plant = context.Plants.First(t => t.Code == plantCode);
 
             var bom = new Bom {
                 Plant = plant,
                 Sequence = 1,
             };
-            ctx.Boms.Add(bom);
-            ctx.SaveChanges();
+            context.Boms.Add(bom);
+            context.SaveChanges();
             return bom;
         }
 
         public Lot Gen_Lot(Guid bomId, Guid modelId, int kitCount = 6, bool auto_assign_vin = false) {
-            var model = ctx.VehicleModels
+            var model = context.VehicleModels
                 .Include(t => t.ModelComponents)
                 .Include(t => t.ModelComponents)
                 .FirstOrDefault(t => t.Id == modelId);
 
             var lotNo = Gen_NewLotNo(model.Code);
 
-            var bom = ctx.Boms.First(t => t.Id == bomId);
+            var bom = context.Boms.First(t => t.Id == bomId);
 
             var lot = new Lot {
                 Bom = bom,
@@ -115,8 +115,8 @@ namespace SKD.Test {
                     .Select(kitSeq => VehicleForKitSeq(model, kitSeq))
                     .ToList()
             };
-            ctx.Lots.Add(lot);
-            ctx.SaveChanges();
+            context.Lots.Add(lot);
+            context.SaveChanges();
             return lot;
 
             Kit VehicleForKitSeq(VehicleModel model, int kitSeq) {
@@ -139,13 +139,13 @@ namespace SKD.Test {
                 Code = plantCode,
                 Name = $"{plantCode} name"
             };
-            ctx.Plants.Add(plant);
-            ctx.SaveChanges();
+            context.Plants.Add(plant);
+            context.SaveChanges();
             return plant;
         }
 
         public List<ProductionStation> Gen_ProductionStations(params string[] codes) {
-            var stationCodes = codes.Where(code => !ctx.ProductionStations.Any(t => t.Code == code)).ToList();
+            var stationCodes = codes.Where(code => !context.ProductionStations.Any(t => t.Code == code)).ToList();
 
             var productionStations = stationCodes.ToList().Select((code, index) => new ProductionStation {
                 Code = code,
@@ -154,27 +154,28 @@ namespace SKD.Test {
             });
 
 
-            ctx.ProductionStations.AddRange(productionStations);
-            ctx.SaveChanges();
-            return ctx.ProductionStations.ToList();
+            context.ProductionStations.AddRange(productionStations);
+            context.SaveChanges();
+            return context.ProductionStations.ToList();
         }
 
         public List<Component> Gen_Components(params string[] codes) {
-            var componentCodes = codes.ToList().Where(code => !ctx.Components.Any(t => t.Code == code));
+            var componentCodes = codes.ToList().Where(code => !context.Components.Any(t => t.Code == code));
 
             var components = componentCodes.ToList().Select(code => new Component {
                 Code = code,
-                Name = $"{code} name"
+                Name = $"{code} name",
+                DcwsSerialCaptureRule = DcwsSerialCaptureRule.UNKNOWN
             }).ToList();
 
             foreach (var component in components) {
-                if (ctx.Components.Count(t => t.Code == component.Code) == 0) {
-                    ctx.Components.AddRange(components);
+                if (context.Components.Count(t => t.Code == component.Code) == 0) {
+                    context.Components.AddRange(components);
                 }
             }
 
-            ctx.SaveChanges();
-            return ctx.Components.ToList();
+            context.SaveChanges();
+            return context.Components.ToList();
         }
 
         public VehicleModel Gen_VehicleModel(
@@ -187,8 +188,8 @@ namespace SKD.Test {
 
             var modelComponents = component_stations_maps
             .Select(map => new VehicleModelComponent {
-                Component = ctx.Components.First(t => t.Code == map.componentCode),
-                ProductionStation = ctx.ProductionStations.First(t => t.Code == map.stationCode)
+                Component = context.Components.First(t => t.Code == map.componentCode),
+                ProductionStation = context.ProductionStations.First(t => t.Code == map.stationCode)
             }).ToList();
 
             var vehicleModel = new VehicleModel {
@@ -197,20 +198,20 @@ namespace SKD.Test {
                 ModelComponents = modelComponents
             };
 
-            ctx.VehicleModels.Add(vehicleModel);
-            ctx.SaveChanges();
+            context.VehicleModels.Add(vehicleModel);
+            context.SaveChanges();
             return vehicleModel;
         }
 
         public ComponentSerial Gen_ComponentScan(Guid vehicleComponentId) {
-            var vehicleComponent = ctx.KitComponents.FirstOrDefault(t => t.Id == vehicleComponentId);
+            var vehicleComponent = context.KitComponents.FirstOrDefault(t => t.Id == vehicleComponentId);
             var componentScan = new ComponentSerial {
                 KitComponentId = vehicleComponentId,
                 Serial1 = Util.RandomString(EntityFieldLen.ComponentSerial),
                 Serial2 = ""
             };
-            ctx.ComponentSerials.Add(componentScan);
-            ctx.SaveChanges();
+            context.ComponentSerials.Add(componentScan);
+            context.SaveChanges();
             return componentScan;
         }
 
@@ -224,10 +225,10 @@ namespace SKD.Test {
             // plant
             var plantCode = Gen_PlantCode();
             var plant = new Plant { Code = plantCode };
-            ctx.Plants.Add(plant);
+            context.Plants.Add(plant);
 
             // model
-            var vehicleModel = ctx.VehicleModels
+            var vehicleModel = context.VehicleModels
                 .Include(t => t.ModelComponents)
                 .FirstOrDefault(t => t.Code == modelCode);
 
@@ -237,7 +238,7 @@ namespace SKD.Test {
             }).ToList();
 
             var vehicleLot = new Lot { LotNo = lotNo, Plant = plant };
-            ctx.Lots.Add(vehicleLot);
+            context.Lots.Add(vehicleLot);
 
             var vehicle = new Kit {
                 VIN = vin,
@@ -246,8 +247,8 @@ namespace SKD.Test {
                 KitComponents = vehicleComponents
             };
 
-            ctx.Kits.AddRange(vehicle);
-            ctx.SaveChanges();
+            context.Kits.AddRange(vehicle);
+            context.SaveChanges();
 
             return vehicle;
         }
@@ -259,27 +260,27 @@ namespace SKD.Test {
 
             // ensure component codes
             component_stations_maps.Select(t => t.componentCode).Distinct().ToList().ForEach(code => {
-                if (!ctx.Components.Any(t => t.Code == code)) {
-                    ctx.Components.Add(new Component {
+                if (!context.Components.Any(t => t.Code == code)) {
+                    context.Components.Add(new Component {
                         Code = code,
                         Name = code + " name"
                     });
-                    ctx.SaveChanges();
+                    context.SaveChanges();
                 }
             });
             // ensure production stations
             component_stations_maps.Select(t => t.stationCode).Distinct().ToList().ForEach(code => {
-                if (!ctx.Components.Any(t => t.Code == code)) {
-                    var lastSorderOrder = ctx.ProductionStations.OrderByDescending(t => t.Sequence)
+                if (!context.Components.Any(t => t.Code == code)) {
+                    var lastSorderOrder = context.ProductionStations.OrderByDescending(t => t.Sequence)
                         .Select(t => t.Sequence)
                         .FirstOrDefault();
 
-                    ctx.ProductionStations.Add(new ProductionStation {
+                    context.ProductionStations.Add(new ProductionStation {
                         Code = code,
                         Name = code + " name",
                         Sequence = lastSorderOrder + 1
                     });
-                    ctx.SaveChanges();
+                    context.SaveChanges();
                 }
             });
 
@@ -290,20 +291,20 @@ namespace SKD.Test {
               );
 
             // cretre vehicle based on that model
-            var bom = ctx.Boms.Include(t => t.Plant).First();
+            var bom = context.Boms.Include(t => t.Plant).First();
             var plant = bom.Plant;
             var lot = Gen_Lot(bom.Id, model.Id, auto_assign_vin: auto_assign_vin);
 
-            var vehicle = ctx.Kits
+            var vehicle = context.Kits
                 .Include(t => t.Lot)
                 .First(t => t.Lot.Id == lot.Id);
             return vehicle;
         }
 
         public void SetEntityCreatedAt<T>(Guid id, DateTime date) where T : EntityBase {
-            var entity = ctx.Find<T>(id);
+            var entity = context.Find<T>(id);
             entity.CreatedAt = date;
-            ctx.SaveChanges();
+            context.SaveChanges();
         }
 
         public void Gen_KitTimelineEventTypes() {
@@ -332,11 +333,11 @@ namespace SKD.Test {
             });
 
             foreach (var eventType in eventTypes) {
-                if (ctx.KitTimelineEventTypes.Count(t => t.Code == eventType.Code) == 0) {
-                    ctx.KitTimelineEventTypes.AddRange(eventTypes);
+                if (context.KitTimelineEventTypes.Count(t => t.Code == eventType.Code) == 0) {
+                    context.KitTimelineEventTypes.AddRange(eventTypes);
                 }
             }
-            ctx.SaveChanges();
+            context.SaveChanges();
         }
 
         #region generators for specific entity fields
@@ -344,7 +345,7 @@ namespace SKD.Test {
             return Util.RandomString(len).ToUpper();
         }
         public string Gen_LotNo(string modelCode, int sequence) {
-            return modelCode + sequence.ToString().PadLeft(EntityFieldLen.LotNo - EntityFieldLen.VehicleModel_CodeLen, '0');
+            return modelCode + sequence.ToString().PadLeft(EntityFieldLen.LotNo - EntityFieldLen.VehicleModel_Code, '0');
         }
 
         public string Gen_PartnerPLantCode() {
@@ -352,18 +353,18 @@ namespace SKD.Test {
         }
 
         public string Gen_LotNo(int sequence) {
-            var modelCode = ctx.VehicleModels.Select(t => t.Code).First();
-            return modelCode + sequence.ToString().PadLeft(EntityFieldLen.LotNo - EntityFieldLen.VehicleModel_CodeLen, '0');
+            var modelCode = context.VehicleModels.Select(t => t.Code).First();
+            return modelCode + sequence.ToString().PadLeft(EntityFieldLen.LotNo - EntityFieldLen.VehicleModel_Code, '0');
         }
 
         public string Gen_NewLotNo(string modelCode) {
             var sequence = 1;
-            var lotNo = modelCode + sequence.ToString().PadLeft(EntityFieldLen.LotNo - EntityFieldLen.VehicleModel_CodeLen, '0');
-            var lotExists = ctx.Lots.Any(t => t.LotNo == lotNo);
+            var lotNo = modelCode + sequence.ToString().PadLeft(EntityFieldLen.LotNo - EntityFieldLen.VehicleModel_Code, '0');
+            var lotExists = context.Lots.Any(t => t.LotNo == lotNo);
             while(lotExists) {
                 sequence++;
-                lotNo = modelCode + sequence.ToString().PadLeft(EntityFieldLen.LotNo - EntityFieldLen.VehicleModel_CodeLen, '0');
-                lotExists = ctx.Lots.Any(t => t.LotNo == lotNo);
+                lotNo = modelCode + sequence.ToString().PadLeft(EntityFieldLen.LotNo - EntityFieldLen.VehicleModel_Code, '0');
+                lotExists = context.Lots.Any(t => t.LotNo == lotNo);
             }
             return lotNo;
         }
@@ -377,7 +378,11 @@ namespace SKD.Test {
                 suffix;
         }
         public string Gen_VehicleModel_Code() {
-            return Util.RandomString(EntityFieldLen.VehicleModel_CodeLen).ToUpper();
+            return Util.RandomString(EntityFieldLen.VehicleModel_Code).ToUpper();
+        }
+
+        public string Gen_VehicleModel_Name() {
+            return Util.RandomString(EntityFieldLen.VehicleModel_Name).ToUpper();
         }
         public string Gen_VIN() {
             return Util.RandomString(EntityFieldLen.VIN).ToUpper();

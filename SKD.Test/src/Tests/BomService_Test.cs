@@ -10,7 +10,7 @@ namespace SKD.Test {
     public class BomService_Test : TestBase {
 
         public BomService_Test() {
-            ctx = GetAppDbContext();
+            context = GetAppDbContext();
             Gen_Baseline_Test_Seed_Data(generateLot: false);
         }
 
@@ -18,13 +18,13 @@ namespace SKD.Test {
         private async Task import_lot_parts_works() {
             // setup
             var plant = Gen_Plant();
-            var modelCode = await ctx.VehicleModels.Select(t => t.Code).FirstOrDefaultAsync();
+            var modelCode = await context.VehicleModels.Select(t => t.Code).FirstOrDefaultAsync();
             var lot1 = Gen_LotNo(modelCode, 1);
             var lot2 = Gen_LotNo(modelCode, 2);            
             var bomFileSequnce = 1;
-            var initial_lot_count = await ctx.Lots.CountAsync();
+            var initial_lot_count = await context.Lots.CountAsync();
 
-            var service = new BomService(ctx);
+            var service = new BomService(context);
 
             // test
             var input = GenBomLotPartInput(new TestBomLotInput(plant.Code, bomFileSequnce, new List<TestLotInput> {
@@ -43,17 +43,17 @@ namespace SKD.Test {
 
             // assert
             var expected_lot_count = input.LotParts.Select(t => t.LotNo).Distinct().Count();
-            var actual_lot_count = await ctx.Lots.CountAsync();
+            var actual_lot_count = await context.Lots.CountAsync();
             Assert.Equal(initial_lot_count + expected_lot_count, actual_lot_count);
 
             // assert lot part count
             var exptected_part_count = input.LotParts.Select(t => t.PartNo).Distinct().Count();
-            var actual_part_count = await ctx.Parts.CountAsync();
+            var actual_part_count = await context.Parts.CountAsync();
             Assert.Equal(exptected_part_count, actual_part_count);
 
             // assert lot part quantity
             var lotNos = input.LotParts.Select(t => t.LotNo).Distinct().ToList();
-            var lotParts = await ctx.LotParts.Include(t => t.Part).Where(t => lotNos.Any(lotNo => lotNo == t.Lot.LotNo)).ToListAsync();
+            var lotParts = await context.LotParts.Include(t => t.Part).Where(t => lotNos.Any(lotNo => lotNo == t.Lot.LotNo)).ToListAsync();
             input.LotParts.ToList().ForEach(inputLotPart => {
                 LotPart lotPart = lotParts.First(t => t.Lot.LotNo == inputLotPart.LotNo && t.Part.PartNo == inputLotPart.PartNo);
                 Assert.Equal(inputLotPart.Quantity, lotPart.BomQuantity);
@@ -65,14 +65,14 @@ namespace SKD.Test {
         private async Task multiple_bom_imports_update_lots_correctly() {
             // setup
             var plant = Gen_Plant();
-            var modelCode = await ctx.VehicleModels.Select(t =>t.Code).FirstOrDefaultAsync();
+            var modelCode = await context.VehicleModels.Select(t =>t.Code).FirstOrDefaultAsync();
             var lot1 = Gen_LotNo(modelCode, 1);
             var lot2 = Gen_LotNo(modelCode, 2);
             var lot3 = Gen_LotNo(modelCode, 3);
             var bomFileSequnce = 1;
-            var initial_lot_count = await ctx.Lots.CountAsync();
+            var initial_lot_count = await context.Lots.CountAsync();
 
-            var service = new BomService(ctx);
+            var service = new BomService(context);
 
             // Initial 2 lots 2 parts
             var input_1 = GenBomLotPartInput(new TestBomLotInput(plant.Code, bomFileSequnce, new List<TestLotInput> {
@@ -86,7 +86,7 @@ namespace SKD.Test {
                 }),
             }));
             await service.ImportBomLotParts(input_1);
-            var lot_count = await ctx.Lots.CountAsync();
+            var lot_count = await context.Lots.CountAsync();
             var exptected_lot_count = initial_lot_count + 2;
             Assert.Equal(exptected_lot_count, lot_count);
 
@@ -107,7 +107,7 @@ namespace SKD.Test {
             }));
             await service.ImportBomLotParts(input_2);
 
-            lot_count = await ctx.Lots.CountAsync();
+            lot_count = await context.Lots.CountAsync();
             exptected_lot_count = initial_lot_count + input_2.LotParts.Select(t => t.LotNo).Distinct().Count();
             Assert.Equal(exptected_lot_count, lot_count);
 
@@ -131,7 +131,7 @@ namespace SKD.Test {
             }));
             await service.ImportBomLotParts(input_3);
 
-            var lotParts = await ctx.LotParts.Include(t => t.Lot).Include(t => t.Part).ToListAsync();
+            var lotParts = await context.LotParts.Include(t => t.Lot).Include(t => t.Part).ToListAsync();
             foreach(var lotPart in lotParts.Where(t => t.RemovedAt ==  null)) {
                 var inputLotPart = input_3.LotParts
                     .First(t => t.LotNo == lotPart.Lot.LotNo && t.PartNo == lotPart.Part.PartNo);
@@ -157,7 +157,7 @@ namespace SKD.Test {
             await service.ImportBomLotParts(input_4);
 
             var exptected_lot_part_count = input_4.LotParts.Count();
-            var active_lot_part_count = await ctx.LotParts.Where(t => t.RemovedAt == null).CountAsync();
+            var active_lot_part_count = await context.LotParts.Where(t => t.RemovedAt == null).CountAsync();
             Assert.Equal(exptected_lot_part_count, active_lot_part_count);
 
         }
@@ -168,11 +168,11 @@ namespace SKD.Test {
         private async Task import_bom_lot_part_will_remove_omitted_part() {
             // setup
             var plant = Gen_Plant();
-            var modelCode = await ctx.VehicleModels.Select(t =>t.Code).FirstOrDefaultAsync();
+            var modelCode = await context.VehicleModels.Select(t =>t.Code).FirstOrDefaultAsync();
             var lot1 = Gen_LotNo(modelCode, 1);
             var bomFileSequnce = 1;
 
-            var service = new BomService(ctx);            
+            var service = new BomService(context);            
 
             // import lot1 
             var input_1 = GenBomLotPartInput(new TestBomLotInput(plant.Code, bomFileSequnce, new List<TestLotInput> {
@@ -191,7 +191,7 @@ namespace SKD.Test {
             }));
 
             await service.ImportBomLotParts(input_2);
-            var lotParts = await ctx.LotParts.Include(t => t.Part).Where(t => t.Lot.LotNo == lot1).ToListAsync();
+            var lotParts = await context.LotParts.Include(t => t.Part).Where(t => t.Lot.LotNo == lot1).ToListAsync();
             var active_lot_parts = lotParts.Where(t => t.RemovedAt == null).ToList();
             var removed_lot_parts = lotParts.Where(t => t.RemovedAt != null).ToList();
 
@@ -248,14 +248,14 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new BomService(ctx);
+            var service = new BomService(context);
             var payload = await service.ImportBomLotParts(input);
 
-            var partService = new PartService(ctx);
+            var partService = new PartService(context);
 
             // assert 
             foreach (var entry in part_mubers) {
-                var part = await ctx.Parts.FirstOrDefaultAsync(t => t.PartNo == entry.reformattedPartNo);
+                var part = await context.Parts.FirstOrDefaultAsync(t => t.PartNo == entry.reformattedPartNo);
                 var formatted = PartService.ReFormatPartNo(part.PartNo);
                 Assert.Equal(formatted, part.PartNo);
             }
@@ -288,9 +288,9 @@ namespace SKD.Test {
                 }
             };
 
-            var before_count = ctx.LotParts.Count();
+            var before_count = context.LotParts.Count();
             // test
-            var service = new BomService(ctx);
+            var service = new BomService(context);
             var payload = await service.ImportBomLotParts(dto);
 
             // assert
@@ -312,9 +312,9 @@ namespace SKD.Test {
                 LotParts = new List<BomLotPartInput.LotPart>()
             };
 
-            var before_count = ctx.LotParts.Count();
+            var before_count = context.LotParts.Count();
             // test
-            var service = new BomService(ctx);
+            var service = new BomService(context);
             var payload = await service.ImportBomLotParts(dto);
 
             // assert
@@ -328,18 +328,18 @@ namespace SKD.Test {
 
             // setup
             var plant = Gen_Plant();
-            var model = await ctx.VehicleModels.FirstOrDefaultAsync();
+            var model = await context.VehicleModels.FirstOrDefaultAsync();
             var lotNo = Gen_LotNo(1);
             var kitCount = 6;
 
             var input = Gen_BomLotKitInput(plant.Code, lotNo, model.Code, kitCount);
 
             // test
-            var service = new BomService(ctx);
+            var service = new BomService(context);
             var payload = await service.ImportBomLotKits(input);
 
             // assert
-            var bom = await ctx.Boms
+            var bom = await context.Boms
                 .Include(t => t.Lots).ThenInclude(t => t.Kits)
                 .FirstOrDefaultAsync(t => t.Plant.Code == plant.Code);
 
@@ -360,7 +360,7 @@ namespace SKD.Test {
             var input = Gen_BomLotKitInput(plant.Code, lotNo, modelCode, kitCount);
 
             // test
-            var service = new BomService(ctx);
+            var service = new BomService(context);
             var payload = await service.ImportBomLotKits(input);
 
             // assert
@@ -377,13 +377,13 @@ namespace SKD.Test {
             // setup
             var plant = Gen_Plant();
             var lotNo = Gen_LotNo(1);
-            var model = await ctx.VehicleModels.FirstOrDefaultAsync();
+            var model = await context.VehicleModels.FirstOrDefaultAsync();
             var kitCount = 6;
 
             var input = Gen_BomLotKitInput(plant.Code, lotNo, model.Code, kitCount);
 
             // test
-            var service = new BomService(ctx);
+            var service = new BomService(context);
             var payload = await service.ImportBomLotKits(input);
             var payload_2 = await service.ImportBomLotKits(input);
 

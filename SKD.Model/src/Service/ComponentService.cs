@@ -131,6 +131,7 @@ namespace SKD.Model {
                     errors.Add(ErrorHelper.Create<T>(t => t.Code, "duplicate code"));
                 }
             } else {
+                // adding a new component, so look for duplicate
                 if (await context.Components.AnyAsync(t => t.Code == input.Code)) {
                     errors.Add(ErrorHelper.Create<T>(t => t.Code, "duplicate code"));
                 }
@@ -142,6 +143,7 @@ namespace SKD.Model {
                     errors.Add(ErrorHelper.Create<T>(t => t.Name, "duplicate name"));
                 }
             } else {
+                // adding a new component, so look for duplicate
                 if (await context.Components.AnyAsync(t => t.Name == input.Name)) {
                     errors.Add(ErrorHelper.Create<T>(t => t.Code, "duplicate name"));
                 }

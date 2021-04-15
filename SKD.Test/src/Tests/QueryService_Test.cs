@@ -10,7 +10,7 @@ namespace SKD.Test {
     public class QueryService_Test : TestBase {
 
         public QueryService_Test() {
-            ctx = GetAppDbContext();
+            context = GetAppDbContext();
             Gen_Baseline_Test_Seed_Data();
         }
 

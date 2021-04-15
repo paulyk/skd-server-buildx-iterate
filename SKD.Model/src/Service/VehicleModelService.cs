@@ -31,10 +31,10 @@ namespace SKD.Model {
             if (vehicleModel == null) {
                 vehicleModel = new VehicleModel {
                     Code = input.Code,
-                    Name = input.Name,
                 };
                 context.VehicleModels.Add(vehicleModel);
             }
+            vehicleModel.Name = input.Name;
 
             // current_pairs, 
             var current_pairs = vehicleModel.ModelComponents.Any()
@@ -94,6 +94,15 @@ namespace SKD.Model {
         public async Task<List<Error>> ValidateCreateVehicleModel<T>(T input) where T : VehicleModelInput {
             var errors = new List<Error>();
 
+            VehicleModel existingVehicleModel = null;
+            if (input.Id.HasValue) {
+                existingVehicleModel = await context.VehicleModels.FirstOrDefaultAsync(t => t.Id == input.Id.Value);
+                if (existingVehicleModel == null) {
+                    errors.Add(ErrorHelper.Create<T>(t => t.Id, $"model not found: {input.Id}"));
+                    return errors;
+                }
+            }
+
             // validate code 
             if (input.Code.Trim().Length == 0) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Code, "code requred"));
@@ -108,9 +117,27 @@ namespace SKD.Model {
                 errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityFieldLen.VehicleModel_Name} characters "));
             }
 
+            if (existingVehicleModel != null) {
+                if (await context.VehicleModels.AnyAsync(t => t.Code == input.Code && t.Id != existingVehicleModel.Id)) {
+                    errors.Add(ErrorHelper.Create<T>(t => t.Code, "duplicate code"));
+                }
+            } else {
+                // adding a new component, so look for duplicate
+                if (await context.VehicleModels.AnyAsync(t => t.Code == input.Code)) {
+                    errors.Add(ErrorHelper.Create<T>(t => t.Code, "duplicate code"));
+                }                
+            }
+
             // duplicate name
-            if (await context.VehicleModels.AnyAsync(t => t.Code != input.Code && t.Name == input.Name)) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Name, "duplicate name"));
+            if (existingVehicleModel != null) {
+                if (await context.VehicleModels.AnyAsync(t => t.Name == input.Name && t.Id != existingVehicleModel.Id)) {
+                    errors.Add(ErrorHelper.Create<T>(t => t.Name, "duplicate name"));
+                }
+            } else {
+                // adding a new component, so look for duplicate
+                if (await context.VehicleModels.AnyAsync(t => t.Name == input.Name)) {
+                    errors.Add(ErrorHelper.Create<T>(t => t.Name, "duplicate name"));
+                }                
             }
 
             // components required

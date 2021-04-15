@@ -12,15 +12,15 @@ namespace SKD.Test {
 
         int planBuildLeadTimeDays = 2;
         public KitServiceTest() {
-            ctx = GetAppDbContext();
+            context = GetAppDbContext();
             Gen_Baseline_Test_Seed_Data();
         }
 
         [Fact]
         public async Task can_import_kit_vin() {
             // setup
-            var lot = ctx.Lots.First();
-            var plant = ctx.Plants.First();
+            var lot = context.Lots.First();
+            var plant = context.Plants.First();
             var partnerPlantCode = Gen_PartnerPLantCode();
             var sequence = 3;
 
@@ -36,26 +36,26 @@ namespace SKD.Test {
             };
 
             // test
-            var kits = await ctx.Kits.Where(t => t.Lot.LotNo == lot.LotNo).ToListAsync();
+            var kits = await context.Kits.Where(t => t.Lot.LotNo == lot.LotNo).ToListAsync();
             var lot_vehicles_count = kits.Count();
             var with_vin_count = kits.Count(t => t.VIN != "");
             Assert.Equal(0, with_vin_count);
 
-            var service = new KitService(ctx, DateTime.Now, planBuildLeadTimeDays);
+            var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
             var payload = await service.ImportVIN(input);
 
             // assert
-            var kitVinImport = await ctx.KitVinImports.FirstOrDefaultAsync(t => t.Plant.Code == input.PlantCode && t.Sequence == input.Sequence);
+            var kitVinImport = await context.KitVinImports.FirstOrDefaultAsync(t => t.Plant.Code == input.PlantCode && t.Sequence == input.Sequence);
             Assert.NotNull(kitVinImport);
 
-            var kitvin_count = await ctx.KitVins.CountAsync(t => t.KitVinImportId == kitVinImport.Id);
+            var kitvin_count = await context.KitVins.CountAsync(t => t.KitVinImportId == kitVinImport.Id);
             var expected_count = input.Kits.Count();
             Assert.Equal(expected_count, kitvin_count);
 
             // partner code
             Assert.Equal(input.PartnerPlantCode, kitVinImport.PartnerPlantCode);
 
-            kits = await ctx.Kits.Where(t => t.Lot.LotNo == lot.LotNo).ToListAsync();
+            kits = await context.Kits.Where(t => t.Lot.LotNo == lot.LotNo).ToListAsync();
             with_vin_count = kits.Count(t => t.VIN != "");
             Assert.Equal(lot_vehicles_count, with_vin_count);
         }
@@ -63,8 +63,8 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_import_kit_vins_if_kits_not_found() {
             // setup
-            var lot = ctx.Lots.First();
-            var plant = ctx.Plants.First();
+            var lot = context.Lots.First();
+            var plant = context.Plants.First();
             var partnerPlantCode = Gen_PartnerPLantCode();
             var sequence = 3;
 
@@ -80,7 +80,7 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new KitService(ctx, DateTime.Now, planBuildLeadTimeDays);
+            var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
             var payload = await service.ImportVIN(kitVinDto);
 
             // assert
@@ -94,8 +94,8 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_import_kit_vins_with_kits_in_payload() {
             // setup
-            var lot = ctx.Lots.First();
-            var plant = ctx.Plants.First();
+            var lot = context.Lots.First();
+            var plant = context.Plants.First();
             var partnerPlantCode = Gen_PartnerPLantCode();
             var sequence = 3;
 
@@ -117,7 +117,7 @@ namespace SKD.Test {
                 new ImportVinInput.KitVin {LotNo = lot.LotNo, KitNo = lotVehicles[5].KitNo, VIN = Gen_VIN() },
             };
             // test
-            var service = new KitService(ctx, DateTime.Now, planBuildLeadTimeDays);
+            var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
             var payload_2 = await service.ImportVIN(input);
 
             // assert
@@ -139,12 +139,12 @@ namespace SKD.Test {
             };
 
             // test
-            var kit = ctx.Kits.First();
+            var kit = context.Kits.First();
 
-            var service = new KitService(ctx, DateTime.Now, planBuildLeadTimeDays);
+            var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
             var payloads = new List<MutationPayload<KitTimelineEvent>>();
 
-            var before_count = ctx.KitTimelineEvents.Count();
+            var before_count = context.KitTimelineEvents.Count();
 
 
             foreach (var entry in timelineEvents) {
@@ -158,7 +158,7 @@ namespace SKD.Test {
             }
 
             // assert
-            var after_count = ctx.KitTimelineEvents.Count();
+            var after_count = context.KitTimelineEvents.Count();
             Assert.Equal(0, before_count);
             Assert.Equal(timelineEvents.Count, after_count);
         }
@@ -167,10 +167,10 @@ namespace SKD.Test {
         public async Task error_if_custom_receive_date_greater_than_current_date() {
 
             // test
-            var kit = ctx.Kits.First();
+            var kit = context.Kits.First();
 
             var currentDate = DateTime.Now.Date;
-            var service = new KitService(ctx, currentDate, planBuildLeadTimeDays);
+            var service = new KitService(context, currentDate, planBuildLeadTimeDays);
 
             var input_1 = new KitTimelineEventInput {
                 KitNo = kit.KitNo,
@@ -207,7 +207,7 @@ namespace SKD.Test {
             };
 
             // test
-            var kit = ctx.Kits.First();
+            var kit = context.Kits.First();
             KitService service = null;
             var payloads = new List<MutationPayload<KitTimelineEvent>>();
 
@@ -217,7 +217,7 @@ namespace SKD.Test {
                     EventType = Enum.Parse<TimeLineEventType>(entry.eventTypeCode),
                     EventDate = entry.eventDate,
                 };
-                service = new KitService(ctx, entry.trxDate, planBuildLeadTimeDays);
+                service = new KitService(context, entry.trxDate, planBuildLeadTimeDays);
                 var payload = await service.CreateKitTimelineEvent(input);
                 payloads.Add(payload);
             }
@@ -233,7 +233,7 @@ namespace SKD.Test {
         [Fact]
         public async Task create_kit_timeline_event_with_note() {
             // setup
-            var kit = ctx.Kits.First();
+            var kit = context.Kits.First();
             var eventNote = "DLR_9977";
 
             var baseDate = DateTime.Now.Date;
@@ -257,13 +257,13 @@ namespace SKD.Test {
                     EventDate = entry.eventDate,
                     EventNote = entry.eventNode
                 };
-                service = new KitService(ctx, entry.trxDate, planBuildLeadTimeDays);
+                service = new KitService(context, entry.trxDate, planBuildLeadTimeDays);
                 var payload = await service.CreateKitTimelineEvent(input);
                 payloads.Add(payload);
             }
 
             // assert
-            var timelineEvents = ctx.KitTimelineEvents.ToList();
+            var timelineEvents = context.KitTimelineEvents.ToList();
 
             Assert.Equal(timelineEventItems.Count, timelineEvents.Count);
 
@@ -275,8 +275,8 @@ namespace SKD.Test {
         [Fact]
         public async Task create_kit_timline_event_removes_prior_events_of_the_same_type() {
             // setup
-            var kit = ctx.Kits.First();
-            var before_count = ctx.KitTimelineEvents.Count();
+            var kit = context.Kits.First();
+            var before_count = context.KitTimelineEvents.Count();
 
             var originalDate = new DateTime(2020, 11, 28);
             var newDate = new DateTime(2020, 11, 30);
@@ -292,19 +292,19 @@ namespace SKD.Test {
                 EventDate = newDate
             };
 
-            var service = new KitService(ctx, DateTime.Now, planBuildLeadTimeDays);
+            var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
             // test
             await service.CreateKitTimelineEvent(dto);
             await service.CreateKitTimelineEvent(dto2);
 
-            var after_count = ctx.KitTimelineEvents.Count();
+            var after_count = context.KitTimelineEvents.Count();
 
             // assert
             Assert.Equal(0, before_count);
             Assert.Equal(2, after_count);
 
-            var originalEntry = ctx.KitTimelineEvents.FirstOrDefault(t => t.Kit.VIN == kit.VIN && t.RemovedAt != null);
-            var latestEntry = ctx.KitTimelineEvents.FirstOrDefault(t => t.Kit.VIN == kit.VIN && t.RemovedAt == null);
+            var originalEntry = context.KitTimelineEvents.FirstOrDefault(t => t.Kit.VIN == kit.VIN && t.RemovedAt != null);
+            var latestEntry = context.KitTimelineEvents.FirstOrDefault(t => t.Kit.VIN == kit.VIN && t.RemovedAt == null);
 
             Assert.Equal(originalEntry.EventDate, originalDate);
             Assert.Equal(newDate, latestEntry.EventDate);
@@ -313,7 +313,7 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_add_duplicate_kit_timline_event_if_same_type_and_date_and_note() {
             // setup
-            var kit = ctx.Kits.First();
+            var kit = context.Kits.First();
 
             var originalDate = new DateTime(2020, 11, 28);
             var newDate = new DateTime(2020, 11, 30);
@@ -333,13 +333,13 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new KitService(ctx, DateTime.Now, planBuildLeadTimeDays);
+            var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
             await service.CreateKitTimelineEvent(dto);
             await service.CreateKitTimelineEvent(dto2);
             var payload = await service.CreateKitTimelineEvent(dto2);
 
             // assert
-            var after_count = ctx.KitTimelineEvents.Count();
+            var after_count = context.KitTimelineEvents.Count();
             Assert.Equal(2, after_count);
             var errorsMessage = payload.Errors.Select(t => t.Message).First();
             var expectedMessage = "duplicate kit timeline event";
@@ -350,7 +350,7 @@ namespace SKD.Test {
         [Fact]
         public async Task can_create_kit_timeline_event_by_lot() {
             // setup
-            var vehicleLot = ctx.Lots
+            var vehicleLot = context.Lots
                 .Include(t => t.Kits)
                 .First();
             var vehicleCoount = vehicleLot.Kits.Count();
@@ -365,13 +365,13 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new KitService(ctx, DateTime.Now, planBuildLeadTimeDays);
+            var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
             var payload = await service.CreateLotTimelineEvent(dto);
 
             var errorCount = payload.Errors.Count;
             Assert.Equal(0, errorCount);
 
-            var timelineEvents = ctx.KitTimelineEvents.Where(t => t.Kit.Lot.LotNo == dto.LotNo)
+            var timelineEvents = context.KitTimelineEvents.Where(t => t.Kit.Lot.LotNo == dto.LotNo)
                 .Include(t => t.Kit)
                 .Include(t => t.EventType).ToList();
 
@@ -387,7 +387,7 @@ namespace SKD.Test {
         [Fact]
         public async Task cannot_create_kit_timeline_event_by_lot_with_dupliate_date() {
             // setup
-            var lot = ctx.Lots.First();
+            var lot = context.Lots.First();
 
             var baseDate = DateTime.Now.Date;
             var event_date = baseDate.AddDays(1);
@@ -401,7 +401,7 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new KitService(ctx, event_date_trx, planBuildLeadTimeDays);
+            var service = new KitService(context, event_date_trx, planBuildLeadTimeDays);
             var payload = await service.CreateLotTimelineEvent(input);
 
             var errorCount = payload.Errors.Count;
@@ -420,21 +420,21 @@ namespace SKD.Test {
         [Fact]
         public async Task can_change_kit_component_production_station() {
             // setup
-            var kit = await  ctx.Kits
+            var kit = await  context.Kits
                 .Include(t => t.KitComponents).ThenInclude(t => t.ProductionStation)
                 .FirstOrDefaultAsync();
-            var productionStationCodes = await ctx.ProductionStations.Select(t => t.Code).ToListAsync();
+            var productionStationCodes = await context.ProductionStations.Select(t => t.Code).ToListAsync();
             var kitComponent = kit.KitComponents.FirstOrDefault();
             var newStationCode = productionStationCodes.First(code => code != kitComponent.ProductionStation.Code);
 
-            var service = new KitService(ctx, DateTime.Now.Date, 6);
+            var service = new KitService(context, DateTime.Now.Date, 6);
 
             var paylaod = service.ChangeKitComponentProductionStation(new KitComponentProductionStationInput{
                 KitComponentId = kitComponent.Id,
                 ProductionStationCode = newStationCode
             });
 
-            var kitComponent_2 = await ctx.KitComponents
+            var kitComponent_2 = await context.KitComponents
                 .Include(t => t.ProductionStation)
                 .FirstOrDefaultAsync(t => t.Id == kitComponent.Id);
 

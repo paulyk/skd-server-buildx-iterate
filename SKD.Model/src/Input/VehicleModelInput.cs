@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace SKD.Model {
     public class VehicleModelInput {
+        public Guid? Id { get; init; }
         public string Code { get; init; }
         public string Name { get; init; }
         public ICollection<ComponentStationInput> ComponentStationInputs { get; set; } = new List<ComponentStationInput>();

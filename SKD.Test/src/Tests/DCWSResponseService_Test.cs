@@ -10,19 +10,19 @@ namespace SKD.Test {
     public class DCWSResponseService_Test : TestBase {
 
         public DCWSResponseService_Test() {
-            ctx = GetAppDbContext();
+            context = GetAppDbContext();
             Gen_Baseline_Test_Seed_Data();
         }
 
         [Fact]
         public async Task can_create_dcws_response() {
             // setup
-            var vehicle = ctx.Kits.First();
+            var vehicle = context.Kits.First();
             var vehicleComponent = vehicle.KitComponents.First();
             var componentScan = Gen_ComponentScan(vehicleComponent.Id);
 
             // act
-            var service = new DCWSResponseService(ctx);
+            var service = new DCWSResponseService(context);
             var input = new DcwsComponentResponseInput {
                 VehicleComponentId = vehicleComponent.Id,
                 ResponseCode = "NONE",
@@ -31,10 +31,10 @@ namespace SKD.Test {
             var payload = await service.SaveDcwsComponentResponse(input);
             // assert
             Assert.True(payload.Errors.Count() == 0, "error count should be 0");
-            var responseCoount = ctx.DCWSResponses.Count();
+            var responseCoount = context.DCWSResponses.Count();
             Assert.True(responseCoount == 1, "should have 1 DCWSResponse entry");
 
-            var response = ctx.DCWSResponses
+            var response = context.DCWSResponses
                 .Include(t => t.ComponentSerial).ThenInclude(t => t.KitComponent)
                 .FirstOrDefault(t => t.Id == payload.Entity.Id);
 
@@ -45,11 +45,11 @@ namespace SKD.Test {
         [Fact]
         public async Task previous_dcws_response_codes_marked_removed_when_new_one_submitted() {
             // setup
-            var vehicle = ctx.Kits.First();
+            var vehicle = context.Kits.First();
             var vehicleComponent = vehicle.KitComponents.First();
             var comonentSerial = Gen_ComponentScan(vehicleComponent.Id);
 
-            var service = new DCWSResponseService(ctx);
+            var service = new DCWSResponseService(context);
             var input = new DcwsComponentResponseInput {
                 VehicleComponentId = vehicleComponent.Id,
                 ResponseCode = "INVALIDSCAN",
@@ -66,7 +66,7 @@ namespace SKD.Test {
             await service.SaveDcwsComponentResponse(input);
             await service.SaveDcwsComponentResponse(input_2);
 
-            var csr = await ctx.ComponentSerials.Include(t => t.DcwsResponses)
+            var csr = await context.ComponentSerials.Include(t => t.DcwsResponses)
                 .FirstOrDefaultAsync(t => t.Id == comonentSerial.Id);
 
             var dcws_resposne_count = csr.DcwsResponses.Count();
@@ -83,11 +83,11 @@ namespace SKD.Test {
 
         [Fact]
         public async Task ignores_dcws_response_if_matches_latest_entry() {
-            var vehicle = ctx.Kits.First();
+            var vehicle = context.Kits.First();
             var vehicleComponent = vehicle.KitComponents.First();
             var comonentSerial = Gen_ComponentScan(vehicleComponent.Id);
 
-            var service = new DCWSResponseService(ctx);
+            var service = new DCWSResponseService(context);
             var input = new DcwsComponentResponseInput {
                 VehicleComponentId = vehicleComponent.Id,
                 ResponseCode = "INVALIDSCAN",
@@ -98,7 +98,7 @@ namespace SKD.Test {
             await service.SaveDcwsComponentResponse(input);
             await service.SaveDcwsComponentResponse(input);
 
-            var csr = await ctx.ComponentSerials.Include(t => t.DcwsResponses)
+            var csr = await context.ComponentSerials.Include(t => t.DcwsResponses)
               .FirstOrDefaultAsync(t => t.Id == comonentSerial.Id);
 
             var dcws_resposne_count = csr.DcwsResponses.Count();
