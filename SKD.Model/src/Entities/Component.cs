@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace SKD.Model {
 
-public enum DcwsSerialCaptureRule {
+    public enum DcwsSerialCaptureRule {
         UNKNOWN,
         SERIAL_1_ONLY,
         SERIAL_1_AND_2,
         NOT_REQUIED,
-    }    
+    }
     public class Component : EntityBase {
         public string Code { get; set; } = "";
         public string Name { get; set; } = "";

@@ -5,5 +5,6 @@ namespace SKD.Dcws {
         public string Serial1 { get; set; }
         public string Serial2 { get; set; }
         public string ProcessExceptionCode { get; set; }
+        public string Error { get; set; }
     }
 }
