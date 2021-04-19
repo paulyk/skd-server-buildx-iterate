@@ -21,25 +21,16 @@ namespace SKD.Dcws {
 
         public async Task<SubmitDcwsComponentRespnse> SubmitDcwsComponent(SubmitDcwsComponentInput input) {
 
-            var serial1 = "";
-
+            var serial1 = input.Serial1;
             
             // Serial1: Reformat if TR otherwise use as is.
             if (input.ComponentTypeCode == "TR") {
                 var formatter = new TR_SerialFormatter();
                 var result = formatter.Format_TR_Serial(input.Serial1);
-                if (!result.Success || !result.ValidTRCode) {
-                    return new SubmitDcwsComponentRespnse {
-                        VIN = input.VIN,
-                        ComponentTypeCode = input.ComponentTypeCode,
-                        Serial1 = input.Serial1,
-                        Serial2 = input.Serial2,
-                        ProcessExceptionCode = "",
-                        Error = result.ValidTRCode ? "Invalid TR Serial" : "Could not transofmr TR Serial"
-                    };
+                if (!result.Success) {
+                    throw new System.Exception($"Error transforming TR serial");
                 }
-            } else {
-                serial1 = input.Serial1;
+                serial1 = result.Serial;
             }
 
             var payload = await client.SaveCDCComponentAsync(
@@ -66,6 +57,5 @@ namespace SKD.Dcws {
                 ProcessExceptionCode = processExecption
             };
         }
-
     }
 }
