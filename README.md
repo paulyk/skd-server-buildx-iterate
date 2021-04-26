@@ -68,6 +68,10 @@ dotnet tool update --global dotnet-ef
 ```bash
 dotnet ef migrations add <igration-name> -o src/Migrations  --project skd.server 
 ```
+if startup project different from migrations projgect
+```bash
+dotnet ef --startup-project skd.server  migrations add <migraion name> --project skd.model
+```
 
 ### Remove migratins
 
