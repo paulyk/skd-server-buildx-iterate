@@ -7,11 +7,11 @@ namespace SKD.Dcws {
 
     public record Variant(string VariantCode, string InputPattern, string OutputPattern, List<int> Spacing);
 
-    public record FormatResult(string Serial, bool Success);
-
     public class TR_SerialFormatter {
 
         public static int TR_SERIAL_LEN = 39;
+
+        public static string INVALID_SERIAL = "Invalid TR serial";
 
         private List<Variant> Variants = new List<Variant>{
             new Variant(
@@ -23,16 +23,16 @@ namespace SKD.Dcws {
                 InputPattern: @"(\w{16})(\w{4})\s+(\w{4})\s+(\w{2})\s*",
                 OutputPattern: @"",
                 Spacing: new List<int> { 6, 1, 1, 5 }),
-        };
+        };        
 
-        public FormatResult Format_TR_Serial(string serial) {
+        public SerialFormatResult FormatSerial(string serial) {
             if (serial.Length == TR_SERIAL_LEN) {
-                return new FormatResult(serial, true);
+                return new SerialFormatResult(serial, true, "");
             }
 
             var varient = GetVariant(serial);
             if (varient == null) {
-                throw new Exception("Unknown TR variant");
+                return new SerialFormatResult(serial, false, INVALID_SERIAL);
             }
 
 
@@ -41,19 +41,17 @@ namespace SKD.Dcws {
                         var newSerial = Format_Variant_6R80(serial, varient);
                         // verify
                         var matches = Matches(newSerial, varient.OutputPattern);
-                        if (!matches) {
-                            Console.WriteLine("does not match");
-                        }
-
-                        return new FormatResult(newSerial, newSerial.Length == TR_SERIAL_LEN);
+                        return new SerialFormatResult(newSerial, newSerial.Length == TR_SERIAL_LEN, "");
                     }
                 case "10R80": {
                         var newSerial = Format_Variant_10R80(serial, varient);
-                        return new FormatResult(newSerial, newSerial.Length == TR_SERIAL_LEN);
+                        return new SerialFormatResult(newSerial, newSerial.Length == TR_SERIAL_LEN, "");
                     }
+                default: return new SerialFormatResult(serial, false, INVALID_SERIAL);
             }
 
-            throw new Exception("Unknown TR variant");
+
+            // 
         }
 
         public Variant GetVariant(string str) {

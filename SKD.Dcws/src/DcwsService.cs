@@ -26,7 +26,7 @@ namespace SKD.Dcws {
             // Serial1: Reformat if TR otherwise use as is.
             if (input.ComponentTypeCode == "TR") {
                 var formatter = new TR_SerialFormatter();
-                var result = formatter.Format_TR_Serial(input.Serial1);
+                var result = formatter.FormatSerial(input.Serial1);
                 if (!result.Success) {
                     throw new System.Exception($"Error transforming TR serial");
                 }
