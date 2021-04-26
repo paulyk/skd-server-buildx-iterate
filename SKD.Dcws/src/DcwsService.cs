@@ -21,22 +21,11 @@ namespace SKD.Dcws {
 
         public async Task<SubmitDcwsComponentRespnse> SubmitDcwsComponent(SubmitDcwsComponentInput input) {
 
-            var serial1 = input.Serial1;
-            
-            // Serial1: Reformat if TR otherwise use as is.
-            if (input.ComponentTypeCode == "TR") {
-                var formatter = new TR_SerialFormatter();
-                var result = formatter.FormatSerial(input.Serial1);
-                if (!result.Success) {
-                    throw new System.Exception($"Error transforming TR serial");
-                }
-                serial1 = result.Serial;
-            }
 
             var payload = await client.SaveCDCComponentAsync(
                 vin: input.VIN,
                 componentTypeCode: input.ComponentTypeCode,
-                scan1: serial1,
+                scan1: input.Serial1,
                 scan2: input.Serial2,
                 //
                 acceptIfComponentNotRequired: false,
