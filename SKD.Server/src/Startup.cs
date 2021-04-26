@@ -53,7 +53,8 @@ namespace SKD.Server {
                 .AddScoped<ComponentService>()
                 .AddScoped<DCWSResponseService>()
                 .AddScoped<ProductionStationService>()
-                .AddScoped<ComponentSerialService>()
+                .AddScoped<ComponentSerialService>(sp => 
+                    new ComponentSerialService(sp.GetRequiredService<SkdContext>(), new DcwsSerialFormatter()))
                 .AddScoped<ShipmentService>()
                 .AddScoped<BomService>()
                 .AddScoped<PlantService>()

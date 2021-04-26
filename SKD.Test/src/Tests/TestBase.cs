@@ -295,10 +295,10 @@ namespace SKD.Test {
             var plant = bom.Plant;
             var lot = Gen_Lot(bom.Id, model.Id, auto_assign_vin: auto_assign_vin);
 
-            var vehicle = context.Kits
+            var kit = context.Kits
                 .Include(t => t.Lot)
                 .First(t => t.Lot.Id == lot.Id);
-            return vehicle;
+            return kit;
         }
 
         public void SetEntityCreatedAt<T>(Guid id, DateTime date) where T : EntityBase {

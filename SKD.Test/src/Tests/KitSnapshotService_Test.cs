@@ -5,6 +5,7 @@ using Xunit;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using SKD.Dcws;
 
 namespace SKD.Test {
     public class KitSnapshotServiceTest : TestBase {
@@ -364,7 +365,7 @@ namespace SKD.Test {
             Assert.Equal(1, payload.Entity.Sequence);
 
             snapshotInput.RunDate = run_date_2;
-            payload= await service.GenerateSnapshot(snapshotInput);
+            payload = await service.GenerateSnapshot(snapshotInput);
             Assert.Equal(2, payload.Entity.Sequence);
 
 
@@ -474,24 +475,6 @@ namespace SKD.Test {
             return payload.Entries.ToList();
         }
 
-        private async Task AddEngineSerialNumberComponentScan(string kitNo, string engineComponentCode, string engineSerial) {
-            var engineVehicleComponent = context.KitComponents
-                .First(t => t.Kit.KitNo == kitNo && t.Component.Code == engineComponentCode);
-            var scanService = new ComponentSerialService(context);
-            var createScanPayload = await scanService.CaptureComponentSerial(new ComponentSerialInput {
-                KitComponentId = engineVehicleComponent.Id,
-                Serial1 = engineSerial,
-                Serial2 = ""
-            });
-
-            var componentSerialResult = createScanPayload.Entity;
-            var dcwsService = new DCWSResponseService(context);
-            await dcwsService.SaveDcwsComponentResponse(new DcwsComponentResponseInput {
-                VehicleComponentId = componentSerialResult.ComponentSerialId,
-                ResponseCode = "NONE",
-                ErrorMessage = ""
-            });
-        }
         private async Task<MutationPayload<KitTimelineEvent>> AddKitTimelineEntry(
             TimeLineEventType eventType,
             string kitNo,

@@ -16,6 +16,8 @@ namespace SKD.Model {
             builder.Property(t => t.Serial1).HasMaxLength(EntityFieldLen.ComponentSerial);
             builder.Property(t => t.Serial2).HasMaxLength(EntityFieldLen.ComponentSerial);
 
+            builder.Property(t => t.Original_Serial1).HasMaxLength(EntityFieldLen.ComponentSerial);
+
             builder.HasOne(t => t.KitComponent)
                 .WithMany(t => t.ComponentSerials)
                 .HasForeignKey(t => t.KitComponentId);

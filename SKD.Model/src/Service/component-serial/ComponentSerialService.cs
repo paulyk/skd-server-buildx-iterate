@@ -6,13 +6,18 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using SKD.Dcws;
 
 namespace SKD.Model {
 
     public class ComponentSerialService {
         private readonly SkdContext context;
+        private readonly DcwsSerialFormatter serialFormatter;
 
-        public ComponentSerialService(SkdContext ctx) => this.context = ctx;
+        public ComponentSerialService(SkdContext ctx, DcwsSerialFormatter serialFormatter) {
+             this.context = ctx;
+             this.serialFormatter = serialFormatter;
+        }
 
         public async Task<MutationPayload<ComponentSerialDTO>> CaptureComponentSerial(ComponentSerialInput input) {
             input = SwapSerial(input);
@@ -24,10 +29,24 @@ namespace SKD.Model {
                 return payload;
             }
 
+            var kitComponent = await context.KitComponents
+                .Include(t => t.Component)
+                .FirstOrDefaultAsync(t => t.Id == input.KitComponentId);
+
+            // Some serial1 must be formatted acording to DCWS rules
+            // The following formats EN / TR serials if they need adjusting
+            // Other compoent serials are returned unchanged.
+            var formatSerialResult = serialFormatter.FormatSerial(kitComponent.Component.Code, input.Serial1);
+
+            // create
             var componentSerial = new ComponentSerial {
-                Serial1 = input.Serial1,
+                KitComponentId = input.KitComponentId,
+                Serial1 = formatSerialResult.Serial,
                 Serial2 = input.Serial2,
-                KitComponentId = input.KitComponentId
+                // only set Origian_Serial1 if it is different
+                Original_Serial1 = formatSerialResult.Serial != input.Serial1 
+                    ? input.Serial1
+                    : "", 
             };
 
             // Deactivate existing scan if Replace == true
@@ -71,7 +90,7 @@ namespace SKD.Model {
             if (targetKitCmponent == null) {
                 errors.Add(new Error("KitComponentId", $"kit component not found: {input.KitComponentId}"));
                 return errors;
-            }
+            }            
 
             if (targetKitCmponent.RemovedAt != null) {
                 errors.Add(new Error("KitComponentId", $"kit component removed: {input.KitComponentId}"));
@@ -87,6 +106,16 @@ namespace SKD.Model {
             // serial not null and numbers identical 
             if (input.Serial1 is not null or "" && input.Serial1 == input.Serial2) {
                 errors.Add(new Error("", "serial 1 and 2 are the same"));
+                return errors;
+            }
+
+            // EN / TR serial 
+            var kitComponent = await context.KitComponents
+                .Include(t => t.Component)
+                .FirstOrDefaultAsync(t => t.Id == input.KitComponentId);
+            var formatResult = serialFormatter.FormatSerial(kitComponent.Component.Code, input.Serial1);
+            if (!formatResult.Success) {
+                errors.Add(new Error("", formatResult.Message));
                 return errors;
             }
 
