@@ -155,5 +155,14 @@ namespace SKD.Server {
             [Service] HandlingUnitService service,
             ReceiveHandlingUnitInput input
         ) => await service.SetHandlingUnitReceived(input);
+
+
+        // tmp
+
+        public record ApplyComponentSerialFormatInput (Guid Id);
+        public async Task<ComponentSerial> ApplyComponentSerialFormat(
+            [Service] ComponentSerialService service,
+            ApplyComponentSerialFormatInput input
+        ) => await service.ApplyComponentSerialFormat(input.Id);
     }
 }

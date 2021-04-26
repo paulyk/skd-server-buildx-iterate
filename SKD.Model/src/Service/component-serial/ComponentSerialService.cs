@@ -248,6 +248,26 @@ namespace SKD.Model {
             return input;
         }
 
+        public async Task<ComponentSerial> ApplyComponentSerialFormat(Guid componentSerialId) {
+            var cs = await context.ComponentSerials
+                .Include(t => t.KitComponent).ThenInclude(t => t.Component)
+                .FirstOrDefaultAsync(t => t.Id == componentSerialId);
+
+            if (cs.KitComponent.Component.Code != "EN") {
+                throw new Exception("EN Component only");
+            }
+
+            var formatResult = serialFormatter.FormatSerial(cs.KitComponent.Component.Code, cs.Serial1);
+            if (!formatResult.Success) {
+                throw new Exception("Could not trasform: " + formatResult.Message);
+            }
+            cs.Original_Serial1 = cs.Serial1;
+            cs.Serial1 = formatResult.Serial;
+
+            await context.SaveChangesAsync();
+            return cs;
+        }
+
         public async Task<BasicKitInfo?> GetBasicKitInfo(string vin) {
             var result = await context.Kits
                 .Where(t => t.VIN == vin)
