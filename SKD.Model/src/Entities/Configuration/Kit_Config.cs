@@ -13,7 +13,7 @@ namespace SKD.Model {
             builder.HasIndex(t => t.KitNo).IsUnique();
             builder.HasIndex(t => t.VIN);
 
-            builder.Property(t => t.KitNo).IsRequired().HasMaxLength(EntityFieldLen.Vehicle_KitNo);
+            builder.Property(t => t.KitNo).IsRequired().HasMaxLength(EntityFieldLen.KitNo);
             builder.Property(t => t.VIN).HasMaxLength(EntityFieldLen.VIN);
 
             builder.HasOne(t => t.Lot)

@@ -10,8 +10,10 @@ namespace SKD.Model {
             builder.HasKey(t => t.Id);
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
 
-            builder.Property(t => t.LotNo).HasMaxLength(EntityFieldLen.Vehicle_LotNo);
+            builder.Property(t => t.LotNo).HasMaxLength(EntityFieldLen.LotNo);
             builder.HasIndex(t => t.LotNo).IsUnique();
+
+            builder.Property(t => t.Note).HasMaxLength(EntityFieldLen.LotNote);
 
             // relationships            
             builder.HasOne(t => t.Model)
@@ -39,7 +41,6 @@ namespace SKD.Model {
             builder.HasMany(t => t.ShipmentLots)
                 .WithOne(t => t.Lot)
                 .HasForeignKey(t => t.LotId);
-
         }
     }
 }

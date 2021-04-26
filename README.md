@@ -77,6 +77,7 @@ dotnet ef --startup-project skd.server  migrations add <migraion name> --project
 
 ```bash
 dotnet ef migrations remove --project skd.server
+otnet ef --startup-project skd.server  migrations remove --project skd.model   
 ```
 
 ### Update database

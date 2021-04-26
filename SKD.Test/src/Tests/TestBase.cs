@@ -374,7 +374,7 @@ namespace SKD.Test {
             var suffix = kitSequence.ToString().PadLeft(2, '0');
             return
                 prefix +
-                Util.RandomString(EntityFieldLen.Vehicle_KitNo - (prefix.Length + suffix.Length)).ToUpper() +
+                Util.RandomString(EntityFieldLen.KitNo - (prefix.Length + suffix.Length)).ToUpper() +
                 suffix;
         }
         public string Gen_VehicleModel_Code() {

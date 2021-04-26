@@ -20,7 +20,7 @@ namespace SKD.Test {
             var plant = Gen_Plant();
 
             var bomLotPartInput = Gen_BomLotPartInput(plant.Code);
-            var bomService = new BomService(context);
+            var bomService = new LotService(context);
             await bomService.ImportBomLotParts(bomLotPartInput);
 
             var shipmentInput = Gen_ShipmentInput_From_BomLotPartInput(bomLotPartInput);
@@ -59,7 +59,7 @@ namespace SKD.Test {
             var plant = Gen_Plant();
 
             var bomLotPartInput = Gen_BomLotPartInput(plant.Code);
-            var bomService = new BomService(context);
+            var bomService = new LotService(context);
             await bomService.ImportBomLotParts(bomLotPartInput);
 
             var shipmentInput = Gen_ShipmentInput_From_BomLotPartInput(bomLotPartInput);
@@ -107,7 +107,7 @@ namespace SKD.Test {
             var plant = Gen_Plant();
 
             var bomLotPartInput = Gen_BomLotPartInput(plant.Code);
-            var bomService = new BomService(context);
+            var bomService = new LotService(context);
             await bomService.ImportBomLotParts(bomLotPartInput);
 
             var shipmentInput = Gen_ShipmentInput_From_BomLotPartInput(bomLotPartInput);

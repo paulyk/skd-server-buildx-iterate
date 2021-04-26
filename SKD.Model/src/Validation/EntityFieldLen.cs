@@ -3,6 +3,12 @@ namespace SKD.Model {
 
         public static int Id = 36;
         public static int Email = 320;
+
+        public static int LotNo = 15;
+        public static int KitNo = 17;
+        public static int VIN = 17;
+        public static int LotNote = 100;
+
         public static int Component_Code = 10;
         public static int Component_Name = 100;
         public static int Component_SerialCaptureRequirement = 30;
@@ -12,19 +18,14 @@ namespace SKD.Model {
         public static int ProductionStation_Name = 100;
 
         public static int Plant_Code = 5;
+        public static int Partner_Code = 5;
         public static int PartnerPlant_Code = 5;
-
         public static int Plant_Name = 100;
 
 
         public static int Part_No = 30;
         public static int Part_Desc = 50;
 
-        public static int Partner_Code = 5;
-
-        public static int VIN = 17;
-        public static int Vehicle_LotNo = 15;
-        public static int Vehicle_KitNo = 17;
 
         public static int VehicleModel_Code = 11;
         public static int VehicleModel_Name = 100;
@@ -39,7 +40,7 @@ namespace SKD.Model {
 
         public static int CreatedBy = 255;
         public static int VehicleComponent_PrerequisiteSequence = 50;
-        public static int LotNo = 15;
+
         public static int Shipment_InvoiceNo = 11;
         public static int HandlingUnit_Code = 7;
 

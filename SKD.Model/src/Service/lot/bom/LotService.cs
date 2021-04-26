@@ -9,13 +9,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SKD.Model {
 
-    public class BomService {
+    public class LotService {
         private readonly SkdContext context;
 
-        public BomService(SkdContext ctx) {
+        public LotService(SkdContext ctx) {
             this.context = ctx;
         }
-
 
         ///<summary>
         /// Import lot part and quantity associated with a BOM  sequence
@@ -26,7 +25,6 @@ namespace SKD.Model {
             if (payload.Errors.Count > 0) {
                 return payload;
             }
-
 
             var parts = await GetEnsureParts(input);
 
@@ -388,5 +386,31 @@ namespace SKD.Model {
 
             return bom;
         }
+
+        #region lot note
+        public async Task<MutationPayload<Lot>> SetLotNote(LotNoteInput input) {
+            var paylaod = new MutationPayload<Lot>(null);
+            paylaod.Errors = await ValidateSetLotNote(input);
+            if (paylaod.Errors.Any()) {
+                return paylaod;
+            }
+            var lot = await context.Lots.FirstOrDefaultAsync(t => t.LotNo == input.LotNo);
+            lot.Note = input.Note;
+
+            await context.SaveChangesAsync();
+            paylaod.Entity = lot;
+            return paylaod;
+        }
+
+        public async Task<List<Error>> ValidateSetLotNote(LotNoteInput input) {
+            var errors = new List<Error>();
+            var lot = await context.Lots.FirstOrDefaultAsync(t => t.LotNo == input.LotNo);
+
+            if (lot == null) {
+                errors.Add(new Error("LotNo", $"Lot not found {input.LotNo}"));
+            }
+            return errors;
+        }
+        #endregion
     }
 }

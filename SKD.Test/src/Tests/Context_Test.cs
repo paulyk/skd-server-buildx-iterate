@@ -166,7 +166,7 @@ namespace SKD.Test {
 
                 // lot
                 var model = ctx.VehicleModels.First();
-                var lotNo = new String('X', EntityFieldLen.Vehicle_LotNo);
+                var lotNo = new String('X', EntityFieldLen.LotNo);
                 var lot = new Lot { 
                     LotNo = Gen_LotNo(model.Code, 1),
                     Model = model,

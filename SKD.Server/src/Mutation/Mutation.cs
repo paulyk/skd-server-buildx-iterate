@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Data;
 
+
 namespace SKD.Server {
     public class Mutation {
 
@@ -91,12 +92,12 @@ namespace SKD.Server {
 
 
         public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotKits(
-            [Service] BomService service,
+            [Service] LotService service,
             BomLotKitInput input
        ) => await service.ImportBomLotKits(input);
 
         public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotParts(
-            [Service] BomService service,
+            [Service] LotService service,
             BomLotPartInput input
        ) => await service.ImportBomLotParts(input);
 
@@ -164,5 +165,10 @@ namespace SKD.Server {
             [Service] ComponentSerialService service,
             ApplyComponentSerialFormatInput input
         ) => await service.ApplyComponentSerialFormat(input.Id);
+
+        public async Task<MutationPayload<Lot>> SetLotNote(
+            [Service] LotService service,
+            LotNoteInput input
+        ) => await service.SetLotNote(input);
     }
 }

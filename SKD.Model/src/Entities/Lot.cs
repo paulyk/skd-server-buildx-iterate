@@ -4,6 +4,7 @@ using System.Collections.Generic;
 namespace SKD.Model {
     public partial class Lot : EntityBase {
         public string LotNo { get; set; } = "";
+        public string Note { get; set; } = "";
         
         public Guid PlantId { get; set; }        
         public virtual Plant Plant { get; set; }
