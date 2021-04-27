@@ -7,6 +7,7 @@ namespace SKD.Server {
         public Guid BomId { get; set; }
         public int BomSequenceNo { get; set; }
         public string LotNo { get; set; } = "";
+        public string Note { get; set; } = "";
         public string PlantCode { get; set; } = "";
         public string ModelCode { get; set; } = "";
         public string ModelName { get; set; } = "";

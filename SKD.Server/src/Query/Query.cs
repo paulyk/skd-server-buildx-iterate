@@ -278,6 +278,7 @@ namespace SKD.Server {
             return new LotOverviewDTO {
                 Id = lot.Id,
                 LotNo = lot.LotNo,
+                Note = lot.Note,
                 BomId = lot.Bom.Id,
                 BomSequenceNo = lot.Bom.Sequence,
                 PlantCode = lot.Plant.Code,
