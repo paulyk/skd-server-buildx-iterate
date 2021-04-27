@@ -15,8 +15,8 @@ namespace SKD.Model {
         private readonly DcwsSerialFormatter serialFormatter;
 
         public ComponentSerialService(SkdContext ctx, DcwsSerialFormatter serialFormatter) {
-             this.context = ctx;
-             this.serialFormatter = serialFormatter;
+            this.context = ctx;
+            this.serialFormatter = serialFormatter;
         }
 
         public async Task<MutationPayload<ComponentSerialDTO>> CaptureComponentSerial(ComponentSerialInput input) {
@@ -24,7 +24,7 @@ namespace SKD.Model {
 
             var payload = new MutationPayload<ComponentSerialDTO>(null);
 
-            payload.Errors = await ValidateCaptureComponentSerial<ComponentSerialInput>(input);
+            payload.Errors = await ValidateCaptureComponentSerial<ComponentSerialInput>(input with { });
             if (payload.Errors.Count() > 0) {
                 return payload;
             }
@@ -44,9 +44,9 @@ namespace SKD.Model {
                 Serial1 = formatSerialResult.Serial,
                 Serial2 = input.Serial2,
                 // only set Origian_Serial1 if it is different
-                Original_Serial1 = formatSerialResult.Serial != input.Serial1 
+                Original_Serial1 = formatSerialResult.Serial != input.Serial1
                     ? input.Serial1
-                    : "", 
+                    : "",
             };
 
             // Deactivate existing scan if Replace == true
@@ -90,7 +90,7 @@ namespace SKD.Model {
             if (targetKitCmponent == null) {
                 errors.Add(new Error("KitComponentId", $"kit component not found: {input.KitComponentId}"));
                 return errors;
-            }            
+            }
 
             if (targetKitCmponent.RemovedAt != null) {
                 errors.Add(new Error("KitComponentId", $"kit component removed: {input.KitComponentId}"));
@@ -109,11 +109,14 @@ namespace SKD.Model {
                 return errors;
             }
 
-            // EN / TR serial 
+            // Transform input.Serial1 before continuing the validateion
             var kitComponent = await context.KitComponents
                 .Include(t => t.Component)
                 .FirstOrDefaultAsync(t => t.Id == input.KitComponentId);
             var formatResult = serialFormatter.FormatSerial(kitComponent.Component.Code, input.Serial1);
+            // set input.Serial1 to the formatted result before proceeding with the validation
+            input = input with { Serial1 = formatResult.Serial };
+
             if (!formatResult.Success) {
                 errors.Add(new Error("", formatResult.Message));
                 return errors;
@@ -225,9 +228,9 @@ namespace SKD.Model {
             if (prior_kit_components_with_same_compoent_code_different_serial_numbers.Any()) {
                 var entry = prior_kit_components_with_same_compoent_code_different_serial_numbers
                     .OrderByDescending(t => t.Sequence)
-                    .Last();                    
+                    .Last();
                 var text = $"serial does not match previous station: {entry.StationCode}, {entry.Serial1}, {entry.Serial2}";
-                errors.Add(new Error("",text.Trim(' ',',')));
+                errors.Add(new Error("", text.Trim(' ', ',')));
                 return errors;
             }
 
@@ -235,11 +238,13 @@ namespace SKD.Model {
         }
 
         private ComponentSerialInput SwapSerial(ComponentSerialInput input) {
-            input.Serial1 = input.Serial1 is null or "" ? "" : input.Serial1;
-            input.Serial2 = input.Serial2 is null or "" ? "" : input.Serial2;
+            input = input with {
+                Serial1 = input.Serial1 is null or "" ? "" : input.Serial1,
+                Serial2 = input.Serial2 is null or "" ? "" : input.Serial2
+            };
 
             if (input.Serial1.Trim().Length == 0) {
-                return new ComponentSerialInput {
+                return input with {
                     KitComponentId = input.KitComponentId,
                     Serial1 = input.Serial2,
                     Serial2 = ""

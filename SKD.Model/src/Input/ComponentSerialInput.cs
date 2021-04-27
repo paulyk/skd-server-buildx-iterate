@@ -1,10 +1,10 @@
 using System;
 
 namespace SKD.Model {
-    public class ComponentSerialInput {
-        public Guid KitComponentId { get; set; }
-        public string Serial1 { get; set; } = "";
-        public string Serial2 { get; set; } = "";
-        public Boolean Replace { get; set; } 
-    }
+    public record ComponentSerialInput (
+        Guid KitComponentId,
+        string Serial1, 
+        string Serial2 = "",
+        Boolean Replace = false
+    );
 }
