@@ -8,7 +8,7 @@ Record and post component sseiral data to Fords "Data Collection Web Service"
 * skd.model
 * skd.dcws
 * skd.test
-* skd.seed
+* skd.seed  // generate ref data
 * skd.test
 
 ## run
@@ -19,16 +19,8 @@ dotnet run --project SKD.Server
 
 ## dev database and connections string
 
-Run the following to start/ stop dev db server
 
-```bash
-docker-compose  -f docker-compose.dev.yml up -d
-docker-compose  -f docker-compose.dev.yml down
-```
-
-Create your own `developer.json`
-
-Each developer should have their own version of this `developer.json`
+Create your own `touch src/skd-server/developer.json`
 
 ```json
 {
@@ -44,15 +36,49 @@ Each developer should have their own version of this `developer.json`
 2. run server
 
 ```bash
-docker-compose  -f docker-compose.dev.yml up -d
+docker-compose  -f docker-compose.dev.yml up -d mssql
 dotnet run --project SKD.Server
 ```
 
-## seed with mock data
+## generate test data
+
+1. create the db `dotnet ef...`
+2. start the server
+3. generate components and production stations
+4. generate production plants
+5. import BOM/Lots and shipments
+
+### create the DB
+
+dotnet ef database update --project skd.server
+
+### start the server
+
+From solution folder
 
 ```bash
-curl https://localhost:5101/seed_mock_data -X POST -d "{}"
+dotnet run --project skd.server
 ```
+
+### Create component and stations 
+```bash
+curl http://localhost:5100/gen_ref_data -X POST -d "{}"
+```
+
+### Create production plants
+
+```bash
+curl \
+-X POST \
+-H "Content-Type: application/json" \
+--data '{"query":"mutation {\n  createPlant(input:{\n    code:\"HPUDA\",\n    name:\"RMA CML\"\n  }) {\n    entity {\n      id\n      code\n      createdAt\n    }\n    errors {\n      path\n      message\n    }\n  }\n}"}' \
+http://localhost:5100/graphql
+```
+
+### import LOT and Shipments
+
+Todo...
+
 
 ## Database migration
 
