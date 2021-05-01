@@ -157,6 +157,14 @@ namespace SKD.Server {
             [Service] SkdContext context
         ) => context.KitVinImports;
 
+        [UsePaging(MaxPageSize = 10000)]
+        [UseProjection]
+        [UseFiltering]
+        [UseSorting]
+        public IQueryable<kitSnapshotRun> GetKitSnapshotRuns(
+            [Service] SkdContext context
+        ) => context.KitSnapshotRuns;
+
         public async Task<ShipmentOverviewDTO?> GetShipmentOverview(
             [Service] ShipmentService service,
             Guid shipmentId
