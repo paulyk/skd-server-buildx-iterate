@@ -157,7 +157,11 @@ namespace SKD.Test {
                 ctx.SaveChanges();
 
                 // plant
-                var plant = new Plant { Code = Gen_PlantCode() };
+                var plant = new Plant { 
+                    Code = Gen_PlantCode(), 
+                    PartnerPlantCode = Gen_PartnerPLantCode(), 
+                    PartnerPlantType = Gen_PartnerPlantType() 
+                };
                 ctx.Plants.Add(plant);
 
                 // bom
@@ -167,11 +171,12 @@ namespace SKD.Test {
                 // lot
                 var model = ctx.VehicleModels.First();
                 var lotNo = new String('X', EntityFieldLen.LotNo);
-                var lot = new Lot { 
+                var lot = new Lot {
                     LotNo = Gen_LotNo(model.Code, 1),
                     Model = model,
-                    Bom = bom, 
-                    Plant = plant };
+                    Bom = bom,
+                    Plant = plant
+                };
                 ctx.Lots.Add(lot);
 
                 // kit 

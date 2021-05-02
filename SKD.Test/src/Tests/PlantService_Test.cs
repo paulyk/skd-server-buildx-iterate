@@ -18,6 +18,8 @@ namespace SKD.Test {
             // setup
             var input = new PlantInput {
                 Code = Gen_PlantCode(),
+                PartnerPlantCode = Gen_PartnerPlantCode(),
+                PartnerPlantType = Gen_PartnerPlantType(),
                 Name = Get_Code(EntityFieldLen.Plant_Name)
             };
 

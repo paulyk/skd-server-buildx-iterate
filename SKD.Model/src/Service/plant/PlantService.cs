@@ -25,6 +25,8 @@ namespace SKD.Model {
 
             var plant = new Plant {
                 Code = input.Code,
+                PartnerPlantCode = input.PartnerPlantCode,
+                PartnerPlantType = input.PartnerPlantType,
                 Name = input.Name
             };
             context.Plants.Add(plant);
@@ -63,6 +65,16 @@ namespace SKD.Model {
             var duplicateName = await context.Plants.AnyAsync(t => t.Name == input.Name);
             if (duplicateName) {
                 errors.Add(new Error("Code", "dupicate plant name"));
+                return errors;
+            }
+
+            if (String.IsNullOrEmpty(input.PartnerPlantCode)) {
+                errors.Add(new Error("Code", "Parnter plant code required"));
+                return errors;
+            }
+
+            if (String.IsNullOrEmpty(input.PartnerPlantType)) {
+                errors.Add(new Error("Code", "Parnter plant type required"));
                 return errors;
             }
 

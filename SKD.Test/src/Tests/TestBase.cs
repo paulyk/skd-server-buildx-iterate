@@ -137,6 +137,8 @@ namespace SKD.Test {
 
             var plant = new Plant {
                 Code = plantCode,
+                PartnerPlantCode =  Gen_PartnerPLantCode(),
+                PartnerPlantType = Gen_PartnerPlantType(),
                 Name = $"{plantCode} name"
             };
             context.Plants.Add(plant);
@@ -396,6 +398,14 @@ namespace SKD.Test {
         public string Gen_PlantCode() {
             return Util.RandomString(EntityFieldLen.Plant_Code).ToUpper();
         }
+        public string Gen_PartnerPlantCode() {
+            return Util.RandomString(EntityFieldLen.PartnerPlant_Code).ToUpper();
+        }
+
+        public string Gen_PartnerPlantType() {
+            return Util.RandomString(EntityFieldLen.PartnerPlant_Type).ToUpper();
+        }
+
         public string Get_PlantCode() {
             return Util.RandomString(EntityFieldLen.Plant_Code).ToUpper();
         }

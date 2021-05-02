@@ -139,6 +139,8 @@ namespace SKD.Model {
         private KitSnapshotRunDTO BuildKitSnapshotgRunDTO(kitSnapshotRun snapshotRun) {
             var dto = new KitSnapshotRunDTO {
                 PlantCode = snapshotRun.Plant.Code,
+                PartnerPlantCode= snapshotRun.Plant.PartnerPlantCode,
+                PartnerPlantType = snapshotRun.Plant.PartnerPlantType,
                 RunDate = snapshotRun.RunDate.Date,
                 Sequence = snapshotRun.Sequence,
                 Entries = new List<KitSnapshotRunDTO.Entry>()

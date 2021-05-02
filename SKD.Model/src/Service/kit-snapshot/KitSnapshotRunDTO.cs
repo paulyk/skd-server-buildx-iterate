@@ -22,6 +22,8 @@ namespace SKD.Model {
         public DateTime RunDate { get; set; }
         public int Sequence { get; set; }
         public string PlantCode { get; set; }
+        public string PartnerPlantCode { get; set; }
+        public string PartnerPlantType { get; set; }
         public ICollection<Entry> Entries { get; set; } = new List<Entry>();
         public class Entry {
             public PartnerStatus_ChangeStatus TxType { get; set; }

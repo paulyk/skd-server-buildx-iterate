@@ -16,6 +16,9 @@ namespace SKD.Model {
             builder.Property(t => t.Code).IsRequired().HasMaxLength(EntityFieldLen.Plant_Code);
             builder.Property(t => t.Name).HasMaxLength(EntityFieldLen.Plant_Name);
 
+            builder.Property(t => t.PartnerPlantCode).IsRequired().HasMaxLength(EntityFieldLen.PartnerPlant_Code);
+            builder.Property(t => t.PartnerPlantType).IsRequired().HasMaxLength(EntityFieldLen.PartnerPlant_Type);
+
             // relationships        
             builder.HasMany(t => t.Lots)
                 .WithOne(t => t.Plant)
