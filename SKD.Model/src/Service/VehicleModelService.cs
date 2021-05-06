@@ -15,6 +15,7 @@ namespace SKD.Model {
         public VehicleModelService(SkdContext ctx) {
             this.context = ctx;
         }
+
         public async Task<MutationPayload<VehicleModel>> SaveVehicleModel(VehicleModelInput input) {
             var payload = new MutationPayload<VehicleModel>(null);
             payload.Errors = await ValidateSaveVehicleModel(input);
@@ -38,17 +39,17 @@ namespace SKD.Model {
 
             // current_pairs, 
             var current_pairs = vehicleModel.ModelComponents.Any()
-                ? vehicleModel.ModelComponents.Select(t => new Pair {
-                    Component = t.Component.Code,
-                    Station = t.ProductionStation.Code
-                }).ToList()
-                : new List<Pair>();
+                ? vehicleModel.ModelComponents.Select(t => new ComponentStationPair(
+                    ComponentCode: t.Component.Code,
+                    StationCode: t.ProductionStation.Code
+                  )).ToList()
+                : new List<ComponentStationPair>();
 
             // incomming_pairs
-            var incomming_pairts = input.ComponentStationInputs.Select(t => new Pair {
-                Component = t.ComponentCode,
-                Station = t.ProductionStationCode
-            }).ToList();
+            var incomming_pairts = input.ComponentStationInputs.Select(t => new ComponentStationPair(
+                ComponentCode: t.ComponentCode,
+                StationCode: t.ProductionStationCode
+            )).ToList();
 
             // to_remove, to_add
             var to_remove = current_pairs.Except(incomming_pairts).ToList();
@@ -62,20 +63,22 @@ namespace SKD.Model {
             // remove
             foreach (var entry in vehicle_model_components
                 .Where(t => t.RemovedAt == null)
-                .Where(t => to_remove.Any(tr => tr.Component == t.Component.Code && tr.Station == t.ProductionStation.Code))
+                .Where(t => to_remove.Any(tr => tr.ComponentCode == t.Component.Code && tr.StationCode == t.ProductionStation.Code))
                 .ToList()) {
                 entry.RemovedAt = DateTime.UtcNow;
             }
 
             // add             
             foreach (var ta in to_add) {
-                var existing = vehicle_model_components.FirstOrDefault(t => t.Component.Code == ta.Component && t.ProductionStation.Code == ta.Station);
+                var existing = vehicle_model_components
+                    .Where(t => t.Component.Code == ta.ComponentCode && t.ProductionStation.Code == ta.StationCode)
+                    .FirstOrDefault();
                 if (existing != null) {
                     existing.RemovedAt = null;
                 } else {
                     var modelComponent = new VehicleModelComponent {
-                        Component = await context.Components.FirstOrDefaultAsync(t => t.Code == ta.Component),
-                        ProductionStation = await context.ProductionStations.FirstOrDefaultAsync(t => t.Code == ta.Station)
+                        Component = await context.Components.FirstOrDefaultAsync(t => t.Code == ta.ComponentCode),
+                        ProductionStation = await context.ProductionStations.FirstOrDefaultAsync(t => t.Code == ta.StationCode)
                     };
                     vehicleModel.ModelComponents.Add(modelComponent);
                 }
@@ -85,11 +88,6 @@ namespace SKD.Model {
             await context.SaveChangesAsync();
             payload.Entity = vehicleModel;
             return payload;
-        }
-
-        struct Pair {
-            public string Component { get; set; }
-            public string Station { get; set; }
         }
 
         public async Task<List<Error>> ValidateSaveVehicleModel<T>(T input) where T : VehicleModelInput {
@@ -123,7 +121,7 @@ namespace SKD.Model {
             var modelComponentCodes = input.ComponentStationInputs.Select(t => t.ComponentCode).ToList();
             var missingComponentCodes = modelComponentCodes.Except(existingComponentCodes);
             if (missingComponentCodes.Any()) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"unknown component codes {String.Join(", ", missingComponentCodes)}"));                
+                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"unknown component codes {String.Join(", ", missingComponentCodes)}"));
             }
 
             // unknown production station codes
@@ -131,7 +129,7 @@ namespace SKD.Model {
             var modelStationCodes = input.ComponentStationInputs.Select(t => t.ComponentCode).ToList();
             var missingStationCodes = modelStationCodes.Except(existingStationCodes);
             if (missingStationCodes.Any()) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"unknown production station codes {String.Join(", ", missingStationCodes)}"));                
+                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"unknown production station codes {String.Join(", ", missingStationCodes)}"));
             }
 
             // 
@@ -143,7 +141,7 @@ namespace SKD.Model {
                 // adding a new component, so look for duplicate
                 if (await context.VehicleModels.AnyAsync(t => t.Code == input.Code)) {
                     errors.Add(ErrorHelper.Create<T>(t => t.Code, "duplicate code"));
-                }                
+                }
             }
 
             // duplicate name
@@ -155,7 +153,7 @@ namespace SKD.Model {
                 // adding a new component, so look for duplicate
                 if (await context.VehicleModels.AnyAsync(t => t.Name == input.Name)) {
                     errors.Add(ErrorHelper.Create<T>(t => t.Name, "duplicate name"));
-                }                
+                }
             }
 
             // components required
@@ -179,6 +177,118 @@ namespace SKD.Model {
 
             return errors;
         }
+
+        public async Task<MutationPayload<Kit>> SyncKfitModelComponents(string kitNo) {
+            var payload = new MutationPayload<Kit>(null);
+            payload.Errors = await ValidateSyncKitModelComponents(kitNo);
+            if (payload.Errors.Any()) {
+                return payload;
+            }
+
+            var kit = await context.Kits
+                .Include(t => t.KitComponents).ThenInclude(t => t.Component)
+                .Include(t => t.KitComponents).ThenInclude(t => t.ProductionStation)
+                .FirstOrDefaultAsync(t => t.KitNo == kitNo);
+            payload.Entity = kit;
+
+            var diff = await GetKitModelComponentDiff(kitNo);
+
+            if (diff.InKitButNoModel.Any()) {
+                // remove
+                kit.KitComponents.ToList()
+                    .Where(t => t.RemovedAt == null)
+                    .Where(t => diff.InKitButNoModel
+                        .Any(d => d.ComponentCode == t.Component.Code && d.StationCode == t.ProductionStation.Code))
+                    .ToList()
+                    .ForEach(kc => {
+                        kc.RemovedAt = DateTime.UtcNow;
+                    });
+            }
+            if (diff.InModelButNoKit.Any()) {
+                foreach (var entry in diff.InModelButNoKit) {
+                    // chekc if kit component alread exists.
+                    var existingKitComponent = kit.KitComponents                        
+                        .Where(t => t.Component.Code == entry.ComponentCode && t.ProductionStation.Code == entry.StationCode)
+                        .FirstOrDefault();
+
+                    if (existingKitComponent != null) {
+                        existingKitComponent.RemovedAt = null;
+                    } else {
+                        kit.KitComponents.Add(new KitComponent {
+                            Component = await context.Components.FirstAsync(t => t.Code == entry.ComponentCode),
+                            ProductionStation = await context.ProductionStations.FirstOrDefaultAsync(t => t.Code == entry.StationCode)
+                        });
+                    }
+                }
+            }
+
+            await context.SaveChangesAsync();
+
+            return payload;
+        }
+
+        public async Task<List<Error>> ValidateSyncKitModelComponents(string kitNo) {
+            var errors = new List<Error>();
+            var kit = await context.Kits
+                .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
+                .FirstOrDefaultAsync(t => t.KitNo == kitNo);
+            if (kit == null) {
+                errors.Add(new Error("", "Kit not found for " + kitNo));
+                return errors;
+            }
+            if (kit.RemovedAt != null) {
+                errors.Add(new Error("", "kit removed"));
+                return errors;
+            }
+
+            var planBuildEventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == TimeLineEventType.BULD_COMPLETED.ToString());
+            var latestTimelineEvent = kit.TimelineEvents
+                .OrderByDescending(t => t.CreatedAt)
+                .FirstOrDefault();
+
+            if (latestTimelineEvent != null && latestTimelineEvent.EventType.Sequecne >= planBuildEventType.Sequecne) {
+                errors.Add(new Error("", "cannot update kit components if build compplete"));
+                return errors;
+            }
+
+            return errors;
+        }
+
+
+        #region kit model component diff
+        public record ComponentStationPair(string ComponentCode, string StationCode);
+        public record KitModelComponentDiff(
+            List<ComponentStationPair> InModelButNoKit,
+            List<ComponentStationPair> InKitButNoModel
+        );
+        public async Task<KitModelComponentDiff> GetKitModelComponentDiff(string kitNo) {
+
+            var kit = await context.Kits
+                .Include(t => t.Lot)
+                .FirstOrDefaultAsync(t => t.KitNo == kitNo);
+
+            var kitComponents = await context.KitComponents
+                .Where(t => t.Kit.KitNo == kitNo)
+                .Where(t => t.RemovedAt == null)
+                .Select(t => new ComponentStationPair(
+                    t.Component.Code,
+                    t.ProductionStation.Code
+                )).ToListAsync();
+
+            var modelComponents = await context.VehicleModelComponents
+                .Where(t => t.VehicleModelId == kit.Lot.ModelId)
+                .Where(t => t.RemovedAt == null)
+                .Select(t => new ComponentStationPair(
+                    t.Component.Code,
+                    t.ProductionStation.Code
+                )).ToListAsync();
+
+            return new KitModelComponentDiff(
+                InModelButNoKit: modelComponents.Except(kitComponents).ToList(),
+                InKitButNoModel: kitComponents.Except(modelComponents).ToList()
+            );
+        }
+        #endregion
 
     }
 }

@@ -43,8 +43,6 @@ namespace SKD.Seed {
 
             ctx.KitTimelineEventTypes.AddRange(eventTypes);
             await ctx.SaveChangesAsync();
-
-            Console.WriteLine($"Added {ctx.ProductionStations.Count()} vehicle timeline event types");
         }
 
         public async Task Seed_ProductionStations(ICollection<ProductionStation_Mock_DTO> data) {

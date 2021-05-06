@@ -82,15 +82,8 @@ namespace SKD.Model {
 
             // save
             context.KitSnapshotRuns.Add(vehicleSnapshotRun);
-            try {
             var entity = await context.SaveChangesAsync();
-            } catch(Exception? ex) {
-                while(ex != null) {
-                    Console.WriteLine(ex.Message);
-                    ex = ex.InnerException;
-                }
-            }
-
+            
             // input
             payload.Entity = new SnapshotDTO {
                 RunDate = input.RunDate.Value.Date,

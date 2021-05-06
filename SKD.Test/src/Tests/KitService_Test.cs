@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 namespace SKD.Test {
     public class KitServiceTest : TestBase {
 
-
         int planBuildLeadTimeDays = 2;
         public KitServiceTest() {
             context = GetAppDbContext();
@@ -39,7 +38,7 @@ namespace SKD.Test {
             var kits = await context.Kits.Where(t => t.Lot.LotNo == lot.LotNo).ToListAsync();
             var lot_vehicles_count = kits.Count();
             var with_vin_count = kits.Count(t => t.VIN != "");
-            Assert.Equal(0, with_vin_count);
+            Assert.True(0 == with_vin_count);
 
             var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
             var payload = await service.ImportVIN(input);
@@ -50,14 +49,14 @@ namespace SKD.Test {
 
             var kitvin_count = await context.KitVins.CountAsync(t => t.KitVinImportId == kitVinImport.Id);
             var expected_count = input.Kits.Count();
-            Assert.Equal(expected_count, kitvin_count);
+            Assert.True(expected_count == kitvin_count);
 
             // partner code
             Assert.Equal(input.PartnerPlantCode, kitVinImport.PartnerPlantCode);
 
             kits = await context.Kits.Where(t => t.Lot.LotNo == lot.LotNo).ToListAsync();
             with_vin_count = kits.Count(t => t.VIN != "");
-            Assert.Equal(lot_vehicles_count, with_vin_count);
+            Assert.True(lot_vehicles_count == with_vin_count);
         }
 
         [Fact]
@@ -420,7 +419,7 @@ namespace SKD.Test {
         [Fact]
         public async Task can_change_kit_component_production_station() {
             // setup
-            var kit = await  context.Kits
+            var kit = await context.Kits
                 .Include(t => t.KitComponents).ThenInclude(t => t.ProductionStation)
                 .FirstOrDefaultAsync();
             var productionStationCodes = await context.ProductionStations.Select(t => t.Code).ToListAsync();
@@ -429,7 +428,7 @@ namespace SKD.Test {
 
             var service = new KitService(context, DateTime.Now.Date, 6);
 
-            var paylaod = service.ChangeKitComponentProductionStation(new KitComponentProductionStationInput{
+            var paylaod = service.ChangeKitComponentProductionStation(new KitComponentProductionStationInput {
                 KitComponentId = kitComponent.Id,
                 ProductionStationCode = newStationCode
             });
@@ -440,5 +439,127 @@ namespace SKD.Test {
 
             Assert.Equal(newStationCode, kitComponent_2.ProductionStation.Code);
         }
+
+        [Fact]
+        public async Task kit_model_component_diff_works() {
+
+            // setup
+            var service = new VehicleModelService(context);
+
+            var model = await context.VehicleModels
+                .Include(t => t.ModelComponents).ThenInclude(t => t.Component)
+                .Include(t => t.ModelComponents).ThenInclude(t => t.ProductionStation)
+                .FirstAsync();
+
+            var kit = await context.Kits
+                .Include(t => t.KitComponents).ThenInclude(t => t.Component)
+                .Include(t => t.KitComponents).ThenInclude(t => t.ProductionStation)
+                .Where(t => t.Lot.Model.Code == model.Code).FirstOrDefaultAsync();
+
+            var diff = await service.GetKitModelComponentDiff(kit.KitNo);
+            Assert.True(0 == diff.InModelButNoKit.Count); // ensure model compoents maatch kit componetns
+            Assert.True(0 == diff.InKitButNoModel.Count); // ensure model compoents maatch kit componetns
+
+            var componentToRemove = model.ModelComponents
+                .OrderBy(t => t.ProductionStation.Code).ThenBy(t => t.Component.Code)
+                .First();
+            // remove model component 
+            var saveModelInput = new VehicleModelInput {
+                Id = model.Id,
+                Code = model.Code,
+                Name = model.Name,
+                ComponentStationInputs = model.ModelComponents
+                    .Where(t =>
+                        !(
+                            t.Component.Code == componentToRemove.Component.Code &&
+                            t.ProductionStation.Code == componentToRemove.ProductionStation.Code
+                        ))
+                    .Select(t => new ComponentStationInput {
+                        ComponentCode = t.Component.Code,
+                        ProductionStationCode = t.ProductionStation.Code
+                    }).ToList()
+            };
+
+            await service.SaveVehicleModel(saveModelInput);
+
+            diff = await service.GetKitModelComponentDiff(kit.KitNo);
+            Assert.True(1 == diff.InKitButNoModel.Count);
+
+            Assert.Equal(componentToRemove.Component.Code, diff.InKitButNoModel[0].ComponentCode);
+            Assert.Equal(componentToRemove.Component.Code, diff.InKitButNoModel[0].ComponentCode);
+        }
+
+
+        [Fact]
+        public async Task can_sync_kit_model_components_if_model_component_removed() {
+            // setup
+            var model = await context.VehicleModels.FirstOrDefaultAsync();
+            await RemoveOneComponentFromModel(model);
+
+            var kit = await context.Kits.Where(t => t.Lot.ModelId == model.Id).FirstOrDefaultAsync();
+
+            var service = new VehicleModelService(context);
+            var diff = await service.GetKitModelComponentDiff(kit.KitNo);
+
+            Assert.True(1 == diff.InKitButNoModel.Count);
+
+            // test 1: will remove model from kit
+            await service.SyncKfitModelComponents(kit.KitNo);
+
+            diff = await service.GetKitModelComponentDiff(kit.KitNo);
+            Assert.True(0 == diff.InKitButNoModel.Count);
+            Assert.True(0 == diff.InModelButNoKit.Count);
+        }
+
+        [Fact]
+        public async Task can_sync_kit_model_components_if_kit_component_removed() {
+            // setup
+            var kit = await context.Kits
+                .Include(t => t.KitComponents)
+                .FirstOrDefaultAsync();
+            var kitComponet = kit.KitComponents.First();
+            kitComponet.RemovedAt = DateTime.UtcNow;
+            await context.SaveChangesAsync();
+
+            var service = new VehicleModelService(context);
+            var diff = await service.GetKitModelComponentDiff(kit.KitNo);
+
+            Assert.True(1 == diff.InModelButNoKit.Count);
+            Assert.True(0 == diff.InKitButNoModel.Count);
+
+            // test 1: will remove model from kit
+            await service.SyncKfitModelComponents(kit.KitNo);
+
+            diff = await service.GetKitModelComponentDiff(kit.KitNo);
+            Assert.True(0 == diff.InKitButNoModel.Count);
+            Assert.True(0 == diff.InModelButNoKit.Count);
+        }
+
+        private async Task RemoveOneComponentFromModel(VehicleModel model) {
+
+            var componentToRemove = model.ModelComponents
+                .OrderBy(t => t.ProductionStation.Code).ThenBy(t => t.Component.Code)
+                .First();
+
+            var saveModelInput = new VehicleModelInput {
+                Id = model.Id,
+                Code = model.Code,
+                Name = model.Name,
+                ComponentStationInputs = model.ModelComponents
+                    .Where(t =>
+                        !(
+                            t.Component.Code == componentToRemove.Component.Code &&
+                            t.ProductionStation.Code == componentToRemove.ProductionStation.Code
+                        ))
+                    .Select(t => new ComponentStationInput {
+                        ComponentCode = t.Component.Code,
+                        ProductionStationCode = t.ProductionStation.Code
+                    }).ToList()
+            };
+            var service = new VehicleModelService(context);
+            await service.SaveVehicleModel(saveModelInput);
+        }
     }
+
+
 }
