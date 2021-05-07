@@ -8,6 +8,7 @@ namespace SKD.Model {
     public class KitComponentSerialInfo {
         public string ComponentCode { get; set; } = "";
         public string ComponentName { get; set; } = "";    
+        public DateTime? RemovedAt { get; set; } = null;
         public ICollection<StatcionSerialInfo> Stations { get; set; } = new List<StatcionSerialInfo>();
     }
 

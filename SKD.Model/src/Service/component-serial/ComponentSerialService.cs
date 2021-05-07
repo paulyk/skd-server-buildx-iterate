@@ -292,6 +292,7 @@ namespace SKD.Model {
                 .Where(t => t.Kit.KitNo == kitNo && t.Component.Code == componentCode)
                 .Select(t => new {
                     KitComponentId = t.Id,
+                    RemvoedAt = t.RemovedAt,
                     ComponentCode = t.Component.Code,
                     ComponentName = t.Component.Name,
                     StationSequence = t.ProductionStation.Sequence,
@@ -306,9 +307,10 @@ namespace SKD.Model {
                 return (KitComponentSerialInfo?)null;
             }
 
-            var result = new KitComponentSerialInfo {
+            var result = new KitComponentSerialInfo {            
                 ComponentCode = data[0].ComponentCode,
                 ComponentName = data[0].ComponentCode,
+                RemovedAt = data[0].RemvoedAt,
                 Stations = data.OrderBy(t => t.StationSequence).Select(t => new StatcionSerialInfo {
                     KitComponentId = t.KitComponentId,
                     StationSequence = t.StationSequence,
