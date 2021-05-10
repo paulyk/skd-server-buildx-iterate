@@ -137,12 +137,12 @@ namespace SKD.Test {
             // 5. build completed
             eventDate = dates.Where(t => t.eventType == TimelineTestEvent.BUILD_COMPLETE_TRX).First().date;
             snapshotInput.RunDate = eventDate;
-            await AddKitTimelineEntry(TimeLineEventType.BULD_COMPLETED, kit.KitNo, "", eventDate, eventDate);
+            await AddKitTimelineEntry(TimeLineEventType.BUILD_COMPLETED, kit.KitNo, "", eventDate, eventDate);
             await service.GenerateSnapshot(snapshotInput);
 
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
-            Assert.Equal(TimeLineEventType.BULD_COMPLETED, kitSnapshot.CurrentTimelineEvent);
+            Assert.Equal(TimeLineEventType.BUILD_COMPLETED, kitSnapshot.CurrentTimelineEvent);
             Assert.Equal(PartnerStatus_ChangeStatus.Changed, kitSnapshot.TxType);
 
             // 5.  gate release
@@ -387,7 +387,7 @@ namespace SKD.Test {
             var eventList = new List<(TimeLineEventType eventType, DateTime trxDate, DateTime eventDate)>() {
                 (TimeLineEventType.CUSTOM_RECEIVED, customReiveDate.AddDays(1), customReiveDate),
                 (TimeLineEventType.PLAN_BUILD,      customReiveDate.AddDays(2), customReiveDate.AddDays(planBuildLeadTimeDays)),
-                (TimeLineEventType.BULD_COMPLETED,  customReiveDate.AddDays(planBuildLeadTimeDays + buildDays), customReiveDate.AddDays(planBuildLeadTimeDays + buildDays)),
+                (TimeLineEventType.BUILD_COMPLETED,  customReiveDate.AddDays(planBuildLeadTimeDays + buildDays), customReiveDate.AddDays(planBuildLeadTimeDays + buildDays)),
             };
 
             var expecedErrorMessage = "cannot change date after snapshot taken";

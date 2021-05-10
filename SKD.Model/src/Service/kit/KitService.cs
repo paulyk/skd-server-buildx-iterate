@@ -432,7 +432,7 @@ namespace SKD.Model {
                     return kitSnapshot.CustomReceived != null;
                 case TimeLineEventType.PLAN_BUILD:
                     return kitSnapshot.PlanBuild != null;
-                case TimeLineEventType.BULD_COMPLETED:
+                case TimeLineEventType.BUILD_COMPLETED:
                     return kitSnapshot.BuildCompleted != null;
                 case TimeLineEventType.GATE_RELEASED:
                     return kitSnapshot.GateRelease != null;

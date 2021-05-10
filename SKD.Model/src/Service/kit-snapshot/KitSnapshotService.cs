@@ -72,7 +72,7 @@ namespace SKD.Model {
                     OrginalPlanBuild = await GetKit_OriginalPlanBuildDate(kit),
                     CustomReceived = GetKitTimelineEventDate(kit, TimeLineEventType.CUSTOM_RECEIVED),
                     PlanBuild = GetKitTimelineEventDate(kit, TimeLineEventType.PLAN_BUILD),
-                    BuildCompleted = GetKitTimelineEventDate(kit, TimeLineEventType.BULD_COMPLETED),
+                    BuildCompleted = GetKitTimelineEventDate(kit, TimeLineEventType.BUILD_COMPLETED),
                     GateRelease = GetKitTimelineEventDate(kit, TimeLineEventType.GATE_RELEASED),
                     Wholesale = GetKitTimelineEventDate(kit, TimeLineEventType.WHOLE_SALE),
                 };
@@ -241,7 +241,7 @@ namespace SKD.Model {
         private string Get_KitVIN_IfBuildComplete(Kit vehicle) {
             var buildCompletedEvent = vehicle.TimelineEvents
                 .Where(t => t.RemovedAt == null)
-                .FirstOrDefault(t => t.EventType.Code == TimeLineEventType.BULD_COMPLETED.ToString());
+                .FirstOrDefault(t => t.EventType.Code == TimeLineEventType.BUILD_COMPLETED.ToString());
 
             if (buildCompletedEvent == null) {
                 return "";
@@ -256,7 +256,7 @@ namespace SKD.Model {
 
             var buildCompletedEvent = vehicle.TimelineEvents
                 .Where(t => t.RemovedAt == null)
-                .FirstOrDefault(t => t.EventType.Code == TimeLineEventType.BULD_COMPLETED.ToString());
+                .FirstOrDefault(t => t.EventType.Code == TimeLineEventType.BUILD_COMPLETED.ToString());
 
             if (buildCompletedEvent == null) {
                 return "";
@@ -297,8 +297,8 @@ namespace SKD.Model {
             }
 
             // Use PlanBuild date from timeline events
-            var planBuld = GetKitTimelineEventDate(kit, TimeLineEventType.PLAN_BUILD);
-            return planBuld;
+            var planBuild = GetKitTimelineEventDate(kit, TimeLineEventType.PLAN_BUILD);
+            return planBuild;
         }
 
         private string? GetDealerCode(Kit vehicle) {

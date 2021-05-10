@@ -25,7 +25,7 @@ namespace SKD.Seed {
                     Code = TimeLineEventType.PLAN_BUILD.ToString(),
                 },
                 new KitTimelineEventType {
-                    Code = TimeLineEventType.BULD_COMPLETED.ToString(),
+                    Code = TimeLineEventType.BUILD_COMPLETED.ToString(),
                 },
                 new KitTimelineEventType {
                     Code = TimeLineEventType.GATE_RELEASED.ToString(),

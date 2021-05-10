@@ -132,7 +132,7 @@ namespace SKD.Test {
             var timelineEvents = new List<(string eventTypeCode, DateTime eventDate)>() {
                 (TimeLineEventType.CUSTOM_RECEIVED.ToString(), new DateTime(2020, 11, 1)),
                 (TimeLineEventType.PLAN_BUILD.ToString(), new DateTime(2020, 11, 8)),
-                (TimeLineEventType.BULD_COMPLETED.ToString(), new DateTime(2020, 11, 22)),
+                (TimeLineEventType.BUILD_COMPLETED.ToString(), new DateTime(2020, 11, 22)),
                 (TimeLineEventType.GATE_RELEASED.ToString(), new DateTime(2020, 11, 26)),
                 (TimeLineEventType.WHOLE_SALE.ToString(), new DateTime(2020, 11, 30)),
             };
@@ -202,7 +202,7 @@ namespace SKD.Test {
             var baseDate = DateTime.Now.Date;
             var timelineEvents = new List<(string eventTypeCode, DateTime trxDate, DateTime eventDate)>() {
                 (TimeLineEventType.CUSTOM_RECEIVED.ToString(), baseDate.AddDays(1),  baseDate.AddDays(6)),
-                (TimeLineEventType.BULD_COMPLETED.ToString(), baseDate.AddDays(2), baseDate.AddDays(2)),
+                (TimeLineEventType.BUILD_COMPLETED.ToString(), baseDate.AddDays(2), baseDate.AddDays(2)),
             };
 
             // test
@@ -239,7 +239,7 @@ namespace SKD.Test {
             var timelineEventItems = new List<(string eventTypeCode, DateTime trxDate, DateTime eventDate, string eventNode)>() {
                 (TimeLineEventType.CUSTOM_RECEIVED.ToString(), baseDate.AddDays(2), baseDate.AddDays(1) , eventNote),
                 (TimeLineEventType.PLAN_BUILD.ToString(), baseDate.AddDays(3), baseDate.AddDays(5), eventNote),
-                (TimeLineEventType.BULD_COMPLETED.ToString(), baseDate.AddDays(8), baseDate.AddDays(8), eventNote),
+                (TimeLineEventType.BUILD_COMPLETED.ToString(), baseDate.AddDays(8), baseDate.AddDays(8), eventNote),
                 (TimeLineEventType.GATE_RELEASED.ToString(), baseDate.AddDays(10), baseDate.AddDays(10), eventNote),
                 (TimeLineEventType.WHOLE_SALE.ToString(), baseDate.AddDays(11), baseDate.AddDays(11), eventNote),
             };

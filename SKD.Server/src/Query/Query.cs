@@ -21,12 +21,12 @@ namespace SKD.Server {
         }
 
         public ConfigettingDTO GetServerConfigSettings() {
-            var planBuldLead = 0;
-            Int32.TryParse(Configuration[ConfigSettingKey.PlanBuildLeadTimeDays], out planBuldLead);
+            var planBuildLeadTimeDays = 0;
+            Int32.TryParse(Configuration[ConfigSettingKey.PlanBuildLeadTimeDays], out planBuildLeadTimeDays);
 
             return new ConfigettingDTO {
                 DcwsServiceAddress = Configuration[ConfigSettingKey.DcwsServiceAddress],
-                PlanBuildLeadTimeDays = planBuldLead
+                PlanBuildLeadTimeDays = planBuildLeadTimeDays
             };
         }
 

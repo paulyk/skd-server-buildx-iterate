@@ -6,7 +6,7 @@ namespace SKD.Model {
     public enum TimeLineEventType {
         CUSTOM_RECEIVED,
         PLAN_BUILD,
-        BULD_COMPLETED,
+        BUILD_COMPLETED,
         GATE_RELEASED,
         WHOLE_SALE
     }
