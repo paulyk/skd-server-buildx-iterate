@@ -207,7 +207,7 @@ namespace SKD.Server {
 
             return result;
         }
-        public async Task<VehicleTimelineDTO?> GetVehicleTimeline(
+        public async Task<VehicleTimelineDTO?> GetKitTimeline(
             [Service] SkdContext context,
             string kitNo
         ) {
@@ -252,7 +252,7 @@ namespace SKD.Server {
             return dto;
         }
 
-        public async Task<Lot?> GetVehicleLotByLotNo([Service] SkdContext context, string lotNo) =>
+        public async Task<Lot?> GetLotByLotNo([Service] SkdContext context, string lotNo) =>
                 await context.Lots.AsNoTracking()
                         .Include(t => t.Model)
                         .Include(t => t.Kits)
