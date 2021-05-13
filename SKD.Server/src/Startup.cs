@@ -72,6 +72,7 @@ namespace SKD.Server {
                 .AddType<VehicleTimelineDTOType>()
                 .AddType<VehicleModelType>()
                 .AddType<VehicleComponentType>()
+                .AddType<KitListItemDtoType>()
                 .AddProjections()
                 .AddFiltering()
                 .AddSorting()

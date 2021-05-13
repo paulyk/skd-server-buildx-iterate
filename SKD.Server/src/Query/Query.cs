@@ -346,6 +346,44 @@ namespace SKD.Server {
                         .Include(t => t.KitComponent)
                         .FirstOrDefaultAsync(t => t.KitComponentId == vehicleComponentId && t.RemovedAt == null);
 
+
+        [UsePaging(MaxPageSize = 10000)]
+        [UseSorting]
+        public IQueryable<KitListItemDTO> GetKitList(
+            [Service] SkdContext context, 
+            string plantCode
+        ) => 
+            context.Kits.AsNoTracking()
+                .Where(t => t.Lot.Plant.Code == plantCode)
+                .Select(t => new KitListItemDTO {
+                    Id = t.Id,
+                    LotNo = t.Lot.LotNo,
+                    KitNo = t.KitNo,
+                    VIN = t.VIN,
+                    ModelCode = t.Lot.Model.Code,
+                    ModelName  = t.Lot.Model.Name,
+                    LastTimelineEvent = t.TimelineEvents
+                        .OrderByDescending(t => t.CreatedAt)
+                        .Select(t => t.EventType.Description)
+                        .FirstOrDefault(),
+                    ComponentCount = t.KitComponents
+                        .Where(t => t.RemovedAt == null)
+                        .Where(t => t.Component.DcwsSerialCaptureRule != DcwsSerialCaptureRule.NOT_REQUIED)
+                        .Count(),
+                    ScannedComponentCount =  t.KitComponents
+                        .Where(t => t.RemovedAt == null)
+                        .Where(t => t.Component.DcwsSerialCaptureRule != DcwsSerialCaptureRule.NOT_REQUIED)
+                        .Where(t => t.ComponentSerials.Any(t => t.RemovedAt == null))
+                        .Count(),
+                    VerifiedComponentCount = t.KitComponents
+                        .Where(t => t.RemovedAt == null)
+                        .Where(t => t.Component.DcwsSerialCaptureRule != DcwsSerialCaptureRule.NOT_REQUIED)
+                        .Where(t => t.ComponentSerials.Any(u => u.RemovedAt == null  && u.VerifiedAt != null))
+                        .Count(),
+                    Imported = t.CreatedAt                            
+                }).AsQueryable();
+
+
         [UsePaging(MaxPageSize = 10000)]
         [UseSorting]
         public IQueryable<BomListDTO> GetBomList([Service] SkdContext context, string plantCode) =>
