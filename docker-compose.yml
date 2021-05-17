@@ -3,10 +3,11 @@ version: '3.4'
 
 services:
   skdvcs:
-    image: skdvcs
+    image: paulyk/skd-server
     build:
       context: .
       dockerfile: SKD.Server/Dockerfile
+    container_name: skd-server
     ports:
       - 5100:80
       - 5101:443
@@ -14,7 +15,6 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
       - ConnectionStrings__Default=server=mssql;database=skd;uid=sa;pwd=DevOnlyPassword119
-      - ping=hello-pauly-2
     volumes:
       - ~/.vsdbg:/remote_debugger:rw
     depends_on:
@@ -22,14 +22,16 @@ services:
 
   mssql:
     image: mcr.microsoft.com/azure-sql-edge
-    container_name: skd
+    container_name: skd-mssql
+    volumes: 
+      - mssql_volume:/var/opt/mssql
     cap_add: 
       - SYS_PTRACE
     environment: 
       ACCEPT_EULA: 1
-      MSSQL_SA_PASSWORD:  DevDevDude119!
+      MSSQL_SA_PASSWORD: "DevDevDude119#"
     ports:
       - '9301:1433'
 
-# volumes:
-#   mssql_volume:
+volumes:
+  mssql_volume:
