@@ -12,6 +12,7 @@ namespace SKD.Model {
         public string Serial2 { get; set; } = "";
 
         public string Original_Serial1 { get; set; } = "";
+        public string Original_Serial2 { get; set; } = "";
 
         public DateTime? VerifiedAt { get; set; }
 

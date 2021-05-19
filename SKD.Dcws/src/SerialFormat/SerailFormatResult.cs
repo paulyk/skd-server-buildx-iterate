@@ -1,3 +1,4 @@
 namespace SKD.Dcws {
-        public record SerialFormatResult(string Serial, bool Success, string Message);
+        public record Serials (string Serial1, string Serial2);
+        public record SerialFormatResult(Serials Serials, bool Success, string Message);
 }

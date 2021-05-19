@@ -5,57 +5,67 @@ using System.Linq;
 
 namespace SKD.Dcws {
 
-    public record Variant(string VariantCode, string InputPattern, string OutputPattern, List<int> Spacing);
+    public record TR_SerialVariant(string VariantCode, string InputPattern, string OutputPattern, List<int> Spacing);
 
     public class TR_SerialFormatter {
 
         public static int TR_SERIAL_LEN = 39;
 
         public static string INVALID_SERIAL = "Invalid TR serial";
+        public static string UNCHANGED = "";
 
-        private List<Variant> Variants = new List<Variant>{
-            new Variant(
+        private List<TR_SerialVariant> TR_SerailVariants = new List<TR_SerialVariant>{
+            new TR_SerialVariant(
                 VariantCode: "6R80",
                 InputPattern: @"(\w+)(\s+)(\w+)(\s+)(\w+)(\s+)(\w+)(\s+)(\w+)(\s+)(\w+)(\s*)",
                 OutputPattern:  @"^(\w+)(\s{1})(\w+)(\s{2})(\w+)(\s{1})(\w+)(\s{1})(\w+)(\s{2})(\w+)(\s{1})$", Spacing: new List<int> { 1, 2, 1, 1, 2, 1 }),
-            new Variant(
+            new TR_SerialVariant(
                 VariantCode: "10R80",
                 InputPattern: @"(\w{16})(\w{4})\s+(\w{4})\s+(\w{2})\s*",
                 OutputPattern: @"",
                 Spacing: new List<int> { 6, 1, 1, 5 }),
-        };        
+        };
 
-        public SerialFormatResult FormatSerial(string serial) {
-            if (serial.Length == TR_SERIAL_LEN) {
-                return new SerialFormatResult(serial, true, "");
+        public SerialFormatResult FormatSerial(Serials serials) {
+
+            // 
+            var serialCombinations = new List<string> {
+                serials.Serial1 + serials.Serial2,
+                serials.Serial2 + serials.Serial1
+            }.Distinct().ToList();
+
+            // get serial and varient
+            TR_SerialVariant varient = null;
+            var selectedSerial = "";
+            foreach (var combination in serialCombinations) {
+                varient = Get_TR_SerialVariant(combination);
+                if (varient != null) {
+                    selectedSerial = combination;
+                    break;
+                }
             }
 
-            var varient = GetVariant(serial);
             if (varient == null) {
-                return new SerialFormatResult(serial, false, INVALID_SERIAL);
+                return new SerialFormatResult(serials, false, INVALID_SERIAL);
             }
-
 
             switch (varient.VariantCode) {
                 case "6R80": {
-                        var newSerial = Format_Variant_6R80(serial, varient);
+                        var newSerial = Format_Variant_6R80(selectedSerial, varient);
                         // verify
                         var matches = Matches(newSerial, varient.OutputPattern);
-                        return new SerialFormatResult(newSerial, newSerial.Length == TR_SERIAL_LEN, "");
+                        return new SerialFormatResult(new Serials(newSerial, ""), newSerial.Length == TR_SERIAL_LEN, "");
                     }
                 case "10R80": {
-                        var newSerial = Format_Variant_10R80(serial, varient);
-                        return new SerialFormatResult(newSerial, newSerial.Length == TR_SERIAL_LEN, "");
+                        var newSerial = Format_Variant_10R80(selectedSerial, varient);
+                        return new SerialFormatResult(new Serials(newSerial, ""), newSerial.Length == TR_SERIAL_LEN, "");
                     }
-                default: return new SerialFormatResult(serial, false, INVALID_SERIAL);
+                default: return new SerialFormatResult(serials, false, INVALID_SERIAL);
             }
-
-
-            // 
         }
 
-        public Variant GetVariant(string str) {
-            foreach (var variant in Variants) {
+        public TR_SerialVariant Get_TR_SerialVariant(string str) {
+            foreach (var variant in TR_SerailVariants) {
                 if (Matches(str, variant.InputPattern)) {
                     return variant;
                 }
@@ -63,7 +73,7 @@ namespace SKD.Dcws {
             return null;
         }
 
-        private string Format_Variant_6R80(string input, Variant variant) {
+        private string Format_Variant_6R80(string input, TR_SerialVariant variant) {
             var regex = new Regex(variant.InputPattern);
             var parts = regex.Split(input).Where(t => t.Trim().Length > 0).ToList();
 
@@ -72,7 +82,7 @@ namespace SKD.Dcws {
             return text;
         }
 
-        private string Format_Variant_10R80(string input, Variant variant) {
+        private string Format_Variant_10R80(string input, TR_SerialVariant variant) {
             var regex = new Regex(variant.InputPattern);
             var parts = regex.Split(input.Trim())
                 .Select(t => t.Trim())

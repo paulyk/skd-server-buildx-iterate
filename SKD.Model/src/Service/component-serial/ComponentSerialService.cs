@@ -36,16 +36,20 @@ namespace SKD.Model {
             // Some serial1 must be formatted acording to DCWS rules
             // The following formats EN / TR serials if they need adjusting
             // Other compoent serials are returned unchanged.
-            var formatSerialResult = serialFormatter.FormatSerial(kitComponent.Component.Code, input.Serial1);
+            var formatSerialResult = serialFormatter.FormatSerial(kitComponent.Component.Code, new Serials(input.Serial1, input.Serial2));
 
             // create
             var componentSerial = new ComponentSerial {
                 KitComponentId = input.KitComponentId,
-                Serial1 = formatSerialResult.Serial,
-                Serial2 = input.Serial2,
-                // only set Origian_Serial1 if it is different
-                Original_Serial1 = formatSerialResult.Serial != input.Serial1
+                Serial1 = formatSerialResult.Serials.Serial1,
+                Serial2 = formatSerialResult.Serials.Serial2,
+                
+                // if inputSerial1 different from formatted then set original serial 1 & 2
+                Original_Serial1 = formatSerialResult.Serials.Serial1 != input.Serial1
                     ? input.Serial1
+                    : "",
+                Original_Serial2 = formatSerialResult.Serials.Serial1 != input.Serial1
+                    ? input.Serial2
                     : "",
             };
 
@@ -113,9 +117,12 @@ namespace SKD.Model {
             var kitComponent = await context.KitComponents
                 .Include(t => t.Component)
                 .FirstOrDefaultAsync(t => t.Id == input.KitComponentId);
-            var formatResult = serialFormatter.FormatSerial(kitComponent.Component.Code, input.Serial1);
+            var formatResult = serialFormatter.FormatSerial(kitComponent.Component.Code, new Serials(input.Serial1, input.Serial2));
             // set input.Serial1 to the formatted result before proceeding with the validation
-            input = input with { Serial1 = formatResult.Serial };
+            input = input with { 
+                Serial1 = formatResult.Serials.Serial1,
+                Serial2 = formatResult.Serials.Serial2
+            };
 
             if (!formatResult.Success) {
                 errors.Add(new Error("", formatResult.Message));
@@ -262,12 +269,12 @@ namespace SKD.Model {
                 throw new Exception("EN Component only");
             }
 
-            var formatResult = serialFormatter.FormatSerial(cs.KitComponent.Component.Code, cs.Serial1);
+            var formatResult = serialFormatter.FormatSerial(cs.KitComponent.Component.Code, new Serials(cs.Serial1, cs.Serial2));
             if (!formatResult.Success) {
                 throw new Exception("Could not trasform: " + formatResult.Message);
             }
             cs.Original_Serial1 = cs.Serial1;
-            cs.Serial1 = formatResult.Serial;
+            cs.Serial1 = formatResult.Serials.Serial1;
 
             await context.SaveChangesAsync();
             return cs;

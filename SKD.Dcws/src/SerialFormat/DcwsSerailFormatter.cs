@@ -7,18 +7,18 @@ namespace SKD.Dcws {
         /// Other component types will return the original serial unchanged.
         /// </summary>
          /// <returns>SerialFormatResult:  with Success false if there was an error</returns>
-        public SerialFormatResult FormatSerial(string ComponentTypeCode, string Serial) {
+        public SerialFormatResult FormatSerial(string ComponentTypeCode, Serials serials) {
             switch (ComponentTypeCode) {
                 case "EN": {
                         var formatter = new EN_SerialFormatter();
-                        return formatter.FormatSerial(Serial);
+                        return formatter.FormatSerial(serials);
                     }
                 case "TR": {
                         var formatter = new TR_SerialFormatter();
-                        return formatter.FormatSerial(Serial);
+                        return formatter.FormatSerial(serials);
                     }
                 // return the original serial unchanged
-                default: return new SerialFormatResult(Serial, true, "");
+                default: return new SerialFormatResult(serials, true, "");
             }
         }
     }
