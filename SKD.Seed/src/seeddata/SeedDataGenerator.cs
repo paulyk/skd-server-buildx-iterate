@@ -55,8 +55,6 @@ namespace SKD.Seed {
 
             ctx.ProductionStations.AddRange(stations);
             await ctx.SaveChangesAsync();
-
-            Console.WriteLine($"Added {ctx.ProductionStations.Count()} production stations");
         }
         public async Task Seed_Components(ICollection<Component_MockData_DTO> componentData) {
             var components = componentData.ToList().Select(x => new Component() {

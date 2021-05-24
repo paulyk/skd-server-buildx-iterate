@@ -5,103 +5,86 @@ using System.Linq;
 
 namespace SKD.Dcws {
 
-    public record TR_SerialVariant(string VariantCode, string InputPattern, string OutputPattern, List<int> Spacing);
+    public record MatchVarientResult(TR_Varient Varient, Serials serials);
+    public enum TR_Variant_Type {
+        V_6R80,
+        V_10R80
+    }
+
+    public class TR_Varient {
+        public TR_Variant_Type VarientType { get; set; }
+        public string InputRegexPattern { get; set; }
+        public string OutputRegexPattern { get; set; }
+        public List<int> TokenSpacing { get; set; } = new List<int>();
+    }
 
     public class TR_SerialFormatter {
 
-        public static int TR_SERIAL_LEN = 39;
+        SerialUtil serialUtil = new SerialUtil();
 
-        public static string INVALID_SERIAL = "Invalid TR serial";
-        public static string UNCHANGED = "";
+        public static string NO_MATCHIN_TR_VARIENT = "No matching TR variant";
 
-        private List<TR_SerialVariant> TR_SerailVariants = new List<TR_SerialVariant>{
-            new TR_SerialVariant(
-                VariantCode: "6R80",
-                InputPattern: @"(\w+)(\s+)(\w+)(\s+)(\w+)(\s+)(\w+)(\s+)(\w+)(\s+)(\w+)(\s*)",
-                OutputPattern:  @"^(\w+)(\s{1})(\w+)(\s{2})(\w+)(\s{1})(\w+)(\s{1})(\w+)(\s{2})(\w+)(\s{1})$", Spacing: new List<int> { 1, 2, 1, 1, 2, 1 }),
-            new TR_SerialVariant(
-                VariantCode: "10R80",
-                InputPattern: @"(\w{16})(\w{4})\s+(\w{4})\s+(\w{2})\s*",
-                OutputPattern: @"",
-                Spacing: new List<int> { 6, 1, 1, 5 }),
+        public List<TR_Varient> TR_Varients = new List<TR_Varient> {
+            new TR_Varient {
+                VarientType = TR_Variant_Type.V_6R80,
+                InputRegexPattern = @"^(\w+)\s+(\w+)\s+(\w+)\s+(\w+)\s+(\w+)\s+(\w+)\s+$",
+                OutputRegexPattern = @"^\w+\s{1}\w+\s{2}\w+\s{1}\w+\s{1}\w+\s{2}\w+\s$",
+                TokenSpacing = new List<int> { 1, 2, 1, 1, 2, 1 }
+            },
+            new TR_Varient {
+                VarientType = TR_Variant_Type.V_10R80,
+                InputRegexPattern = @"^(\w{16})(\w{4})\s+(\w{4})\s+(\w{2})\s*$",
+                OutputRegexPattern = @"^\w{16}\s{6}\w{4}\s\w{4}\s\w{2}\s{5}",
+                TokenSpacing = new List<int> { 6, 1, 1, 5 }
+            }
         };
 
-        public SerialFormatResult FormatSerial(Serials serials) {
+        public SerialFormatResult FormatSerial(Serials inputSerials) {
+            var (Varient, Serials) = Get_TR_Variant(inputSerials);
+            if (Varient == null) {
+                return new SerialFormatResult(inputSerials, false, NO_MATCHIN_TR_VARIENT);
+            }
 
-            // 
-            var serialCombinations = new List<string> {
-                serials.Serial1 + serials.Serial2,
-                serials.Serial2 + serials.Serial1
+            var serial = Serials.Serial1 + Serials.Serial2;
+            var formattedSerial = serialUtil.SpacifyString(serial, Varient.InputRegexPattern, Varient.TokenSpacing);
+
+            var matchesOutputFormat = serialUtil.MatchesPattern(formattedSerial, Varient.OutputRegexPattern);
+
+            if (!matchesOutputFormat) {
+                throw new Exception("Did not match outptut format");
+            }
+
+
+            return new SerialFormatResult(new Serials(formattedSerial, ""), true, "");
+        }
+
+        /// <summary>
+        /// Tries to find matching TR variant by testing combinations of Serial1 and Serial2
+        ///</summary>
+        ///<returns>THe varient and serials in the accepted order</returns>
+        public MatchVarientResult Get_TR_Variant(Serials serials) {
+
+            // Serail / Part numbers can be scanned in any order
+            // Test both to find the correct varient
+            var serialCombinations = new List<Serials> {
+                new Serials(serials.Serial1, serials.Serial2),
+                new Serials(serials.Serial2, serials.Serial1),
             }.Distinct().ToList();
 
-            // get serial and varient
-            TR_SerialVariant varient = null;
-            var selectedSerial = "";
-            foreach (var combination in serialCombinations) {
-                varient = Get_TR_SerialVariant(combination);
-                if (varient != null) {
-                    selectedSerial = combination;
-                    break;
+            foreach (var trVariant in TR_Varients) {
+
+                foreach (var serialsEntry in serialCombinations) {
+                    var serial = serialsEntry.Serial1 + serialsEntry.Serial2;
+                    var matches = serialUtil.MatchesPattern(serial, trVariant.InputRegexPattern);
+                    if (matches) {
+                        return new MatchVarientResult(trVariant, serialsEntry);
+                    }
                 }
             }
-
-            if (varient == null) {
-                return new SerialFormatResult(serials, false, INVALID_SERIAL);
-            }
-
-            switch (varient.VariantCode) {
-                case "6R80": {
-                        var newSerial = Format_Variant_6R80(selectedSerial, varient);
-                        // verify
-                        var matches = Matches(newSerial, varient.OutputPattern);
-                        return new SerialFormatResult(new Serials(newSerial, ""), newSerial.Length == TR_SERIAL_LEN, "");
-                    }
-                case "10R80": {
-                        var newSerial = Format_Variant_10R80(selectedSerial, varient);
-                        return new SerialFormatResult(new Serials(newSerial, ""), newSerial.Length == TR_SERIAL_LEN, "");
-                    }
-                default: return new SerialFormatResult(serials, false, INVALID_SERIAL);
-            }
+            return new MatchVarientResult(null, serials);
         }
 
-        public TR_SerialVariant Get_TR_SerialVariant(string str) {
-            foreach (var variant in TR_SerailVariants) {
-                if (Matches(str, variant.InputPattern)) {
-                    return variant;
-                }
-            }
-            return null;
-        }
 
-        private string Format_Variant_6R80(string input, TR_SerialVariant variant) {
-            var regex = new Regex(variant.InputPattern);
-            var parts = regex.Split(input).Where(t => t.Trim().Length > 0).ToList();
-
-            var newParts = parts.Select((p, i) => p.PadRight(p.Length + variant.Spacing[i], ' ')).ToList();
-            var text = String.Join("", newParts);
-            return text;
-        }
-
-        private string Format_Variant_10R80(string input, TR_SerialVariant variant) {
-            var regex = new Regex(variant.InputPattern);
-            var parts = regex.Split(input.Trim())
-                .Select(t => t.Trim())
-                .Where(t => t.Length > 0)
-                .ToList();
-
-            var newParts = parts
-                .Select((p, i) => p + "".PadRight(variant.Spacing[i], ' '))
-                .ToList();
-
-            var text = String.Join("", newParts);
-            return text;
-        }
-
-        public bool Matches(string Input, string RegexPattern) {
-            var regex = new Regex(RegexPattern);
-            var result = regex.Match(Input);
-            return result.Success;
-        }
-    };
+    }
 }
 

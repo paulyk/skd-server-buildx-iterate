@@ -171,7 +171,7 @@ namespace SKD.Model {
                 .ToListAsync();
 
 
-            if (componentSerials_with_same_serialNo.Count() > 0) {
+            if (componentSerials_with_same_serialNo.Any()) {
                 errors.Add(new Error("", $"serial number already in use by aonther entry"));
                 return errors;
             }
