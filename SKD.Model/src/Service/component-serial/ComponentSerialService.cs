@@ -48,7 +48,7 @@ namespace SKD.Model {
                 Original_Serial1 = formatSerialResult.Serials.Serial1 != input.Serial1
                     ? input.Serial1
                     : "",
-                Original_Serial2 = formatSerialResult.Serials.Serial1 != input.Serial1
+                Original_Serial2 = formatSerialResult.Serials.Serial2 != input.Serial2
                     ? input.Serial2
                     : "",
             };
