@@ -63,7 +63,7 @@ namespace SKD.Model {
             var shipment = new Shipment() {
                 Plant = plant,
                 Sequence = input.Sequence,
-                Lots = input.Lots.Select(lotDTO => new ShipmentLot {
+                ShipmentLots = input.Lots.Select(lotDTO => new ShipmentLot {
                     Lot = lots.First(t => t.LotNo == lotDTO.LotNo),
                     Invoices = lotDTO.Invoices.Select(invoiceDTO => new ShipmentInvoice {
                         InvoiceNo = invoiceDTO.InvoiceNo,
@@ -216,12 +216,12 @@ namespace SKD.Model {
                 Id = t.Id,
                 PlantCode = t.Plant.Code,
                 Sequence = t.Sequence,
-                LotCount = t.Lots.Count(),
-                InvoiceCount = t.Lots.SelectMany(t => t.Invoices).Count(),
-                HandlingUnitCount = t.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.HandlingUnits).Count(),
-                handlingUnitReceivedCount = t.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.HandlingUnits)
+                LotCount = t.ShipmentLots.Count(),
+                InvoiceCount = t.ShipmentLots.SelectMany(t => t.Invoices).Count(),
+                HandlingUnitCount = t.ShipmentLots.SelectMany(t => t.Invoices).SelectMany(t => t.HandlingUnits).Count(),
+                handlingUnitReceivedCount = t.ShipmentLots.SelectMany(t => t.Invoices).SelectMany(t => t.HandlingUnits)
                     .Where(t => t.Received.Any(t => t.RemovedAt== null)).Count(),                
-                PartCount = t.Lots
+                PartCount = t.ShipmentLots
                     .SelectMany(t => t.Invoices)
                     .SelectMany(t => t.HandlingUnits)
                     .SelectMany(t => t.Parts)

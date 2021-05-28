@@ -12,7 +12,7 @@ namespace SKD.Model {
 
             builder.HasIndex(t => new { t.PlantId, t.Sequence }).IsUnique();
 
-            builder.HasMany(t => t.Lots)
+            builder.HasMany(t => t.ShipmentLots)
                 .WithOne(t => t.Shipment)
                 .HasForeignKey(t => t.ShipmentId);
 
