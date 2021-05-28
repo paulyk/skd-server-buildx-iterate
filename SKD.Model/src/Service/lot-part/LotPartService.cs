@@ -136,20 +136,21 @@ namespace SKD.Model {
             return result;
         }
 
-        public async Task<List<LotPartDTO>> GetRecentLotPartsReceived(int count) {
+        public async Task<List<LotParReceivedtDTO>> GetRecentLotPartsReceived(int count) {
             var result =  await context.LotPartsReceived
                 .OrderByDescending(t => t.CreatedAt)
-                .Select(t =>  new LotPartDTO {
+                .Select(t =>  new LotParReceivedtDTO {
                     LotNo = t.LotPart.Lot.LotNo,
                     PartNo = t.LotPart.Part.PartNo,
                     PartDesc = t.LotPart.Part.PartDesc,
                     BomQuantity = t.LotPart.BomQuantity,
                     ShipmentQuantity = t.LotPart.ShipmentQuantity,
                     ReceivedQuantity = t.Quantity,
-                    ImportDate = t.LotPart.CreatedAt,
-                    RemovedDate = t.RemovedAt,
-                    ReceivedDate = t.CreatedAt
-                }).ToListAsync();
+                    CreatedAt = t.CreatedAt,
+                    RemovedAt = t.RemovedAt,
+                })
+                .Take(count)
+                .ToListAsync();
 
             return result;
         }

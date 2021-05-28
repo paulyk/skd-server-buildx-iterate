@@ -467,7 +467,7 @@ namespace SKD.Server {
                string partNo
         ) => await service.GetLotPartInfo(lotNo, partNo);
 
-        public async Task<List<LotPartDTO>> GetRecentLotPartsReceived(
+        public async Task<List<LotParReceivedtDTO>> GetRecentLotPartsReceived(
             [Service] LotPartService service,
             int count = 100
         ) => await service.GetRecentLotPartsReceived(count);
