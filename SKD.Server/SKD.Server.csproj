@@ -22,6 +22,7 @@
     <ProjectReference Include="..\SKD.Model\SKD.Model.csproj" />
     <ProjectReference Include="..\SKD.Seed\SKD.Seed.csproj" />
     <ProjectReference Include="..\SKD.Dcws\SKD.Dcws.csproj" />
+    <ProjectReference Include="..\SKD.Service\SKD.Service.csproj" />
   </ItemGroup>
 
   <ItemGroup>
