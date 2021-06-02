@@ -1,6 +1,7 @@
+using SKD.Model;
 using System;
 
-namespace SKD.Model {
+namespace SKD.Service {
     public class ComponentInput {
         public Guid? Id { get; set; }
         public string Code { get; set; }

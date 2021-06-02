@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SKD.Model {
+namespace SKD.Service {
 
     public class BomLotKitInput {
         public string PlantCode { get; set; }

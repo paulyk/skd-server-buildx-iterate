@@ -2,7 +2,7 @@
 
 using System;
 
-namespace SKD.Model {
+namespace SKD.Service{
     public class ValidateReceiveHandlingUnitPayload {
         public string? Code { get; set; }
         public string? InvoiceNo { get; set; }

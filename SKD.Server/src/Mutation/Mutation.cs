@@ -1,15 +1,13 @@
 
 using System;
-using HotChocolate.Types;
-using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
-using SKD.Model;
 using SKD.Dcws;
 using HotChocolate;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using HotChocolate.Data;
+using SKD.Service;
+using SKD.Model;
+
 
 
 namespace SKD.Server {
@@ -43,12 +41,7 @@ namespace SKD.Server {
                 [Service] ComponentService service1,
                 ComponentInput input
             ) {
-            var dto = new Model.ComponentInput {
-                Id = ToGuid(input.Id != null ? input.Id : ""),
-                Code = input.Code,
-                Name = input.Name
-            };
-            return await service1.SaveComponent(dto);
+            return await service1.SaveComponent(input);
         }
 
         /// <summary>
@@ -58,12 +51,7 @@ namespace SKD.Server {
                 [Service] ProductionStationService service,
                 ProductionStationInput input
             ) {
-            var dto = new Model.ProductionStationInput {
-                Id = ToGuid(input.Id != null ? input.Id : ""),
-                Code = input.Code,
-                Name = input.Name
-            };
-            return await service.SaveProductionStation(dto);
+            return await service.SaveProductionStation(input);
         }
 
         public async Task<MutationPayload<ComponentSerialDTO>> CaptureComponentSerial(

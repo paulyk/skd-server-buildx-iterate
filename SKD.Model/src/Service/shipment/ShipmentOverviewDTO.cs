@@ -1,6 +1,6 @@
 using System;
 
-namespace SKD.Model {
+namespace SKD.Service {
     public class ShipmentOverviewDTO {
         public Guid Id { get; set; }
         public string PlantCode { get; set; }

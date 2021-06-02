@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SKD.Model;
+using SKD.Service;
 using SKD.Dcws;
 using SKD.Seed;
 using GraphQL.Server.Ui.Voyager;

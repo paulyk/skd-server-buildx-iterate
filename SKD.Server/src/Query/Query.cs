@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using HotChocolate;
 using SKD.Model;
+using SKD.Service;
 using SKD.Dcws;
 using HotChocolate.Data;
 using HotChocolate.Types;

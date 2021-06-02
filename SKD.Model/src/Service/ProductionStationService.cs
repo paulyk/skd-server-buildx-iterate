@@ -6,8 +6,9 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using SKD.Model;
 
-namespace SKD.Model {
+namespace SKD.Service {
 
     public class ProductionStationService {
         private readonly SkdContext context;
@@ -16,14 +17,14 @@ namespace SKD.Model {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<ProductionStation>> SaveProductionStation(ProductionStationInput dto) {
-            var productionStation = await context.ProductionStations.FirstOrDefaultAsync(t => t.Id == dto.Id);
+        public async Task<MutationPayload<ProductionStation>> SaveProductionStation(ProductionStationInput input) {
+            var productionStation = await context.ProductionStations.FirstOrDefaultAsync(t => t.Id == input.Id);
 
             if (productionStation != null) {
-                productionStation.Code = dto.Code;
-                productionStation.Name = dto.Name;
+                productionStation.Code = input.Code;
+                productionStation.Name = input.Name;
             } else {
-                productionStation = new ProductionStation { Code = dto.Code, Name = dto.Name };
+                productionStation = new ProductionStation { Code = input.Code, Name = input.Name };
                 context.ProductionStations.Add(productionStation);
             }
             Trim.TrimStringProperties<ProductionStation>(productionStation);

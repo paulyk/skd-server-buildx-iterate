@@ -1,5 +1,5 @@
 using HotChocolate.Types;
-using SKD.Model;
+using SKD.Service;
 
 namespace SKD.Server {
 

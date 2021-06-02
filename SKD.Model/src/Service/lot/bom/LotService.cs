@@ -6,8 +6,9 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using SKD.Model;
 
-namespace SKD.Model {
+namespace SKD.Service{
 
     public class LotService {
         private readonly SkdContext context;

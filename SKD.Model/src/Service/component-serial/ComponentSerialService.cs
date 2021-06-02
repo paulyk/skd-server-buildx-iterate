@@ -7,8 +7,9 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SKD.Dcws;
+using SKD.Model;
 
-namespace SKD.Model {
+namespace SKD.Service {
 
     public class ComponentSerialService {
         private readonly SkdContext context;

@@ -1,7 +1,7 @@
 #nullable enable
 using System.Collections.Generic;
 
-namespace SKD.Model {
+namespace SKD.Service {
 
     public class MutationPayload<T> where T : class {
         public MutationPayload(T? entity) {

@@ -3,11 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SKD.Model;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
-namespace SKD.Model {
+namespace SKD.Service {
 
     public class PlantService {
         private readonly SkdContext context;

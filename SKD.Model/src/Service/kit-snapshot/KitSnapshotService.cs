@@ -5,8 +5,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using SKD.Model;
 
-namespace SKD.Model {
+namespace SKD.Service {
 
     public class KitSnapshotService {
 
