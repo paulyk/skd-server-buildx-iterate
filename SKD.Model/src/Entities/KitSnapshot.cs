@@ -1,6 +1,21 @@
 using System;
 
 namespace SKD.Model {
+
+    public enum PartnerStatus_ChangeStatus {
+        Added,
+        Changed,
+        NoChange,
+        Final
+    }    
+
+     public enum PartnerStatus_CurrentStatusType {
+        FPCR,       // Custom Received               
+        FPBP,       // Planed Build Date Set / Change
+        FPBC,       // Build Completed At     
+        FPGR,       // Gate Release         
+        FPWS        // Wholesale Date         
+    }
     public class KitSnapshot : EntityBase {
 
         public Guid KitSnapshotRunId { get; set; }

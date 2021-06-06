@@ -1,22 +1,8 @@
 using System;
 using System.Collections.Generic;
+using SKD.Model;
 
-namespace SKD.Model {
-
-    public enum PartnerStatus_ChangeStatus {
-        Added,
-        Changed,
-        NoChange,
-        Final
-    }
-
-    public enum PartnerStatus_CurrentStatusType {
-        FPCR,       // Custom Received               
-        FPBP,       // Planed Build Date Set / Change
-        FPBC,       // Build Completed At     
-        FPGR,       // Gate Release         
-        FPWS        // Wholesale Date         
-    }
+namespace SKD.Service {
 
     public class KitSnapshotRunDTO {
         public DateTime RunDate { get; set; }
