@@ -12,38 +12,40 @@ namespace SKD.Test {
     public class FlatFile_Test {
 
         public class HeaderLayout {
-            public static int RECORD_TYPE = 3;
-            public static int SEQUENCE = 4;
-            public static int NAME = 10;
+            public int RECORD_TYPE = 3;
+            public int SEQUENCE = 4;
+            public int NAME = 10;
         }
 
         [Fact]
         public void FlatFileLine_builds_correct_shema_from_schema_type() {
+            var headerLayoutInstance = new HeaderLayout();
 
-            var headerLine = new FlatFileLine(typeof(HeaderLayout));
+            var headerLine = new FlatFileLine(headerLayoutInstance);
             Assert.Equal(3, headerLine.Fields.Count);
 
-            Assert.Equal(HeaderLayout.RECORD_TYPE, headerLine.Fields.First(t => t.Name == "RECORD_TYPE").Length);
-            Assert.Equal(HeaderLayout.SEQUENCE, headerLine.Fields.First(t => t.Name == "SEQUENCE").Length);
-            Assert.Equal(HeaderLayout.NAME, headerLine.Fields.First(t => t.Name == "NAME").Length);
+            Assert.Equal(headerLayoutInstance.RECORD_TYPE, headerLine.Fields.First(t => t.Name == "RECORD_TYPE").Length);
+            Assert.Equal(headerLayoutInstance.SEQUENCE, headerLine.Fields.First(t => t.Name == "SEQUENCE").Length);
+            Assert.Equal(headerLayoutInstance.NAME, headerLine.Fields.First(t => t.Name == "NAME").Length);
         }
 
         [Fact]
         public void FlatFileLine_builds_correct_output() {
+            var headerLayoutInstance = new HeaderLayout();
 
-            var headerLine = new FlatFileLine(typeof(HeaderLayout));
+            var headerLine = new FlatFileLine(headerLayoutInstance);
 
             var fieldValues = new List<FlatFileLine.FieldValue> {
                 new FlatFileLine.FieldValue {
-                    Name = "RECORD_TYPE",
+                    Name = nameof(HeaderLayout.RECORD_TYPE),
                     Value = "HDR"
                 },
                 new FlatFileLine.FieldValue {
-                    Name = "SEQUENCE",
+                    Name = nameof(HeaderLayout.SEQUENCE),
                     Value = "0004"
                 },
                 new FlatFileLine.FieldValue {
-                    Name = "NAME",
+                    Name = nameof(HeaderLayout.NAME),
                     Value = "1234567890"
                 },
             };
@@ -57,19 +59,20 @@ namespace SKD.Test {
 
         [Fact]
         public void FlatFileLine_parses_corectly() {
-            var headerLine = new FlatFileLine(typeof(HeaderLayout));
+            var headerLayoutInstance = new HeaderLayout();
+            var headerLine = new FlatFileLine(headerLayoutInstance);
 
             var inputFields = new List<FlatFileLine.FieldValue> {
                 new FlatFileLine.FieldValue {
-                    Name = "RECORD_TYPE",
+                    Name = nameof(HeaderLayout.RECORD_TYPE),
                     Value = "HDR"
                 },
                 new FlatFileLine.FieldValue {
-                    Name = "SEQUENCE",
+                    Name = nameof(HeaderLayout.SEQUENCE),
                     Value = "0004"
                 },
                 new FlatFileLine.FieldValue {
-                    Name = "NAME",
+                    Name = nameof(HeaderLayout.NAME),
                     Value = "1234567890"
                 },
             };

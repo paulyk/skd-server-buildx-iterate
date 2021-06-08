@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 namespace SKD.Model {
-    public class kitSnapshotRun : EntityBase {
+    public class KitSnapshotRun : EntityBase {
         public Guid PlantId { get; set; }
         public Plant Plant { get; set; }
         public DateTime RunDate { get; set; }

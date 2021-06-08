@@ -162,7 +162,7 @@ namespace SKD.Server {
         [UseProjection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<kitSnapshotRun> GetKitSnapshotRuns(
+        public IQueryable<KitSnapshotRun> GetKitSnapshotRuns(
             [Service] SkdContext context
         ) => context.KitSnapshotRuns;
 

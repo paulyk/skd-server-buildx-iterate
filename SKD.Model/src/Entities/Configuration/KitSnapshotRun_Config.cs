@@ -2,8 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace SKD.Model {
-    public class KitSnapshotRun_Config : IEntityTypeConfiguration<kitSnapshotRun> {
-        public void Configure(EntityTypeBuilder<kitSnapshotRun> builder) {
+    public class KitSnapshotRun_Config : IEntityTypeConfiguration<KitSnapshotRun> {
+        public void Configure(EntityTypeBuilder<KitSnapshotRun> builder) {
 
             builder.ToTable("kit_snapshot_run");
 

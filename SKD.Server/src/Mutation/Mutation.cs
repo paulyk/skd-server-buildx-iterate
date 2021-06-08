@@ -148,7 +148,7 @@ namespace SKD.Server {
 
         // tmp
 
-        public record ApplyComponentSerialFormatInput (Guid Id);
+        public record ApplyComponentSerialFormatInput(Guid Id);
         public async Task<ComponentSerial> ApplyComponentSerialFormat(
             [Service] ComponentSerialService service,
             ApplyComponentSerialFormatInput input
@@ -159,9 +159,9 @@ namespace SKD.Server {
             LotNoteInput input
         ) => await service.SetLotNote(input);
 
-          public async Task<MutationPayload<Kit>> SyncKfitModelComponents(
-            [Service] VehicleModelService service,
-            string kitNo
-        ) => await service.SyncKfitModelComponents(kitNo);
+        public async Task<MutationPayload<Kit>> SyncKfitModelComponents(
+          [Service] VehicleModelService service,
+          string kitNo
+      ) => await service.SyncKfitModelComponents(kitNo);
     }
 }

@@ -37,6 +37,7 @@ namespace SKD.Test {
 
         public void Gen_Baseline_Test_Seed_Data(
             bool generateLot = true,
+            bool assignVin = false,
             List<string> componentCodes = null
         ) { // todo add component codes
             Gen_KitTimelineEventTypes();
@@ -52,7 +53,7 @@ namespace SKD.Test {
             if (generateLot) {
                 var plant = bom.Plant;
                 var model = context.VehicleModels.First();
-                var lot = Gen_Lot(bom.Id, model.Id, kitCount: 6);
+                var lot = Gen_Lot(bom.Id, model.Id, kitCount: 6, assignVin: assignVin);
             }
         }
         public Bom Gen_Plant_Bom(string plantCode = null) {
@@ -60,11 +61,11 @@ namespace SKD.Test {
             var bom = Gen_Bom(plant.Code);
             return bom;
         }
-        public void Gen_Bom_Lot_and_Kits(string plantCode = null) {
+        public void Gen_Bom_Lot_and_Kits(string plantCode = null, bool assignVin = false) {
             var bom = Gen_Plant_Bom(plantCode);
             var plant = bom.Plant;
             var model = context.VehicleModels.First();
-            var lot = Gen_Lot(bom.Id, model.Id, kitCount: 6);
+            var lot = Gen_Lot(bom.Id, model.Id, kitCount: 6, assignVin: assignVin);
         }
 
         public void Gen_Model_From_Existing_Component_And_Stations() {
@@ -96,7 +97,7 @@ namespace SKD.Test {
             return bom;
         }
 
-        public Lot Gen_Lot(Guid bomId, Guid modelId, int kitCount = 6, bool auto_assign_vin = false) {
+        public Lot Gen_Lot(Guid bomId, Guid modelId, int kitCount = 6, bool assignVin = false) {
             var model = context.VehicleModels
                 .Include(t => t.ModelComponents)
                 .Include(t => t.ModelComponents)
@@ -122,7 +123,7 @@ namespace SKD.Test {
             Kit VehicleForKitSeq(VehicleModel model, int kitSeq) {
                 var vehicle = new Kit {
                     KitNo = Gen_KitNo(lotNo, kitSeq),
-                    VIN = auto_assign_vin ? Gen_VIN() : "",
+                    VIN = assignVin ? Gen_VIN() : "",
                     KitComponents = model.ModelComponents.Select(mc => new KitComponent {
                         ComponentId = mc.ComponentId,
                         ProductionStationId = mc.ProductionStationId
@@ -295,7 +296,7 @@ namespace SKD.Test {
             // cretre vehicle based on that model
             var bom = context.Boms.Include(t => t.Plant).First();
             var plant = bom.Plant;
-            var lot = Gen_Lot(bom.Id, model.Id, auto_assign_vin: auto_assign_vin);
+            var lot = Gen_Lot(bom.Id, model.Id, assignVin: auto_assign_vin);
 
             var kit = context.Kits
                 .Include(t => t.Lot)

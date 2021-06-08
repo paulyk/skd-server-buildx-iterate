@@ -51,7 +51,7 @@ namespace SKD.Service {
             }
 
             // create entity
-            var vehicleSnapshotRun = new kitSnapshotRun {
+            var vehicleSnapshotRun = new KitSnapshotRun {
                 Plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode),
                 RunDate = input.RunDate.Value.Date,
                 Sequence = await context.KitSnapshotRuns
@@ -130,7 +130,7 @@ namespace SKD.Service {
             return BuildKitSnapshotgRunDTO(snapshotRun);
         }
 
-        private KitSnapshotRunDTO BuildKitSnapshotgRunDTO(kitSnapshotRun snapshotRun) {
+        private KitSnapshotRunDTO BuildKitSnapshotgRunDTO(KitSnapshotRun snapshotRun) {
             var dto = new KitSnapshotRunDTO {
                 PlantCode = snapshotRun.Plant.Code,
                 PartnerPlantCode= snapshotRun.Plant.PartnerPlantCode,

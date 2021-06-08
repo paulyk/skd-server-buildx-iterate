@@ -19,7 +19,7 @@ namespace SKD.Model {
     public class KitSnapshot : EntityBase {
 
         public Guid KitSnapshotRunId { get; set; }
-        public kitSnapshotRun KitSnapshotRun { get; set; }
+        public KitSnapshotRun KitSnapshotRun { get; set; }
         public Guid KitId { get; set; }
         public Kit Kit { get; set; }
         public PartnerStatus_ChangeStatus ChangeStatusCode { get; set; }

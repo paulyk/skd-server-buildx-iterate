@@ -31,7 +31,7 @@ namespace SKD.Model {
         public DbSet<LotPart> LotParts => Set<LotPart>();
         public DbSet<LotPartReceived> LotPartsReceived => Set<LotPartReceived>();
 
-        public DbSet<kitSnapshotRun> KitSnapshotRuns => Set<kitSnapshotRun>();
+        public DbSet<KitSnapshotRun> KitSnapshotRuns => Set<KitSnapshotRun>();
         public DbSet<KitSnapshot> KitSnapshots => Set<KitSnapshot>();
 
         public SkdContext(DbContextOptions options) : base(options) { }
