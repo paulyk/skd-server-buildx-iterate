@@ -85,10 +85,9 @@ namespace SKD.Service.Util {
                     Console.WriteLine("Null " + field.Name);
                 }
 
-
                 value = value.Length < field.Length 
                     ? value.PadRight(field.Length)
-                    : value.Substring(0, field.Length);
+                    : value.Substring(0, field.Length);                
 
                 if (value.Length != field.Length) {
                     throw new Exception($"field {field.Name} length {field.Length} != value length {value.Length}");

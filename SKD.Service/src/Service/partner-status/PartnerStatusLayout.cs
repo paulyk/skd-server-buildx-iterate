@@ -7,7 +7,7 @@ namespace SKD.Service {
         public static string PST_RECORD_TYPE_VAL = "DTL";
         public static string HDR_BATCH_DATE_FORMAT = "yyyy-MM-dd";
         public static string PST_DATE_FORMAT = "yyyy-MM-dd";
-        public static string PST_STATUS_DATE_FORMAT = "yyyy-MM-dd hh=mm=ss";
+        public static string PST_STATUS_DATE_FORMAT = "yyyy-MM-dd hh:mm:ss";
         public class Header {
             public int HDR_RECORD_TYPE = 3;  // HDR
             public int HDR_FILE_NAME = 20;   // PARTNER_STATUS

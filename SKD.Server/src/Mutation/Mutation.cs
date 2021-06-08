@@ -162,8 +162,6 @@ namespace SKD.Server {
         public async Task<MutationPayload<Kit>> SyncKfitModelComponents(
           [Service] VehicleModelService service,
           string kitNo
-      ) => await service.SyncKfitModelComponents(kitNo);
-
-      
+        ) => await service.SyncKfitModelComponents(kitNo);
     }
 }

@@ -19,32 +19,35 @@ namespace SKD.Service {
             this.context = context;
         }
 
-        public class Input {
-            public string PlantCode { get; set; } = "";
-            public DateTime SnapshotDate { get; set; }
-        }
-        public async Task<MutationPayload<string>> BuildPartnerStatusPaylaod(Input input) {
-            var payload = new MutationPayload<string>(null);
-            payload.Errors = await ValidateBuildPartnerStatusInput(input);
-            if (payload.Errors.Any()) {
-                return payload;
-            }
+        public async Task<PartnerStatusDTO> GeneratePartnerStatusFilePaylaod(string plantCode, DateTime runDate) {
 
-            var ksr = await context.KitSnapshotRuns
+            Console.WriteLine("run date" + runDate.ToString("yyyy-MM-dd"));
+            var date = runDate.Date;
+
+            var kitSnapshotRun = await context.KitSnapshotRuns
                 .Include(t => t.Plant)
                 .Include(t => t.KitSnapshots).ThenInclude(t => t.Kit).ThenInclude(t => t.Lot)
-                .FirstOrDefaultAsync(t => t.RunDate == input.SnapshotDate);
+                .Where(t => t.Plant.Code == plantCode && t.RunDate == date)
+                .FirstOrDefaultAsync();
 
+            if (kitSnapshotRun == null) {
+                return new PartnerStatusDTO {
+                    PlantCode = plantCode,
+                    RunDate = runDate,
+                    ErrorMessage = $"Kit snapshot not found for {runDate.ToString("yyyy-MM-dd")} + {plantCode}",
+                    PayloadText = ""
+                };
+            }
 
             var lines = new List<string>();
 
             // heder
             var headerLine = new FlatFileLine(new PartnerStatusLayout.Header());
-            lines.Add(headerLine.Build(BuildHeaderFields(ksr)));
+            lines.Add(headerLine.Build(BuildHeaderFields(kitSnapshotRun)));
 
             // detail
             var detialLine = new FlatFileLine(new PartnerStatusLayout.Detail());
-            foreach (var snapshot in ksr.KitSnapshots) {
+            foreach (var snapshot in kitSnapshotRun.KitSnapshots) {
                 var detailFields = BuildDetailFields(snapshot);
                 var line = detialLine.Build(detailFields);
                 lines.Add(line);
@@ -52,12 +55,15 @@ namespace SKD.Service {
 
             // trailer
             var trailerLine = new FlatFileLine(new PartnerStatusLayout.Trailer());
-            var trailerFields = BuildTrailerFields(ksr);
+            var trailerFields = BuildTrailerFields(kitSnapshotRun);
             lines.Add(trailerLine.Build(trailerFields));
 
-            payload.Payload = String.Join('\n', lines);
-
-            return payload;
+            var payload = String.Join('\n', lines);
+            return new PartnerStatusDTO {
+                PlantCode = plantCode,
+                RunDate = runDate,
+                PayloadText = payload
+            };
         }
 
         public List<FlatFileLine.FieldValue> BuildHeaderFields(KitSnapshotRun snapshotRun) {
@@ -105,7 +111,7 @@ namespace SKD.Service {
 
             return new List<FlatFileLine.FieldValue> {
                 new FlatFileLine.FieldValue( nameof(layout.PST_RECORD_TYPE),PartnerStatusLayout.PST_RECORD_TYPE_VAL),
-                new FlatFileLine.FieldValue(nameof(layout.PST_TRAN_TYPE),snapshot.ChangeStatusCode.ToString().Substring(0,1)),
+                new FlatFileLine.FieldValue(nameof(layout.PST_TRAN_TYPE), snapshot.ChangeStatusCode.ToString()),
                 new FlatFileLine.FieldValue(nameof(layout.PST_LOT_NUMBER), snapshot.Kit.Lot.LotNo),
                 new FlatFileLine.FieldValue(nameof(layout.PST_KIT_NUMBER),snapshot.Kit.KitNo),
                 new FlatFileLine.FieldValue(nameof(layout.PST_PHYSICAL_VIN), snapshot.Kit.VIN),
@@ -123,7 +129,7 @@ namespace SKD.Service {
                 },
                 new FlatFileLine.FieldValue(
                     nameof(layout.PST_ENGINE_SERIAL_NUMBER),
-                    snapshot.EngineSerialNumber.Substring(0, layout.PST_ENGINE_SERIAL_NUMBER)
+                    snapshot.EngineSerialNumber
                 ),
                 new FlatFileLine.FieldValue(
                     nameof(layout.PST_CURRENT_STATUS),
@@ -167,18 +173,6 @@ namespace SKD.Service {
                     snapshotRun.KitSnapshots.Count.ToString().PadLeft(layout.TLR_TOTAL_RECORDS, '0')),
                 new FlatFileLine.FieldValue(nameof(layout.TLR_FILLER), ""),
             };
-        }
-
-        public async Task<List<Error>> ValidateBuildPartnerStatusInput(Input input) {
-            var errors = new List<Error>();
-            var exits = await context.KitSnapshotRuns
-                .Where(t => t.Plant.Code == input.PlantCode)
-                .Where(t => t.RunDate == input.SnapshotDate)
-                .AnyAsync();
-            if (!exits) {
-                errors.Add(new Error("", $"kit snaphot not found for date: {input.SnapshotDate.ToString("yyyy-mm-dd hh:mm")}"));
-            }
-            return errors;
         }
 
         public string ToFordTimelineCode(TimeLineEventType timeLineEventType) {

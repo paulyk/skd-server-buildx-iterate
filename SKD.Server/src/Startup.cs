@@ -61,7 +61,8 @@ namespace SKD.Server {
                 .AddScoped<PlantService>()
                 .AddScoped<LotPartService>()
                 .AddScoped<HandlingUnitService>()
-                .AddScoped<QueryService>().AddSingleton<DcwsService>(sp => new DcwsService(Configuration[ConfigSettingKey.DcwsServiceAddress]));
+                .AddScoped<QueryService>().AddSingleton<DcwsService>(sp => new DcwsService(Configuration[ConfigSettingKey.DcwsServiceAddress]))
+                .AddScoped<PartnerStatusBuilder>();
 
             services.AddGraphQLServer()
                 .AddQueryType<Query>()
