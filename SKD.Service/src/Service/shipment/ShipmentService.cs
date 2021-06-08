@@ -38,7 +38,7 @@ namespace SKD.Service {
             // save
             await context.SaveChangesAsync();
 
-            payload.Entity = await GetShipmentOverview(shipment.Id);
+            payload.Payload = await GetShipmentOverview(shipment.Id);
             return payload;
         }
 

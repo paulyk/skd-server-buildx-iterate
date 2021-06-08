@@ -40,7 +40,7 @@ namespace SKD.Service {
             // save
             await context.SaveChangesAsync();
 
-            payload.Entity = productionStation;
+            payload.Payload = productionStation;
             return payload;
         }
 

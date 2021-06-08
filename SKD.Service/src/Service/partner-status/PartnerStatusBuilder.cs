@@ -55,7 +55,7 @@ namespace SKD.Service {
             var trailerFields = BuildTrailerFields(ksr);
             lines.Add(trailerLine.Build(trailerFields));
 
-            payload.Entity = String.Join('\n', lines);
+            payload.Payload = String.Join('\n', lines);
 
             return payload;
         }

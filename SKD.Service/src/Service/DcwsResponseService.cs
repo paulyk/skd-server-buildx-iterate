@@ -41,7 +41,7 @@ namespace SKD.Service {
                 .Where(t => t.ProcessExcptionCode == input.ResponseCode)
                 .FirstOrDefault();
             if (duplicate != null) {
-                payload.Entity = duplicate;
+                payload.Payload = duplicate;
                 return payload;
             }
 
@@ -65,7 +65,7 @@ namespace SKD.Service {
             context.DCWSResponses.Add(response);
 
             await context.SaveChangesAsync();
-            payload.Entity = response;
+            payload.Payload = response;
             return payload;
         }
 

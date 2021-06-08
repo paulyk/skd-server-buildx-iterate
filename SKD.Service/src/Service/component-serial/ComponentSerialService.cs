@@ -67,7 +67,7 @@ namespace SKD.Service {
             // save
             await context.SaveChangesAsync();
 
-            payload.Entity = await context.ComponentSerials
+            payload.Payload = await context.ComponentSerials
                 .Where(t => t.Id == componentSerial.Id)
                 .Select(t => new ComponentSerialDTO {
                     ComponentSerialId = t.Id,

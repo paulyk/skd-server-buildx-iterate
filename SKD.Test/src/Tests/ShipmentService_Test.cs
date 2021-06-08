@@ -31,11 +31,11 @@ namespace SKD.Test {
             var payload = await shipmentService.ImportShipment(input);
 
             // payload check:  plant code , sequence, count
-            Assert.Equal(plant.Code, payload.Entity.PlantCode);
-            Assert.Equal(sequence, payload.Entity.Sequence);
-            Assert.Equal(inputMetrics.lotCount, payload.Entity.LotCount);
-            Assert.Equal(inputMetrics.invoiceCount, payload.Entity.InvoiceCount);
-            Assert.Equal(inputMetrics.handlingUnitCount, payload.Entity.HandlingUnitCount);
+            Assert.Equal(plant.Code, payload.Payload.PlantCode);
+            Assert.Equal(sequence, payload.Payload.Sequence);
+            Assert.Equal(inputMetrics.lotCount, payload.Payload.LotCount);
+            Assert.Equal(inputMetrics.invoiceCount, payload.Payload.InvoiceCount);
+            Assert.Equal(inputMetrics.handlingUnitCount, payload.Payload.HandlingUnitCount);
 
             // shipment parts count
             var expected_shipment_parts_count = input.Lots

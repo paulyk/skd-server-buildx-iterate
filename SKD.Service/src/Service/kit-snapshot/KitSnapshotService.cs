@@ -46,7 +46,7 @@ namespace SKD.Service {
                     SnapshotCount = 0
                 };
 
-                payload.Entity = dto;
+                payload.Payload = dto;
                 return payload;
             }
 
@@ -86,7 +86,7 @@ namespace SKD.Service {
             var entity = await context.SaveChangesAsync();
             
             // input
-            payload.Entity = new SnapshotDTO {
+            payload.Payload = new SnapshotDTO {
                 RunDate = input.RunDate.Value.Date,
                 PlantCode = input.PlantCode,                
                 SnapshotCount = vehicleSnapshotRun.KitSnapshots.Count(),

@@ -37,7 +37,7 @@ namespace SKD.Service {
             Trim.TrimStringProperties<Component>(component);
             // save
             await context.SaveChangesAsync();
-            payload.Entity = component;
+            payload.Payload = component;
             return payload;
         }
 

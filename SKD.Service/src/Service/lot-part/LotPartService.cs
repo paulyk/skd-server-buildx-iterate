@@ -48,7 +48,7 @@ namespace SKD.Service {
 
             await context.SaveChangesAsync();
 
-            paylaod.Entity = await GetLotPartInfo(input.LotNo, input.PartNo);
+            paylaod.Payload = await GetLotPartInfo(input.LotNo, input.PartNo);
             return paylaod;
         }
 

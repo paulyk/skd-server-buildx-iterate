@@ -25,7 +25,7 @@ namespace SKD.Test {
             var before_count = await context.Components.CountAsync();
             var payload = await service.SaveProductionStation(productionStationDTO);
 
-            Assert.NotNull(payload.Entity);
+            Assert.NotNull(payload.Payload);
             var expectedCount = before_count + 1;
             var actualCount = context.ProductionStations.Count();
             Assert.Equal(expectedCount, actualCount);
@@ -51,15 +51,15 @@ namespace SKD.Test {
             var newName = Util.RandomString(EntityFieldLen.ProductionStation_Name);
 
             var updatedPayload = await service.SaveProductionStation(new ProductionStationInput {
-                Id = payload.Entity.Id,
+                Id = payload.Payload.Id,
                 Code = newCode,
                 Name = newName
             });
 
             var secondCount = context.ProductionStations.Count();
             Assert.Equal(firstCount, secondCount);
-            Assert.Equal(newCode, updatedPayload.Entity.Code);
-            Assert.Equal(newName, updatedPayload.Entity.Name);
+            Assert.Equal(newCode, updatedPayload.Payload.Code);
+            Assert.Equal(newName, updatedPayload.Payload.Name);
         }
 
 

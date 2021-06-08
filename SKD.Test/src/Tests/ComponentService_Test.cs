@@ -26,7 +26,7 @@ namespace SKD.Test {
             var before_count = await context.Components.CountAsync();
             var payload = await service.SaveComponent(input);
 
-            Assert.NotNull(payload.Entity);
+            Assert.NotNull(payload.Payload);
             var expectedCount = before_count + 1;
             var actualCount = await context.Components.CountAsync();
             Assert.Equal(expectedCount, actualCount);
@@ -48,7 +48,7 @@ namespace SKD.Test {
             Assert.Equal(input.DcwsSerialCaptureRule, component.DcwsSerialCaptureRule);
 
             // modify
-            input.Id = payload.Entity.Id;
+            input.Id = payload.Payload.Id;
             input.DcwsSerialCaptureRule = DcwsSerialCaptureRule.UNKNOWN;
             await service.SaveComponent(input);
             component = await context.Components.FirstOrDefaultAsync(t => t.Code == input.Code);
@@ -79,7 +79,7 @@ namespace SKD.Test {
             var after_ComponentCount = await context.Components.CountAsync();
 
             Assert.Equal(before_ComponentCount, after_ComponentCount);
-            Assert.True(before_CreatedAt == payload.Entity.CreatedAt, "CreatedAt should not change when on saving existing component");
+            Assert.True(before_CreatedAt == payload.Payload.CreatedAt, "CreatedAt should not change when on saving existing component");
 
             var modifiedComponent = await context.Components.FirstOrDefaultAsync(t => t.Id == component.Id);
             Assert.Equal(newCode, component.Code);
@@ -123,7 +123,7 @@ namespace SKD.Test {
 
             var errorCount = payload.Errors.Count();
             Assert.Equal(0, errorCount);
-            Assert.Equal(newCode, payload.Entity.Code);
+            Assert.Equal(newCode, payload.Payload.Code);
         }
 
         [Fact]
@@ -140,10 +140,10 @@ namespace SKD.Test {
 
             var after_count = context.Components.Count();
             Assert.Equal(before_count + 1, after_count);
-            Assert.Null(payload.Entity.RemovedAt);
+            Assert.Null(payload.Payload.RemovedAt);
 
-            var payload2 = await service.RemoveComponent(payload.Entity.Id);
-            Assert.NotNull(payload.Entity.RemovedAt);
+            var payload2 = await service.RemoveComponent(payload.Payload.Id);
+            Assert.NotNull(payload.Payload.RemovedAt);
         }
 
         [Fact]
@@ -158,14 +158,14 @@ namespace SKD.Test {
             };
 
             var payload = await service.SaveComponent(dto);
-            Assert.Null(payload.Entity.RemovedAt);
+            Assert.Null(payload.Payload.RemovedAt);
 
-            var payload2 = await service.RemoveComponent(payload.Entity.Id);
-            Assert.NotNull(payload.Entity.RemovedAt);
+            var payload2 = await service.RemoveComponent(payload.Payload.Id);
+            Assert.NotNull(payload.Payload.RemovedAt);
 
             // test
-            var payload3 = service.RestoreComponent(payload2.Entity.Id);
-            Assert.Null(payload.Entity.RemovedAt);
+            var payload3 = service.RestoreComponent(payload2.Payload.Id);
+            Assert.Null(payload.Payload.RemovedAt);
         }
 
         [Fact]

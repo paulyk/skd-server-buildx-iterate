@@ -35,7 +35,7 @@ namespace SKD.Test {
 
             var response = context.DCWSResponses
                 .Include(t => t.ComponentSerial).ThenInclude(t => t.KitComponent)
-                .FirstOrDefault(t => t.Id == payload.Entity.Id);
+                .FirstOrDefault(t => t.Id == payload.Payload.Id);
 
             Assert.True(response.ComponentSerial.VerifiedAt != null, "component scan AcceptedAt should be set");
             Assert.True(response.ComponentSerial.KitComponent.VerifiedAt != null, "vehicle component ScanVerifiedAt should be set");

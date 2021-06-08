@@ -43,7 +43,7 @@ namespace SKD.Service{
 
             await context.SaveChangesAsync();
 
-            payload.Entity = new ReceiveHandlingUnitPayload {
+            payload.Payload = new ReceiveHandlingUnitPayload {
                 Code = handlingUnit.Code,
                 LotNo = handlingUnit.ShipmentInvoice.ShipmentLot.Lot.LotNo,
                 InvoiceNo = handlingUnit.ShipmentInvoice.InvoiceNo,

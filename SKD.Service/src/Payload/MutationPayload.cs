@@ -4,10 +4,10 @@ using System.Collections.Generic;
 namespace SKD.Service {
 
     public class MutationPayload<T> where T : class {
-        public MutationPayload(T? entity) {
-            Entity = entity;
+        public MutationPayload(T? payload) {
+            Payload = payload;
         }
-        public T? Entity { get; set; }
+        public T? Payload { get; set; }
         public List<Error> Errors { get; set; } = new List<Error>();
     }
 }

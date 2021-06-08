@@ -34,7 +34,7 @@ namespace SKD.Service {
 
             // save
             await context.SaveChangesAsync();
-            paylaod.Entity = new PlantOverviewDTO {
+            paylaod.Payload = new PlantOverviewDTO {
                 Code = plant.Code,
                 Name = plant.Name,
                 CreatedAt = plant.CreatedAt

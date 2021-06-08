@@ -37,7 +37,7 @@ namespace SKD.Test {
             var paylaod = await service.BuildPartnerStatusPaylaod(input);
 
             var exptectedLines = 8;  // header + trailer + 6 kits
-            var lines = paylaod.Entity.Split('\n');
+            var lines = paylaod.Payload.Split('\n');
             var actuaLineCount = lines.Count();
             // assert line count
             Assert.Equal(exptectedLines, actuaLineCount);

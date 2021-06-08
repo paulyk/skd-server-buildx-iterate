@@ -36,7 +36,7 @@ namespace SKD.Test {
 
             var service = new KitSnapshotService(context);
             var payload = await service.GenerateSnapshot(snapshotInput);
-            Assert.Equal(0, payload.Entity.SnapshotCount);
+            Assert.Equal(0, payload.Payload.SnapshotCount);
 
             // custom received
             await AddKitTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, kit.KitNo, "", custom_receive_date_trx, custom_receive_date);
@@ -214,7 +214,7 @@ namespace SKD.Test {
             await AddKitTimelineEntry(TimeLineEventType.CUSTOM_RECEIVED, kit.KitNo, "note", custom_receive_date_trx, custom_receive_date);
             snapshotInput.RunDate = custom_receive_date_trx;
             var payload = await service.GenerateSnapshot(snapshotInput);
-            var snapshotRun = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, payload.Entity.Sequence.Value);
+            var snapshotRun = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, payload.Payload.Sequence.Value);
             var kitSnapshot = snapshotRun.Entries.First(t => t.KitNo == kit.KitNo);
             Assert.Equal(1, snapshotRun.Entries.Count);
             Assert.Equal(TimeLineEventType.CUSTOM_RECEIVED, kitSnapshot.CurrentTimelineEvent);
@@ -224,7 +224,7 @@ namespace SKD.Test {
             await AddKitTimelineEntry(TimeLineEventType.PLAN_BUILD, kit.KitNo, "note", plan_build_date_trx, plan_build_date);
             snapshotInput.RunDate = plan_build_date_trx;
             payload = await service.GenerateSnapshot(snapshotInput);
-            snapshotRun = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, payload.Entity.Sequence.Value);
+            snapshotRun = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, payload.Payload.Sequence.Value);
             kitSnapshot = snapshotRun.Entries.First(t => t.KitNo == kit.KitNo);
             Assert.Equal(1, snapshotRun.Entries.Count);
             Assert.Equal(TimeLineEventType.PLAN_BUILD, kitSnapshot.CurrentTimelineEvent);
@@ -341,11 +341,11 @@ namespace SKD.Test {
 
             snapshotInput.RunDate = run_date_1;
             var payload = await service.GenerateSnapshot(snapshotInput);
-            Assert.Equal(1, payload.Entity.Sequence);
+            Assert.Equal(1, payload.Payload.Sequence);
 
             snapshotInput.RunDate = run_date_2;
             payload = await service.GenerateSnapshot(snapshotInput);
-            Assert.Equal(2, payload.Entity.Sequence);
+            Assert.Equal(2, payload.Payload.Sequence);
 
             // setup plant 2
             plantCode = Gen_PlantCode();
@@ -363,11 +363,11 @@ namespace SKD.Test {
 
             snapshotInput.RunDate = run_date_1;
             payload = await service.GenerateSnapshot(snapshotInput);
-            Assert.Equal(1, payload.Entity.Sequence);
+            Assert.Equal(1, payload.Payload.Sequence);
 
             snapshotInput.RunDate = run_date_2;
             payload = await service.GenerateSnapshot(snapshotInput);
-            Assert.Equal(2, payload.Entity.Sequence);
+            Assert.Equal(2, payload.Payload.Sequence);
 
 
             // total snapshot run entries

@@ -34,7 +34,7 @@ namespace SKD.Service{
             await Add_Update_Remove_LotParts(input, lots, parts);
 
             await context.SaveChangesAsync();
-            payload.Entity = await GetBomOverview(lots.First().BomId);
+            payload.Payload = await GetBomOverview(lots.First().BomId);
             return payload;
         }
 
@@ -195,7 +195,7 @@ namespace SKD.Service{
             }
 
             await context.SaveChangesAsync();
-            payload.Entity = await GetBomOverview(bom.Sequence);
+            payload.Payload = await GetBomOverview(bom.Sequence);
             return payload;
         }
 
@@ -399,7 +399,7 @@ namespace SKD.Service{
             lot.Note = input.Note;
 
             await context.SaveChangesAsync();
-            paylaod.Entity = lot;
+            paylaod.Payload = lot;
             return paylaod;
         }
 

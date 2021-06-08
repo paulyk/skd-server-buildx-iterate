@@ -87,7 +87,7 @@ namespace SKD.Service {
 
             // save
             await context.SaveChangesAsync();
-            payload.Entity = vehicleModel;
+            payload.Payload = vehicleModel;
             return payload;
         }
 
@@ -190,7 +190,7 @@ namespace SKD.Service {
                 .Include(t => t.KitComponents).ThenInclude(t => t.Component)
                 .Include(t => t.KitComponents).ThenInclude(t => t.ProductionStation)
                 .FirstOrDefaultAsync(t => t.KitNo == kitNo);
-            payload.Entity = kit;
+            payload.Payload = kit;
 
             var diff = await GetKitModelComponentDiff(kitNo);
 

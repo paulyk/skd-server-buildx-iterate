@@ -196,7 +196,7 @@ namespace SKD.Service{
             kit.TimelineEvents.Add(newTimelineEvent);
 
             // save
-            payload.Entity = newTimelineEvent;
+            payload.Payload = newTimelineEvent;
             await context.SaveChangesAsync();
             return payload;
         }
@@ -325,7 +325,7 @@ namespace SKD.Service{
             }
 
             // // save
-            payload.Entity = vehicleLot;
+            payload.Payload = vehicleLot;
             await context.SaveChangesAsync();
             return payload;
         }
@@ -391,7 +391,7 @@ namespace SKD.Service{
             kitComponent.ProductionStation = productionStation;
             // // save
             await context.SaveChangesAsync();
-            payload.Entity = kitComponent;
+            payload.Payload = kitComponent;
             return payload;
         }
 
