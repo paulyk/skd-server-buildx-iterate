@@ -19,22 +19,21 @@ namespace SKD.Service {
             this.context = context;
         }
 
-        public async Task<PartnerStatusDTO> GeneratePartnerStatusFilePaylaod(string plantCode, DateTime runDate) {
+        public async Task<PartnerStatusDTO> GeneratePartnerStatusFilePaylaod(string plantCode, int sequence) {
 
-            Console.WriteLine("run date" + runDate.ToString("yyyy-MM-dd"));
-            var date = runDate.Date;
 
             var kitSnapshotRun = await context.KitSnapshotRuns
                 .Include(t => t.Plant)
                 .Include(t => t.KitSnapshots).ThenInclude(t => t.Kit).ThenInclude(t => t.Lot)
-                .Where(t => t.Plant.Code == plantCode && t.RunDate == date)
+                .Where(t => t.Plant.Code == plantCode && t.Sequence == sequence)
                 .FirstOrDefaultAsync();
 
             if (kitSnapshotRun == null) {
                 return new PartnerStatusDTO {
                     PlantCode = plantCode,
-                    RunDate = runDate,
-                    ErrorMessage = $"Kit snapshot not found for {runDate.ToString("yyyy-MM-dd")} + {plantCode}",
+                    Sequecne = sequence,
+                    RunDate = (DateTime?)null,
+                    ErrorMessage = $"Kit snapshot not found for plant {plantCode} seq {sequence}",
                     PayloadText = ""
                 };
             }
@@ -58,14 +57,21 @@ namespace SKD.Service {
             var trailerFields = BuildTrailerFields(kitSnapshotRun);
             lines.Add(trailerLine.Build(trailerFields));
 
-            var payload = String.Join('\n', lines);
-            return new PartnerStatusDTO {
-                PlantCode = plantCode,
-                RunDate = runDate,
-                PayloadText = payload
+            var payload = new PartnerStatusDTO {
+                PlantCode = kitSnapshotRun.Plant.Code,
+                Sequecne = kitSnapshotRun.Sequence,
+                RunDate = kitSnapshotRun.RunDate,
+                Filename =  BuildFilename(kitSnapshotRun.Plant.Code, kitSnapshotRun.Plant.PartnerPlantCode, kitSnapshotRun.RunDate),
+                PayloadText = String.Join('\n', lines)
             };
+            return payload;
         }
 
+        public string BuildFilename( string plantCode, string partnerPlantCode, DateTime runDate) {
+            var formattedRunDate = runDate.ToString(PartnerStatusLayout.FILENAME_DATE_FORMAT);
+            var prefix = PartnerStatusLayout.FILENAME_PREFIX;            
+            return $"{prefix}_{plantCode}_{partnerPlantCode}_{formattedRunDate}.txt";
+        }
         public List<FlatFileLine.FieldValue> BuildHeaderFields(KitSnapshotRun snapshotRun) {
             var headerLayout = new PartnerStatusLayout.Header();
 
@@ -170,7 +176,8 @@ namespace SKD.Service {
                 new FlatFileLine.FieldValue(nameof(layout.TLR_PARTNER_GSDB), snapshotRun.Plant.PartnerPlantCode),
                 new FlatFileLine.FieldValue(
                     nameof(layout.TLR_TOTAL_RECORDS),
-                    snapshotRun.KitSnapshots.Count.ToString().PadLeft(layout.TLR_TOTAL_RECORDS, '0')),
+                    // add 2 for Header + Trailer
+                    (snapshotRun.KitSnapshots.Count + 2).ToString().PadLeft(layout.TLR_TOTAL_RECORDS, '0')),
                 new FlatFileLine.FieldValue(nameof(layout.TLR_FILLER), ""),
             };
         }

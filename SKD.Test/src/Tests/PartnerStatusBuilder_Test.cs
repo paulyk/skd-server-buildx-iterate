@@ -32,7 +32,7 @@ namespace SKD.Test {
             var service = new PartnerStatusBuilder(context);
             var payload = await service.GeneratePartnerStatusFilePaylaod(
                 plantCode: snapshotRun.Plant.Code,
-                runDate: snapshotRun.RunDate
+                sequence: snapshotRun.Sequence
             );
 
             var exptectedLines = 8;  // header + trailer + 6 kits
@@ -40,17 +40,23 @@ namespace SKD.Test {
             var actuaLineCount = lines.Count();
             // assert line count
             Assert.Equal(exptectedLines, actuaLineCount);
+
+            // filename prefix
+            var expecedPrefix = PartnerStatusLayout.FILENAME_PREFIX;
+            var actualPrefix = payload.Filename.Substring(0, PartnerStatusLayout.FILENAME_PREFIX.Length);
+            Assert.Equal(expecedPrefix, actualPrefix);
+
             // assert header
             var headerLine = new FlatFileLine(new PartnerStatusLayout.Header());
             var headerFields = headerLine.Parse(lines[0]);
 
-            // HDR 
+            // Header 
             var expectedValue = PartnerStatusLayout.HDR_RECORD_TYPE_VAL;
             var actualField = headerFields.FirstOrDefault(t => t.Name == nameof(PartnerStatusLayout.Header.HDR_RECORD_TYPE));
             var actualValue = actualField != null ? actualField.Value : "";
             Assert.Equal(expectedValue, actualValue);
 
-            // FILE_NAME
+            // Header HDR_FILE_NAME_VAL
             expectedValue = PartnerStatusLayout.HDR_FILE_NAME_VAL;
             actualValue = headerFields.First(t => t.Name == nameof(PartnerStatusLayout.Header.HDR_FILE_NAME)).Value.Trim();
             Assert.Equal(expectedValue, actualValue);

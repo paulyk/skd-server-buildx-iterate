@@ -493,11 +493,16 @@ namespace SKD.Server {
         ) => await service.GetServiceVersion();
 
         public async Task<PartnerStatusDTO> GetPartnerStatusFilePayload(
+            [Service] SkdContext context,
             [Service] PartnerStatusBuilder service,
             string plantCode,
-            DateTime runDate
-            
-        ) => await service.GeneratePartnerStatusFilePaylaod(plantCode, runDate);
+            int sequence            
+        )  =>
+             await service.GeneratePartnerStatusFilePaylaod(
+                plantCode: plantCode,
+                sequence: sequence
+            );
+        
 
     }
 }

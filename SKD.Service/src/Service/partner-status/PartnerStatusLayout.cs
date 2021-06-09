@@ -2,12 +2,18 @@
 namespace SKD.Service {
     public class PartnerStatusLayout {
 
+        // filename
+        public static string FILENAME_PREFIX = "PARTNER_STATUS";
+        public static string FILENAME_DATE_FORMAT = "yyMMdd_HHmmss";
+
+        // header 
         public static string HDR_RECORD_TYPE_VAL = "HDR";
         public static string HDR_FILE_NAME_VAL = "PARTNER_STATUS";
-        public static string PST_RECORD_TYPE_VAL = "DTL";
         public static string HDR_BATCH_DATE_FORMAT = "yyyy-MM-dd";
+        //
+        public static string PST_RECORD_TYPE_VAL = "DTL";
         public static string PST_DATE_FORMAT = "yyyy-MM-dd";
-        public static string PST_STATUS_DATE_FORMAT = "yyyy-MM-dd hh:mm:ss";
+        public static string PST_STATUS_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
         public class Header {
             public int HDR_RECORD_TYPE = 3;  // HDR
             public int HDR_FILE_NAME = 20;   // PARTNER_STATUS
