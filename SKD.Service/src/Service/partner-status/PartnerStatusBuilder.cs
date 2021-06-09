@@ -23,8 +23,8 @@ namespace SKD.Service {
 
 
             var kitSnapshotRun = await context.KitSnapshotRuns
-                .Include(t => t.Plant)
-                .Include(t => t.KitSnapshots).ThenInclude(t => t.Kit).ThenInclude(t => t.Lot)
+                .Include(t => t.Plant)                
+                .Include(t => t.KitSnapshots.OrderBy(u => u.Kit.Lot.LotNo).ThenBy(u => u.Kit.KitNo)).ThenInclude(t => t.Kit).ThenInclude(t => t.Lot)
                 .Where(t => t.Plant.Code == plantCode && t.Sequence == sequence)
                 .FirstOrDefaultAsync();
 
@@ -120,7 +120,7 @@ namespace SKD.Service {
                 new FlatFileLine.FieldValue(nameof(layout.PST_TRAN_TYPE), snapshot.ChangeStatusCode.ToString()),
                 new FlatFileLine.FieldValue(nameof(layout.PST_LOT_NUMBER), snapshot.Kit.Lot.LotNo),
                 new FlatFileLine.FieldValue(nameof(layout.PST_KIT_NUMBER),snapshot.Kit.KitNo),
-                new FlatFileLine.FieldValue(nameof(layout.PST_PHYSICAL_VIN), snapshot.Kit.VIN),
+                new FlatFileLine.FieldValue(nameof(layout.PST_PHYSICAL_VIN), snapshot.VIN),
 
                 new FlatFileLine.FieldValue(
                     nameof(layout.PST_BUILD_DATE),

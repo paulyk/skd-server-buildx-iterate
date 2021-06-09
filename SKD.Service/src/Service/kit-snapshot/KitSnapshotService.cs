@@ -100,7 +100,7 @@ namespace SKD.Service {
 
             var snapshotRun = await context.KitSnapshotRuns
                 .Include(t => t.Plant)
-                .Include(t => t.KitSnapshots)
+                .Include(t => t.KitSnapshots.OrderBy(u => u.Kit.Lot.LotNo).ThenBy(u => u.Kit.KitNo))                    
                     .ThenInclude(t => t.Kit)
                     .ThenInclude(t => t.Lot)
                 .Where(t => t.Plant.Code == plantCode)
