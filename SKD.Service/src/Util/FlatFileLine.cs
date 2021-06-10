@@ -6,6 +6,7 @@ using System.Text;
 
 namespace SKD.Service.Util {
 
+
     public class FlatFileLine {
 
         public class Field {
@@ -22,7 +23,7 @@ namespace SKD.Service.Util {
             }
             public string Name { get; set; }
             public string Value { get; set; }
-        }
+        }      
 
         public int LineLength { get; init; }
 
