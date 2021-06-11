@@ -1,4 +1,4 @@
-namespace SKD.Service{
+namespace SKD.Common{
     public record ReceiveHandlingUnitInput (
         string HandlingUnitCode,
         bool Remove = false

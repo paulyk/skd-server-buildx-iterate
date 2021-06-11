@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SKD.Model;
 
-namespace SKD.Service{
+namespace SKD.Common{
 
     public class KitService {
 

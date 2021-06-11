@@ -1,7 +1,7 @@
 #nullable enable
 using System;
 
-namespace SKD.Service {
+namespace SKD.Common {
     public class ComponentSerialDTO {
         public Guid ComponentSerialId { get; set; }
         public string VIN { get; set; } = "";

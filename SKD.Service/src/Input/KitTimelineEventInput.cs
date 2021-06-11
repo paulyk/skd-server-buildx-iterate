@@ -1,7 +1,7 @@
 using SKD.Model;
 using System;
 
-namespace SKD.Service {
+namespace SKD.Common {
 
     public class KitTimelineEventInput {
         public string KitNo { get; init; }

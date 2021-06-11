@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SKD.Model;
-using SKD.Service.Util;
+using SKD.Common;
 
-namespace SKD.Service {
+namespace SKD.Common {
     public class PartnerStatusBuilder {
 
         private readonly SkdContext context;
@@ -84,7 +84,7 @@ namespace SKD.Service {
                     Name = nameof(headerLayout.HDR_FILE_NAME),
                     Value = PartnerStatusLayout.HDR_FILE_NAME_VAL
                 },
-                new FlatFileLine.FieldValue {
+                new FlatFileLine.FieldValue { 
                     Name = nameof(headerLayout.HDR_KD_PLANT_GSDB),
                     Value = snapshotRun.Plant.Code
                 },

@@ -5,7 +5,7 @@ using System.Linq;
 using SKD.Dcws;
 using HotChocolate;
 using System.Threading.Tasks;
-using SKD.Service;
+using SKD.Common;
 using SKD.Model;
 
 

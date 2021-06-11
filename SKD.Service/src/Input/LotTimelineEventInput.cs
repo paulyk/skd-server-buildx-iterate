@@ -1,7 +1,7 @@
 using SKD.Model;
 using System;
 
-namespace SKD.Service {
+namespace SKD.Common {
     public class LotTimelineEventInput {
         public string LotNo { get; init; }
         public TimeLineEventType EventType { get; init; }

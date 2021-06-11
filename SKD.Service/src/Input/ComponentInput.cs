@@ -1,7 +1,7 @@
 using SKD.Model;
 using System;
 
-namespace SKD.Service {
+namespace SKD.Common {
     public class ComponentInput {
         public Guid? Id { get; set; }
         public string Code { get; set; }

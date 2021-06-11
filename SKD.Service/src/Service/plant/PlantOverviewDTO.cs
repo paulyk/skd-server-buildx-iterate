@@ -1,6 +1,6 @@
 using System;
 
-namespace SKD.Service {
+namespace SKD.Common {
     public class PlantOverviewDTO {
         public Guid Id { get; set; }
         public string Code { get; set; }

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using SKD.Service;
+using SKD.Common;
 using Xunit;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;

@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
-namespace SKD.Service {
+namespace SKD.Common {
 
     public class PlantService {
         private readonly SkdContext context;

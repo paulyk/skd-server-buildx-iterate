@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SKD.Service {
+namespace SKD.Common {
     public class SnapshotDTO {
         public DateTime RunDate { get; set; }
         public int? Sequence { get; set; }

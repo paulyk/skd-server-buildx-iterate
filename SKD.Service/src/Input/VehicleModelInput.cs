@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SKD.Service {
+namespace SKD.Common {
     public class VehicleModelInput {
         public Guid? Id { get; init; }
         public string Code { get; init; }

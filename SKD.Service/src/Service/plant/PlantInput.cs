@@ -1,6 +1,6 @@
 using System;
 
-namespace SKD.Service {
+namespace SKD.Common {
     public class PlantInput {
         public string Code { get; set; }
         public string PartnerPlantCode { get; set; }

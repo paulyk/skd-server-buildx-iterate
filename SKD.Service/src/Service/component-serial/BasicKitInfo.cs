@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SKD.Service{
+namespace SKD.Common{
 
     public class BasicKitInfo {
         public string VIN { get; set; } = "";

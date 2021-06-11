@@ -1,4 +1,4 @@
-namespace SKD.Service {
+namespace SKD.Common {
     public class BomFileLayout {
 
         public class Header {

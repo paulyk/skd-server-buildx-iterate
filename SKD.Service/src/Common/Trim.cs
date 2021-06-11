@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 
-namespace SKD.Service {
+namespace SKD.Common {
 
 
     public static class Trim {

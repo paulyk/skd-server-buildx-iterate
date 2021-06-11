@@ -4,7 +4,7 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace SKD.Service {
+namespace SKD.Common {
 
     public static class ServiceExnsins {
 

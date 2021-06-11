@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SKD.Model;
 
-namespace SKD.Service {
+namespace SKD.Common {
     public class VehicleModelService {
         private readonly SkdContext context;
 

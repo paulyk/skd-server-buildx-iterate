@@ -1,6 +1,6 @@
 using System;
 
-namespace SKD.Service {
+namespace SKD.Common {
     public class LotParReceivedtDTO {
         public string LotNo { get; set; }
         public string PartNo { get; set; }

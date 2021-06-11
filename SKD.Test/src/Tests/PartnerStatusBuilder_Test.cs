@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
 using SKD.Model;
-using SKD.Service;
+using SKD.Common;
 using Xunit;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
-using SKD.Service.Util;
 
 namespace SKD.Test {
 

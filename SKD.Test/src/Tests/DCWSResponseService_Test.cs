@@ -1,5 +1,5 @@
 using System;
-using SKD.Service;
+using SKD.Common;
 using Xunit;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;

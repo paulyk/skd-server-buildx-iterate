@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SKD.Model;
 
-namespace SKD.Service{
+namespace SKD.Common{
     public class HandlingUnitService {
         private readonly SkdContext context;
 

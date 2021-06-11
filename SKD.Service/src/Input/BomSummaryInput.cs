@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SKD.Service {
+namespace SKD.Common {
     public class BomSummaryInput {
         public string PlantCode { get; set; }
         public string PartnerCode { get; set; }

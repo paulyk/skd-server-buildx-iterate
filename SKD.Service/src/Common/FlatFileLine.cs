@@ -4,7 +4,7 @@ using System;
 using System.Reflection;
 using System.Text;
 
-namespace SKD.Service.Util {
+namespace SKD.Common {
 
 
     public class FlatFileLine {

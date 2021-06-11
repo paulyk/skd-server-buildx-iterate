@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Collections.Generic;
 
-namespace SKD.Service {
+namespace SKD.Common {
     public class ErrorHelper {
         public static Error Create<T>(Expression<Func<T, object>> expression, string msg) {
 

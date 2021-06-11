@@ -1,6 +1,6 @@
 using System;
 
-namespace SKD.Service{
+namespace SKD.Common{
     public class HandlingUnitOverview {
         public string PlantCode { get; set; }
         public int ShipmentSequence { get; set; }
