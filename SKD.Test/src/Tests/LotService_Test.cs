@@ -210,7 +210,7 @@ namespace SKD.Test {
             var lot2 = Gen_LotNo(2);
 
             // trim tailing [- ]* and removes spaces
-            var part_mubers = new List<(string partNo, string reformattedPartNo)>() {
+            var part_numbers = new List<(string partNo, string reformattedPartNo)>() {
                 ("-W716936-S442", "W716936-S442"),
                 ("- W716899-  S900 -", "W716899-S900"),
                 ("- EB3B-31010-  AF3ZHE -", "EB3B-31010-AF3ZHE"),
@@ -223,26 +223,26 @@ namespace SKD.Test {
                 LotParts = new List<BomLotPartInput.LotPart> {
                     new BomLotPartInput.LotPart {
                         LotNo = lot1,
-                        PartNo = part_mubers[0].partNo,
-                        PartDesc = part_mubers[0].partNo + " desc",
+                        PartNo = part_numbers[0].partNo,
+                        PartDesc = part_numbers[0].partNo + " desc",
                         Quantity = 1
                     },
                     new BomLotPartInput.LotPart {
                         LotNo = lot1,
-                        PartNo = part_mubers[1].partNo,
-                        PartDesc = part_mubers[1].partNo + " desc",
+                        PartNo = part_numbers[1].partNo,
+                        PartDesc = part_numbers[1].partNo + " desc",
                         Quantity = 1
                     },
                     new BomLotPartInput.LotPart {
                         LotNo = lot2,
-                        PartNo = part_mubers[2].partNo,
-                        PartDesc = part_mubers[2].partNo + " desc",
+                        PartNo = part_numbers[2].partNo,
+                        PartDesc = part_numbers[2].partNo + " desc",
                         Quantity = 1
                     },
                     new BomLotPartInput.LotPart {
                         LotNo = lot2,
-                        PartNo = part_mubers[3].partNo,
-                        PartDesc = part_mubers[3].partNo + " desc",
+                        PartNo = part_numbers[3].partNo,
+                        PartDesc = part_numbers[3].partNo + " desc",
                         Quantity = 1
                     }
                 }
@@ -255,7 +255,7 @@ namespace SKD.Test {
             var partService = new PartService(context);
 
             // assert 
-            foreach (var entry in part_mubers) {
+            foreach (var entry in part_numbers) {
                 var part = await context.Parts.FirstOrDefaultAsync(t => t.PartNo == entry.reformattedPartNo);
                 var formatted = PartService.ReFormatPartNo(part.PartNo);
                 Assert.Equal(formatted, part.PartNo);

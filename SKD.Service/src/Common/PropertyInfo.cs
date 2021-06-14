@@ -8,7 +8,7 @@ namespace SKD.Common {
 
     public static class ServiceExnsins {
 
-        public static PropertyInfo GetAccessedMemberInfo<T>(this Expression<T> expression) {
+        public static MemberInfo GetAccessedMemberInfo<T>(this Expression<T> expression) {
             MemberExpression? memberExpression = null;
 
             if (expression.Body.NodeType == ExpressionType.Convert) {
@@ -21,7 +21,7 @@ namespace SKD.Common {
                 throw new ArgumentException("Not a member access", "expression");
             }
 
-            return memberExpression.Member as PropertyInfo ?? throw new Exception();
+            return memberExpression.Member;
         }
     }
 }

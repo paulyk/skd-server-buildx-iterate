@@ -3,11 +3,12 @@ using System.Linq;
 using System;
 using System.Reflection;
 using System.Text;
+using System.Linq.Expressions;
 
 namespace SKD.Common {
 
 
-    public class FlatFileLine {
+    public class FlatFileLine<T> where T : new() {
 
         public class Field {
             public string Name { get; set; }
@@ -16,27 +17,34 @@ namespace SKD.Common {
 
         public class FieldValue {
 
-            public FieldValue() {}
-            public FieldValue(string name, string value) {
-                this.Name = name;
-                this.Value = value;
-            }
+            public FieldValue() { }
             public string Name { get; set; }
             public string Value { get; set; }
-        }      
+        }
 
         public int LineLength { get; init; }
 
         public List<Field> Fields { get; set; } = new List<Field>();
 
         ///<param name="schemaObject">A type with int properties representing character fields</param>
-        public FlatFileLine(Object schemaObject) {
-            Fields = GetSchemaFields(schemaObject);
+        public FlatFileLine() {
+            Fields = GetSchemaFields();
             LineLength = Fields.Select(t => t.Length).Aggregate((a, b) => a + b);
         }
 
-        private List<Field> GetSchemaFields(Object schemaObject) {
-        
+        public FieldValue CreateFieldValue(Expression<Func<T, object>> expr, string value) {
+            var member = expr.GetAccessedMemberInfo();
+            var fieldValue = new FieldValue {
+                Name = member.Name,
+                Value = value
+            };
+            return fieldValue;
+
+        }
+
+        private List<Field> GetSchemaFields() {
+            var schemaObject = (T)Activator.CreateInstance(typeof(T));
+
             var fields = schemaObject.GetType()
                 .GetFields(BindingFlags.Instance | BindingFlags.Public)
                 .Where(t => t.FieldType.Name == "Int32").ToList();
@@ -50,29 +58,19 @@ namespace SKD.Common {
             }).ToList();
         }
 
-        public string GetFieldValue(string lineText, string fieldName) {
+        public string GetFieldValue(string lineText, Expression<Func<T, object>> prop) {
+            var member = prop.GetAccessedMemberInfo();
+
             var pos = 0;
             foreach (var field in Fields) {
-                if (field.Name == fieldName) {
+                if (field.Name == member.Name) {
                     var value = lineText.Substring(pos, field.Length);
                     return value;
                 }
                 pos += field.Length;
             }
-            throw new Exception($"field '{fieldName}' not found in layout");
+            throw new Exception($"field '{prop.Name}' not found in layout");
         }
-
-        // public FieldValue NewFieldValue(string name, string value) {
-        //     var field = this.Fields.First(t => t.Name == name);
-        //     value = value.Length < field.Length 
-        //         ? value.PadRight(field.Length, ' ') 
-        //         : value.Substring(0, field.Length);
-
-        //     return new FieldValue {
-        //         Name= field.Name,
-        //         Value = value
-        //     };
-        // }
 
         public string Build(List<FieldValue> values) {
             var builder = new StringBuilder();
@@ -86,9 +84,9 @@ namespace SKD.Common {
                     Console.WriteLine("Null " + field.Name);
                 }
 
-                value = value.Length < field.Length 
+                value = value.Length < field.Length
                     ? value.PadRight(field.Length)
-                    : value.Substring(0, field.Length);                
+                    : value.Substring(0, field.Length);
 
                 if (value.Length != field.Length) {
                     throw new Exception($"field {field.Name} length {field.Length} != value length {value.Length}");
@@ -96,7 +94,7 @@ namespace SKD.Common {
                 builder.Append(value);
             }
 
-            var line= builder.ToString();
+            var line = builder.ToString();
             if (line.Length != LineLength) {
                 throw new Exception($"Line length {this.LineLength} != generated line lenght {line.Length} ");
             }

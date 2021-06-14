@@ -497,12 +497,10 @@ namespace SKD.Server {
             [Service] PartnerStatusBuilder service,
             string plantCode,
             int sequence            
-        )  =>
-             await service.GeneratePartnerStatusFilePaylaod(
+        )  => await service.GeneratePartnerStatusFilePaylaod(
                 plantCode: plantCode,
                 sequence: sequence
             );
         
-
     }
 }

@@ -41,11 +41,11 @@ namespace SKD.Common {
             var lines = new List<string>();
 
             // heder
-            var headerLine = new FlatFileLine(new PartnerStatusLayout.Header());
-            lines.Add(headerLine.Build(BuildHeaderFields(kitSnapshotRun)));
+            var headerLineBuilder = new FlatFileLine<PartnerStatusLayout.Header>();
+            lines.Add(headerLineBuilder.Build(BuildHeaderFields(kitSnapshotRun)));
 
             // detail
-            var detialLine = new FlatFileLine(new PartnerStatusLayout.Detail());
+            var detialLine = new FlatFileLine<PartnerStatusLayout.Detail>();
             foreach (var snapshot in kitSnapshotRun.KitSnapshots) {
                 var detailFields = BuildDetailFields(snapshot);
                 var line = detialLine.Build(detailFields);
@@ -53,7 +53,7 @@ namespace SKD.Common {
             }
 
             // trailer
-            var trailerLine = new FlatFileLine(new PartnerStatusLayout.Trailer());
+            var trailerLine = new FlatFileLine<PartnerStatusLayout.Trailer>();
             var trailerFields = BuildTrailerFields(kitSnapshotRun);
             lines.Add(trailerLine.Build(trailerFields));
 
@@ -72,113 +72,98 @@ namespace SKD.Common {
             var prefix = PartnerStatusLayout.FILENAME_PREFIX;            
             return $"{prefix}_{plantCode}_{partnerPlantCode}_{formattedRunDate}.txt";
         }
-        public List<FlatFileLine.FieldValue> BuildHeaderFields(KitSnapshotRun snapshotRun) {
+        public List<FlatFileLine<PartnerStatusLayout.Header>.FieldValue> BuildHeaderFields(KitSnapshotRun snapshotRun) {
             var headerLayout = new PartnerStatusLayout.Header();
+            var headerLineBuilder = new FlatFileLine<PartnerStatusLayout.Header>();
 
-            return new List<FlatFileLine.FieldValue> {
-                new FlatFileLine.FieldValue {
-                    Name = nameof(headerLayout.HDR_RECORD_TYPE),
-                    Value = PartnerStatusLayout.HDR_RECORD_TYPE_VAL
-                },
-                new FlatFileLine.FieldValue {
-                    Name = nameof(headerLayout.HDR_FILE_NAME),
-                    Value = PartnerStatusLayout.HDR_FILE_NAME_VAL
-                },
-                new FlatFileLine.FieldValue { 
-                    Name = nameof(headerLayout.HDR_KD_PLANT_GSDB),
-                    Value = snapshotRun.Plant.Code
-                },
-                new FlatFileLine.FieldValue {
-                    Name = nameof(headerLayout.HDR_PARTNER_GSDB),
-                    Value = snapshotRun.Plant.PartnerPlantCode
-                },
-                new FlatFileLine.FieldValue {
-                    Name = nameof(headerLayout.HDR_PARTNER_TYPE),
-                    Value = snapshotRun.Plant.PartnerPlantType
-                },
-                new FlatFileLine.FieldValue {
-                    Name = nameof(headerLayout.HDR_SEQ_NBR),
-                    Value = snapshotRun.Sequence.ToString().PadLeft(headerLayout.HDR_SEQ_NBR,'0')
-                },
-                new FlatFileLine.FieldValue {
-                    Name = nameof(headerLayout.HDR_BATCH_DATE),
-                    Value = snapshotRun.RunDate.ToString(PartnerStatusLayout.HDR_BATCH_DATE_FORMAT)
-                },
-                new FlatFileLine.FieldValue {
-                    Name = nameof(headerLayout.HDR_FILLER),
-                    Value = new String(' ', headerLayout.HDR_FILLER)
-                }
+            return new List<FlatFileLine<PartnerStatusLayout.Header>.FieldValue> {
+                headerLineBuilder.CreateFieldValue(t => t.HDR_RECORD_TYPE, PartnerStatusLayout.HDR_RECORD_TYPE_VAL),
+                headerLineBuilder.CreateFieldValue(t => t.HDR_FILE_NAME, PartnerStatusLayout.HDR_FILE_NAME_VAL),                
+                headerLineBuilder.CreateFieldValue(t => t.HDR_KD_PLANT_GSDB, snapshotRun.Plant.Code),                
+                headerLineBuilder.CreateFieldValue(t => t.HDR_PARTNER_GSDB,snapshotRun.Plant.PartnerPlantCode),
+                headerLineBuilder.CreateFieldValue(t => t.HDR_PARTNER_TYPE, snapshotRun.Plant.PartnerPlantType),            
+                headerLineBuilder.CreateFieldValue(
+                    t => t.HDR_SEQ_NBR,
+                    snapshotRun.Sequence.ToString().PadLeft(headerLayout.HDR_SEQ_NBR,'0')),                
+                headerLineBuilder.CreateFieldValue(
+                    t => t.HDR_BATCH_DATE,
+                    snapshotRun.RunDate.ToString(PartnerStatusLayout.HDR_BATCH_DATE_FORMAT)),
+                headerLineBuilder.CreateFieldValue(
+                    t => t.HDR_FILLER, new String(' ', headerLayout.HDR_FILLER)),                
             };
-
         }
 
-        public List<FlatFileLine.FieldValue> BuildDetailFields(KitSnapshot snapshot) {
+        public List<FlatFileLine<PartnerStatusLayout.Detail>.FieldValue> BuildDetailFields(KitSnapshot snapshot) {
             var layout = new PartnerStatusLayout.Detail();
+            var lineBuilder = new FlatFileLine<PartnerStatusLayout.Detail>();
 
-            return new List<FlatFileLine.FieldValue> {
-                new FlatFileLine.FieldValue( nameof(layout.PST_RECORD_TYPE),PartnerStatusLayout.PST_RECORD_TYPE_VAL),
-                new FlatFileLine.FieldValue(nameof(layout.PST_TRAN_TYPE), snapshot.ChangeStatusCode.ToString()),
-                new FlatFileLine.FieldValue(nameof(layout.PST_LOT_NUMBER), snapshot.Kit.Lot.LotNo),
-                new FlatFileLine.FieldValue(nameof(layout.PST_KIT_NUMBER),snapshot.Kit.KitNo),
-                new FlatFileLine.FieldValue(nameof(layout.PST_PHYSICAL_VIN), snapshot.VIN),
+            var detailFields =  new List<FlatFileLine<PartnerStatusLayout.Detail>.FieldValue> {
+                lineBuilder.CreateFieldValue(t => t.PST_RECORD_TYPE, PartnerStatusLayout.PST_RECORD_TYPE_VAL),
+                lineBuilder.CreateFieldValue(t => t.PST_TRAN_TYPE, snapshot.ChangeStatusCode.ToString()),
+                lineBuilder.CreateFieldValue(t => t.PST_LOT_NUMBER, snapshot.Kit.Lot.LotNo),
+                lineBuilder.CreateFieldValue(t => t.PST_KIT_NUMBER,snapshot.Kit.KitNo),
+                lineBuilder.CreateFieldValue(t => t.PST_PHYSICAL_VIN, snapshot.VIN),
 
-                new FlatFileLine.FieldValue(
-                    nameof(layout.PST_BUILD_DATE),
+                lineBuilder.CreateFieldValue(
+                    t => t.PST_BUILD_DATE,
                     snapshot.OrginalPlanBuild != null
                         ? snapshot.OrginalPlanBuild.Value.ToString(PartnerStatusLayout.PST_DATE_FORMAT)
                         : ""
                 ),
 
-                new FlatFileLine.FieldValue {
-                    Name = nameof(layout.PST_ACTUAL_DEALER_CODE),
-                    Value = snapshot.DealerCode != null ? snapshot.DealerCode : ""
-                },
-                new FlatFileLine.FieldValue(
-                    nameof(layout.PST_ENGINE_SERIAL_NUMBER),
+                lineBuilder.CreateFieldValue(
+                    t => t.PST_ACTUAL_DEALER_CODE,
+                    snapshot.DealerCode != null ? snapshot.DealerCode : ""
+                ),
+                lineBuilder.CreateFieldValue(
+                    t => t.PST_ENGINE_SERIAL_NUMBER,
                     snapshot.EngineSerialNumber
                 ),
-                new FlatFileLine.FieldValue(
-                    nameof(layout.PST_CURRENT_STATUS),
+                lineBuilder.CreateFieldValue(
+                    t => t.PST_CURRENT_STATUS,
                     ToFordTimelineCode(snapshot.TimelineEventCode)
                 ),
 
-                new FlatFileLine.FieldValue( nameof(layout.PST_IP1R_STATUS_DATE), ""),
-                new FlatFileLine.FieldValue( nameof(layout.PST_IP1S_STATUS_DATE), ""),
-                new FlatFileLine.FieldValue( nameof(layout.PST_IP2R_STATUS_DATE), ""),
-                new FlatFileLine.FieldValue( nameof(layout.PST_IP2S_STATUS_DATE),""),
+                lineBuilder.CreateFieldValue(t => t.PST_IP1R_STATUS_DATE, ""),
+                lineBuilder.CreateFieldValue(t => t.PST_IP1S_STATUS_DATE, ""),
+                lineBuilder.CreateFieldValue(t => t.PST_IP2R_STATUS_DATE, ""),
+                lineBuilder.CreateFieldValue(t => t.PST_IP2S_STATUS_DATE,""),
 
-                new FlatFileLine.FieldValue(
-                        nameof(layout.PST_FPRE_STATUS_DATE),
-                        FormattedDate(snapshot.CustomReceived, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
-                new FlatFileLine.FieldValue(
-                        nameof(layout.PST_FPBP_STATUS_DATE),
-                        FormattedDate(snapshot.PlanBuild, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
-                new FlatFileLine.FieldValue(
-                        nameof(layout.PST_FPBC_STATUS_DATE),
-                        FormattedDate(snapshot.BuildCompleted, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
-                new FlatFileLine.FieldValue(
-                        nameof(layout.PST_FPGR_STATUS_DATE),
+                lineBuilder.CreateFieldValue(
+                    t => t.PST_FPRE_STATUS_DATE,
+                    FormattedDate(snapshot.CustomReceived, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
+                lineBuilder.CreateFieldValue(
+                    t => t.PST_FPBP_STATUS_DATE,
+                    FormattedDate(snapshot.PlanBuild, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
+                lineBuilder.CreateFieldValue(
+                    t => t.PST_FPBC_STATUS_DATE,
+                    FormattedDate(snapshot.BuildCompleted, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
+                lineBuilder.CreateFieldValue(
+                    t => t.PST_FPGR_STATUS_DATE,
                         FormattedDate(snapshot.GateRelease, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
-                new FlatFileLine.FieldValue(
-                        nameof(layout.PST_FPWS_STATUS_DATE),
+                lineBuilder.CreateFieldValue(
+                    t => t.PST_FPWS_STATUS_DATE,
                         FormattedDate(snapshot.Wholesale, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
-                new FlatFileLine.FieldValue(nameof(layout.PST_FILLER), "")
+                lineBuilder.CreateFieldValue(t => t.PST_FILLER, "")
             };
+
+            return detailFields;
         }
 
-        public List<FlatFileLine.FieldValue> BuildTrailerFields(KitSnapshotRun snapshotRun) {
+        public List<FlatFileLine<PartnerStatusLayout.Trailer>.FieldValue> BuildTrailerFields(KitSnapshotRun snapshotRun) {
             var layout = new PartnerStatusLayout.Trailer();
+            var lineBuilder = new FlatFileLine<PartnerStatusLayout.Trailer>();
 
-            return new List<FlatFileLine.FieldValue> {
-                new FlatFileLine.FieldValue(nameof(layout.TLR_RECORD_TYPE), "TLR"),
-                new FlatFileLine.FieldValue(nameof(layout.TLR_FILE_NAME), "PARTNER_STATUS"),
-                new FlatFileLine.FieldValue(nameof(layout.TLR_KD_PLANT_GSDB), snapshotRun.Plant.Code),
-                new FlatFileLine.FieldValue(nameof(layout.TLR_PARTNER_GSDB), snapshotRun.Plant.PartnerPlantCode),
-                new FlatFileLine.FieldValue(
-                    nameof(layout.TLR_TOTAL_RECORDS),
+            return new List<FlatFileLine<PartnerStatusLayout.Trailer>.FieldValue> {
+                lineBuilder.CreateFieldValue(t => t.TLR_RECORD_TYPE, "TLR"),
+                lineBuilder.CreateFieldValue(t => t.TLR_FILE_NAME, "PARTNER_STATUS"),
+                lineBuilder.CreateFieldValue(t => t.TLR_KD_PLANT_GSDB, snapshotRun.Plant.Code),
+                lineBuilder.CreateFieldValue(t => t.TLR_PARTNER_GSDB, snapshotRun.Plant.PartnerPlantCode),
+                lineBuilder.CreateFieldValue(
+                    t => t.TLR_TOTAL_RECORDS,
                     // add 2 for Header + Trailer
                     (snapshotRun.KitSnapshots.Count + 2).ToString().PadLeft(layout.TLR_TOTAL_RECORDS, '0')),
-                new FlatFileLine.FieldValue(nameof(layout.TLR_FILLER), ""),
+                lineBuilder.CreateFieldValue(t => t.TLR_FILLER, ""),
             };
         }
 

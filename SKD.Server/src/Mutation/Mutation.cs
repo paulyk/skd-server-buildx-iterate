@@ -163,5 +163,6 @@ namespace SKD.Server {
           [Service] VehicleModelService service,
           string kitNo
         ) => await service.SyncKfitModelComponents(kitNo);
+
     }
 }

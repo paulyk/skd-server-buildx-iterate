@@ -37,6 +37,7 @@ namespace SKD.Test {
             var exptectedLines = 8;  // header + trailer + 6 kits
             var lines = payload.PayloadText.Split('\n');
             var actuaLineCount = lines.Count();
+            var headerLineText = lines[0];
             // assert line count
             Assert.Equal(exptectedLines, actuaLineCount);
 
@@ -45,27 +46,25 @@ namespace SKD.Test {
             var actualPrefix = payload.Filename.Substring(0, PartnerStatusLayout.FILENAME_PREFIX.Length);
             Assert.Equal(expecedPrefix, actualPrefix);
 
-            // assert header
-            var headerLine = new FlatFileLine(new PartnerStatusLayout.Header());
-            var headerFields = headerLine.Parse(lines[0]);
 
             // Header 
-            var expectedValue = PartnerStatusLayout.HDR_RECORD_TYPE_VAL;
-            var actualField = headerFields.FirstOrDefault(t => t.Name == nameof(PartnerStatusLayout.Header.HDR_RECORD_TYPE));
-            var actualValue = actualField != null ? actualField.Value : "";
-            Assert.Equal(expectedValue, actualValue);
+            var headerLine = new FlatFileLine<PartnerStatusLayout.Header>();
+            var expected_HDR_REORD_TYPE = PartnerStatusLayout.HDR_RECORD_TYPE_VAL;
+            var actual_HDR_REORD_TYPE = headerLine.GetFieldValue(headerLineText, t => t.HDR_RECORD_TYPE);
+            Assert.Equal(expected_HDR_REORD_TYPE, actual_HDR_REORD_TYPE);
 
             // Header HDR_FILE_NAME_VAL
-            expectedValue = PartnerStatusLayout.HDR_FILE_NAME_VAL;
-            actualValue = headerFields.First(t => t.Name == nameof(PartnerStatusLayout.Header.HDR_FILE_NAME)).Value.Trim();
-            Assert.Equal(expectedValue, actualValue);
+            var actual_HDR_FILE_NAME = headerLine.GetFieldValue(headerLineText, t => t.HDR_FILE_NAME).Trim();
+            var expected_HDR_FILE_NAME = PartnerStatusLayout.HDR_FILE_NAME_VAL;
+            Assert.Equal(expected_HDR_FILE_NAME, actual_HDR_FILE_NAME);
 
             // Detail  ENGINE
-            var detailLine = new FlatFileLine(new PartnerStatusLayout.Detail());
-            var engineField = detailLine.Fields.First(t => t.Name == nameof(PartnerStatusLayout.Detail.PST_ENGINE_SERIAL_NUMBER));
-            var fields = detailLine.Parse(lines[1]);
-            var engineSerialField = fields.First(t => t.Name == nameof(PartnerStatusLayout.Detail.PST_ENGINE_SERIAL_NUMBER));
-            Assert.Equal(ENGINE_SERIAL.Substring(0, engineField.Length), engineSerialField.Value);
+            var detailLine = new FlatFileLine<PartnerStatusLayout.Detail>();
+
+            var detailLayout = new PartnerStatusLayout.Detail();
+            var expected_EngineSerial = ENGINE_SERIAL.Substring(0, detailLayout.PST_ENGINE_SERIAL_NUMBER);
+            var actual_EngineSerial =detailLine.GetFieldValue(lines[1], t => t.PST_ENGINE_SERIAL_NUMBER);
+            Assert.Equal(expected_EngineSerial, actual_EngineSerial);
         }
 
         private async Task<KitSnapshotRun> GenerateKitSnapshotRun_TestData() {
@@ -92,7 +91,7 @@ namespace SKD.Test {
             };
 
             context.KitSnapshotRuns.Add(kitSnapshotRun);
-            await context.SaveChangesAsync();     
+            await context.SaveChangesAsync();
             return kitSnapshotRun;
         }
     }
