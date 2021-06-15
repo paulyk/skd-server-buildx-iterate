@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SKD.Model;
-using SKD.Common;
+using SKD.Service;
 using SKD.Dcws;
 using SKD.Seed;
 using GraphQL.Server.Ui.Voyager;
@@ -62,7 +62,7 @@ namespace SKD.Server {
                 .AddScoped<LotPartService>()
                 .AddScoped<HandlingUnitService>()
                 .AddScoped<QueryService>().AddSingleton<DcwsService>(sp => new DcwsService(Configuration[ConfigSettingKey.DcwsServiceAddress]))
-                .AddScoped<PartnerStatusBuilder>();
+                .AddScoped<PartnerStatusBuilder>();                
 
             services.AddGraphQLServer()
                 .AddQueryType<Query>()

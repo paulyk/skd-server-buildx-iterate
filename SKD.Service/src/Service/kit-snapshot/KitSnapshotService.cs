@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using SKD.Model;
 
-namespace SKD.Common {
+namespace SKD.Service {
 
     public class KitSnapshotService {
 

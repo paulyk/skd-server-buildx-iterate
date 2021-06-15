@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace SKD.Common {
+namespace SKD.Service {
     public class Error {
 
         public Error() {}

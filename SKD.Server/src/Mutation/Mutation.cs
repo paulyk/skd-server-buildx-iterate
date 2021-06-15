@@ -5,7 +5,7 @@ using System.Linq;
 using SKD.Dcws;
 using HotChocolate;
 using System.Threading.Tasks;
-using SKD.Common;
+using SKD.Service;
 using SKD.Model;
 
 
@@ -81,12 +81,12 @@ namespace SKD.Server {
 
         public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotKits(
             [Service] LotService service,
-            BomLotKitInput input
+            BomLotKitDTO input
        ) => await service.ImportBomLotKits(input);
 
         public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotParts(
             [Service] LotService service,
-            BomLotPartInput input
+            BomLotPartDTO input
        ) => await service.ImportBomLotParts(input);
 
         public async Task<MutationPayload<SnapshotDTO>> GenerateKitSnapshotRun(
@@ -163,6 +163,20 @@ namespace SKD.Server {
           [Service] VehicleModelService service,
           string kitNo
         ) => await service.SyncKfitModelComponents(kitNo);
+
+        public MutationPayload<BomLotKitDTO> GenBomLotKitInput(
+          string text
+        ) {
+            var parser = new BomFileParser();
+            return parser.BuildBomLotKitInput(text);
+        }
+
+        public MutationPayload<BomLotPartDTO> GenBomLotPartInput(
+          string text
+        ) {
+            var parser = new BomFileParser();
+            return parser.BuildBomLotPartInput(text);
+        }
 
     }
 }

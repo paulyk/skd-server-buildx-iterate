@@ -1,6 +1,6 @@
 using System;
 
-namespace SKD.Common {
+namespace SKD.Service {
     public class DcwsComponentResponseInput {
         public Guid VehicleComponentId { get; set; }
         public string ResponseCode { get; set; }

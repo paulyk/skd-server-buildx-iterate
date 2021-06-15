@@ -1,6 +1,6 @@
 using System;
 
-namespace SKD.Common {
+namespace SKD.Service {
     public record ComponentSerialInput (
         Guid KitComponentId,
         string Serial1, 

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using SKD.Common;
+using SKD.Service;
 using Xunit;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
@@ -133,7 +133,7 @@ namespace SKD.Test {
         }
 
 
-        private ShipmentInput Gen_ShipmentInput_From_BomLotPartInput(BomLotPartInput bomLotPartInput) {
+        private ShipmentInput Gen_ShipmentInput_From_BomLotPartInput(BomLotPartDTO bomLotPartInput) {
             return new ShipmentInput {
                 PlantCode = bomLotPartInput.PlantCode,
                 Sequence = 1,
@@ -154,24 +154,24 @@ namespace SKD.Test {
                 }).ToList()
             };
         }
-        private BomLotPartInput Gen_BomLotPartInput(string plantCode) {
-            return new BomLotPartInput() {
+        private BomLotPartDTO Gen_BomLotPartInput(string plantCode) {
+            return new BomLotPartDTO() {
                 Sequence = 1,
                 PlantCode = plantCode,
-                LotParts = new List<BomLotPartInput.LotPart> {
-                    new BomLotPartInput.LotPart {
+                LotParts = new List<BomLotPartDTO.BomLotPartItem> {
+                    new BomLotPartDTO.BomLotPartItem {
                         LotNo = Gen_LotNo(1),
                         PartNo = Gen_PartNo(),
                         PartDesc = Gen_PartDesc(),
                         Quantity = 2
                     },
-                    new BomLotPartInput.LotPart {
+                    new BomLotPartDTO.BomLotPartItem {
                         LotNo = Gen_LotNo(2),
                         PartNo = Gen_PartNo(),
                         PartDesc = Gen_PartDesc(),
                         Quantity = 3
                     },
-                    new BomLotPartInput.LotPart {
+                    new BomLotPartDTO.BomLotPartItem {
                         LotNo = Gen_LotNo(3),
                         PartNo = Gen_PartNo(),
                         PartDesc = Gen_PartDesc(),

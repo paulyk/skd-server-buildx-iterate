@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using SKD.Dcws;
 using SKD.Model;
 
-namespace SKD.Common {
+namespace SKD.Service {
 
     public class ComponentSerialService {
         private readonly SkdContext context;

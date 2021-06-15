@@ -4,39 +4,39 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SKD.Common;
+using SKD.Service;
 
-namespace SKD.Common {
+namespace SKD.Service {
 
     public class BomFileParser {
-        public string HeaderLineText = "";
-        public List<string> DetailTextLines = new List<string>();
-        public BomFileParser(string text) {
-            var lines = text.Split('\n').ToList();
-            if (lines.Count > 0) {
-                HeaderLineText = lines[0];
-            }
-            if (lines.Count > 2) {
-                DetailTextLines = lines.Skip(1).Take(lines.Count - 2).ToList();
+        public BomFileParser() {
+        }
+        public MutationPayload<BomLotPartDTO> BuildBomLotPartInput(string text) {
+            var payload = new MutationPayload<BomLotPartDTO>(null);
+
+            try {
+                var headerLineBuilder = new FlatFileLine<BomFileLayout.Header>();
+
+                var (headerTextLine, detailTextLines) = ParseTextLines(text);
+
+                payload.Payload = new BomLotPartDTO {
+                    PlantCode = headerLineBuilder.GetFieldValue(headerTextLine, t => t.HDR_KD_PLANT_GSDB),
+                    Sequence = Int16.Parse(headerLineBuilder.GetFieldValue(headerTextLine, t => t.HDR_BRIDGE_SEQ_NBR)),
+                    BomFileCreatedAt = headerLineBuilder.GetFieldValue(headerTextLine, t => t.HDR_DATE_CREATED),
+                    LotParts = BuildLotParts(detailTextLines)
+                };
+                return payload;
+            } catch (Exception ex) {
+                Console.WriteLine(ex.Message);
+                payload.Errors.Add(new Error("", "Error parsing bom text"));
+                return payload;
             }
         }
-        public BomLotPartInput BuildBomLotPartInput() {
-
-            var headerLineBuilder = new FlatFileLine<BomFileLayout.Header>();
-
-            var input = new BomLotPartInput {
-                PlantCode = headerLineBuilder.GetFieldValue(HeaderLineText, t => t.HDR_KD_PLANT_GSDB),
-                Sequence = Int16.Parse(headerLineBuilder.GetFieldValue(HeaderLineText, t => t.HDR_BRIDGE_SEQ_NBR)),
-                LotParts = BuildLotParts()
-            };
-            return input;
-        }
-        private List<BomLotPartInput.LotPart> BuildLotParts() {
-            var lotParts = new List<BomLotPartInput.LotPart>();
+        private List<BomLotPartDTO.BomLotPartItem> BuildLotParts(List<string> detailTextLines) {
+            var lotParts = new List<BomLotPartDTO.BomLotPartItem>();
             var detailLineBuilder = new FlatFileLine<BomFileLayout.Detail>();
 
-            foreach (var lineText in DetailTextLines) {
-
-
+            foreach (var lineText in detailTextLines) {
                 var builder = new FlatFileLine<BomFileLayout.Detail>();
                 var partType = detailLineBuilder.GetFieldValue(lineText, t => t.KBM_KIT_PART_TYPE);
                 if (partType == "KIT") {
@@ -44,14 +44,14 @@ namespace SKD.Common {
                     var lotNo = detailLineBuilder.GetFieldValue(lineText, t => t.KBM_LOT_NUMBER);
                     var partNo = detailLineBuilder.GetFieldValue(lineText, t => t.KBM_NO_PART);
                     var partDesc = detailLineBuilder.GetFieldValue(lineText, t => t.KBM_PART_DESCRIPTION);
-                    var quantity = Int32.Parse(detailLineBuilder.GetFieldValue(lineText, t => t.KBM_NET_PART_QTY));
+                    var quantity = (int)Double.Parse(detailLineBuilder.GetFieldValue(lineText, t => t.KBM_NET_PART_QTY));
 
                     var kitNo = $"{lotNo}{kitSeqNo}";
                     var modelCode = kitNo.Substring(0, 7);
 
                     var lotPart = lotParts.FirstOrDefault(t => t.LotNo == lotNo && t.PartNo == partNo);
                     if (lotPart == null) {
-                        lotPart = new BomLotPartInput.LotPart {
+                        lotPart = new BomLotPartDTO.BomLotPartItem {
                             LotNo = lotNo,
                             PartNo = partNo,
                             PartDesc = partDesc,
@@ -65,20 +65,30 @@ namespace SKD.Common {
             }
             return lotParts;
         }
-        public BomLotKitInput BuildBomLotKitInput() {
-            var headerLineBuildr = new FlatFileLine<BomFileLayout.Header>();
-            var input = new BomLotKitInput {
-                PlantCode = headerLineBuildr.GetFieldValue(HeaderLineText, t => t.HDR_KD_PLANT_GSDB),
-                Sequence = Int16.Parse(headerLineBuildr.GetFieldValue(HeaderLineText, t => t.HDR_BRIDGE_SEQ_NBR)),
-                Lots = BuildKitInputLots()
-            };
-            return input;
+        public MutationPayload<BomLotKitDTO> BuildBomLotKitInput(string text) {
+            var payload = new MutationPayload<BomLotKitDTO>(null);
+
+            try {
+                var (headerTextLine, detailTextLines) = ParseTextLines(text);
+
+                var headerLineBuildr = new FlatFileLine<BomFileLayout.Header>();
+                payload.Payload = new BomLotKitDTO {
+                    PlantCode = headerLineBuildr.GetFieldValue(headerTextLine, t => t.HDR_KD_PLANT_GSDB),
+                    BomFileCreatedAt = headerLineBuildr.GetFieldValue(headerTextLine, t => t.HDR_DATE_CREATED),
+                    Sequence = Int16.Parse(headerLineBuildr.GetFieldValue(headerTextLine, t => t.HDR_BRIDGE_SEQ_NBR)),
+                    Lots = BuildKitInputLots(detailTextLines)
+                };
+                return payload;
+            } catch (Exception) {
+                payload.Errors.Add(new Error("", "Error parsing bom text"));
+                return payload;
+            }
         }
-        private List<BomLotKitInput.Lot> BuildKitInputLots() {
-            var lots = new List<BomLotKitInput.Lot>();
+        private List<BomLotKitDTO.LotEntry> BuildKitInputLots(List<string> detailTextLines) {
+            var lots = new List<BomLotKitDTO.LotEntry>();
             var detailLineBuilder = new FlatFileLine<BomFileLayout.Detail>();
 
-            foreach (var lineText in DetailTextLines) {
+            foreach (var lineText in detailTextLines) {
                 var partType = detailLineBuilder.GetFieldValue(lineText, t => t.KBM_KIT_PART_TYPE);
                 if (partType == "KIT") {
                     var lotNo = detailLineBuilder.GetFieldValue(lineText, t => t.KBM_LOT_NUMBER);
@@ -89,16 +99,16 @@ namespace SKD.Common {
 
                     var lot = lots.FirstOrDefault(t => t.LotNo == lotNo);
                     if (lot == null) {
-                        lot = new BomLotKitInput.Lot {
+                        lot = new BomLotKitDTO.LotEntry {
                             LotNo = lotNo,
-                            Kits = new List<BomLotKitInput.Lot.LotKit>()
+                            Kits = new List<BomLotKitDTO.LotEntry.LotKit>()
                         };
                         lots.Add(lot);
 
                     }
                     var lotKit = lot.Kits.FirstOrDefault(t => t.KitNo == kitNo);
                     if (lotKit == null) {
-                        lot.Kits.Add(new BomLotKitInput.Lot.LotKit {
+                        lot.Kits.Add(new BomLotKitDTO.LotEntry.LotKit {
                             KitNo = kitNo,
                             ModelCode = modelCode
                         });
@@ -106,6 +116,26 @@ namespace SKD.Common {
                 }
             }
             return lots;
+        }
+
+        private (string headerLineText, List<string> detailTextLines) ParseTextLines(string text) {
+            var lines = text.Split('\n')
+                // remove emply lines
+                .Where(t => t.Length > 0).ToList();
+                
+            var headerTextLine = "";
+            var detailTextLines = new List<string>();
+            if (lines.Count > 0) {
+                headerTextLine = lines[0];
+            }
+            if (lines.Count > 2) {
+                detailTextLines = lines
+                    // skip header
+                    .Skip(1)
+                    // exclude trailer
+                    .Take(lines.Count - 2).ToList();
+            }
+            return (headerTextLine, detailTextLines);
         }
     }
 }

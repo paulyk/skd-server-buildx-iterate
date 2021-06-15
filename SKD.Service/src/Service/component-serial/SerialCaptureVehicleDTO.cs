@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SKD.Common {
+namespace SKD.Service {
 
     public class SerialCaptureVehicleDTO {
         public string VIN { get; set; } = "";

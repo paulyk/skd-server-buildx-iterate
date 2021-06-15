@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using SKD.Model;
 
-namespace SKD.Common {
+namespace SKD.Service {
 
     public class KitSnapshotRunDTO {
         public DateTime RunDate { get; set; }

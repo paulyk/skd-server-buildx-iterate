@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SKD.Model;
-using SKD.Common;
+using SKD.Service;
 using Xunit;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
@@ -217,29 +217,29 @@ namespace SKD.Test {
                 ("       -  W500301-S437    -   ", "W500301-S437")
             };
 
-            var input = new BomLotPartInput() {
+            var input = new BomLotPartDTO() {
                 Sequence = 1,
                 PlantCode = plant.Code,
-                LotParts = new List<BomLotPartInput.LotPart> {
-                    new BomLotPartInput.LotPart {
+                LotParts = new List<BomLotPartDTO.BomLotPartItem> {
+                    new BomLotPartDTO.BomLotPartItem {
                         LotNo = lot1,
                         PartNo = part_numbers[0].partNo,
                         PartDesc = part_numbers[0].partNo + " desc",
                         Quantity = 1
                     },
-                    new BomLotPartInput.LotPart {
+                    new BomLotPartDTO.BomLotPartItem {
                         LotNo = lot1,
                         PartNo = part_numbers[1].partNo,
                         PartDesc = part_numbers[1].partNo + " desc",
                         Quantity = 1
                     },
-                    new BomLotPartInput.LotPart {
+                    new BomLotPartDTO.BomLotPartItem {
                         LotNo = lot2,
                         PartNo = part_numbers[2].partNo,
                         PartDesc = part_numbers[2].partNo + " desc",
                         Quantity = 1
                     },
-                    new BomLotPartInput.LotPart {
+                    new BomLotPartDTO.BomLotPartItem {
                         LotNo = lot2,
                         PartNo = part_numbers[3].partNo,
                         PartDesc = part_numbers[3].partNo + " desc",
@@ -270,17 +270,17 @@ namespace SKD.Test {
             var plant = Gen_Plant();
             var lotNo = Gen_LotNo(1);
 
-            var dto = new BomLotPartInput() {
+            var dto = new BomLotPartDTO() {
                 Sequence = 1,
                 PlantCode = plant.Code,
-                LotParts = new List<BomLotPartInput.LotPart> {
-                    new BomLotPartInput.LotPart {
+                LotParts = new List<BomLotPartDTO.BomLotPartItem> {
+                    new BomLotPartDTO.BomLotPartItem {
                         LotNo = lotNo,
                         PartNo = "0001",
                         PartDesc = "part 1",
                         Quantity = 1
                     },
-                    new BomLotPartInput.LotPart {
+                    new BomLotPartDTO.BomLotPartItem {
                         LotNo = lotNo,
                         PartNo = "0001",
                         PartDesc = "part 1",
@@ -307,10 +307,10 @@ namespace SKD.Test {
         private async Task cannot_import_if_no_lot_parts() {
             // setup
             var plant = Gen_Plant();
-            var dto = new BomLotPartInput() {
+            var dto = new BomLotPartDTO() {
                 PlantCode = plant.Code,
                 Sequence = 1,
-                LotParts = new List<BomLotPartInput.LotPart>()
+                LotParts = new List<BomLotPartDTO.BomLotPartItem>()
             };
 
             var before_count = context.LotParts.Count();
@@ -414,14 +414,14 @@ namespace SKD.Test {
 
         #region helpers
 
-        private BomLotKitInput Gen_BomLotKitInput(string plantCode, string lotNo, string modelCode, int kitCount = 6) {
-            return new BomLotKitInput() {
+        private BomLotKitDTO Gen_BomLotKitInput(string plantCode, string lotNo, string modelCode, int kitCount = 6) {
+            return new BomLotKitDTO() {
                 PlantCode = plantCode,
                 Sequence = 1,
-                Lots = new List<BomLotKitInput.Lot> {
-                    new BomLotKitInput.Lot {
+                Lots = new List<BomLotKitDTO.LotEntry> {
+                    new BomLotKitDTO.LotEntry {
                         LotNo = Gen_LotNo(modelCode, 1),
-                        Kits = Enumerable.Range(1,kitCount).Select(num => new BomLotKitInput.Lot.LotKit {
+                        Kits = Enumerable.Range(1,kitCount).Select(num => new BomLotKitDTO.LotEntry.LotKit {
                             KitNo = Gen_KitNo(lotNo, num),
                             ModelCode = modelCode
                         }).ToList()
@@ -432,11 +432,11 @@ namespace SKD.Test {
         private record TestLotPartInput(string PartNo, int Quantity);
         private record TestLotInput(string LotNo, IEnumerable<TestLotPartInput> LotParts);
         private record TestBomLotInput(string PlantCode, int BomFileSequence, IEnumerable<TestLotInput> Lots);
-        private BomLotPartInput GenBomLotPartInput(TestBomLotInput input)
-            => new BomLotPartInput {
+        private BomLotPartDTO GenBomLotPartInput(TestBomLotInput input)
+            => new BomLotPartDTO {
                 PlantCode = input.PlantCode,
                 Sequence = input.BomFileSequence,
-                LotParts = input.Lots.SelectMany(l => l.LotParts.Select(lp => new BomLotPartInput.LotPart {
+                LotParts = input.Lots.SelectMany(l => l.LotParts.Select(lp => new BomLotPartDTO.BomLotPartItem {
                     LotNo = l.LotNo,
                     PartNo = lp.PartNo,
                     PartDesc = lp.PartNo + "-desc",

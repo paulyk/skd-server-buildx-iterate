@@ -1,5 +1,5 @@
 
-namespace SKD.Common {
+namespace SKD.Service {
     public class PartnerStatusLayout {
 
         // filename

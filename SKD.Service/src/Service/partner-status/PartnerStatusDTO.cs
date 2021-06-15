@@ -2,7 +2,7 @@
 
 using System;
 
-namespace SKD.Common {
+namespace SKD.Service {
     public class PartnerStatusDTO {
         public string PlantCode { get; set; } = "";
         public int Sequecne { get; set; }

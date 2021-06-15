@@ -6,9 +6,10 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using SKD.Common;
 using SKD.Model;
 
-namespace SKD.Common{
+namespace SKD.Service{
 
     public class LotService {
         private readonly SkdContext context;
@@ -20,9 +21,9 @@ namespace SKD.Common{
         ///<summary>
         /// Import lot part and quantity associated with a BOM  sequence
         ///</summary>
-        public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotParts(BomLotPartInput input) {
+        public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotParts(BomLotPartDTO input) {
             var payload = new MutationPayload<BomOverviewDTO>(null);
-            payload.Errors = await ValidateVehicleLotPartsInput<BomLotPartInput>(input);
+            payload.Errors = await ValidateVehicleLotPartsInput<BomLotPartDTO>(input);
             if (payload.Errors.Count > 0) {
                 return payload;
             }
@@ -41,7 +42,7 @@ namespace SKD.Common{
 
         #region import bom lot helpers
 
-        private async Task<List<Part>> GetEnsureParts(BomLotPartInput input) {
+        private async Task<List<Part>> GetEnsureParts(BomLotPartDTO input) {
             input.LotParts.ToList().ForEach(t => {
                 t.PartNo = PartService.ReFormatPartNo(t.PartNo);
             });
@@ -52,7 +53,7 @@ namespace SKD.Common{
             return await partService.GetEnsureParts(inputParts);
         }
 
-        private async Task<List<Lot>> GetEnsureLots(BomLotPartInput input) {
+        private async Task<List<Lot>> GetEnsureLots(BomLotPartDTO input) {
             // determine existing lots and new lot numbers
             var input_LotNos = input.LotParts.Select(t => t.LotNo).Distinct().ToList();
 
@@ -102,7 +103,7 @@ namespace SKD.Common{
         }
 
         private async Task Add_Update_Remove_LotParts(
-            BomLotPartInput input,
+            BomLotPartDTO input,
             IEnumerable<Lot> lots,
             IEnumerable<Part> parts
         ) {
@@ -120,7 +121,7 @@ namespace SKD.Common{
                         // add new because null or because BomQuantity changed
                         var newLotPart = new LotPart {
                             Part = parts.First(t => t.PartNo == inputLotPart.PartNo),
-                            BomQuantity = inputLotPart.Quantity,
+                            BomQuantity = inputLotPart.Quantity
                         };
                         lot.LotParts.Add(newLotPart);
 
@@ -159,9 +160,9 @@ namespace SKD.Common{
         ///<summary>
         /// Import vehicle lot and kits associated with a plant and BOM sequence
         ///</summary>
-        public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotKits(BomLotKitInput input) {
+        public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotKits(BomLotKitDTO input) {
             var payload = new MutationPayload<BomOverviewDTO>(null);
-            payload.Errors = await ValidateBomLotKitInput<BomLotKitInput>(input);
+            payload.Errors = await ValidateBomLotKitInput<BomLotKitDTO>(input);
             if (payload.Errors.Count > 0) {
                 return payload;
             }
@@ -199,7 +200,7 @@ namespace SKD.Common{
             return payload;
         }
 
-        public async Task<List<Error>> ValidateVehicleLotPartsInput<T>(BomLotPartInput input) where T : BomLotPartInput {
+        public async Task<List<Error>> ValidateVehicleLotPartsInput<T>(BomLotPartDTO input) where T : BomLotPartDTO {
             var errors = new List<Error>();
 
             var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
@@ -246,7 +247,7 @@ namespace SKD.Common{
             return errors;
         }
 
-        private async Task<Kit> CreateVehicleKit(BomLotKitInput.Lot.LotKit input) {
+        private async Task<Kit> CreateVehicleKit(BomLotKitDTO.LotEntry.LotKit input) {
             var kits = new List<Kit>();
 
             var model = await context.VehicleModels
@@ -270,7 +271,7 @@ namespace SKD.Common{
             return kit;
         }
 
-        public async Task<List<Error>> ValidateBomLotKitInput<T>(BomLotKitInput input) where T : BomLotKitInput {
+        public async Task<List<Error>> ValidateBomLotKitInput<T>(BomLotKitDTO input) where T : BomLotKitDTO {
             var errors = new List<Error>();
 
             var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);

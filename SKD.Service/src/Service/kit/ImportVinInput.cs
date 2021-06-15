@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SKD.Common{
+namespace SKD.Service{
     public class ImportVinInput {
 
         public string PlantCode { get; set; }

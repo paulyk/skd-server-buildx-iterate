@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace SKD.Common {
+namespace SKD.Common  {
     public class Validator {
          public bool Valid_VIN(string vin) {
             var regex = new Regex(@"[A-Z0-9]{17}");

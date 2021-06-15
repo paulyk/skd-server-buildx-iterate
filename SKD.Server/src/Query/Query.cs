@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using HotChocolate;
 using SKD.Model;
-using SKD.Common;
+using SKD.Service;
 using SKD.Dcws;
 using HotChocolate.Data;
 using HotChocolate.Types;
@@ -501,6 +501,12 @@ namespace SKD.Server {
                 plantCode: plantCode,
                 sequence: sequence
             );
-        
+
+
+        // public  BomLotKitDTO GetBomKitInputFromText(string text) {
+        //     var parser = new BomFileParser();
+        //     return parser.BuildBomLotKitInput(text);
+        // }
+                
     }
 }

@@ -8,10 +8,11 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using SKD.Model;
 using SKD.Common;
+using SKD.Model;
+using SKD.Service;
 
-namespace SKD.Common {
+namespace SKD.Service {
     public class PartnerStatusBuilder {
 
         private readonly SkdContext context;

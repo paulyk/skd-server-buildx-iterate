@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using SKD.Model;
-using SKD.Common;
+using SKD.Service;
 using Xunit;
 using System.Linq;
-
+using SKD.Common;
 
 namespace SKD.Test {
     public class FlatFile_Test {

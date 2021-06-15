@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SKD.Model;
 
-namespace SKD.Common {
+namespace SKD.Service {
 
     public class PartService {
 

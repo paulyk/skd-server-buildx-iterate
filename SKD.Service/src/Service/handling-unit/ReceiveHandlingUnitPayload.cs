@@ -2,7 +2,7 @@
 
 using System;
 
-namespace SKD.Common{
+namespace SKD.Service{
     public class ReceiveHandlingUnitPayload {
         public Guid Id { get; set; }
         public string? Code { get; set; }
