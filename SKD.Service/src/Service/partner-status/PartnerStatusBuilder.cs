@@ -22,7 +22,6 @@ namespace SKD.Service {
 
         public async Task<PartnerStatusDTO> GeneratePartnerStatusFilePaylaod(string plantCode, int sequence) {
 
-
             var kitSnapshotRun = await context.KitSnapshotRuns
                 .Include(t => t.Plant)                
                 .Include(t => t.KitSnapshots.OrderBy(u => u.Kit.Lot.LotNo).ThenBy(u => u.Kit.KitNo)).ThenInclude(t => t.Kit).ThenInclude(t => t.Lot)
@@ -170,11 +169,11 @@ namespace SKD.Service {
 
         public string ToFordTimelineCode(TimeLineEventType timeLineEventType) {
             switch (timeLineEventType) {
-                case TimeLineEventType.CUSTOM_RECEIVED: return "FPCR";
-                case TimeLineEventType.PLAN_BUILD: return "FPBP";
-                case TimeLineEventType.BUILD_COMPLETED: return "FPBC";
-                case TimeLineEventType.GATE_RELEASED: return "FPGR";
-                case TimeLineEventType.WHOLE_SALE: return "FPWS";
+                case TimeLineEventType.CUSTOM_RECEIVED: return   FordTimeLineCode.FPCR.ToString(); //"FPCR";
+                case TimeLineEventType.PLAN_BUILD: return FordTimeLineCode.FPBP.ToString(); //"FPBP";
+                case TimeLineEventType.BUILD_COMPLETED: return FordTimeLineCode.FPBC.ToString(); //"FPBC";
+                case TimeLineEventType.GATE_RELEASED: return FordTimeLineCode.FPGR.ToString(); //"FPGR";
+                case TimeLineEventType.WHOLE_SALE: return  FordTimeLineCode.FPWS.ToString(); //"FPWS";
                 default: throw new Exception("Unexpected timlien event " + timeLineEventType);
             }
         }
@@ -184,5 +183,7 @@ namespace SKD.Service {
                 ? date.Value.ToString(dateFormat)
                 : "";
         }
+
+            
     }
 }

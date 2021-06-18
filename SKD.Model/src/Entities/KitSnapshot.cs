@@ -9,7 +9,7 @@ namespace SKD.Model {
         Final
     }    
 
-     public enum PartnerStatus_CurrentStatusType {
+     public enum FordTimeLineCode {
         FPCR,       // Custom Received               
         FPBP,       // Planed Build Date Set / Change
         FPBC,       // Build Completed At     
