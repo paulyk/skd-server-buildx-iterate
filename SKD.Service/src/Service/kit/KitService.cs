@@ -180,7 +180,7 @@ namespace SKD.Service{
 
             // mark other timeline events of the same type as removed for this kit
             kit.TimelineEvents
-                .Where(t => t.EventType.Code == input.EventType.ToString())
+                .Where(t => t.EventType.Code == input.EventType)
                 .ToList().ForEach(timelieEvent => {
                     if (timelieEvent.RemovedAt == null) {
                         timelieEvent.RemovedAt = DateTime.UtcNow;
@@ -189,7 +189,7 @@ namespace SKD.Service{
 
             // create timeline event and add to kit
             var newTimelineEvent = new KitTimelineEvent {
-                EventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == input.EventType.ToString()),
+                EventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == input.EventType),
                 EventDate = input.EventDate,
                 EventNote = input.EventNote
             };
@@ -219,14 +219,14 @@ namespace SKD.Service{
             var duplicate = kit.TimelineEvents
                 .OrderByDescending(t => t.CreatedAt)
                 .Where(t => t.RemovedAt == null)
-                .Where(t => t.EventType.Code == input.EventType.ToString())
+                .Where(t => t.EventType.Code == input.EventType)
                 .Where(t => t.EventDate == input.EventDate)
                 .Where(t => t.EventNote == input.EventNote)
                 .FirstOrDefault();
 
             if (duplicate != null) {
                 var dateStr = input.EventDate.ToShortDateString();
-                errors.Add(new Error("", $"duplicate kit timeline event: {input.EventType.ToString()} {dateStr} "));
+                errors.Add(new Error("", $"duplicate kit timeline event: {input.EventType} {dateStr} "));
                 return errors;
             }
 
@@ -243,7 +243,7 @@ namespace SKD.Service{
 
             // missing prerequisite timeline events
             var currentTimelineEventType = await context.KitTimelineEventTypes
-                .FirstOrDefaultAsync(t => t.Code == input.EventType.ToString());
+                .FirstOrDefaultAsync(t => t.Code == input.EventType);
 
             var missingTimlineSequences = Enumerable.Range(1, currentTimelineEventType.Sequecne - 1)
                 .Where(seq => !kit.TimelineEvents
@@ -255,7 +255,7 @@ namespace SKD.Service{
                     .Where(t => missingTimlineSequences.Any(missingSeq => t.Sequecne == missingSeq))
                     .Select(t => t.Code).ToListAsync();
 
-                var text = mssingTimelineEventCodes.Aggregate((a, b) => a + ", " + b);
+                var text = mssingTimelineEventCodes.Select(t => t.ToString()).Aggregate((a, b) => a + ", " + b);
                 errors.Add(new Error("", $"prior timeline event(s) missing {text}"));
                 return errors;
             }
@@ -272,7 +272,7 @@ namespace SKD.Service{
             if (input.EventType == TimeLineEventType.PLAN_BUILD) {
                 var custom_receive_date = kit.TimelineEvents
                     .Where(t => t.RemovedAt == null)
-                    .Where(t => t.EventType.Code == TimeLineEventType.CUSTOM_RECEIVED.ToString())
+                    .Where(t => t.EventType.Code == TimeLineEventType.CUSTOM_RECEIVED)
                     .Select(t => t.EventDate).First();
 
                 var custom_receive_plus_lead_time_date = custom_receive_date.AddDays(planBuildLeadTimeDays);
@@ -307,7 +307,7 @@ namespace SKD.Service{
 
                 // mark other timeline events of the same type as removed for this kit
                 kit.TimelineEvents
-                    .Where(t => t.EventType.Code == dto.EventType.ToString())
+                    .Where(t => t.EventType.Code == dto.EventType)
                     .ToList().ForEach(timelieEvent => {
                         if (timelieEvent.RemovedAt == null) {
                             timelieEvent.RemovedAt = DateTime.UtcNow;
@@ -316,7 +316,7 @@ namespace SKD.Service{
 
                 // create timeline event and add to kit
                 var newTimelineEvent = new KitTimelineEvent {
-                    EventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == dto.EventType.ToString()),
+                    EventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == dto.EventType),
                     EventDate = dto.EventDate,
                     EventNote = dto.EventNote
                 };
@@ -349,19 +349,19 @@ namespace SKD.Service{
             var duplicateTimelineEventsFound = lot.Kits.SelectMany(t => t.TimelineEvents)
                 .OrderByDescending(t => t.CreatedAt)
                 .Where(t => t.RemovedAt == null)
-                .Where(t => t.EventType.Code == input.EventType.ToString())
+                .Where(t => t.EventType.Code == input.EventType)
                 .Where(t => t.EventDate == input.EventDate)
                 .ToList();
 
             if (duplicateTimelineEventsFound.Count > 0) {
                 var dateStr = input.EventDate.ToShortDateString();
-                errors.Add(new Error("", $"duplicate kit timeline event: {input.LotNo}, Type: {input.EventType.ToString()} Date: {dateStr} "));
+                errors.Add(new Error("", $"duplicate kit timeline event: {input.LotNo}, Type: {input.EventType} Date: {dateStr} "));
                 return errors;
             }
 
             // snapshot already taken
             if (await SnapshotAlreadyTaken(input)) {
-                errors.Add(new Error("", $"cannot update {input.EventType.ToString()} after snapshot taken"));
+                errors.Add(new Error("", $"cannot update {input.EventType} after snapshot taken"));
                 return errors;
             }
 

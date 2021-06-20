@@ -215,7 +215,7 @@ namespace SKD.Service {
 
             // filter by custome recived
             query = query
-                .Where(t => t.TimelineEvents.Any(ev => ev.RemovedAt == null && ev.EventType.Code == TimeLineEventType.CUSTOM_RECEIVED.ToString()))
+                .Where(t => t.TimelineEvents.Any(ev => ev.RemovedAt == null && ev.EventType.Code == TimeLineEventType.CUSTOM_RECEIVED))
                 .AsQueryable();
 
             // filter by wholesale null or whilesalte < runDate + 7
@@ -224,14 +224,14 @@ namespace SKD.Service {
                     // no wholesale time line event
                     !t.TimelineEvents.Any(
                         ev => ev.RemovedAt == null &&
-                        ev.EventType.Code == TimeLineEventType.WHOLE_SALE.ToString())
+                        ev.EventType.Code == TimeLineEventType.WHOLE_SALE)
 
                     ||
 
                     // wholesale timeline event before cut-off date
                     t.TimelineEvents.Any(ev =>
                         ev.RemovedAt == null &&
-                        ev.EventType.Code == TimeLineEventType.WHOLE_SALE.ToString() &&
+                        ev.EventType.Code == TimeLineEventType.WHOLE_SALE &&
                         ev.EventDate.AddDays(wholeSateCutOffDays) > input.RunDate
                     )
                 ).AsQueryable();
@@ -242,7 +242,7 @@ namespace SKD.Service {
         private string Get_KitVIN_IfBuildComplete(Kit kit) {
             var buildCompletedEvent = kit.TimelineEvents
                 .Where(t => t.RemovedAt == null)
-                .FirstOrDefault(t => t.EventType.Code == TimeLineEventType.BUILD_COMPLETED.ToString());
+                .FirstOrDefault(t => t.EventType.Code == TimeLineEventType.BUILD_COMPLETED);
 
             if (buildCompletedEvent == null) {
                 return "";
@@ -257,7 +257,7 @@ namespace SKD.Service {
 
             var buildCompletedEvent = kit.TimelineEvents
                 .Where(t => t.RemovedAt == null)
-                .FirstOrDefault(t => t.EventType.Code == TimeLineEventType.BUILD_COMPLETED.ToString());
+                .FirstOrDefault(t => t.EventType.Code == TimeLineEventType.BUILD_COMPLETED);
 
             if (buildCompletedEvent == null) {
                 return "";
@@ -275,7 +275,7 @@ namespace SKD.Service {
         private DateTime? GetKitTimelineEventDate(Kit kit, TimeLineEventType eventType) {
             var timeLineEvnet = kit.TimelineEvents
                 .Where(t => t.RemovedAt == null)
-                .Where(t => t.EventType.Code == eventType.ToString())
+                .Where(t => t.EventType.Code == eventType)
                 .FirstOrDefault();
 
             return timeLineEvnet != null
@@ -305,7 +305,7 @@ namespace SKD.Service {
         private string? GetDealerCode(Kit kit) {
             var timeLineEvnet = kit.TimelineEvents
                 .Where(t => t.RemovedAt == null)
-                .Where(t => t.EventType.Code == TimeLineEventType.WHOLE_SALE.ToString())
+                .Where(t => t.EventType.Code == TimeLineEventType.WHOLE_SALE)
                 .FirstOrDefault();
 
 
@@ -323,7 +323,7 @@ namespace SKD.Service {
                 throw new Exception("Should have at least custom received event");
             }
 
-            return Enum.Parse<TimeLineEventType>(latestTimelineEvent.EventType.Code);
+            return latestTimelineEvent.EventType.Code;
         }
 
         private async Task<PartnerStatus_ChangeStatus> GetKit_TxSatus(Kit kit) {
@@ -342,8 +342,8 @@ namespace SKD.Service {
                 .OrderByDescending(t => t.KitSnapshotRun.RunDate)
                 .FirstOrDefaultAsync(t => t.KitId == kit.Id);
 
-            var priorEventCode = priorKitSnapshotEntry != null
-                ? priorKitSnapshotEntry.TimelineEventCode.ToString()
+            TimeLineEventType? priorEventCode = priorKitSnapshotEntry != null
+                ? priorKitSnapshotEntry.TimelineEventCode
                 : null;
 
             // ADDED
@@ -354,14 +354,14 @@ namespace SKD.Service {
 
             // CHANGED
             // f anything but wholesale and not same as prior event
-            if (currentEventCode != TimeLineEventType.WHOLE_SALE.ToString() &&
+            if (currentEventCode != TimeLineEventType.WHOLE_SALE &&
                 currentEventCode != priorEventCode) {
                 return PartnerStatus_ChangeStatus.Changed;
             }
 
             // NO_CHANGE
             // if wholesale
-            if (currentEventCode == TimeLineEventType.WHOLE_SALE.ToString()) {
+            if (currentEventCode == TimeLineEventType.WHOLE_SALE) {
                 return PartnerStatus_ChangeStatus.Final;
             }
             return PartnerStatus_ChangeStatus.NoChange;

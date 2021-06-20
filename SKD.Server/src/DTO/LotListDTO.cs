@@ -7,7 +7,7 @@ namespace SKD.Server {
         public string PlantCode { get; set; } = "";
         public string LotNo { get; set; }  = "";
         public int KitCount { get; set; }
-        public string? TimelineStatus { get; set; }  = "";
+        public TimeLineEventType? TimelineStatus { get; set; }  = null;
         public DateTime CreatedAt { get; set; }
     }
 }

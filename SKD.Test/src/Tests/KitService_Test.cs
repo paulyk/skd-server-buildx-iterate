@@ -130,12 +130,12 @@ namespace SKD.Test {
         [Fact]
         public async Task can_create_kit_timeline_events() {
             // setup        
-            var timelineEvents = new List<(string eventTypeCode, DateTime eventDate)>() {
-                (TimeLineEventType.CUSTOM_RECEIVED.ToString(), new DateTime(2020, 11, 1)),
-                (TimeLineEventType.PLAN_BUILD.ToString(), new DateTime(2020, 11, 8)),
-                (TimeLineEventType.BUILD_COMPLETED.ToString(), new DateTime(2020, 11, 22)),
-                (TimeLineEventType.GATE_RELEASED.ToString(), new DateTime(2020, 11, 26)),
-                (TimeLineEventType.WHOLE_SALE.ToString(), new DateTime(2020, 11, 30)),
+            var timelineEvents = new List<(TimeLineEventType eventType, DateTime eventDate)>() {
+                (TimeLineEventType.CUSTOM_RECEIVED, new DateTime(2020, 11, 1)),
+                (TimeLineEventType.PLAN_BUILD, new DateTime(2020, 11, 8)),
+                (TimeLineEventType.BUILD_COMPLETED, new DateTime(2020, 11, 22)),
+                (TimeLineEventType.GATE_RELEASED, new DateTime(2020, 11, 26)),
+                (TimeLineEventType.WHOLE_SALE, new DateTime(2020, 11, 30)),
             };
 
             // test
@@ -150,7 +150,7 @@ namespace SKD.Test {
             foreach (var entry in timelineEvents) {
                 var dto = new KitTimelineEventInput {
                     KitNo = kit.KitNo,
-                    EventType = Enum.Parse<TimeLineEventType>(entry.eventTypeCode),
+                    EventType = entry.eventType,
                     EventDate = entry.eventDate,
                 };
                 var payload = await service.CreateKitTimelineEvent(dto);
@@ -201,9 +201,9 @@ namespace SKD.Test {
         public async Task cannot_create_kit_timeline_events_out_of_sequence() {
             // setup
             var baseDate = DateTime.Now.Date;
-            var timelineEvents = new List<(string eventTypeCode, DateTime trxDate, DateTime eventDate)>() {
-                (TimeLineEventType.CUSTOM_RECEIVED.ToString(), baseDate.AddDays(1),  baseDate.AddDays(6)),
-                (TimeLineEventType.BUILD_COMPLETED.ToString(), baseDate.AddDays(2), baseDate.AddDays(2)),
+            var timelineEvents = new List<(TimeLineEventType eventType, DateTime trxDate, DateTime eventDate)>() {
+                (TimeLineEventType.CUSTOM_RECEIVED, baseDate.AddDays(1),  baseDate.AddDays(6)),
+                (TimeLineEventType.BUILD_COMPLETED, baseDate.AddDays(2), baseDate.AddDays(2)),
             };
 
             // test
@@ -214,7 +214,7 @@ namespace SKD.Test {
             foreach (var entry in timelineEvents) {
                 var input = new KitTimelineEventInput {
                     KitNo = kit.KitNo,
-                    EventType = Enum.Parse<TimeLineEventType>(entry.eventTypeCode),
+                    EventType = entry.eventType,
                     EventDate = entry.eventDate,
                 };
                 service = new KitService(context, entry.trxDate, planBuildLeadTimeDays);
@@ -237,12 +237,12 @@ namespace SKD.Test {
             var eventNote = "DLR_9977";
 
             var baseDate = DateTime.Now.Date;
-            var timelineEventItems = new List<(string eventTypeCode, DateTime trxDate, DateTime eventDate, string eventNode)>() {
-                (TimeLineEventType.CUSTOM_RECEIVED.ToString(), baseDate.AddDays(2), baseDate.AddDays(1) , eventNote),
-                (TimeLineEventType.PLAN_BUILD.ToString(), baseDate.AddDays(3), baseDate.AddDays(5), eventNote),
-                (TimeLineEventType.BUILD_COMPLETED.ToString(), baseDate.AddDays(8), baseDate.AddDays(8), eventNote),
-                (TimeLineEventType.GATE_RELEASED.ToString(), baseDate.AddDays(10), baseDate.AddDays(10), eventNote),
-                (TimeLineEventType.WHOLE_SALE.ToString(), baseDate.AddDays(11), baseDate.AddDays(11), eventNote),
+            var timelineEventItems = new List<(TimeLineEventType eventType, DateTime trxDate, DateTime eventDate, string eventNode)>() {
+                (TimeLineEventType.CUSTOM_RECEIVED, baseDate.AddDays(2), baseDate.AddDays(1) , eventNote),
+                (TimeLineEventType.PLAN_BUILD, baseDate.AddDays(3), baseDate.AddDays(5), eventNote),
+                (TimeLineEventType.BUILD_COMPLETED, baseDate.AddDays(8), baseDate.AddDays(8), eventNote),
+                (TimeLineEventType.GATE_RELEASED, baseDate.AddDays(10), baseDate.AddDays(10), eventNote),
+                (TimeLineEventType.WHOLE_SALE, baseDate.AddDays(11), baseDate.AddDays(11), eventNote),
             };
 
             // test
@@ -253,7 +253,7 @@ namespace SKD.Test {
             foreach (var entry in timelineEventItems) {
                 var input = new KitTimelineEventInput {
                     KitNo = kit.KitNo,
-                    EventType = Enum.Parse<TimeLineEventType>(entry.eventTypeCode),
+                    EventType = entry.eventType,
                     EventDate = entry.eventDate,
                     EventNote = entry.eventNode
                 };

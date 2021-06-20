@@ -313,25 +313,25 @@ namespace SKD.Test {
         public void Gen_KitTimelineEventTypes() {
             var eventTypes = new List<KitTimelineEventType> {
                 new KitTimelineEventType {
-                    Code = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
+                    Code = TimeLineEventType.CUSTOM_RECEIVED,
                 },
                 new KitTimelineEventType {
-                    Code = TimeLineEventType.PLAN_BUILD.ToString(),
+                    Code = TimeLineEventType.PLAN_BUILD,
                 },
                 new KitTimelineEventType {
-                    Code = TimeLineEventType.BUILD_COMPLETED.ToString(),
+                    Code = TimeLineEventType.BUILD_COMPLETED,
                 },
                 new KitTimelineEventType {
-                    Code = TimeLineEventType.GATE_RELEASED.ToString(),
+                    Code = TimeLineEventType.GATE_RELEASED,
                 },
                 new KitTimelineEventType {
-                    Code = TimeLineEventType.WHOLE_SALE.ToString(),
+                    Code = TimeLineEventType.WHOLE_SALE,
                 },
             };
 
             var sequence = 1;
             eventTypes.ForEach(eventType => {
-                eventType.Description = eventType.Code;
+                eventType.Description = eventType.Code.ToString();
                 eventType.Sequecne = sequence++;
             });
 

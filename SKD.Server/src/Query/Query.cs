@@ -204,7 +204,7 @@ namespace SKD.Server {
 
         public async Task<Kit?> GetKitByKitNo([Service] SkdContext context, string kitNo) {
             var result = await context.Kits.AsNoTracking()
-                    .Include(t => t.Lot).ThenInclude(t => t.Model).ThenInclude(t =>t.ModelComponents).ThenInclude(t => t.Component)
+                    .Include(t => t.Lot).ThenInclude(t => t.Model).ThenInclude(t => t.ModelComponents).ThenInclude(t => t.Component)
                     .Include(t => t.KitComponents).ThenInclude(t => t.Component)
                     .Include(t => t.KitComponents).ThenInclude(t => t.ProductionStation)
                     .Include(t => t.KitComponents)
@@ -281,15 +281,15 @@ namespace SKD.Server {
                 return (LotOverviewDTO?)null;
             }
 
-            var vehicle = lot.Kits.FirstOrDefault();
+            var kit = lot.Kits.FirstOrDefault();
             var timelineEvents = lot.Kits.SelectMany(t => t.TimelineEvents);
 
             KitTimelineEvent? customReceivedEvent = null;
-            if (vehicle != null) {
-                customReceivedEvent = vehicle.TimelineEvents
+            if (kit != null) {
+                customReceivedEvent = kit.TimelineEvents
                     .OrderByDescending(t => t.CreatedAt)
                     .Where(t => t.RemovedAt == null)
-                    .FirstOrDefault(t => t.EventType.Code == TimeLineEventType.CUSTOM_RECEIVED.ToString());
+                    .FirstOrDefault(t => t.EventType.Code == TimeLineEventType.CUSTOM_RECEIVED);
             }
 
             return new LotOverviewDTO {
@@ -304,7 +304,7 @@ namespace SKD.Server {
                 CreatedAt = lot.CreatedAt,
                 CustomReceived = customReceivedEvent != null
                     ? new TimelineEventDTO {
-                        EventType = TimeLineEventType.CUSTOM_RECEIVED.ToString(),
+                        EventType = TimeLineEventType.CUSTOM_RECEIVED,
                         EventDate = customReceivedEvent != null ? customReceivedEvent.EventDate : (DateTime?)null,
                         EventNote = customReceivedEvent != null ? customReceivedEvent.EventNote : null,
                         CreatedAt = customReceivedEvent != null ? customReceivedEvent.CreatedAt : (DateTime?)null,
@@ -338,6 +338,7 @@ namespace SKD.Server {
         public async Task<Component?> GetComponentById([Service] SkdContext context, Guid id) =>
                  await context.Components.AsNoTracking().FirstOrDefaultAsync(t => t.Id == id);
 
+        [Obsolete("no longer used", error: true)]
         public async Task<KitComponent?> GetVehicleComponentByVinAndComponent([Service] SkdContext context, string vin, string componentCode) =>
                  await context.KitComponents.AsNoTracking()
                         .Include(t => t.Kit)
@@ -345,11 +346,14 @@ namespace SKD.Server {
                         .Include(t => t.ComponentSerials)
                         .FirstOrDefaultAsync(t => t.Kit.VIN == vin && t.Component.Code == componentCode);
 
+
+        [Obsolete("no longer used", error: true)]
         public async Task<ComponentSerial?> GetComponentScanById([Service] SkdContext context, Guid id) =>
                 await context.ComponentSerials.AsNoTracking()
                         .Include(t => t.KitComponent).ThenInclude(t => t.Kit)
                         .FirstOrDefaultAsync(t => t.Id == id);
 
+        [Obsolete("no longer used", error: true)]
         public async Task<ComponentSerial?> GetExistingComponentScan([Service] SkdContext context, Guid vehicleComponentId) =>
                await context.ComponentSerials.AsNoTracking()
                         .Include(t => t.KitComponent)
@@ -359,9 +363,9 @@ namespace SKD.Server {
         [UsePaging(MaxPageSize = 10000)]
         [UseSorting]
         public IQueryable<KitListItemDTO> GetKitList(
-            [Service] SkdContext context, 
+            [Service] SkdContext context,
             string plantCode
-        ) => 
+        ) =>
             context.Kits.AsNoTracking()
                 .Where(t => t.Lot.Plant.Code == plantCode)
                 .Select(t => new KitListItemDTO {
@@ -370,7 +374,7 @@ namespace SKD.Server {
                     KitNo = t.KitNo,
                     VIN = t.VIN,
                     ModelCode = t.Lot.Model.Code,
-                    ModelName  = t.Lot.Model.Name,
+                    ModelName = t.Lot.Model.Name,
                     LastTimelineEvent = t.TimelineEvents
                         .OrderByDescending(t => t.CreatedAt)
                         .Select(t => t.EventType.Description)
@@ -379,7 +383,7 @@ namespace SKD.Server {
                         .Where(t => t.RemovedAt == null)
                         .Where(t => t.Component.DcwsSerialCaptureRule != DcwsSerialCaptureRule.NOT_REQUIED)
                         .Count(),
-                    ScannedComponentCount =  t.KitComponents
+                    ScannedComponentCount = t.KitComponents
                         .Where(t => t.RemovedAt == null)
                         .Where(t => t.Component.DcwsSerialCaptureRule != DcwsSerialCaptureRule.NOT_REQUIED)
                         .Where(t => t.ComponentSerials.Any(t => t.RemovedAt == null))
@@ -387,9 +391,9 @@ namespace SKD.Server {
                     VerifiedComponentCount = t.KitComponents
                         .Where(t => t.RemovedAt == null)
                         .Where(t => t.Component.DcwsSerialCaptureRule != DcwsSerialCaptureRule.NOT_REQUIED)
-                        .Where(t => t.ComponentSerials.Any(u => u.RemovedAt == null  && u.VerifiedAt != null))
+                        .Where(t => t.ComponentSerials.Any(u => u.RemovedAt == null && u.VerifiedAt != null))
                         .Count(),
-                    Imported = t.CreatedAt                            
+                    Imported = t.CreatedAt
                 }).AsQueryable();
 
 
@@ -424,10 +428,10 @@ namespace SKD.Server {
                         LotNo = t.LotNo,
                         KitCount = t.Kits.Count(),
                         TimelineStatus = t.Kits
-                        .SelectMany(t => t.TimelineEvents)
-                        .OrderByDescending(t => t.CreatedAt)
-                        .Where(t => t.RemovedAt == null)
-                        .Select(t => t.EventType.Code).FirstOrDefault(),
+                            .SelectMany(t => t.TimelineEvents)
+                            .OrderByDescending(t => t.CreatedAt)
+                            .Where(t => t.RemovedAt == null)
+                            .Select(t => (TimeLineEventType?)t.EventType.Code).FirstOrDefault(),
                         CreatedAt = t.CreatedAt
                     }).ToListAsync();
 
@@ -504,8 +508,8 @@ namespace SKD.Server {
             [Service] SkdContext context,
             [Service] PartnerStatusBuilder service,
             string plantCode,
-            int sequence            
-        )  => await service.GeneratePartnerStatusFilePaylaod(
+            int sequence
+        ) => await service.GeneratePartnerStatusFilePaylaod(
                 plantCode: plantCode,
                 sequence: sequence
             );
@@ -515,6 +519,6 @@ namespace SKD.Server {
         //     var parser = new BomFileParser();
         //     return parser.BuildBomLotKitInput(text);
         // }
-                
+
     }
 }

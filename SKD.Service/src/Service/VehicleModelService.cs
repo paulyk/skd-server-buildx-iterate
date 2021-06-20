@@ -242,7 +242,7 @@ namespace SKD.Service {
                 return errors;
             }
 
-            var planBuildEventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == TimeLineEventType.BUILD_COMPLETED.ToString());
+            var planBuildEventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == TimeLineEventType.BUILD_COMPLETED);
             var latestTimelineEvent = kit.TimelineEvents
                 .OrderByDescending(t => t.CreatedAt)
                 .FirstOrDefault();
