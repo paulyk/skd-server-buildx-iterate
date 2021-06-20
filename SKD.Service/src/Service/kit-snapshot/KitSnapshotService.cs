@@ -30,7 +30,7 @@ namespace SKD.Service {
                 return payload;
             }
 
-            // get qualifying vehicle list
+            // get qualifying kit list
             var query = GetPartnerStatusQualifyingKitsQuery(input);
             var qualifyingKits = await query
                 .Include(t => t.Lot)
@@ -38,7 +38,7 @@ namespace SKD.Service {
                 .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .ToListAsync();
 
-            // if no vehicles
+            // if no kits
             if (qualifyingKits.Count == 0) {
                 var dto = new SnapshotDTO {
                     RunDate = input.RunDate.Value.Date,
@@ -51,7 +51,7 @@ namespace SKD.Service {
             }
 
             // create entity
-            var vehicleSnapshotRun = new KitSnapshotRun {
+            var kitSnapshotRun = new KitSnapshotRun {
                 Plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode),
                 RunDate = input.RunDate.Value.Date,
                 Sequence = await context.KitSnapshotRuns
@@ -62,7 +62,7 @@ namespace SKD.Service {
             };
 
             foreach (var kit in qualifyingKits) {
-                var vehicleStatusSnapshot = new KitSnapshot {
+                var kitStatusSnapshot = new KitSnapshot {
                     Kit = kit,
                     ChangeStatusCode = await GetKit_TxSatus(kit),
                     TimelineEventCode = Get_KitLastestTimelineEventType(kit),
@@ -78,19 +78,19 @@ namespace SKD.Service {
                     Wholesale = GetKitTimelineEventDate(kit, TimeLineEventType.WHOLE_SALE),
                 };
 
-                vehicleSnapshotRun.KitSnapshots.Add(vehicleStatusSnapshot);
+                kitSnapshotRun.KitSnapshots.Add(kitStatusSnapshot);
             }
 
             // save
-            context.KitSnapshotRuns.Add(vehicleSnapshotRun);
+            context.KitSnapshotRuns.Add(kitSnapshotRun);
             var entity = await context.SaveChangesAsync();
             
             // input
             payload.Payload = new SnapshotDTO {
                 RunDate = input.RunDate.Value.Date,
                 PlantCode = input.PlantCode,                
-                SnapshotCount = vehicleSnapshotRun.KitSnapshots.Count(),
-                Sequence = vehicleSnapshotRun.Sequence
+                SnapshotCount = kitSnapshotRun.KitSnapshots.Count(),
+                Sequence = kitSnapshotRun.Sequence
             };
 
             return payload;
@@ -239,23 +239,23 @@ namespace SKD.Service {
             return query;
         }
 
-        private string Get_KitVIN_IfBuildComplete(Kit vehicle) {
-            var buildCompletedEvent = vehicle.TimelineEvents
+        private string Get_KitVIN_IfBuildComplete(Kit kit) {
+            var buildCompletedEvent = kit.TimelineEvents
                 .Where(t => t.RemovedAt == null)
                 .FirstOrDefault(t => t.EventType.Code == TimeLineEventType.BUILD_COMPLETED.ToString());
 
             if (buildCompletedEvent == null) {
                 return "";
             }
-            return vehicle.VIN;
+            return kit.VIN;
         }
 
-        private async Task<string> GetEngineSerialNumber(Kit vehicle, string engineComponentCode) {
+        private async Task<string> GetEngineSerialNumber(Kit kit, string engineComponentCode) {
             if (engineComponentCode == null) {
                 throw new Exception("GetEngineSerialNumber: Engine component code required");
             }
 
-            var buildCompletedEvent = vehicle.TimelineEvents
+            var buildCompletedEvent = kit.TimelineEvents
                 .Where(t => t.RemovedAt == null)
                 .FirstOrDefault(t => t.EventType.Code == TimeLineEventType.BUILD_COMPLETED.ToString());
 
@@ -264,7 +264,7 @@ namespace SKD.Service {
             }
 
             var componentScan = await context.ComponentSerials
-                .Where(t => t.KitComponent.Kit.KitNo == vehicle.KitNo)
+                .Where(t => t.KitComponent.Kit.KitNo == kit.KitNo)
                 .Where(t => t.KitComponent.Component.Code == engineComponentCode)
                 .Where(t => t.VerifiedAt != null && t.RemovedAt == null)
                 .FirstOrDefaultAsync();
@@ -272,8 +272,8 @@ namespace SKD.Service {
             return (componentScan?.Serial1 + " " + componentScan?.Serial2).Trim();
         }
 
-        private DateTime? GetKitTimelineEventDate(Kit vehicle, TimeLineEventType eventType) {
-            var timeLineEvnet = vehicle.TimelineEvents
+        private DateTime? GetKitTimelineEventDate(Kit kit, TimeLineEventType eventType) {
+            var timeLineEvnet = kit.TimelineEvents
                 .Where(t => t.RemovedAt == null)
                 .Where(t => t.EventType.Code == eventType.ToString())
                 .FirstOrDefault();
@@ -302,8 +302,8 @@ namespace SKD.Service {
             return planBuild;
         }
 
-        private string? GetDealerCode(Kit vehicle) {
-            var timeLineEvnet = vehicle.TimelineEvents
+        private string? GetDealerCode(Kit kit) {
+            var timeLineEvnet = kit.TimelineEvents
                 .Where(t => t.RemovedAt == null)
                 .Where(t => t.EventType.Code == TimeLineEventType.WHOLE_SALE.ToString())
                 .FirstOrDefault();
@@ -314,8 +314,8 @@ namespace SKD.Service {
                 : null;
         }
 
-        private TimeLineEventType Get_KitLastestTimelineEventType(Kit vehicle) {
-            var latestTimelineEvent = vehicle.TimelineEvents
+        private TimeLineEventType Get_KitLastestTimelineEventType(Kit kit) {
+            var latestTimelineEvent = kit.TimelineEvents
                 .Where(t => t.RemovedAt == null)
                 .OrderByDescending(t => t.CreatedAt).FirstOrDefault();
 

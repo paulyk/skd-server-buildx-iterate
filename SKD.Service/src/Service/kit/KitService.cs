@@ -178,7 +178,7 @@ namespace SKD.Service{
                 .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .FirstOrDefaultAsync(t => t.KitNo == input.KitNo);
 
-            // mark other timeline events of the same type as removed for this vehicle
+            // mark other timeline events of the same type as removed for this kit
             kit.TimelineEvents
                 .Where(t => t.EventType.Code == input.EventType.ToString())
                 .ToList().ForEach(timelieEvent => {
@@ -187,7 +187,7 @@ namespace SKD.Service{
                     }
                 });
 
-            // create timeline event and add to vehicle
+            // create timeline event and add to kit
             var newTimelineEvent = new KitTimelineEvent {
                 EventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == input.EventType.ToString()),
                 EventDate = input.EventDate,
@@ -297,16 +297,16 @@ namespace SKD.Service{
                 return payload;
             }
 
-            var vehicleLot = await context.Lots
+            var kitLot = await context.Lots
                 .Include(t => t.Kits)
                     .ThenInclude(t => t.TimelineEvents)
                     .ThenInclude(t => t.EventType)
                 .FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
 
-            foreach (var vehicle in vehicleLot.Kits) {
+            foreach (var kit in kitLot.Kits) {
 
-                // mark other timeline events of the same type as removed for this vehicle
-                vehicle.TimelineEvents
+                // mark other timeline events of the same type as removed for this kit
+                kit.TimelineEvents
                     .Where(t => t.EventType.Code == dto.EventType.ToString())
                     .ToList().ForEach(timelieEvent => {
                         if (timelieEvent.RemovedAt == null) {
@@ -314,19 +314,19 @@ namespace SKD.Service{
                         }
                     });
 
-                // create timeline event and add to vehicle
+                // create timeline event and add to kit
                 var newTimelineEvent = new KitTimelineEvent {
                     EventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == dto.EventType.ToString()),
                     EventDate = dto.EventDate,
                     EventNote = dto.EventNote
                 };
 
-                vehicle.TimelineEvents.Add(newTimelineEvent);
+                kit.TimelineEvents.Add(newTimelineEvent);
 
             }
 
             // // save
-            payload.Payload = vehicleLot;
+            payload.Payload = kitLot;
             await context.SaveChangesAsync();
             return payload;
         }
