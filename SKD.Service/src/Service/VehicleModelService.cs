@@ -247,7 +247,7 @@ namespace SKD.Service {
                 .OrderByDescending(t => t.CreatedAt)
                 .FirstOrDefault();
 
-            if (latestTimelineEvent != null && latestTimelineEvent.EventType.Sequecne >= planBuildEventType.Sequecne) {
+            if (latestTimelineEvent != null && latestTimelineEvent.EventType.Sequence >= planBuildEventType.Sequence) {
                 errors.Add(new Error("", "cannot update kit components if build compplete"));
                 return errors;
             }

@@ -108,7 +108,7 @@ dotnet ef database update --project skd.server
 dotnet ef database update --project skd.server --connection your_connection_string
 ```
 
-### Revert to specific migration
+### Revert to specific migration  (down)
 
 ```bash
 dotnet ef database update Migration_Name --project skd.server

@@ -245,14 +245,14 @@ namespace SKD.Service{
             var currentTimelineEventType = await context.KitTimelineEventTypes
                 .FirstOrDefaultAsync(t => t.Code == input.EventType);
 
-            var missingTimlineSequences = Enumerable.Range(1, currentTimelineEventType.Sequecne - 1)
+            var missingTimlineSequences = Enumerable.Range(1, currentTimelineEventType.Sequence - 1)
                 .Where(seq => !kit.TimelineEvents
-                .Any(t => t.EventType.Sequecne == seq)).ToList();
+                .Any(t => t.EventType.Sequence == seq)).ToList();
 
 
             if (missingTimlineSequences.Count > 0) {
                 var mssingTimelineEventCodes = await context.KitTimelineEventTypes
-                    .Where(t => missingTimlineSequences.Any(missingSeq => t.Sequecne == missingSeq))
+                    .Where(t => missingTimlineSequences.Any(missingSeq => t.Sequence == missingSeq))
                     .Select(t => t.Code).ToListAsync();
 
                 var text = mssingTimelineEventCodes.Select(t => t.ToString()).Aggregate((a, b) => a + ", " + b);

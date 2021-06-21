@@ -34,7 +34,7 @@ namespace SKD.Service {
             var query = GetPartnerStatusQualifyingKitsQuery(input);
             var qualifyingKits = await query
                 .Include(t => t.Lot)
-                .Include(t => t.Snapshots.OrderBy(t => t.KitTimeLineEventType.Sequecne))
+                .Include(t => t.Snapshots.OrderBy(t => t.KitTimeLineEventType.Sequence))
                 .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .ToListAsync();
 
@@ -336,7 +336,7 @@ namespace SKD.Service {
         private async Task<PartnerStatus_ChangeStatus> GetKit_TxSatus(Kit kit) {
             var latestTimelineEvent = kit.TimelineEvents
                 .Where(t => t.RemovedAt == null)
-                .OrderByDescending(t => t.EventType.Sequecne)
+                .OrderByDescending(t => t.EventType.Sequence)
                 .FirstOrDefault(t => t.RemovedAt == null);
 
             if (latestTimelineEvent == null) {

@@ -31,7 +31,7 @@ namespace SKD.Service {
             if (kitSnapshotRun == null) {
                 return new PartnerStatusDTO {
                     PlantCode = plantCode,
-                    Sequecne = sequence,
+                    Sequence = sequence,
                     RunDate = (DateTime?)null,
                     ErrorMessage = $"Kit snapshot not found for plant {plantCode} seq {sequence}",
                     PayloadText = ""
@@ -59,7 +59,7 @@ namespace SKD.Service {
 
             var payload = new PartnerStatusDTO {
                 PlantCode = kitSnapshotRun.Plant.Code,
-                Sequecne = kitSnapshotRun.Sequence,
+                Sequence = kitSnapshotRun.Sequence,
                 RunDate = kitSnapshotRun.RunDate,
                 Filename =  BuildFilename(kitSnapshotRun.Plant.Code, kitSnapshotRun.Plant.PartnerPlantCode, kitSnapshotRun.RunDate),
                 PayloadText = String.Join('\n', lines)

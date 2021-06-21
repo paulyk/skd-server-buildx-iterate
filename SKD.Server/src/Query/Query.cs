@@ -230,7 +230,7 @@ namespace SKD.Server {
             }
 
             var timelineEventTypes = await context.KitTimelineEventTypes.AsNoTracking()
-                .OrderBy(t => t.Sequecne)
+                .OrderBy(t => t.Sequence)
                 .Where(t => t.RemovedAt == null).ToListAsync();
 
             var dto = new VehicleTimelineDTO {
@@ -249,11 +249,11 @@ namespace SKD.Server {
                             EventNote = timelineEvent.EventNote,
                             EventType = timelineEvent.EventType.Code,
                             CreatedAt = timelineEvent.CreatedAt,
-                            Sequence = evtType.Sequecne
+                            Sequence = evtType.Sequence
                         }
                         : new TimelineEventDTO {
                             EventType = evtType.Code,
-                            Sequence = evtType.Sequecne
+                            Sequence = evtType.Sequence
                         };
                 }).ToList()
             };

@@ -332,7 +332,7 @@ namespace SKD.Test {
             var sequence = 1;
             eventTypes.ForEach(eventType => {
                 eventType.Description = eventType.Code.ToString();
-                eventType.Sequecne = sequence++;
+                eventType.Sequence = sequence++;
             });
 
             foreach (var eventType in eventTypes) {

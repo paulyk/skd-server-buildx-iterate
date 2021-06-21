@@ -38,7 +38,7 @@ namespace SKD.Seed {
             var sequence = 1;
             eventTypes.ForEach(eventType => {
                 eventType.Description = UnderscoreToPascalCase(eventType.Code.ToString());
-                eventType.Sequecne = sequence++;
+                eventType.Sequence = sequence++;
             });
 
             ctx.KitTimelineEventTypes.AddRange(eventTypes);
