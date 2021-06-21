@@ -17,8 +17,11 @@ namespace SKD.Model {
             builder.Property(t => t.Description).IsRequired().HasMaxLength(EntityFieldLen.Event_Description);
             
             builder.HasIndex(t => t.Code).IsUnique();
-            
 
+            builder.HasMany(t => t.Snapshots)
+                .WithOne(t => t.KitTimeLineEventType)
+                .HasForeignKey(t => t.KitTimeLineEventTypeId);
+            
         }
 
     }

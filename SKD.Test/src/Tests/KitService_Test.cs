@@ -130,12 +130,12 @@ namespace SKD.Test {
         [Fact]
         public async Task can_create_kit_timeline_events() {
             // setup        
-            var timelineEvents = new List<(TimeLineEventType eventType, DateTime eventDate)>() {
-                (TimeLineEventType.CUSTOM_RECEIVED, new DateTime(2020, 11, 1)),
-                (TimeLineEventType.PLAN_BUILD, new DateTime(2020, 11, 8)),
-                (TimeLineEventType.BUILD_COMPLETED, new DateTime(2020, 11, 22)),
-                (TimeLineEventType.GATE_RELEASED, new DateTime(2020, 11, 26)),
-                (TimeLineEventType.WHOLE_SALE, new DateTime(2020, 11, 30)),
+            var timelineEvents = new List<(TimeLineEventCode eventType, DateTime eventDate)>() {
+                (TimeLineEventCode.CUSTOM_RECEIVED, new DateTime(2020, 11, 1)),
+                (TimeLineEventCode.PLAN_BUILD, new DateTime(2020, 11, 8)),
+                (TimeLineEventCode.BUILD_COMPLETED, new DateTime(2020, 11, 22)),
+                (TimeLineEventCode.GATE_RELEASED, new DateTime(2020, 11, 26)),
+                (TimeLineEventCode.WHOLE_SALE, new DateTime(2020, 11, 30)),
             };
 
             // test
@@ -174,13 +174,13 @@ namespace SKD.Test {
 
             var input_1 = new KitTimelineEventInput {
                 KitNo = kit.KitNo,
-                EventType = TimeLineEventType.CUSTOM_RECEIVED,
+                EventType = TimeLineEventCode.CUSTOM_RECEIVED,
                 EventDate = currentDate
             };
 
             var input_2 = new KitTimelineEventInput {
                 KitNo = kit.KitNo,
-                EventType = TimeLineEventType.CUSTOM_RECEIVED,
+                EventType = TimeLineEventCode.CUSTOM_RECEIVED,
                 EventDate = currentDate.AddDays(-1)
             };
 
@@ -201,9 +201,9 @@ namespace SKD.Test {
         public async Task cannot_create_kit_timeline_events_out_of_sequence() {
             // setup
             var baseDate = DateTime.Now.Date;
-            var timelineEvents = new List<(TimeLineEventType eventType, DateTime trxDate, DateTime eventDate)>() {
-                (TimeLineEventType.CUSTOM_RECEIVED, baseDate.AddDays(1),  baseDate.AddDays(6)),
-                (TimeLineEventType.BUILD_COMPLETED, baseDate.AddDays(2), baseDate.AddDays(2)),
+            var timelineEvents = new List<(TimeLineEventCode eventType, DateTime trxDate, DateTime eventDate)>() {
+                (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(1),  baseDate.AddDays(6)),
+                (TimeLineEventCode.BUILD_COMPLETED, baseDate.AddDays(2), baseDate.AddDays(2)),
             };
 
             // test
@@ -237,12 +237,12 @@ namespace SKD.Test {
             var eventNote = "DLR_9977";
 
             var baseDate = DateTime.Now.Date;
-            var timelineEventItems = new List<(TimeLineEventType eventType, DateTime trxDate, DateTime eventDate, string eventNode)>() {
-                (TimeLineEventType.CUSTOM_RECEIVED, baseDate.AddDays(2), baseDate.AddDays(1) , eventNote),
-                (TimeLineEventType.PLAN_BUILD, baseDate.AddDays(3), baseDate.AddDays(5), eventNote),
-                (TimeLineEventType.BUILD_COMPLETED, baseDate.AddDays(8), baseDate.AddDays(8), eventNote),
-                (TimeLineEventType.GATE_RELEASED, baseDate.AddDays(10), baseDate.AddDays(10), eventNote),
-                (TimeLineEventType.WHOLE_SALE, baseDate.AddDays(11), baseDate.AddDays(11), eventNote),
+            var timelineEventItems = new List<(TimeLineEventCode eventType, DateTime trxDate, DateTime eventDate, string eventNode)>() {
+                (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(2), baseDate.AddDays(1) , eventNote),
+                (TimeLineEventCode.PLAN_BUILD, baseDate.AddDays(3), baseDate.AddDays(5), eventNote),
+                (TimeLineEventCode.BUILD_COMPLETED, baseDate.AddDays(8), baseDate.AddDays(8), eventNote),
+                (TimeLineEventCode.GATE_RELEASED, baseDate.AddDays(10), baseDate.AddDays(10), eventNote),
+                (TimeLineEventCode.WHOLE_SALE, baseDate.AddDays(11), baseDate.AddDays(11), eventNote),
             };
 
             // test
@@ -283,12 +283,12 @@ namespace SKD.Test {
 
             var dto = new KitTimelineEventInput {
                 KitNo = kit.KitNo,
-                EventType = TimeLineEventType.CUSTOM_RECEIVED,
+                EventType = TimeLineEventCode.CUSTOM_RECEIVED,
                 EventDate = originalDate
             };
             var dto2 = new KitTimelineEventInput {
                 KitNo = kit.KitNo,
-                EventType = TimeLineEventType.CUSTOM_RECEIVED,
+                EventType = TimeLineEventCode.CUSTOM_RECEIVED,
                 EventDate = newDate
             };
 
@@ -321,13 +321,13 @@ namespace SKD.Test {
 
             var dto = new KitTimelineEventInput {
                 KitNo = kit.KitNo,
-                EventType = TimeLineEventType.CUSTOM_RECEIVED,
+                EventType = TimeLineEventCode.CUSTOM_RECEIVED,
                 EventDate = originalDate,
                 EventNote = eventNote
             };
             var dto2 = new KitTimelineEventInput {
                 KitNo = kit.KitNo,
-                EventType = TimeLineEventType.CUSTOM_RECEIVED,
+                EventType = TimeLineEventCode.CUSTOM_RECEIVED,
                 EventDate = newDate,
                 EventNote = eventNote
             };
@@ -359,7 +359,7 @@ namespace SKD.Test {
             var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
             var dto = new LotTimelineEventInput {
                 LotNo = vehicleLot.LotNo,
-                EventType = TimeLineEventType.CUSTOM_RECEIVED,
+                EventType = TimeLineEventCode.CUSTOM_RECEIVED,
                 EventDate = eventDate,
                 EventNote = eventNote
             };
@@ -395,7 +395,7 @@ namespace SKD.Test {
             var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
             var input = new LotTimelineEventInput {
                 LotNo = lot.LotNo,
-                EventType = TimeLineEventType.CUSTOM_RECEIVED,
+                EventType = TimeLineEventCode.CUSTOM_RECEIVED,
                 EventDate = event_date,
                 EventNote = eventNote
             };

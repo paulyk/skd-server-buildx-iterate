@@ -289,7 +289,7 @@ namespace SKD.Server {
                 customReceivedEvent = kit.TimelineEvents
                     .OrderByDescending(t => t.CreatedAt)
                     .Where(t => t.RemovedAt == null)
-                    .FirstOrDefault(t => t.EventType.Code == TimeLineEventType.CUSTOM_RECEIVED);
+                    .FirstOrDefault(t => t.EventType.Code == TimeLineEventCode.CUSTOM_RECEIVED);
             }
 
             return new LotOverviewDTO {
@@ -304,7 +304,7 @@ namespace SKD.Server {
                 CreatedAt = lot.CreatedAt,
                 CustomReceived = customReceivedEvent != null
                     ? new TimelineEventDTO {
-                        EventType = TimeLineEventType.CUSTOM_RECEIVED,
+                        EventType = TimeLineEventCode.CUSTOM_RECEIVED,
                         EventDate = customReceivedEvent != null ? customReceivedEvent.EventDate : (DateTime?)null,
                         EventNote = customReceivedEvent != null ? customReceivedEvent.EventNote : null,
                         CreatedAt = customReceivedEvent != null ? customReceivedEvent.CreatedAt : (DateTime?)null,
@@ -431,7 +431,7 @@ namespace SKD.Server {
                             .SelectMany(t => t.TimelineEvents)
                             .OrderByDescending(t => t.CreatedAt)
                             .Where(t => t.RemovedAt == null)
-                            .Select(t => (TimeLineEventType?)t.EventType.Code).FirstOrDefault(),
+                            .Select(t => (TimeLineEventCode?)t.EventType.Code).FirstOrDefault(),
                         CreatedAt = t.CreatedAt
                     }).ToListAsync();
 

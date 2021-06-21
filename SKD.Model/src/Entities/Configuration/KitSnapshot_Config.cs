@@ -13,11 +13,16 @@ namespace SKD.Model {
             builder.HasIndex(t => new { t.KitSnapshotRunId, t.KitId }).IsUnique();
 
             builder.Property(t => t.VIN).HasMaxLength(EntityFieldLen.VIN);
+            
             // relationships
             builder.HasOne(t => t.Kit)
                 .WithMany(t => t.Snapshots)
                 .OnDelete(DeleteBehavior.NoAction)
                 .HasForeignKey(t => t.KitId);
+
+            builder.HasOne(t => t.KitTimeLineEventType)
+                .WithMany(t => t.Snapshots)
+                .HasForeignKey(t => t.KitTimeLineEventTypeId);
 
         }
     }

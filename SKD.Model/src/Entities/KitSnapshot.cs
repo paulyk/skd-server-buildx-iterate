@@ -23,7 +23,10 @@ namespace SKD.Model {
         public Guid KitId { get; set; }
         public Kit Kit { get; set; }
         public PartnerStatus_ChangeStatus ChangeStatusCode { get; set; }
-        public TimeLineEventType TimelineEventCode { get; set; }
+
+        public Guid KitTimeLineEventTypeId { get; set; }
+        public KitTimelineEventType KitTimeLineEventType { get; set; }
+
         public string VIN { get; set; }
         public string DealerCode { get; set; }
         public string EngineSerialNumber { get; set; }

@@ -70,6 +70,7 @@ namespace SKD.Test {
 
         private async Task<KitSnapshotRun> GenerateKitSnapshotRun_TestData() {
             var lot = await context.Lots.Include(t => t.Kits).FirstOrDefaultAsync();
+            var timelineEventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == TimeLineEventCode.CUSTOM_RECEIVED);
 
             var kitSnapshotRun = new KitSnapshotRun {
                 PlantId = lot.PlantId,
@@ -78,7 +79,7 @@ namespace SKD.Test {
                 KitSnapshots = lot.Kits.Select(kit => new KitSnapshot {
                     Kit = kit,
                     ChangeStatusCode = PartnerStatus_ChangeStatus.Added,
-                    TimelineEventCode = TimeLineEventType.CUSTOM_RECEIVED,
+                    KitTimeLineEventType = timelineEventType,
                     VIN = kit.VIN,
                     DealerCode = DEALEAR_CODE,
                     EngineSerialNumber = ENGINE_SERIAL,

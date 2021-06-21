@@ -233,7 +233,7 @@ namespace SKD.Service{
             // kit timeline event snapshot aready taken
             var exitingKitSnapnshot = await context.KitSnapshots
                 .Where(t => t.Kit.KitNo == input.KitNo)
-                .Where(t => t.TimelineEventCode == input.EventType)
+                .Where(t => t.KitTimeLineEventType.Code == input.EventType)
                 .FirstOrDefaultAsync();
 
             if (exitingKitSnapnshot != null) {
@@ -261,7 +261,7 @@ namespace SKD.Service{
             }
 
             // CUSTOM_RECEIVED 
-            if (input.EventType == TimeLineEventType.CUSTOM_RECEIVED) {
+            if (input.EventType == TimeLineEventCode.CUSTOM_RECEIVED) {
                 if (currentDate <= input.EventDate) {
                     errors.Add(new Error("", $"custom received date must be before current date"));
                     return errors;
@@ -269,10 +269,10 @@ namespace SKD.Service{
             }
 
             // PLAN_BUILD 
-            if (input.EventType == TimeLineEventType.PLAN_BUILD) {
+            if (input.EventType == TimeLineEventCode.PLAN_BUILD) {
                 var custom_receive_date = kit.TimelineEvents
                     .Where(t => t.RemovedAt == null)
-                    .Where(t => t.EventType.Code == TimeLineEventType.CUSTOM_RECEIVED)
+                    .Where(t => t.EventType.Code == TimeLineEventCode.CUSTOM_RECEIVED)
                     .Select(t => t.EventDate).First();
 
                 var custom_receive_plus_lead_time_date = custom_receive_date.AddDays(planBuildLeadTimeDays);
@@ -366,7 +366,7 @@ namespace SKD.Service{
             }
 
             // CUSTOM_RECEIVED 
-            if (input.EventType == TimeLineEventType.CUSTOM_RECEIVED) {
+            if (input.EventType == TimeLineEventCode.CUSTOM_RECEIVED) {
                 if (input.EventDate >= currentDate) {
                     errors.Add(new Error("VIN", $"custom received date must be before current date"));
                     return errors;
@@ -430,15 +430,15 @@ namespace SKD.Service{
             }
 
             switch (input.EventType) {
-                case TimeLineEventType.CUSTOM_RECEIVED:
+                case TimeLineEventCode.CUSTOM_RECEIVED:
                     return kitSnapshot.CustomReceived != null;
-                case TimeLineEventType.PLAN_BUILD:
+                case TimeLineEventCode.PLAN_BUILD:
                     return kitSnapshot.PlanBuild != null;
-                case TimeLineEventType.BUILD_COMPLETED:
+                case TimeLineEventCode.BUILD_COMPLETED:
                     return kitSnapshot.BuildCompleted != null;
-                case TimeLineEventType.GATE_RELEASED:
+                case TimeLineEventCode.GATE_RELEASED:
                     return kitSnapshot.GateRelease != null;
-                case TimeLineEventType.WHOLE_SALE:
+                case TimeLineEventCode.WHOLE_SALE:
                     return kitSnapshot.Wholesale != null;
                 default: return false;
             }

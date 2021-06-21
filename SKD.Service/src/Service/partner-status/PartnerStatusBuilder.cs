@@ -121,7 +121,7 @@ namespace SKD.Service {
                 ),
                 lineBuilder.CreateFieldValue(
                     t => t.PST_CURRENT_STATUS,
-                    ToFordTimelineCode(snapshot.TimelineEventCode)
+                    ToFordTimelineCode(snapshot.KitTimeLineEventType.Code)
                 ),
 
                 lineBuilder.CreateFieldValue(t => t.PST_IP1R_STATUS_DATE, ""),
@@ -167,13 +167,13 @@ namespace SKD.Service {
             };
         }
 
-        public string ToFordTimelineCode(TimeLineEventType timeLineEventType) {
+        public string ToFordTimelineCode(TimeLineEventCode timeLineEventType) {
             switch (timeLineEventType) {
-                case TimeLineEventType.CUSTOM_RECEIVED: return   FordTimeLineCode.FPCR.ToString(); //"FPCR";
-                case TimeLineEventType.PLAN_BUILD: return FordTimeLineCode.FPBP.ToString(); //"FPBP";
-                case TimeLineEventType.BUILD_COMPLETED: return FordTimeLineCode.FPBC.ToString(); //"FPBC";
-                case TimeLineEventType.GATE_RELEASED: return FordTimeLineCode.FPGR.ToString(); //"FPGR";
-                case TimeLineEventType.WHOLE_SALE: return  FordTimeLineCode.FPWS.ToString(); //"FPWS";
+                case TimeLineEventCode.CUSTOM_RECEIVED: return   FordTimeLineCode.FPCR.ToString(); //"FPCR";
+                case TimeLineEventCode.PLAN_BUILD: return FordTimeLineCode.FPBP.ToString(); //"FPBP";
+                case TimeLineEventCode.BUILD_COMPLETED: return FordTimeLineCode.FPBC.ToString(); //"FPBC";
+                case TimeLineEventCode.GATE_RELEASED: return FordTimeLineCode.FPGR.ToString(); //"FPGR";
+                case TimeLineEventCode.WHOLE_SALE: return  FordTimeLineCode.FPWS.ToString(); //"FPWS";
                 default: throw new Exception("Unexpected timlien event " + timeLineEventType);
             }
         }

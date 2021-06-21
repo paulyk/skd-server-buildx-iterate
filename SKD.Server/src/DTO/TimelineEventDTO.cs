@@ -3,7 +3,7 @@ using SKD.Model;
 
 namespace SKD.Server {
     public class TimelineEventDTO {
-        public TimeLineEventType EventType { get; set; } 
+        public TimeLineEventCode EventType { get; set; } 
         public DateTime? EventDate { get; set; }
         public string? EventNote { get; set; }
         public DateTime? CreatedAt { get; set; }

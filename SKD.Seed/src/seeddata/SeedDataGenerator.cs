@@ -19,19 +19,19 @@ namespace SKD.Seed {
             // in order by when they should occur
             var eventTypes = new List<KitTimelineEventType> {
                 new KitTimelineEventType {
-                    Code = TimeLineEventType.CUSTOM_RECEIVED,
+                    Code = TimeLineEventCode.CUSTOM_RECEIVED,
                 },
                 new KitTimelineEventType {
-                    Code = TimeLineEventType.PLAN_BUILD,
+                    Code = TimeLineEventCode.PLAN_BUILD,
                 },
                 new KitTimelineEventType {
-                    Code = TimeLineEventType.BUILD_COMPLETED,
+                    Code = TimeLineEventCode.BUILD_COMPLETED,
                 },
                 new KitTimelineEventType {
-                    Code = TimeLineEventType.GATE_RELEASED,
+                    Code = TimeLineEventCode.GATE_RELEASED,
                 },
                 new KitTimelineEventType {
-                    Code = TimeLineEventType.WHOLE_SALE,
+                    Code = TimeLineEventCode.WHOLE_SALE,
                 },
             };
 
