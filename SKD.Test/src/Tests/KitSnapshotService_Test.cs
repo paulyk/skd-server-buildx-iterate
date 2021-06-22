@@ -100,7 +100,7 @@ namespace SKD.Test {
             await service.GenerateSnapshot(snapshotInput);
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             var kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
-            Assert.Equal(TimeLineEventCode.CUSTOM_RECEIVED, kitSnapshot.CurrentTimelineEvent);
+            Assert.Equal(TimeLineEventCode.CUSTOM_RECEIVED, kitSnapshot.CurrentTimeLineCode);
             Assert.Equal(PartnerStatus_ChangeStatus.Added, kitSnapshot.TxType);
 
             // 2.  custom no change
@@ -112,7 +112,7 @@ namespace SKD.Test {
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
             Assert.Equal(1, snapshotPayload.Entries.Count);
-            Assert.Equal(TimeLineEventCode.CUSTOM_RECEIVED, kitSnapshot.CurrentTimelineEvent);
+            Assert.Equal(TimeLineEventCode.CUSTOM_RECEIVED, kitSnapshot.CurrentTimeLineCode);
             Assert.Equal(PartnerStatus_ChangeStatus.NoChange, kitSnapshot.TxType);
 
             // 3.  plan build
@@ -123,7 +123,7 @@ namespace SKD.Test {
 
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
-            Assert.Equal(TimeLineEventCode.PLAN_BUILD, kitSnapshot.CurrentTimelineEvent);
+            Assert.Equal(TimeLineEventCode.PLAN_BUILD, kitSnapshot.CurrentTimeLineCode);
             Assert.Equal(PartnerStatus_ChangeStatus.Changed, kitSnapshot.TxType);
 
             // 4. post plant build no change
@@ -132,7 +132,7 @@ namespace SKD.Test {
             await service.GenerateSnapshot(snapshotInput);
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
-            Assert.Equal(TimeLineEventCode.PLAN_BUILD, kitSnapshot.CurrentTimelineEvent);
+            Assert.Equal(TimeLineEventCode.PLAN_BUILD, kitSnapshot.CurrentTimeLineCode);
             Assert.Equal(PartnerStatus_ChangeStatus.NoChange, kitSnapshot.TxType);
 
             // 5. build completed
@@ -143,7 +143,7 @@ namespace SKD.Test {
 
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
-            Assert.Equal(TimeLineEventCode.BUILD_COMPLETED, kitSnapshot.CurrentTimelineEvent);
+            Assert.Equal(TimeLineEventCode.BUILD_COMPLETED, kitSnapshot.CurrentTimeLineCode);
             Assert.Equal(PartnerStatus_ChangeStatus.Changed, kitSnapshot.TxType);
 
             // 5.  gate release
@@ -154,7 +154,7 @@ namespace SKD.Test {
 
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
-            Assert.Equal(TimeLineEventCode.GATE_RELEASED, kitSnapshot.CurrentTimelineEvent);
+            Assert.Equal(TimeLineEventCode.GATE_RELEASED, kitSnapshot.CurrentTimeLineCode);
             Assert.Equal(PartnerStatus_ChangeStatus.Changed, kitSnapshot.TxType);
 
 
@@ -166,7 +166,7 @@ namespace SKD.Test {
 
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
-            Assert.Equal(TimeLineEventCode.WHOLE_SALE, kitSnapshot.CurrentTimelineEvent);
+            Assert.Equal(TimeLineEventCode.WHOLE_SALE, kitSnapshot.CurrentTimeLineCode);
             Assert.Equal(PartnerStatus_ChangeStatus.Final, kitSnapshot.TxType);
             Assert.Equal(PartnerStatus_ChangeStatus.Final, kitSnapshot.TxType);
             Assert.Equal(dealerCode, kitSnapshot.DealerCode);
@@ -177,7 +177,7 @@ namespace SKD.Test {
             await service.GenerateSnapshot(snapshotInput);
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
-            Assert.Equal(TimeLineEventCode.WHOLE_SALE, kitSnapshot.CurrentTimelineEvent);
+            Assert.Equal(TimeLineEventCode.WHOLE_SALE, kitSnapshot.CurrentTimeLineCode);
             Assert.Equal(PartnerStatus_ChangeStatus.Final, kitSnapshot.TxType);
 
             // 8.  wholesale
@@ -217,7 +217,7 @@ namespace SKD.Test {
             var snapshotRun = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, payload.Payload.Sequence);
             var kitSnapshot = snapshotRun.Entries.First(t => t.KitNo == kit.KitNo);
             Assert.Equal(1, snapshotRun.Entries.Count);
-            Assert.Equal(TimeLineEventCode.CUSTOM_RECEIVED, kitSnapshot.CurrentTimelineEvent);
+            Assert.Equal(TimeLineEventCode.CUSTOM_RECEIVED, kitSnapshot.CurrentTimeLineCode);
             Assert.Equal(PartnerStatus_ChangeStatus.Added, kitSnapshot.TxType);
 
             // 1.  plan build 
@@ -227,7 +227,7 @@ namespace SKD.Test {
             snapshotRun = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, payload.Payload.Sequence);
             kitSnapshot = snapshotRun.Entries.First(t => t.KitNo == kit.KitNo);
             Assert.Equal(1, snapshotRun.Entries.Count);
-            Assert.Equal(TimeLineEventCode.PLAN_BUILD, kitSnapshot.CurrentTimelineEvent);
+            Assert.Equal(TimeLineEventCode.PLAN_BUILD, kitSnapshot.CurrentTimeLineCode);
             Assert.Equal(plan_build_date, kitSnapshot.PlanBuild);
             Assert.Equal(plan_build_date, kitSnapshot.OriginalPlanBuild);
             Assert.Equal(PartnerStatus_ChangeStatus.Changed, kitSnapshot.TxType);
@@ -260,35 +260,68 @@ namespace SKD.Test {
         [Fact]
         public async Task kit_can_have_multiple_timeline_events_before_first_snapshot() {
             // setup
-            var eventDate = new DateTime(2020, 12, 1);
+            var plantCode = context.Plants.Select(t => t.Code).First();
+            var baseDate = DateTime.Now.Date;
             var snapshotInput = new KitSnapshotInput {
-                RunDate = new DateTime(2020, 12, 1),
-                PlantCode = context.Plants.Select(t => t.Code).First(),
+                RunDate = baseDate,
+                PlantCode = plantCode,
                 EngineComponentCode = engineCode
             };
 
-            var baseDate = DateTime.Now.Date;
 
             var custom_receive_date = baseDate.AddDays(1);
-            var custom_receive_date_trx = baseDate.AddDays(2);
 
-            var plan_build_date_trx = baseDate.AddDays(3);
-            var plan_build_date = baseDate.AddDays(4);
+            var first_trx_date = baseDate.AddDays(4);
+            var plan_build_date = baseDate.AddDays(10);
+            var build_completed_date = baseDate.AddDays(12);
 
             var kit = context.Kits.OrderBy(t => t.KitNo).First();
-            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", custom_receive_date_trx, custom_receive_date);
-            await AddKitTimelineEntry(TimeLineEventCode.PLAN_BUILD, kit.KitNo, "", plan_build_date_trx, plan_build_date);
+            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", first_trx_date, custom_receive_date);
+            await AddKitTimelineEntry(TimeLineEventCode.PLAN_BUILD, kit.KitNo, "", first_trx_date, plan_build_date);
+            await AddKitTimelineEntry(TimeLineEventCode.BUILD_COMPLETED, kit.KitNo, "", first_trx_date, build_completed_date);
 
             var service = new KitSnapshotService(context);
+
+            // first run
             var payload = await service.GenerateSnapshot(snapshotInput);
 
-            var snapshots_count = context.KitSnapshots.Count();
-            Assert.Equal(1, snapshots_count);
-
             var snapshotPayload = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, payload.Payload.Sequence);
+            var snapshotCount= await context.KitSnapshots.CountAsync();
             var kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
-            Assert.Equal(TimeLineEventCode.PLAN_BUILD, kitSnapshot.CurrentTimelineEvent);
+            Assert.Equal(1, snapshotCount);
+            Assert.Equal(TimeLineEventCode.CUSTOM_RECEIVED, kitSnapshot.CurrentTimeLineCode);
             Assert.Equal(PartnerStatus_ChangeStatus.Added, kitSnapshot.TxType);
+            Assert.Null(kitSnapshot.PlanBuild);
+
+            // next day
+            snapshotInput.RunDate = snapshotInput.RunDate.Value.AddDays(1);
+            payload = await service.GenerateSnapshot(snapshotInput);
+            snapshotPayload = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, payload.Payload.Sequence);
+            kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
+            snapshotCount= await context.KitSnapshots.CountAsync();
+            Assert.Equal(2, snapshotCount);
+            Assert.Equal(TimeLineEventCode.PLAN_BUILD, kitSnapshot.CurrentTimeLineCode);
+            Assert.Equal(PartnerStatus_ChangeStatus.Changed, kitSnapshot.TxType);
+
+            //
+            snapshotInput.RunDate = snapshotInput.RunDate.Value.AddDays(1);
+            payload = await service.GenerateSnapshot(snapshotInput);
+            snapshotPayload = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, payload.Payload.Sequence);
+            kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
+            snapshotCount= await context.KitSnapshots.CountAsync();
+            Assert.Equal(3, snapshotCount);
+            Assert.Equal(TimeLineEventCode.BUILD_COMPLETED, kitSnapshot.CurrentTimeLineCode);
+            Assert.Equal(PartnerStatus_ChangeStatus.Changed, kitSnapshot.TxType);
+
+            //
+            snapshotInput.RunDate = snapshotInput.RunDate.Value.AddDays(1);
+            payload = await service.GenerateSnapshot(snapshotInput);
+            snapshotPayload = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, payload.Payload.Sequence);
+            kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
+            snapshotCount= await context.KitSnapshots.CountAsync();
+            Assert.Equal(4, snapshotCount);
+            Assert.Equal(TimeLineEventCode.BUILD_COMPLETED, kitSnapshot.CurrentTimeLineCode);
+            Assert.Equal(PartnerStatus_ChangeStatus.NoChange, kitSnapshot.TxType);
         }
 
         [Fact]

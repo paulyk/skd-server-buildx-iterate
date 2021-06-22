@@ -13,7 +13,7 @@ namespace SKD.Service {
         public ICollection<Entry> Entries { get; set; } = new List<Entry>();
         public class Entry {
             public PartnerStatus_ChangeStatus TxType { get; set; }
-            public TimeLineEventCode CurrentTimelineEvent { get; set; }
+            public TimeLineEventCode CurrentTimeLineCode { get; set; }
             public string LotNo { get; set; }
             public string KitNo { get; set; }
             public string VIN { get; set; }

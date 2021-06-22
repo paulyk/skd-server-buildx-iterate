@@ -24,7 +24,7 @@ namespace SKD.Service {
 
             var kitSnapshotRun = await context.KitSnapshotRuns
                 .Include(t => t.Plant)                
-                .Include(t => t.KitSnapshots.OrderBy(u => u.Kit.Lot.LotNo).ThenBy(u => u.Kit.KitNo)).ThenInclude(t => t.Kit).ThenInclude(t => t.Lot)
+                .Include(t => t.KitSnapshots.Where(u => u.RemovedAt == null).OrderBy(u => u.Kit.Lot.LotNo).ThenBy(u => u.Kit.KitNo)).ThenInclude(t => t.Kit).ThenInclude(t => t.Lot)
                 .Where(t => t.Plant.Code == plantCode && t.Sequence == sequence)
                 .FirstOrDefaultAsync();
 
@@ -46,7 +46,7 @@ namespace SKD.Service {
 
             // detail
             var detialLine = new FlatFileLine<PartnerStatusLayout.Detail>();
-            foreach (var snapshot in kitSnapshotRun.KitSnapshots) {
+            foreach (var snapshot in kitSnapshotRun.KitSnapshots.Where(t => t.RemovedAt == null)) {
                 var detailFields = BuildDetailFields(snapshot);
                 var line = detialLine.Build(detailFields);
                 lines.Add(line);
