@@ -24,7 +24,10 @@ namespace SKD.Service {
 
             var kitSnapshotRun = await context.KitSnapshotRuns
                 .Include(t => t.Plant)                
-                .Include(t => t.KitSnapshots.Where(u => u.RemovedAt == null).OrderBy(u => u.Kit.Lot.LotNo).ThenBy(u => u.Kit.KitNo)).ThenInclude(t => t.Kit).ThenInclude(t => t.Lot)
+                .Include(t => t.KitSnapshots.Where(u => u.RemovedAt == null).OrderBy(u => u.Kit.Lot.LotNo).ThenBy(u => u.Kit.KitNo)).ThenInclude(t => t.Kit)
+                    .ThenInclude(t => t.Lot)
+                .Include(t => t.KitSnapshots.Where(u => u.RemovedAt == null).OrderBy(u => u.Kit.Lot.LotNo).ThenBy(u => u.Kit.KitNo)).ThenInclude(t => t.Kit)
+                    .ThenInclude(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .Where(t => t.Plant.Code == plantCode && t.Sequence == sequence)
                 .FirstOrDefaultAsync();
 
