@@ -5,11 +5,11 @@ using System.Collections.Generic;
 namespace SKD.Model {
 
     public enum TimeLineEventCode {
-        CUSTOM_RECEIVED = 0,
-        PLAN_BUILD,
-        BUILD_COMPLETED,
-        GATE_RELEASED,
-        WHOLE_SALE
+        CUSTOM_RECEIVED = 0,       // FPCR
+        PLAN_BUILD,                // FPBP
+        BUILD_COMPLETED,           // FPBC
+        GATE_RELEASED,             // FPGR
+        WHOLE_SALE                 // FPWS
     }
     public partial class KitTimelineEventType : EntityBase {
         public TimeLineEventCode Code { get; set; }

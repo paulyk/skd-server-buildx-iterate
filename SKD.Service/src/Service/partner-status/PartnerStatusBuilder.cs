@@ -70,12 +70,12 @@ namespace SKD.Service {
             return payload;
         }
 
-        public string BuildFilename( string plantCode, string partnerPlantCode, DateTime runDate) {
+        private string BuildFilename( string plantCode, string partnerPlantCode, DateTime runDate) {
             var formattedRunDate = runDate.ToString(PartnerStatusLayout.FILENAME_DATE_FORMAT);
             var prefix = PartnerStatusLayout.FILENAME_PREFIX;            
             return $"{prefix}_{plantCode}_{partnerPlantCode}_{formattedRunDate}.txt";
         }
-        public List<FlatFileLine<PartnerStatusLayout.Header>.FieldValue> BuildHeaderFields(KitSnapshotRun snapshotRun) {
+        private List<FlatFileLine<PartnerStatusLayout.Header>.FieldValue> BuildHeaderFields(KitSnapshotRun snapshotRun) {
             var headerLayout = new PartnerStatusLayout.Header();
             var headerLineBuilder = new FlatFileLine<PartnerStatusLayout.Header>();
 
@@ -96,7 +96,7 @@ namespace SKD.Service {
             };
         }
 
-        public List<FlatFileLine<PartnerStatusLayout.Detail>.FieldValue> BuildDetailFields(KitSnapshot snapshot) {
+        private List<FlatFileLine<PartnerStatusLayout.Detail>.FieldValue> BuildDetailFields(KitSnapshot snapshot) {
             var layout = new PartnerStatusLayout.Detail();
             var lineBuilder = new FlatFileLine<PartnerStatusLayout.Detail>();
 
@@ -158,8 +158,8 @@ namespace SKD.Service {
             var lineBuilder = new FlatFileLine<PartnerStatusLayout.Trailer>();
 
             return new List<FlatFileLine<PartnerStatusLayout.Trailer>.FieldValue> {
-                lineBuilder.CreateFieldValue(t => t.TLR_RECORD_TYPE, "TLR"),
-                lineBuilder.CreateFieldValue(t => t.TLR_FILE_NAME, "PARTNER_STATUS"),
+                lineBuilder.CreateFieldValue(t => t.TLR_RECORD_TYPE, PartnerStatusLayout.TLR_RECORD_TYPE_VAL),
+                lineBuilder.CreateFieldValue(t => t.TLR_FILE_NAME, PartnerStatusLayout.TLR_FILE_NAME_VAL),
                 lineBuilder.CreateFieldValue(t => t.TLR_KD_PLANT_GSDB, snapshotRun.Plant.Code),
                 lineBuilder.CreateFieldValue(t => t.TLR_PARTNER_GSDB, snapshotRun.Plant.PartnerPlantCode),
                 lineBuilder.CreateFieldValue(

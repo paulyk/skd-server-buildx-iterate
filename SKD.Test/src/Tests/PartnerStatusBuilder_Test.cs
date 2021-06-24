@@ -39,6 +39,7 @@ namespace SKD.Test {
             var lines = payload.PayloadText.Split('\n');
             var actuaLineCount = lines.Count();
             var headerLineText = lines[0];
+            var trailerLineText = lines[lines.Length - 1];
             // assert line count
             Assert.Equal(exptectedLines, actuaLineCount);
 
@@ -47,25 +48,99 @@ namespace SKD.Test {
             var actualPrefix = payload.Filename.Substring(0, PartnerStatusLayout.FILENAME_PREFIX.Length);
             Assert.Equal(expecedPrefix, actualPrefix);
 
+            AssertHeader();
+            AssertDetial();
+            AssertTrailer();
 
-            // Header 
-            var headerLine = new FlatFileLine<PartnerStatusLayout.Header>();
-            var expected_HDR_REORD_TYPE = PartnerStatusLayout.HDR_RECORD_TYPE_VAL;
-            var actual_HDR_REORD_TYPE = headerLine.GetFieldValue(headerLineText, t => t.HDR_RECORD_TYPE);
-            Assert.Equal(expected_HDR_REORD_TYPE, actual_HDR_REORD_TYPE);
+            void AssertHeader() {
+                // Header 
+                var headerLineParser = new FlatFileLine<PartnerStatusLayout.Header>();
+                var headerLayout = new PartnerStatusLayout.Header();
+                // Header HDR_RECORD_TYPE_VAL
+                var actual_HDR_REORD_TYPE = headerLineParser.GetFieldValue(headerLineText, t => t.HDR_RECORD_TYPE);
+                Assert.Equal(PartnerStatusLayout.HDR_RECORD_TYPE_VAL, actual_HDR_REORD_TYPE);
 
-            // Header HDR_FILE_NAME_VAL
-            var actual_HDR_FILE_NAME = headerLine.GetFieldValue(headerLineText, t => t.HDR_FILE_NAME).Trim();
-            var expected_HDR_FILE_NAME = PartnerStatusLayout.HDR_FILE_NAME_VAL;
-            Assert.Equal(expected_HDR_FILE_NAME, actual_HDR_FILE_NAME);
+                // Header HDR_FILE_NAME_VAL
+                var actual_HDR_FILE_NAME = headerLineParser.GetFieldValue(headerLineText, t => t.HDR_FILE_NAME).Trim();
+                Assert.Equal(PartnerStatusLayout.HDR_FILE_NAME_VAL, actual_HDR_FILE_NAME);
 
-            // Detail  ENGINE
-            var detailLine = new FlatFileLine<PartnerStatusLayout.Detail>();
+                // Header HDR_KD_PLANT_GSDB
+                var actual_HDR_KD_PLANT_GSDB = headerLineParser.GetFieldValue(headerLineText, t => t.HDR_KD_PLANT_GSDB);
+                Assert.Equal(snapshotRun.Plant.Code,  actual_HDR_KD_PLANT_GSDB);
 
-            var detailLayout = new PartnerStatusLayout.Detail();
-            var expected_EngineSerial = ENGINE_SERIAL.Substring(0, detailLayout.PST_ENGINE_SERIAL_NUMBER);
-            var actual_EngineSerial =detailLine.GetFieldValue(lines[1], t => t.PST_ENGINE_SERIAL_NUMBER);
-            Assert.Equal(expected_EngineSerial, actual_EngineSerial);
+                // HDR_PARTNER_GSDB
+                var actual_HDR_PARTNER_GSDB = headerLineParser.GetFieldValue(headerLineText, t => t.HDR_PARTNER_GSDB);
+                Assert.Equal(snapshotRun.Plant.PartnerPlantCode, actual_HDR_PARTNER_GSDB);
+
+                // HDR_PARTNER_TYPE 
+                var actual_DR_PARTNER_TYPE = headerLineParser.GetFieldValue(headerLineText, t => t.HDR_PARTNER_TYPE).Trim();
+                Assert.Equal(snapshotRun.Plant.PartnerPlantType, actual_DR_PARTNER_TYPE );
+
+                // HDR_SEQ_NBR
+                var actual_HDR_SEQ_NBR = headerLineParser.GetFieldValue(headerLineText, t => t.HDR_SEQ_NBR);
+                Assert.Equal(snapshotRun.Sequence.ToString().PadLeft(headerLayout.HDR_SEQ_NBR, '0'), actual_HDR_SEQ_NBR);
+
+                // HDR_BATCH_DATE
+                var actual_HDR_BATCH_DATE = headerLineParser.GetFieldValue(headerLineText, t => t.HDR_BATCH_DATE).Trim();
+                Assert.Equal( snapshotRun.RunDate.ToString(PartnerStatusLayout.HDR_BATCH_DATE_FORMAT), actual_HDR_BATCH_DATE);
+
+            }
+
+            void AssertDetial() {
+                var detailLineParser = new FlatFileLine<PartnerStatusLayout.Detail>();
+                var detailLayout = new PartnerStatusLayout.Detail();
+
+                var firstDetailLine = lines[1];
+                var firstKitSnapshot = snapshotRun.KitSnapshots.First();
+
+                // PST_RECORD_TYPE
+                var actual_PST_RECORD_TYPE = detailLineParser.GetFieldValue(firstDetailLine, t => t.PST_RECORD_TYPE);
+                Assert.Equal(PartnerStatusLayout.PST_RECORD_TYPE_VAL, actual_PST_RECORD_TYPE);
+
+                // PST_TRAN_TYPE
+                var actual_PST_TRAN_TYPE = detailLineParser.GetFieldValue(firstDetailLine, t => t.PST_TRAN_TYPE);
+                Assert.Equal(firstKitSnapshot.ChangeStatusCode.ToString()[0].ToString(), actual_PST_TRAN_TYPE);
+
+                // PST_LOT_NUMBER
+                var actual_PST_LOT_NUMBER = detailLineParser.GetFieldValue(firstDetailLine, t => t.PST_LOT_NUMBER);
+                Assert.Equal(firstKitSnapshot.Kit.Lot.LotNo, actual_PST_LOT_NUMBER);
+
+                // PST_KIT_NUMBER
+                var actual_PST_KIT_NUMBER = detailLineParser.GetFieldValue(firstDetailLine, t => t.PST_KIT_NUMBER);
+                Assert.Equal(firstKitSnapshot.Kit.KitNo, actual_PST_KIT_NUMBER);
+
+                // PST_CURRENT_STATUS
+                var actual_PST_CURRENT_STATUS = detailLineParser.GetFieldValue(firstDetailLine, t => t.PST_CURRENT_STATUS);
+                Assert.Equal(service.ToFordTimelineCode(firstKitSnapshot.KitTimeLineEventType.Code), actual_PST_CURRENT_STATUS);
+
+                // PST_ENGINE_SERIAL_NUMBER
+                var expected_EngineSerial = ENGINE_SERIAL.Substring(0, detailLayout.PST_ENGINE_SERIAL_NUMBER);
+                var actual_EngineSerial = detailLineParser.GetFieldValue(lines[1], t => t.PST_ENGINE_SERIAL_NUMBER);
+                Assert.Equal(expected_EngineSerial, actual_EngineSerial);
+            }
+
+            void AssertTrailer() {
+                var trailerLineParser = new FlatFileLine<PartnerStatusLayout.Trailer>();
+                var detailLayout = new PartnerStatusLayout.Trailer();
+                var trailerLineText = lines[lines.Length - 1];
+                
+                // HDR_PARTNER_TYPE 
+                var actual_TLR_RECORD_TYPE = trailerLineParser.GetFieldValue(trailerLineText, t => t.TLR_RECORD_TYPE).Trim();
+                Assert.Equal(PartnerStatusLayout.TLR_RECORD_TYPE_VAL, actual_TLR_RECORD_TYPE);
+
+                var actual_TLR_FILE_NAME = trailerLineParser.GetFieldValue(trailerLineText, t => t.TLR_FILE_NAME).Trim();
+                Assert.Equal(PartnerStatusLayout.TLR_FILE_NAME_VAL, actual_TLR_FILE_NAME);
+
+                var actual_TLR_KD_PLANT_GSDB = trailerLineParser.GetFieldValue(trailerLineText, t => t.TLR_KD_PLANT_GSDB).Trim();
+                Assert.Equal(snapshotRun.Plant.Code, actual_TLR_KD_PLANT_GSDB);
+
+                var actual_TLR_PARTNER_GSDB = trailerLineParser.GetFieldValue(trailerLineText, t => t.TLR_PARTNER_GSDB).Trim();
+                Assert.Equal(snapshotRun.Plant.PartnerPlantCode, actual_TLR_PARTNER_GSDB);
+
+                var actual_TLR_TOTAL_RECORDS = int.Parse(trailerLineParser.GetFieldValue(trailerLineText, t => t.TLR_TOTAL_RECORDS));
+                Assert.Equal(lines.Length, actual_TLR_TOTAL_RECORDS);
+
+            }
         }
 
         private async Task<KitSnapshotRun> GenerateKitSnapshotRun_TestData() {

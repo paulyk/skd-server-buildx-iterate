@@ -14,6 +14,11 @@ namespace SKD.Service {
         public static string PST_RECORD_TYPE_VAL = "DTL";
         public static string PST_DATE_FORMAT = "yyyy-MM-dd";
         public static string PST_STATUS_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+
+        // Trailer
+        public static string TLR_RECORD_TYPE_VAL = "TLR";
+        public static string TLR_FILE_NAME_VAL = "PARTNER_STATUS";
+
         public class Header {
             public int HDR_RECORD_TYPE = 3;  // HDR
             public int HDR_FILE_NAME = 20;   // PARTNER_STATUS
