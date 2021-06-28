@@ -66,7 +66,7 @@ namespace SKD.Test {
 
                 // Header HDR_KD_PLANT_GSDB
                 var actual_HDR_KD_PLANT_GSDB = headerLineParser.GetFieldValue(headerLineText, t => t.HDR_KD_PLANT_GSDB);
-                Assert.Equal(snapshotRun.Plant.Code,  actual_HDR_KD_PLANT_GSDB);
+                Assert.Equal(snapshotRun.Plant.Code, actual_HDR_KD_PLANT_GSDB);
 
                 // HDR_PARTNER_GSDB
                 var actual_HDR_PARTNER_GSDB = headerLineParser.GetFieldValue(headerLineText, t => t.HDR_PARTNER_GSDB);
@@ -74,7 +74,7 @@ namespace SKD.Test {
 
                 // HDR_PARTNER_TYPE 
                 var actual_DR_PARTNER_TYPE = headerLineParser.GetFieldValue(headerLineText, t => t.HDR_PARTNER_TYPE).Trim();
-                Assert.Equal(snapshotRun.Plant.PartnerPlantType, actual_DR_PARTNER_TYPE );
+                Assert.Equal(snapshotRun.Plant.PartnerPlantType, actual_DR_PARTNER_TYPE);
 
                 // HDR_SEQ_NBR
                 var actual_HDR_SEQ_NBR = headerLineParser.GetFieldValue(headerLineText, t => t.HDR_SEQ_NBR);
@@ -82,7 +82,7 @@ namespace SKD.Test {
 
                 // HDR_BATCH_DATE
                 var actual_HDR_BATCH_DATE = headerLineParser.GetFieldValue(headerLineText, t => t.HDR_BATCH_DATE).Trim();
-                Assert.Equal( snapshotRun.RunDate.ToString(PartnerStatusLayout.HDR_BATCH_DATE_FORMAT), actual_HDR_BATCH_DATE);
+                Assert.Equal(snapshotRun.RunDate.ToString(PartnerStatusLayout.HDR_BATCH_DATE_FORMAT), actual_HDR_BATCH_DATE);
 
             }
 
@@ -117,13 +117,20 @@ namespace SKD.Test {
                 var expected_EngineSerial = ENGINE_SERIAL.Substring(0, detailLayout.PST_ENGINE_SERIAL_NUMBER);
                 var actual_EngineSerial = detailLineParser.GetFieldValue(lines[1], t => t.PST_ENGINE_SERIAL_NUMBER);
                 Assert.Equal(expected_EngineSerial, actual_EngineSerial);
+
+                // PST_FPRE_STATUS_DATE // custom receive
+                var actual_PST_FPRE_STATUS_DATE = detailLineParser.GetFieldValue(firstDetailLine, t => t.PST_FPRE_STATUS_DATE).Trim();
+                var expected_PST_FPRE_STATUS_DATE = firstKitSnapshot.CustomReceived.HasValue
+                    ? firstKitSnapshot.CustomReceived.Value.ToString(PartnerStatusLayout.PST_STATUS_DATE_FORMAT).Trim()
+                    : "";
+                Assert.Equal(expected_PST_FPRE_STATUS_DATE, actual_PST_FPRE_STATUS_DATE);
             }
 
             void AssertTrailer() {
                 var trailerLineParser = new FlatFileLine<PartnerStatusLayout.Trailer>();
                 var detailLayout = new PartnerStatusLayout.Trailer();
                 var trailerLineText = lines[lines.Length - 1];
-                
+
                 // HDR_PARTNER_TYPE 
                 var actual_TLR_RECORD_TYPE = trailerLineParser.GetFieldValue(trailerLineText, t => t.TLR_RECORD_TYPE).Trim();
                 Assert.Equal(PartnerStatusLayout.TLR_RECORD_TYPE_VAL, actual_TLR_RECORD_TYPE);
