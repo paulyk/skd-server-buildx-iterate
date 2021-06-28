@@ -64,26 +64,26 @@ namespace SKD.Service {
             var timeLineEventTypes = await context.KitTimelineEventTypes.OrderBy(t => t.Sequence).ToListAsync();
 
             foreach (var kit in qualifyingKits) {
-                KitTimelineEvent selectedKitTimeLineEvent = Get_KitTimeLineEventForSnapshot(kit, timeLineEventTypes);
+                KitTimelineEvent selectedKitTimeLineEvent = Get_Next_KitTimeLineEvent_ForThisSnapshot(kit, timeLineEventTypes);
                 PartnerStatus_ChangeStatus changeStatus = await GetKit_TxSatus(kit, selectedKitTimeLineEvent);
 
-                var kitStatusSnapshot = new KitSnapshot {
-                    Kit = kit,
-                    ChangeStatusCode = changeStatus,
-                    KitTimeLineEventType = selectedKitTimeLineEvent.EventType,
-                    VIN = Get_KitVIN_IfBuildComplete(kit),
-                    DealerCode = GetDealerCode(kit),
-                    EngineSerialNumber = await GetEngineSerialNumber(kit, input.EngineComponentCode),
+                var ks = new KitSnapshot();
+                ks.Kit = kit;
+                ks.ChangeStatusCode = changeStatus;
+                ks.KitTimeLineEventType = selectedKitTimeLineEvent.EventType;
+                ks.VIN = Get_KitVIN_IfBuildComplete(kit);
+                ks.DealerCode = GetDealerCode(kit);
+                ks.EngineSerialNumber = await GetEngineSerialNumber(kit, input.EngineComponentCode);
 
-                    OrginalPlanBuild = await GetKit_OriginalPlanBuildDate(kit, selectedKitTimeLineEvent),
-                    CustomReceived = Get_Date_ForEventType(kit, TimeLineEventCode.CUSTOM_RECEIVED, selectedKitTimeLineEvent),
-                    PlanBuild = Get_Date_ForEventType(kit, TimeLineEventCode.PLAN_BUILD, selectedKitTimeLineEvent),
-                    BuildCompleted = Get_Date_ForEventType(kit, TimeLineEventCode.BUILD_COMPLETED, selectedKitTimeLineEvent),
-                    GateRelease = Get_Date_ForEventType(kit, TimeLineEventCode.GATE_RELEASED, selectedKitTimeLineEvent),
-                    Wholesale = Get_Date_ForEventType(kit, TimeLineEventCode.WHOLE_SALE, selectedKitTimeLineEvent),
-                };
+                ks.CustomReceived = Get_Date_ForEventType(kit, TimeLineEventCode.CUSTOM_RECEIVED, selectedKitTimeLineEvent);
+                ks.PlanBuild = Get_Date_ForEventType(kit, TimeLineEventCode.PLAN_BUILD, selectedKitTimeLineEvent);
+                ks.BuildCompleted = Get_Date_ForEventType(kit, TimeLineEventCode.BUILD_COMPLETED, selectedKitTimeLineEvent);
+                ks.GateRelease = Get_Date_ForEventType(kit, TimeLineEventCode.GATE_RELEASED, selectedKitTimeLineEvent);
+                ks.Wholesale = Get_Date_ForEventType(kit, TimeLineEventCode.WHOLE_SALE, selectedKitTimeLineEvent);
 
-                kitSnapshotRun.KitSnapshots.Add(kitStatusSnapshot);
+                ks.OrginalPlanBuild = await GetKit_OriginalPlanBuildDate(kit, selectedKitTimeLineEvent);
+
+                kitSnapshotRun.KitSnapshots.Add(ks);
             }
 
             // save
@@ -148,10 +148,6 @@ namespace SKD.Service {
             };
 
             foreach (var entry in snapshotRun.KitSnapshots) {
-                if (entry.RemovedAt != null) {
-                    Console.WriteLine("not null");
-                }
-
                 dto.Entries.Add(new KitSnapshotRunDTO.Entry {
                     TxType = entry.ChangeStatusCode,
                     CurrentTimeLineCode = entry.KitTimeLineEventType.Code,
@@ -285,9 +281,21 @@ namespace SKD.Service {
             return (componentScan?.Serial1 + " " + componentScan?.Serial2).Trim();
         }
 
+        private DateTime? Get_KitimelineEventDate_ForEventCode(Kit kit, TimeLineEventCode timeLineEventCode) {
+            var date = kit.TimelineEvents
+                .Where(t => t.RemovedAt == null)
+                .Where(t => t.EventType.Code == timeLineEventCode)
+                .Select(t => t.EventDate).FirstOrDefault();
+
+            if (date == DateTime.MinValue) {
+                return (DateTime?)null;
+            }
+
+            return date;            
+        }
+
         ///<remarks>
-        /// If 'custom receive' and 'plan build' are added to kit timeline before a snaphost
-        /// then the current
+        /// 
         ///</remarks>
         private DateTime? Get_Date_ForEventType(
             Kit kit,
@@ -302,7 +310,6 @@ namespace SKD.Service {
             if (kitTimeLineEventEntry == null) {
                 return (DateTime?)null;
             }
-
 
             var entryForDate_Sequence = kitTimeLineEventEntry.EventType.Sequence;
             var currentStatus_Sequence = timeLineEventForSnapshot.EventType.Sequence;
@@ -345,37 +352,35 @@ namespace SKD.Service {
                 : null;
         }
 
-        ///<remarks>Select the timeline event that has not been submitted or was already submitted but is the latest one</remarks>
-        private KitTimelineEvent Get_KitTimeLineEventForSnapshot(
+        ///<remarks>
+        /// Find all kit timeline events entries that have not been added to a kit_snaphost
+        /// If one or more select the first one in timeline event type sequence
+        /// Otherwiser return the last timeleine event
+        ///</remarks>
+        private KitTimelineEvent Get_Next_KitTimeLineEvent_ForThisSnapshot(
             Kit kit,
             List<KitTimelineEventType> kitTimelineEventTypes
         ) {
+            var allKitTimelineEventEntries = kit.TimelineEvents.Where(t => t.RemovedAt == null);
             var kitSnapshots = kit.Snapshots.OrderByDescending(t => t.CreatedAt).Where(t => t.RemovedAt == null);
-            var kitTimelineEvents = kit.TimelineEvents.Where(t => t.RemovedAt == null);
-
-            KitTimelineEvent? selected = null;
 
             foreach (var timeLineEventType in kitTimelineEventTypes.OrderBy(t => t.Sequence)) {
-                // existing timeline event?
-                var existingTimeLineEntry = kitTimelineEvents.FirstOrDefault(t => t.EventType == timeLineEventType);
 
-                var existingSnapshotForEventType = kitSnapshots
-                    .Where(t => t.KitTimeLineEventType.Code == timeLineEventType.Code)
-                    .FirstOrDefault();
+                var hasKitSnapshot = kitSnapshots.Any(t => t.KitTimeLineEventType.Code == timeLineEventType.Code);
+                
+                if (!hasKitSnapshot) {
+                    var existingTimeLineEntry = allKitTimelineEventEntries.FirstOrDefault(t => t.EventType == timeLineEventType);
+                    if (existingTimeLineEntry != null) {
 
-                if (existingTimeLineEntry != null && existingSnapshotForEventType == null) {
-                    selected = existingTimeLineEntry;
-                    break;
+                        // not snap shot for this time line event type
+                        return existingTimeLineEntry;
+                    }
                 }
             }
 
 
-            if (selected == null) {
-                // get the latest 
-                selected = kitTimelineEvents.OrderByDescending(t => t.CreatedAt).First();
-            }
-
-            return selected;
+            // get the latest timeline event entry for this kit
+            return allKitTimelineEventEntries.OrderByDescending(t => t.CreatedAt).First();
         }
 
         ///<summary></summary>

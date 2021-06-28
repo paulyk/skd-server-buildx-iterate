@@ -80,10 +80,6 @@ namespace SKD.Common {
                     .Select(t => t.Value)
                     .FirstOrDefault();
 
-                if (value == null) {
-                    Console.WriteLine("Null " + field.Name);
-                }
-
                 value = value.Length < field.Length
                     ? value.PadRight(field.Length)
                     : value.Substring(0, field.Length);

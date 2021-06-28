@@ -129,19 +129,20 @@ namespace SKD.Test {
 
         [Fact]
         public async Task can_create_kit_timeline_events() {
+            var baseDate= DateTime.Now.Date;
             // setup        
             var timelineEvents = new List<(TimeLineEventCode eventType, DateTime eventDate)>() {
-                (TimeLineEventCode.CUSTOM_RECEIVED, new DateTime(2020, 11, 1)),
-                (TimeLineEventCode.PLAN_BUILD, new DateTime(2020, 11, 8)),
-                (TimeLineEventCode.BUILD_COMPLETED, new DateTime(2020, 11, 22)),
-                (TimeLineEventCode.GATE_RELEASED, new DateTime(2020, 11, 26)),
-                (TimeLineEventCode.WHOLE_SALE, new DateTime(2020, 11, 30)),
+                (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(-5)),
+                (TimeLineEventCode.PLAN_BUILD, baseDate.AddDays(2)),
+                (TimeLineEventCode.BUILD_COMPLETED, baseDate.AddDays(5)),
+                (TimeLineEventCode.GATE_RELEASED, baseDate.AddDays(10)),
+                (TimeLineEventCode.WHOLE_SALE, baseDate.AddDays(12)),
             };
 
             // test
             var kit = context.Kits.First();
 
-            var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
+            var service = new KitService(context, baseDate, planBuildLeadTimeDays);
             var payloads = new List<MutationPayload<KitTimelineEvent>>();
 
             var before_count = context.KitTimelineEvents.Count();
@@ -355,9 +356,10 @@ namespace SKD.Test {
                 .First();
             var vehicleCoount = vehicleLot.Kits.Count();
 
-            var eventDate = new DateTime(2020, 11, 30);
+            var baseDate = DateTime.Now.Date;
+            var eventDate = baseDate.AddDays(-10);
             var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
-            var dto = new LotTimelineEventInput {
+            var input = new LotTimelineEventInput {
                 LotNo = vehicleLot.LotNo,
                 EventType = TimeLineEventCode.CUSTOM_RECEIVED,
                 EventDate = eventDate,
@@ -365,13 +367,13 @@ namespace SKD.Test {
             };
 
             // test
-            var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
-            var payload = await service.CreateLotTimelineEvent(dto);
+            var service = new KitService(context, baseDate, planBuildLeadTimeDays);
+            var payload = await service.CreateLotTimelineEvent(input);
 
             var errorCount = payload.Errors.Count;
             Assert.Equal(0, errorCount);
 
-            var timelineEvents = context.KitTimelineEvents.Where(t => t.Kit.Lot.LotNo == dto.LotNo)
+            var timelineEvents = context.KitTimelineEvents.Where(t => t.Kit.Lot.LotNo == input.LotNo)
                 .Include(t => t.Kit)
                 .Include(t => t.EventType).ToList();
 
@@ -415,6 +417,30 @@ namespace SKD.Test {
             var expectedMessage = "duplicate kit timeline event";
             var actualMessage = errorMessage.Substring(0, expectedMessage.Length);
             Assert.Equal(expectedMessage, actualMessage);
+        }
+
+        [Fact]
+        public async Task cannot_create_lot_custom_receive_with_date_6_months_ago() {
+            // setup
+            var lot = context.Lots.First();
+
+            var baseDate = DateTime.Now.Date;
+            var event_date = baseDate.AddMonths(-6).AddDays(-1);
+            var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
+            var input = new LotTimelineEventInput {
+                LotNo = lot.LotNo,
+                EventType = TimeLineEventCode.CUSTOM_RECEIVED,
+                EventDate = event_date,
+                EventNote = eventNote
+            };
+
+            // test
+            var service = new KitService(context, baseDate, planBuildLeadTimeDays);
+            var payload = await service.CreateLotTimelineEvent(input);
+
+            var expectedError = "custom received cannot be more than 6 months ago";
+            var actualErrorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
+            Assert.Equal(expectedError, actualErrorMessage);
         }
 
         [Fact]

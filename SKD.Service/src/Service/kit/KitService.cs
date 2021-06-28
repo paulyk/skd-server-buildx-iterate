@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 using SKD.Common;
 using SKD.Model;
 
-namespace SKD.Service{
+namespace SKD.Service {
 
     public class KitService {
 
@@ -367,8 +367,12 @@ namespace SKD.Service{
 
             // CUSTOM_RECEIVED 
             if (input.EventType == TimeLineEventCode.CUSTOM_RECEIVED) {
-                if (input.EventDate >= currentDate) {
-                    errors.Add(new Error("VIN", $"custom received date must be before current date"));
+                if (input.EventDate.Date >= currentDate) {
+                    errors.Add(new Error("", $"custom received date must be before current date"));
+                    return errors;
+                }
+                if (input.EventDate.Date < currentDate.AddMonths(-6)) {
+                    errors.Add(new Error("", $"custom received cannot be more than 6 months ago"));
                     return errors;
                 }
             }
