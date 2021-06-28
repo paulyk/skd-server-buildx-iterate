@@ -16,7 +16,7 @@ namespace SKD.Server {
         public async Task<MutationPayload<VehicleModel>> SaveVehicleModel(
             [Service] VehicleModelService service,
             VehicleModelInput input
-        ) => await service.SaveVehicleModel(input);
+        ) => await service.Save(input);
 
         public async Task<MutationPayload<Lot>> ImportVIN(
             [Service] KitService service,

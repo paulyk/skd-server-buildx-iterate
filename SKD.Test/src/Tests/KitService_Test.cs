@@ -481,7 +481,7 @@ namespace SKD.Test {
                     }).ToList()
             };
 
-            await service.SaveVehicleModel(saveModelInput);
+            await service.Save(saveModelInput);
 
             diff = await service.GetKitModelComponentDiff(kit.KitNo);
             Assert.True(1 == diff.InKitButNoModel.Count);
@@ -558,7 +558,7 @@ namespace SKD.Test {
                     }).ToList()
             };
             var service = new VehicleModelService(context);
-            await service.SaveVehicleModel(saveModelInput);
+            await service.Save(saveModelInput);
         }
     }
 

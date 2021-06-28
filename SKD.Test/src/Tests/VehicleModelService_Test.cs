@@ -18,63 +18,33 @@ namespace SKD.Test {
         [Fact]
         public async Task can_add_vehicle_model() {
             // setup
-            var componentCodes = new string[] { "component_1", "component_2" };
-            var stationCodes = new string[] { "station_1", "station_2" };
-            Gen_Components(componentCodes);
-            Gen_ProductionStations(stationCodes);
-
-            var input = new VehicleModelInput {
-                Code = Gen_VehicleModel_Code(),
-                Name = Util.RandomString(EntityFieldLen.VehicleModel_Name),
-                ComponentStationInputs = Enumerable.Range(0, componentCodes.Length)
-                    .Select(i => new ComponentStationInput {
-                        ComponentCode = componentCodes[i],
-                        ProductionStationCode = stationCodes[i]
-                    }).ToList()
-            };
-
+            var input = GenVehilceModelInput();
             var service = new VehicleModelService(context);
 
             // test
             var model_before_count = await context.VehicleModels.CountAsync();
             var component_before_count = await context.VehicleModelComponents.CountAsync();
 
-            var payload = await service.SaveVehicleModel(input);
+            var payload = await service.Save(input);
 
             // assert
             var model_after_count = await context.VehicleModels.CountAsync();
             Assert.Equal(model_before_count + 1, model_after_count);
-
-            var component_after_count = await context.VehicleModelComponents.CountAsync();
-            Assert.Equal(component_before_count + componentCodes.Length, component_after_count);
         }
 
         [Fact]
         public async Task cannot_save_if_duplicate_code_or_name() {
             // setup
-            var componentCodes = new string[] { "component_1", "component_2" };
-            var stationCodes = new string[] { "station_1", "station_2" };
-            Gen_Components(componentCodes);
-            Gen_ProductionStations(stationCodes);
-
-            var input = new VehicleModelInput {
-                Code = Gen_VehicleModel_Code(),
-                Name = Util.RandomString(EntityFieldLen.VehicleModel_Name),
-                ComponentStationInputs = Enumerable.Range(0, componentCodes.Length)
-                    .Select(i => new ComponentStationInput {
-                        ComponentCode = componentCodes[i],
-                        ProductionStationCode = stationCodes[i]
-                    }).ToList()
-            };
+            var input = GenVehilceModelInput();
 
             var service = new VehicleModelService(context);
 
             // test        
-            await service.SaveVehicleModel(input);
+            await service.Save(input);
             var model_count_1 = await context.VehicleModels.CountAsync();
             var model_component_count_1 = await context.VehicleModelComponents.CountAsync();
 
-            var payload_2 = await service.SaveVehicleModel(input);
+            var payload_2 = await service.Save(input);
             var errors = payload_2.Errors.Select(t => t.Message).ToList();
 
             var ducplicateCode = errors.Any(error => error.StartsWith("duplicate code"));
@@ -86,25 +56,11 @@ namespace SKD.Test {
         [Fact]
         public async Task can_modify_model_name() {
             // setup
-            var componentCodes = new string[] { "component_1", "component_2" };
-            var stationCodes = new string[] { "station_1", "station_2" };
-            Gen_Components(componentCodes);
-            Gen_ProductionStations(stationCodes);
-
-            var input = new VehicleModelInput {
-                Code = Gen_VehicleModel_Code(),
-                Name = Gen_VehicleModel_Name(),
-                ComponentStationInputs = Enumerable.Range(0, componentCodes.Length)
-                    .Select(i => new ComponentStationInput {
-                        ComponentCode = componentCodes[i],
-                        ProductionStationCode = stationCodes[i]
-                    }).ToList()
-            };
-
+            var input = GenVehilceModelInput();
             var service = new VehicleModelService(context);
 
             // test        
-            await service.SaveVehicleModel(input);
+            await service.Save(input);
 
             var model = await context.VehicleModels
                 .Include(t => t.ModelComponents).ThenInclude(t => t.Component)
@@ -123,7 +79,7 @@ namespace SKD.Test {
                     ProductionStationCode = t.ProductionStation.Code
                 }).ToList()
             };
-            await service.SaveVehicleModel(input_2);
+            await service.Save(input_2);
 
             model = await context.VehicleModels.FirstOrDefaultAsync(t => t.Code == input.Code);
 
@@ -131,7 +87,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task cannot_create_vehicle_model_witout_components() {
+        public async Task cannot_create_vehicle_model_without_components() {
             // setup
             var service = new VehicleModelService(context);
             var before_count = await context.VehicleModels.CountAsync();
@@ -140,7 +96,7 @@ namespace SKD.Test {
                 Code = Util.RandomString(EntityFieldLen.VehicleModel_Code),
                 Name = Util.RandomString(EntityFieldLen.VehicleModel_Name)
             };
-            var payload = await service.SaveVehicleModel(model_1);
+            var payload = await service.Save(model_1);
 
             //test
             var after_count = await context.VehicleModels.CountAsync();
@@ -149,8 +105,6 @@ namespace SKD.Test {
             var errorCount = payload.Errors.Count();
             Assert.Equal(1, errorCount);
         }
-
-
 
         [Fact]
         public async Task cannot_add_vehicle_model_with_duplicate_component_station_entries() {
@@ -178,7 +132,7 @@ namespace SKD.Test {
 
             // test
             var service = new VehicleModelService(context);
-            var payload = await service.SaveVehicleModel(vehilceModel);
+            var payload = await service.Save(vehilceModel);
 
             // assert
             var errorCount = payload.Errors.Count();
@@ -186,6 +140,60 @@ namespace SKD.Test {
             var expectedErrorMessage = "duplicate component + production station entries";
             var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
             Assert.Equal(expectedErrorMessage, errorMessage.Substring(0, expectedErrorMessage.Length));
+        }
+
+        [Fact]
+        public async Task can_create_vehicle_model_from_existing() {
+            // setup
+          
+            var templateModelInput = GenVehilceModelInput();
+          
+            var service = new VehicleModelService(context);
+            await service.Save(templateModelInput);
+            // test
+            var newModelInput = new VehicleModelFromExistingInput {
+                Code = Gen_VehicleModel_Code(),
+                Name = Gen_VehicleModel_Name(),
+                ExistingModelCode = templateModelInput.Code
+            };
+
+            var result = await service.CreateFromExisting(newModelInput);
+
+            // assert
+            var templateModelComponents = await context.VehicleModelComponents
+                    .OrderBy(t => t.ProductionStation.Code).ThenBy(t => t.Component.Code)
+                    .Where(t => t.VehicleModel.Code == templateModelInput.Code)
+                    .ToListAsync();
+
+            var newModelComponents = await context.VehicleModelComponents
+                    .OrderBy(t => t.ProductionStation.Code).ThenBy(t => t.Component.Code)
+                    .Where(t => t.VehicleModel.Code == newModelInput.Code)
+                    .ToListAsync();
+
+            for (var i = 0; i < templateModelComponents.Count; i++) {
+                var templateEntry = templateModelComponents[i];
+                var newEntry = newModelComponents[i];
+
+                Assert.Equal(templateEntry.ComponentId, newEntry.ComponentId);
+                Assert.Equal(templateEntry.ProductionStationId, newEntry.ProductionStationId);
+            }
+        }
+
+        private VehicleModelInput GenVehilceModelInput() {
+            var componentCodes = new string[] { "component_1", "component_2" };
+            var stationCodes = new string[] { "station_1", "station_2" };
+            Gen_Components(componentCodes);
+            Gen_ProductionStations(stationCodes);
+
+            return new VehicleModelInput {
+                Code = Gen_VehicleModel_Code(),
+                Name = Gen_VehicleModel_Name(),
+                ComponentStationInputs = Enumerable.Range(0, componentCodes.Length)
+                    .Select(i => new ComponentStationInput {
+                        ComponentCode = componentCodes[i],
+                        ProductionStationCode = stationCodes[i]
+                    }).ToList()
+            };
         }
     }
 }

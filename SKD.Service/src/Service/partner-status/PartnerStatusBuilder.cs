@@ -96,7 +96,7 @@ namespace SKD.Service {
             };
         }
 
-        private List<FlatFileLine<PartnerStatusLayout.Detail>.FieldValue> BuildDetailFields(KitSnapshot snapshot) {
+        private List<FlatFileLine<PartnerStatusLayout.Detail>.FieldValue> BuildDetailFields(KitSnapshot snapshot) {     
             var layout = new PartnerStatusLayout.Detail();
             var lineBuilder = new FlatFileLine<PartnerStatusLayout.Detail>();
 

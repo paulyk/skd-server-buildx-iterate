@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SKD.Model;
+using SKD.Common;
 
 namespace SKD.Service {
     public class VehicleModelService {
@@ -17,7 +18,7 @@ namespace SKD.Service {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<VehicleModel>> SaveVehicleModel(VehicleModelInput input) {
+        public async Task<MutationPayload<VehicleModel>> Save(VehicleModelInput input) {
             var payload = new MutationPayload<VehicleModel>(null);
             payload.Errors = await ValidateSaveVehicleModel(input);
             if (payload.Errors.Any()) {
@@ -91,6 +92,7 @@ namespace SKD.Service {
             return payload;
         }
 
+        
         public async Task<List<Error>> ValidateSaveVehicleModel<T>(T input) where T : VehicleModelInput {
             var errors = new List<Error>();
 
@@ -179,6 +181,68 @@ namespace SKD.Service {
             return errors;
         }
 
+
+        public async Task<MutationPayload<VehicleModel>> CreateFromExisting(VehicleModelFromExistingInput input) {
+            var payload  = new MutationPayload<VehicleModel>(null);
+            payload.Errors = await ValidateCreateFromExisting(input);
+            if (payload.Errors.Any()) {
+                return payload;
+            }
+
+            var existingModel = await context.VehicleModels
+                .Include(t => t.ModelComponents)
+                .FirstOrDefaultAsync(t => t.Code == input.ExistingModelCode);
+
+            var newModel = new VehicleModel {
+                Code = input.Code,
+                Name = input.Name,
+                ModelComponents = existingModel.ModelComponents.Select(mc => new VehicleModelComponent {
+                    ComponentId = mc.ComponentId,
+                    ProductionStationId = mc.ProductionStationId
+                }).ToList()
+            };
+
+            context.VehicleModels.Add(newModel);
+            await context.SaveChangesAsync();
+            payload.Payload = newModel;
+
+            return payload;
+    
+        }        
+
+        public async Task<List<Error>> ValidateCreateFromExisting(VehicleModelFromExistingInput input)  {
+            var errors = new List<Error>();
+            var validator = new Validator();
+        
+            var codeAlreadyTaken = await context.VehicleModels.AnyAsync(t => t.Code == input.Code);
+            if (codeAlreadyTaken) {
+                errors.Add(new Error("", $"Model code already exists: {input.Code}"));
+                return errors;
+            }
+
+            var nameAlreadyTaken = await context.VehicleModels.AnyAsync(t => t.Name == input.Name);
+            if (nameAlreadyTaken) {
+                errors.Add(new Error("", $"Model name already exists:  {input.Name}"));
+                return errors;
+            }
+
+            var existingModel = await context.VehicleModels.FirstOrDefaultAsync(t => t.Code == input.ExistingModelCode);
+            if (existingModel == null) {
+                errors.Add(new Error("", $"Existing model PCV not found: {input.ExistingModelCode}"));
+                return errors;
+            }
+            
+            if (!validator.Valid_PCV(input.Code)) {
+                errors.Add(new Error("", $"invalid PCV code: {input.Code}"));
+            }
+
+            if (String.IsNullOrEmpty((input.Name?? "").Trim())) {
+                errors.Add(new Error("", $"Model name required"));                                
+            }
+
+            return errors;
+        }
+
         public async Task<MutationPayload<Kit>> SyncKfitModelComponents(string kitNo) {
             var payload = new MutationPayload<Kit>(null);
             payload.Errors = await ValidateSyncKitModelComponents(kitNo);
@@ -208,7 +272,7 @@ namespace SKD.Service {
             if (diff.InModelButNoKit.Any()) {
                 foreach (var entry in diff.InModelButNoKit) {
                     // chekc if kit component alread exists.
-                    var existingKitComponent = kit.KitComponents                        
+                    var existingKitComponent = kit.KitComponents
                         .Where(t => t.Component.Code == entry.ComponentCode && t.ProductionStation.Code == entry.StationCode)
                         .FirstOrDefault();
 

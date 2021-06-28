@@ -55,8 +55,8 @@ DTLBPA0A0F21028001022021-01-28200WSPA9TKDCABIN01               KIT   EB3B-    16
             var parser = new BomFileParser();
             var payload = parser.BuildBomLotPartInput(BomFileText);
 
-            var lotCount = payload.Payload.LotParts.Count();
-            Assert.Equal(4, lotCount);
+            var partsCount = payload.Payload.LotParts.Count();
+            Assert.Equal(4, partsCount);
         }
     }
 }
