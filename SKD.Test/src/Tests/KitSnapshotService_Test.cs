@@ -305,16 +305,19 @@ namespace SKD.Test {
                 Assert.Equal(TimeLineEventCode.CUSTOM_RECEIVED, kitSnapshot.CurrentTimeLineCode);
                 Assert.Equal(PartnerStatus_ChangeStatus.Added, kitSnapshot.TxType);
                 Assert.Null(kitSnapshot.PlanBuild);
-
+                Assert.Null(kitSnapshot.OriginalPlanBuild);
 
                 var partnerStatusDTO = await partnerStatusBuilder.GeneratePartnerStatusFilePaylaod(snapshotRun.PlantCode, snapshotRun.Sequence);
                 var detailLine = partnerStatusDTO.PayloadText.Split('\n')[1];
                 var customReceiveDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPRE_STATUS_DATE);
+                
+                var originalPlanBuild = detailLineParser.GetFieldValue(detailLine, t => t.PST_BUILD_DATE);
                 var planBuildDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBP_STATUS_DATE);
                 var buildCompleteDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBC_STATUS_DATE);
-                Assert.True(!String.IsNullOrEmpty(customReceiveDate));
-                Assert.True(String.IsNullOrEmpty(planBuildDate.Trim()));
-                Assert.True(String.IsNullOrEmpty(buildCompleteDate.Trim()));
+                Assert.True(!String.IsNullOrWhiteSpace(customReceiveDate));
+                Assert.True(String.IsNullOrWhiteSpace(planBuildDate));
+                Assert.True(String.IsNullOrWhiteSpace(buildCompleteDate));
+                Assert.True(String.IsNullOrWhiteSpace(originalPlanBuild));
             }
 
             async Task AssertDay_2() {
@@ -332,9 +335,11 @@ namespace SKD.Test {
                 var customReceiveDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPRE_STATUS_DATE);
                 var planBuildDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBP_STATUS_DATE);
                 var buildCompleteDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBC_STATUS_DATE);
-                Assert.True(!String.IsNullOrEmpty(customReceiveDate));
-                Assert.True(!String.IsNullOrEmpty(planBuildDate));
-                Assert.True(String.IsNullOrEmpty(buildCompleteDate.Trim()));
+                var originalPlanBuild = detailLineParser.GetFieldValue(detailLine, t => t.PST_BUILD_DATE);
+                Assert.True(!String.IsNullOrWhiteSpace(customReceiveDate));
+                Assert.True(!String.IsNullOrWhiteSpace(planBuildDate));
+                Assert.True(String.IsNullOrWhiteSpace(buildCompleteDate));
+                Assert.True(!String.IsNullOrWhiteSpace(originalPlanBuild));
             }
 
             async Task AssertDay_3() {
@@ -352,9 +357,12 @@ namespace SKD.Test {
                 var customReceiveDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPRE_STATUS_DATE);
                 var planBuildDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBP_STATUS_DATE);
                 var buildCompleteDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBC_STATUS_DATE);
-                Assert.True(!String.IsNullOrEmpty(customReceiveDate));
-                Assert.True(!String.IsNullOrEmpty(planBuildDate));
-                Assert.True(!String.IsNullOrEmpty(buildCompleteDate));
+                var originalPlanBuild = detailLineParser.GetFieldValue(detailLine, t => t.PST_BUILD_DATE);
+
+                Assert.True(!String.IsNullOrWhiteSpace(customReceiveDate));
+                Assert.True(!String.IsNullOrWhiteSpace(planBuildDate));
+                Assert.True(!String.IsNullOrWhiteSpace(buildCompleteDate));
+                Assert.True(!String.IsNullOrWhiteSpace(originalPlanBuild));
 
             }
 
@@ -373,9 +381,9 @@ namespace SKD.Test {
                 var customReceiveDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPRE_STATUS_DATE);
                 var planBuildDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBP_STATUS_DATE);
                 var buildCompleteDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBC_STATUS_DATE);
-                Assert.True(!String.IsNullOrEmpty(customReceiveDate));
-                Assert.True(!String.IsNullOrEmpty(planBuildDate));
-                Assert.True(!String.IsNullOrEmpty(buildCompleteDate));
+                Assert.True(!String.IsNullOrWhiteSpace(customReceiveDate));
+                Assert.True(!String.IsNullOrWhiteSpace(planBuildDate));
+                Assert.True(!String.IsNullOrWhiteSpace(buildCompleteDate));
 
             }
 

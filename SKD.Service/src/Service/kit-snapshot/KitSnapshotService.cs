@@ -75,13 +75,14 @@ namespace SKD.Service {
                 ks.DealerCode = GetDealerCode(kit);
                 ks.EngineSerialNumber = await GetEngineSerialNumber(kit, input.EngineComponentCode);
 
+                ks.OrginalPlanBuild = await GetKit_OriginalPlanBuildDate(kit, selectedKitTimeLineEvent);
+
                 ks.CustomReceived = Get_Date_ForEventType(kit, TimeLineEventCode.CUSTOM_RECEIVED, selectedKitTimeLineEvent);
                 ks.PlanBuild = Get_Date_ForEventType(kit, TimeLineEventCode.PLAN_BUILD, selectedKitTimeLineEvent);
                 ks.BuildCompleted = Get_Date_ForEventType(kit, TimeLineEventCode.BUILD_COMPLETED, selectedKitTimeLineEvent);
                 ks.GateRelease = Get_Date_ForEventType(kit, TimeLineEventCode.GATE_RELEASED, selectedKitTimeLineEvent);
                 ks.Wholesale = Get_Date_ForEventType(kit, TimeLineEventCode.WHOLE_SALE, selectedKitTimeLineEvent);
 
-                ks.OrginalPlanBuild = await GetKit_OriginalPlanBuildDate(kit, selectedKitTimeLineEvent);
 
                 kitSnapshotRun.KitSnapshots.Add(ks);
             }
@@ -323,13 +324,13 @@ namespace SKD.Service {
 
         private async Task<DateTime?> GetKit_OriginalPlanBuildDate(Kit kit, KitTimelineEvent selectedTimeLineEvent) {
             // find prior OriginalPlanBuild
-            var originalPlanBuild = await context.KitSnapshots
+            var originalPlanBuild = await context.KitSnapshots                
                 .OrderBy(t => t.CreatedAt)
+                .Where(t => t.RemovedAt == null)
                 .Where(t => t.Kit.Id == kit.Id)
                 .Where(t => t.OrginalPlanBuild != null)
                 .Select(t => t.OrginalPlanBuild)
                 .FirstOrDefaultAsync();
-
 
             if (originalPlanBuild != null) {
                 return originalPlanBuild;

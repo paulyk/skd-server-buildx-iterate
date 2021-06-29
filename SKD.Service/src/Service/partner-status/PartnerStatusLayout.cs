@@ -45,7 +45,7 @@ namespace SKD.Service {
             public int PST_LOT_NUMBER = 15;           // lot no
             public int PST_KIT_NUMBER = 17;           // kit no
             public int PST_PHYSICAL_VIN = 17;         // vin 
-            public int PST_BUILD_DATE = 10;           // plan build date
+            public int PST_BUILD_DATE = 10;           // plan build date (original ?)
             public int PST_ACTUAL_DEALER_CODE = 9;
             public int PST_ENGINE_SERIAL_NUMBER = 20;
             public int PST_CURRENT_STATUS = 4;       // Ford= Timeline Event Code 
