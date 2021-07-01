@@ -128,6 +128,9 @@ namespace SKD.Service{
         public async Task<ValidateReceiveHandlingUnitPayload?> GetValidateReceiveHandlingUnit(
             string code
         ) {
+            // left pad zeros
+            code = code.PadLeft(EntityFieldLen.HandlingUnit_Code, '0');
+
             var result =
                await (from hu in context.HandlingUnits
                       join lot in context.Lots
