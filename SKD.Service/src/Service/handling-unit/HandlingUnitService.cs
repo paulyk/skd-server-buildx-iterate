@@ -125,7 +125,7 @@ namespace SKD.Service{
             }).ToList();
         }
 
-        public async Task<ValidateReceiveHandlingUnitPayload?> GetValidateReceiveHandlingUnit(
+        public async Task<HandlingUnitInfoPayload?> GetHandlingUnitInfo(
             string code
         ) {
             // left pad zeros
@@ -138,13 +138,22 @@ namespace SKD.Service{
                       join model in context.VehicleModels
                        on lot.ModelId equals model.Id
                       where hu.Code == code
-                      select new ValidateReceiveHandlingUnitPayload {
+                      select new HandlingUnitInfoPayload {
                           Code = hu.Code,
+                          PlantCode = hu.ShipmentInvoice.ShipmentLot.Shipment.Plant.Code,
+                          ShipmentId =hu.ShipmentInvoice.ShipmentLot.Shipment.Id,
+                          ShipmentSequence = hu.ShipmentInvoice.ShipmentLot.Shipment.Sequence,
                           InvoiceNo = hu.ShipmentInvoice.InvoiceNo,
                           LotNo = lot.LotNo,
                           ModelCode = model.Code,
                           ModelName = model.Name,
-                          PartCount = hu.Parts.Count()
+                          PartCount = hu.Parts.Count(),
+                          Parts = hu.Parts.Select(p => new HU_Part{
+                              PartNo = p.Part.PartNo,
+                              PartDesc = p.Part.PartDesc,
+                              Quantity = p.Quantity
+                              
+                          }).ToList()
                       }).FirstOrDefaultAsync();
 
             var received = await context.HandlingUnitReceived

@@ -184,10 +184,10 @@ namespace SKD.Server {
             Guid shipmentId
         ) => await service.GetHandlingUnitOverviews(shipmentId);
 
-        public async Task<ValidateReceiveHandlingUnitPayload?> GetValidateReceiveHandlingUnit(
+        public async Task<HandlingUnitInfoPayload?> GetHandlingUnitInfo(
             [Service] HandlingUnitService service,
-            string code
-        ) => await service.GetValidateReceiveHandlingUnit(code);
+            string huCode
+        ) => await service.GetHandlingUnitInfo(huCode);
 
         public async Task<Kit?> GetKitById([Service] SkdContext context, Guid id) {
             var result = await context.Kits.AsNoTracking()
