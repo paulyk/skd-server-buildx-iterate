@@ -300,8 +300,8 @@ namespace SKD.Test {
 
             var handlingUnitCode = shipmentInput.Lots
                 .SelectMany(t => t.Invoices)
-                .SelectMany(t => t.Parts).Select(t =>t.HandlingUnitCode).First();
-            
+                .SelectMany(t => t.Parts).Select(t => t.HandlingUnitCode).First();
+
             var receiveHandlingUnitInput = new ReceiveHandlingUnitInput(handlingUnitCode, Remove: false);
 
             var handlingUnitService = new HandlingUnitService(context);
@@ -311,6 +311,36 @@ namespace SKD.Test {
                 .Include(t => t.HandlingUnit)
                 .FirstOrDefaultAsync(t => t.HandlingUnit.Code == handlingUnitCode);
             Assert.Equal(handlingUnitCode, handlingUitReceived.HandlingUnit.Code);
+        }
+
+        [Fact]
+        public async Task can_receive_handling_unit_if_code_zero_padded_received() {
+            var plant = await context.Plants.FirstAsync();
+            var lot = await context.Lots.FirstAsync();
+            var sequence = 2;
+
+            var shipmentInput = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence);
+            var inputMetrics = GetShipmentInputMetrics(shipmentInput);
+
+            // test
+            var before_count = context.ShipmentParts.Count();
+            var shipmentService = new ShipmentService(context);
+            var payload = await shipmentService.ImportShipment(shipmentInput);
+
+            var handlingUnitCode = shipmentInput.Lots
+                .SelectMany(t => t.Invoices)
+                .SelectMany(t => t.Parts).Select(t => t.HandlingUnitCode).First();
+
+            // strip leading zero
+            handlingUnitCode = handlingUnitCode.TrimStart('0');
+
+            var receiveHandlingUnitInput = new ReceiveHandlingUnitInput(handlingUnitCode, Remove: false);
+
+            var handlingUnitService = new HandlingUnitService(context);
+            var receivePayload = await handlingUnitService.SetHandlingUnitReceived(receiveHandlingUnitInput);
+
+            var errorCount = receivePayload.Errors.Count();
+            Assert.Equal(0, errorCount);
         }
 
         [Fact]
@@ -329,8 +359,8 @@ namespace SKD.Test {
 
             var handlingUnitCode = shipmentInput.Lots
                 .SelectMany(t => t.Invoices)
-                .SelectMany(t => t.Parts).Select(t =>t.HandlingUnitCode).First();
-            
+                .SelectMany(t => t.Parts).Select(t => t.HandlingUnitCode).First();
+
             var handlingUnitService = new HandlingUnitService(context);
 
             var input_1 = new ReceiveHandlingUnitInput(handlingUnitCode, Remove: false);
@@ -346,7 +376,7 @@ namespace SKD.Test {
 
             Assert.Equal(handlingUnitCode, handlingUitReceived.HandlingUnit.Code);
             Assert.NotNull(handlingUitReceived.RemovedAt);
-        }        
+        }
 
         public record ShipentInputMetrics(
             int lotCount,

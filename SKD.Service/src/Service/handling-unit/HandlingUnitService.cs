@@ -18,6 +18,12 @@ namespace SKD.Service{
         }
 
         public async Task<MutationPayload<ReceiveHandlingUnitPayload>> SetHandlingUnitReceived(ReceiveHandlingUnitInput input) {
+            // HandlingUNit codes in db are all left '0' padded.. 
+            // barcode handling units are not zero padding, so we pad them.
+            input = input with {
+                HandlingUnitCode = input.HandlingUnitCode.PadLeft(EntityFieldLen.HandlingUnit_Code, '0')
+            };
+            
             var payload = new MutationPayload<ReceiveHandlingUnitPayload>(null);
             payload.Errors = await ValidateSetHandlingUnitReceived(input);
 
