@@ -7,9 +7,6 @@ namespace SKD.Service {
         public static string FILENAME_DATE_FORMAT = "yyMMdd_HHmmss";
 
         // header 
-        public static string HDR_RECORD_TYPE_VAL = "HDR";
-        public static string HDR_FILE_NAME_VAL = "PARTNER_STATUS";
-        public static string HDR_BATCH_DATE_FORMAT = "yyyy-MM-dd";
         //
         public static string PST_RECORD_TYPE_VAL = "DTL";
         public static string PST_DATE_FORMAT = "yyyy-MM-dd";
@@ -20,6 +17,13 @@ namespace SKD.Service {
         public static string TLR_FILE_NAME_VAL = "PARTNER_STATUS";
 
         public class Header {
+
+            public static string HDR_RECORD_TYPE_VAL = "HDR";
+            public static string HDR_FILE_NAME_VAL = "PARTNER_STATUS";
+            public static string HDR_BATCH_DATE_FORMAT = "yyyy-MM-dd";
+
+
+            //
             public int HDR_RECORD_TYPE = 3;  // HDR
             public int HDR_FILE_NAME = 20;   // PARTNER_STATUS
             public int HDR_KD_PLANT_GSDB = 5; // Plant Code - HPUDB

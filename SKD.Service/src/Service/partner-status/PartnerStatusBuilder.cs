@@ -43,7 +43,7 @@ namespace SKD.Service {
 
             var lines = new List<string>();
 
-            // heder
+            // header
             var headerLineBuilder = new FlatFileLine<PartnerStatusLayout.Header>();
             lines.Add(headerLineBuilder.Build(BuildHeaderFields(kitSnapshotRun)));
 
@@ -80,8 +80,8 @@ namespace SKD.Service {
             var headerLineBuilder = new FlatFileLine<PartnerStatusLayout.Header>();
 
             return new List<FlatFileLine<PartnerStatusLayout.Header>.FieldValue> {
-                headerLineBuilder.CreateFieldValue(t => t.HDR_RECORD_TYPE, PartnerStatusLayout.HDR_RECORD_TYPE_VAL),
-                headerLineBuilder.CreateFieldValue(t => t.HDR_FILE_NAME, PartnerStatusLayout.HDR_FILE_NAME_VAL),                
+                headerLineBuilder.CreateFieldValue(t => t.HDR_RECORD_TYPE, PartnerStatusLayout.Header.HDR_RECORD_TYPE_VAL),
+                headerLineBuilder.CreateFieldValue(t => t.HDR_FILE_NAME, PartnerStatusLayout.Header.HDR_FILE_NAME_VAL),                
                 headerLineBuilder.CreateFieldValue(t => t.HDR_KD_PLANT_GSDB, snapshotRun.Plant.Code),                
                 headerLineBuilder.CreateFieldValue(t => t.HDR_PARTNER_GSDB,snapshotRun.Plant.PartnerPlantCode),
                 headerLineBuilder.CreateFieldValue(t => t.HDR_PARTNER_TYPE, snapshotRun.Plant.PartnerPlantType),            
@@ -90,7 +90,7 @@ namespace SKD.Service {
                     snapshotRun.Sequence.ToString().PadLeft(headerLayout.HDR_SEQ_NBR,'0')),                
                 headerLineBuilder.CreateFieldValue(
                     t => t.HDR_BATCH_DATE,
-                    snapshotRun.RunDate.ToString(PartnerStatusLayout.HDR_BATCH_DATE_FORMAT)),
+                    snapshotRun.RunDate.ToString(PartnerStatusLayout.Header.HDR_BATCH_DATE_FORMAT)),
                 headerLineBuilder.CreateFieldValue(
                     t => t.HDR_FILLER, new String(' ', headerLayout.HDR_FILLER)),                
             };

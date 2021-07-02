@@ -58,11 +58,11 @@ namespace SKD.Test {
                 var headerLayout = new PartnerStatusLayout.Header();
                 // Header HDR_RECORD_TYPE_VAL
                 var actual_HDR_REORD_TYPE = headerLineParser.GetFieldValue(headerLineText, t => t.HDR_RECORD_TYPE);
-                Assert.Equal(PartnerStatusLayout.HDR_RECORD_TYPE_VAL, actual_HDR_REORD_TYPE);
+                Assert.Equal(PartnerStatusLayout.Header.HDR_RECORD_TYPE_VAL, actual_HDR_REORD_TYPE);
 
                 // Header HDR_FILE_NAME_VAL
                 var actual_HDR_FILE_NAME = headerLineParser.GetFieldValue(headerLineText, t => t.HDR_FILE_NAME).Trim();
-                Assert.Equal(PartnerStatusLayout.HDR_FILE_NAME_VAL, actual_HDR_FILE_NAME);
+                Assert.Equal(PartnerStatusLayout.Header.HDR_FILE_NAME_VAL, actual_HDR_FILE_NAME);
 
                 // Header HDR_KD_PLANT_GSDB
                 var actual_HDR_KD_PLANT_GSDB = headerLineParser.GetFieldValue(headerLineText, t => t.HDR_KD_PLANT_GSDB);
@@ -82,7 +82,7 @@ namespace SKD.Test {
 
                 // HDR_BATCH_DATE
                 var actual_HDR_BATCH_DATE = headerLineParser.GetFieldValue(headerLineText, t => t.HDR_BATCH_DATE).Trim();
-                Assert.Equal(snapshotRun.RunDate.ToString(PartnerStatusLayout.HDR_BATCH_DATE_FORMAT), actual_HDR_BATCH_DATE);
+                Assert.Equal(snapshotRun.RunDate.ToString(PartnerStatusLayout.Header.HDR_BATCH_DATE_FORMAT), actual_HDR_BATCH_DATE);
 
             }
 
