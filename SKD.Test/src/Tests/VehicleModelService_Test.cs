@@ -34,7 +34,7 @@ namespace SKD.Test {
 
             var vehicleModel = await context.VehicleModels.FirstOrDefaultAsync(t => t.Code == input.Code);
 
-            Assert.Equal(input.Name, vehicleModel.Name);
+            Assert.Equal(input.Description, vehicleModel.Description);
             Assert.Equal(input.Model, vehicleModel.Model);
             Assert.Equal(input.ModelYear, vehicleModel.ModelYear);
             Assert.Equal(input.Series, vehicleModel.Series);
@@ -73,13 +73,13 @@ namespace SKD.Test {
                 .Include(t => t.ModelComponents).ThenInclude(t => t.ProductionStation)
             .FirstOrDefaultAsync(t => t.Code == input.Code);
 
-            Assert.Equal(input.Name, model.Name);
+            Assert.Equal(input.Description, model.Description);
 
             // modify name
             var input_2 = new VehicleModelInput {
                 Id = model.Id,
                 Code = model.Code,
-                Name = Gen_VehicleModel_Name(),
+                Description = Gen_VehicleModel_Name(),
                 ComponentStationInputs = model.ModelComponents.Select(t => new ComponentStationInput {
                     ComponentCode = t.Component.Code,
                     ProductionStationCode = t.ProductionStation.Code
@@ -89,7 +89,7 @@ namespace SKD.Test {
 
             model = await context.VehicleModels.FirstOrDefaultAsync(t => t.Code == input.Code);
 
-            Assert.Equal(input_2.Name, model.Name);
+            Assert.Equal(input_2.Description, model.Description);
         }
 
         [Fact]
@@ -100,7 +100,7 @@ namespace SKD.Test {
 
             var model_1 = new VehicleModelInput {
                 Code = Util.RandomString(EntityFieldLen.VehicleModel_Code),
-                Name = Util.RandomString(EntityFieldLen.VehicleModel_Description)
+                Description = Util.RandomString(EntityFieldLen.VehicleModel_Description)
             };
             var payload = await service.Save(model_1);
 
@@ -123,7 +123,7 @@ namespace SKD.Test {
 
             var vehilceModel = new VehicleModelInput {
                 Code = "Model_1",
-                Name = "Model Name",
+                Description = "Model Name",
                 ComponentStationInputs = new List<ComponentStationInput> {
                     new ComponentStationInput {
                         ComponentCode = component.Code,
@@ -168,7 +168,7 @@ namespace SKD.Test {
             // assert
             var newModel = await context.VehicleModels.FirstOrDefaultAsync(t => t.Code == newModelInput.Code);
 
-            Assert.Equal(existingModel.Name, newModel.Name);
+            Assert.Equal(existingModel.Description, newModel.Description);
 
             var templateModelComponents = await context.VehicleModelComponents
                     .OrderBy(t => t.ProductionStation.Code).ThenBy(t => t.Component.Code)
@@ -201,7 +201,7 @@ namespace SKD.Test {
 
             return new VehicleModelInput {
                 Code = Gen_VehicleModel_Code(),
-                Name = Gen_VehicleModel_Name(),
+                Description = Gen_VehicleModel_Name(),
                 ModelYear = DateTime.Now.Year.ToString(),
                 Model = Util.RandomString(EntityFieldLen.VehicleModel_Model),
                 Series = Util.RandomString(EntityFieldLen.VehicleModel_Series),

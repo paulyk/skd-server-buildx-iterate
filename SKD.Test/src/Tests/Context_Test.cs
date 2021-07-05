@@ -81,7 +81,7 @@ namespace SKD.Test {
                 // setup
                 var vehicleModel = new VehicleModel() {
                     Code = new String('X', EntityFieldLen.VehicleModel_Code),
-                    Name = new String('X', EntityFieldLen.VehicleModel_Description),
+                    Description = new String('X', EntityFieldLen.VehicleModel_Description),
                     ModelYear = new String('X', EntityFieldLen.VehicleModel_ModelYear),
                 };
 
@@ -102,13 +102,13 @@ namespace SKD.Test {
                 var modelCode = new String('A', EntityFieldLen.VehicleModel_Code);
                 var vehicleModel_1 = new VehicleModel() {
                     Code = modelCode,
-                    Name = new String('A', EntityFieldLen.VehicleModel_Description),
+                    Description = new String('A', EntityFieldLen.VehicleModel_Description),
                     ModelYear = new String('A', EntityFieldLen.VehicleModel_ModelYear),
                 };
 
                 var vehicleModel_2 = new VehicleModel() {
                     Code = modelCode,
-                    Name = new String('B', EntityFieldLen.VehicleModel_Description),
+                    Description = new String('B', EntityFieldLen.VehicleModel_Description),
                     ModelYear = new String('B', EntityFieldLen.VehicleModel_ModelYear),
                 };
 
@@ -126,20 +126,20 @@ namespace SKD.Test {
                 var modelName = new String('A', EntityFieldLen.Component_Name);
                 var vehicleModel_1 = new VehicleModel() {
                     Code = new String('A', EntityFieldLen.VehicleModel_Code),
-                    Name = modelName,
+                    Description = modelName,
                     ModelYear = new String('A', EntityFieldLen.VehicleModel_ModelYear),
                 };
 
                 var vehicleModel_2 = new VehicleModel() {
                     Code = new String('B', EntityFieldLen.VehicleModel_Code),
-                    Name = modelName,
+                    Description = modelName,
                     ModelYear = new String('B', EntityFieldLen.VehicleModel_ModelYear),
                 };
 
                 ctx.VehicleModels.AddRange(vehicleModel_1, vehicleModel_2);
                 ctx.SaveChanges();
 
-                var count = ctx.VehicleModels.Count(t => t.Name == modelName);
+                var count = ctx.VehicleModels.Count(t => t.Description == modelName);
                 Assert.Equal(2, count);
             }
         }
@@ -151,7 +151,7 @@ namespace SKD.Test {
                 // setup
                 var vehicleModel = new VehicleModel() {
                     Code = new String('X', EntityFieldLen.VehicleModel_Code),
-                    Name = new String('X', EntityFieldLen.VehicleModel_Description),
+                    Description = new String('X', EntityFieldLen.VehicleModel_Description),
                     ModelYear = new String('X', EntityFieldLen.VehicleModel_ModelYear),
                 };
                 ctx.VehicleModels.Add(vehicleModel);
@@ -218,7 +218,7 @@ namespace SKD.Test {
                 // setup
                 var vehicleModel = new VehicleModel() {
                     Code = new String('X', EntityFieldLen.VehicleModel_Code),
-                    Name = new String('X', EntityFieldLen.VehicleModel_Description),
+                    Description = new String('X', EntityFieldLen.VehicleModel_Description),
                     ModelYear = new String('X', EntityFieldLen.VehicleModel_ModelYear),
                 };
 

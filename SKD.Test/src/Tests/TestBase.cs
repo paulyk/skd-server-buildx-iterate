@@ -197,7 +197,7 @@ namespace SKD.Test {
 
             var vehicleModel = new VehicleModel {
                 Code = modelCode,
-                Name = $"{modelCode} name",
+                Description = $"{modelCode} name",
                 ModelComponents = modelComponents
             };
 

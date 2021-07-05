@@ -10,7 +10,7 @@ namespace SKD.Model {
             builder.HasKey(t => t.Id);
             builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
             builder.Property(t => t.Code).IsRequired().HasMaxLength(EntityFieldLen.VehicleModel_Code).ValueGeneratedOnAdd();
-            builder.Property(t => t.Name).IsRequired().HasMaxLength(EntityFieldLen.VehicleModel_Description).ValueGeneratedOnAdd();
+            builder.Property(t => t.Description).IsRequired().HasMaxLength(EntityFieldLen.VehicleModel_Description).ValueGeneratedOnAdd();
             builder.Property(t => t.Model).HasMaxLength(EntityFieldLen.VehicleModel_Model).ValueGeneratedOnAdd();
             builder.Property(t => t.ModelYear).HasMaxLength(EntityFieldLen.VehicleModel_ModelYear).ValueGeneratedOnAdd();
             builder.Property(t => t.Series).HasMaxLength(EntityFieldLen.VehicleModel_Series).ValueGeneratedOnAdd();

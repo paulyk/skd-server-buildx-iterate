@@ -146,7 +146,7 @@ namespace SKD.Service{
                           InvoiceNo = hu.ShipmentInvoice.InvoiceNo,
                           LotNo = lot.LotNo,
                           ModelCode = model.Code,
-                          ModelName = model.Name,
+                          ModelName = model.Description,
                           PartCount = hu.Parts.Count(),
                           Parts = hu.Parts.Select(p => new HU_Part{
                               PartNo = p.Part.PartNo,

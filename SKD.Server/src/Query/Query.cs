@@ -300,7 +300,7 @@ namespace SKD.Server {
                 BomSequenceNo = lot.Bom.Sequence,
                 PlantCode = lot.Plant.Code,
                 ModelCode = lot.Model.Code,
-                ModelName = lot.Model.Name,
+                ModelName = lot.Model.Description,
                 CreatedAt = lot.CreatedAt,
                 CustomReceived = customReceivedEvent != null
                     ? new TimelineEventDTO {
@@ -374,7 +374,7 @@ namespace SKD.Server {
                     KitNo = t.KitNo,
                     VIN = t.VIN,
                     ModelCode = t.Lot.Model.Code,
-                    ModelName = t.Lot.Model.Name,
+                    ModelName = t.Lot.Model.Description,
                     LastTimelineEvent = t.TimelineEvents
                         .OrderByDescending(t => t.CreatedAt)
                         .Select(t => t.EventType.Description)

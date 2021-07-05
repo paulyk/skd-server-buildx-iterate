@@ -289,7 +289,7 @@ namespace SKD.Service {
                     VIN = t.VIN,
                     LotNo = t.Lot.LotNo,
                     ModelCode = t.Lot.Model.Code,
-                    ModelName = t.Lot.Model.Name
+                    ModelName = t.Lot.Model.Description
                 }).FirstOrDefaultAsync();
 
             return result;

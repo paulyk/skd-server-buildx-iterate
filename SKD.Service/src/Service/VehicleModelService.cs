@@ -37,7 +37,7 @@ namespace SKD.Service {
                 };
                 context.VehicleModels.Add(vehicleModel);
             }
-            vehicleModel.Name = input.Name;
+            vehicleModel.Description = input.Description;
             vehicleModel.ModelYear = input.ModelYear;
             vehicleModel.Model = input.Model;
             vehicleModel.Series = input.Series;
@@ -124,9 +124,9 @@ namespace SKD.Service {
             }
 
             // validate model name format
-            if (input.Name.Trim().Length == 0) {
+            if (input.Description.Trim().Length == 0) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Code, "name requred"));
-            } else if (input.Name.Length > EntityFieldLen.VehicleModel_Description) {
+            } else if (input.Description.Length > EntityFieldLen.VehicleModel_Description) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityFieldLen.VehicleModel_Description} characters "));
             }
 
@@ -160,13 +160,13 @@ namespace SKD.Service {
 
             // duplicate name
             if (existingVehicleModel != null) {
-                if (await context.VehicleModels.AnyAsync(t => t.Name == input.Name && t.Id != existingVehicleModel.Id)) {
-                    errors.Add(ErrorHelper.Create<T>(t => t.Name, "duplicate name"));
+                if (await context.VehicleModels.AnyAsync(t => t.Description == input.Description && t.Id != existingVehicleModel.Id)) {
+                    errors.Add(ErrorHelper.Create<T>(t => t.Description, "duplicate name"));
                 }
             } else {
                 // adding a new component, so look for duplicate
-                if (await context.VehicleModels.AnyAsync(t => t.Name == input.Name)) {
-                    errors.Add(ErrorHelper.Create<T>(t => t.Name, "duplicate name"));
+                if (await context.VehicleModels.AnyAsync(t => t.Description == input.Description)) {
+                    errors.Add(ErrorHelper.Create<T>(t => t.Description, "duplicate name"));
                 }
             }
 
@@ -205,7 +205,7 @@ namespace SKD.Service {
 
             var newModel = new VehicleModel {
                 Code = input.Code,
-                Name = existingModel.Name,
+                Description = existingModel.Description,
                 ModelYear = input.ModelYear,
                 Model = existingModel.Model,
                 Body = existingModel.Body,

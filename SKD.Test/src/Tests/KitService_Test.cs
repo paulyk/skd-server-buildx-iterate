@@ -494,7 +494,7 @@ namespace SKD.Test {
             var saveModelInput = new VehicleModelInput {
                 Id = model.Id,
                 Code = model.Code,
-                Name = model.Name,
+                Description = model.Description,
                 ComponentStationInputs = model.ModelComponents
                     .Where(t =>
                         !(
@@ -571,7 +571,7 @@ namespace SKD.Test {
             var saveModelInput = new VehicleModelInput {
                 Id = model.Id,
                 Code = model.Code,
-                Name = model.Name,
+                Description = model.Description,
                 ComponentStationInputs = model.ModelComponents
                     .Where(t =>
                         !(

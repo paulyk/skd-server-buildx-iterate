@@ -35,7 +35,7 @@ namespace SKD.Service {
             // find where matches
             var byModel = await context.Kits
                 .AsNoTracking()
-                .Where(t => t.Lot.Model.Code.Contains(query) || t.Lot.Model.Name.Contains(query))
+                .Where(t => t.Lot.Model.Code.Contains(query) || t.Lot.Model.Description.Contains(query))
                 .ToListAsync();
 
             return byVIN.Union(byModel).ToList();
@@ -78,7 +78,7 @@ namespace SKD.Service {
             }
 
             // try find exact name match
-            var exactName = await context.VehicleModels.AsNoTracking().FirstOrDefaultAsync(t => t.Name == query);
+            var exactName = await context.VehicleModels.AsNoTracking().FirstOrDefaultAsync(t => t.Description == query);
             if (exactName != null) {
                 return new List<VehicleModel>() { exactName };
             }
@@ -86,7 +86,7 @@ namespace SKD.Service {
             // find where query matches part of code or name
             return await context.VehicleModels
                 .AsNoTracking()
-                .Where(t => t.Code.Contains(query) || t.Name.Contains(query)).ToListAsync();
+                .Where(t => t.Code.Contains(query) || t.Description.Contains(query)).ToListAsync();
         }
     }
 }
