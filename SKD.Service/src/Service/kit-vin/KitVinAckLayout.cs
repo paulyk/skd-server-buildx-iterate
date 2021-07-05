@@ -42,6 +42,7 @@ namespace SKD.Service {
 
         public class Detail {
             public static string KVM_ACK_RECORD_TYPE_VAL = "DTL";
+            public static string KVM_ACK_FILE_STATUS_ACCEPTED = "ACCEPTED";
 
             public int KVM_ACK_RECORD_TYPE = 3;           // 'DTL'
             public int KVM_ACK_FILE_STATUS = 10;          // ACCEPTED / REJECTED

@@ -58,6 +58,16 @@ namespace SKD.Common {
             }).ToList();
         }
 
+        public int FieldLength(Expression<Func<T, object>> prop) {
+            var member = prop.GetAccessedMemberInfo();
+            foreach (var field in Fields) {
+                if (field.Name == member.Name) {
+                    return field.Length;
+                }
+            }
+            throw new Exception($"field '{prop.Name}' not found in layout");
+        }
+
         public string GetFieldValue(string lineText, Expression<Func<T, object>> prop) {
             var member = prop.GetAccessedMemberInfo();
 

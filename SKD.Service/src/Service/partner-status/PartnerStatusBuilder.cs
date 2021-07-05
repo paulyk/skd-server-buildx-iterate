@@ -44,21 +44,15 @@ namespace SKD.Service {
             var lines = new List<string>();
 
             // header
-            var headerLineBuilder = new FlatFileLine<PartnerStatusLayout.Header>();
-            lines.Add(headerLineBuilder.Build(BuildHeaderFields(kitSnapshotRun)));
+            lines.Add(BuildHeaderLine(kitSnapshotRun));
 
-            // detail
-            var detialLine = new FlatFileLine<PartnerStatusLayout.Detail>();
+            // detail            
             foreach (var snapshot in kitSnapshotRun.KitSnapshots.Where(t => t.RemovedAt == null)) {
-                var detailFields = BuildDetailFields(snapshot);
-                var line = detialLine.Build(detailFields);
-                lines.Add(line);
+                lines.Add(BuildDetailLine(snapshot));
             }
 
             // trailer
-            var trailerLine = new FlatFileLine<PartnerStatusLayout.Trailer>();
-            var trailerFields = BuildTrailerFields(kitSnapshotRun);
-            lines.Add(trailerLine.Build(trailerFields));
+            lines.Add(BuildTrailerLine(kitSnapshotRun));
 
             var payload = new PartnerStatusDTO {
                 PlantCode = kitSnapshotRun.Plant.Code,
@@ -75,11 +69,11 @@ namespace SKD.Service {
             var prefix = PartnerStatusLayout.FILENAME_PREFIX;            
             return $"{prefix}_{plantCode}_{partnerPlantCode}_{formattedRunDate}.txt";
         }
-        private List<FlatFileLine<PartnerStatusLayout.Header>.FieldValue> BuildHeaderFields(KitSnapshotRun snapshotRun) {
+        private string BuildHeaderLine(KitSnapshotRun snapshotRun) {
             var headerLayout = new PartnerStatusLayout.Header();
             var headerLineBuilder = new FlatFileLine<PartnerStatusLayout.Header>();
 
-            return new List<FlatFileLine<PartnerStatusLayout.Header>.FieldValue> {
+            var fields = new List<FlatFileLine<PartnerStatusLayout.Header>.FieldValue> {
                 headerLineBuilder.CreateFieldValue(t => t.HDR_RECORD_TYPE, PartnerStatusLayout.Header.HDR_RECORD_TYPE_VAL),
                 headerLineBuilder.CreateFieldValue(t => t.HDR_FILE_NAME, PartnerStatusLayout.Header.HDR_FILE_NAME_VAL),                
                 headerLineBuilder.CreateFieldValue(t => t.HDR_KD_PLANT_GSDB, snapshotRun.Plant.Code),                
@@ -94,13 +88,15 @@ namespace SKD.Service {
                 headerLineBuilder.CreateFieldValue(
                     t => t.HDR_FILLER, new String(' ', headerLayout.HDR_FILLER)),                
             };
+
+            return headerLineBuilder.Build(fields);
         }
 
-        private List<FlatFileLine<PartnerStatusLayout.Detail>.FieldValue> BuildDetailFields(KitSnapshot snapshot) {     
+        private string BuildDetailLine(KitSnapshot snapshot) {     
             var layout = new PartnerStatusLayout.Detail();
             var lineBuilder = new FlatFileLine<PartnerStatusLayout.Detail>();
-
-            var detailFields =  new List<FlatFileLine<PartnerStatusLayout.Detail>.FieldValue> {
+            
+            var fields =  new List<FlatFileLine<PartnerStatusLayout.Detail>.FieldValue> {
                 lineBuilder.CreateFieldValue(t => t.PST_RECORD_TYPE, PartnerStatusLayout.PST_RECORD_TYPE_VAL),
                 lineBuilder.CreateFieldValue(t => t.PST_TRAN_TYPE, snapshot.ChangeStatusCode.ToString()),
                 lineBuilder.CreateFieldValue(t => t.PST_LOT_NUMBER, snapshot.Kit.Lot.LotNo),
@@ -150,14 +146,14 @@ namespace SKD.Service {
                 lineBuilder.CreateFieldValue(t => t.PST_FILLER, "")
             };
 
-            return detailFields;
+            return lineBuilder.Build(fields);
         }
 
-        public List<FlatFileLine<PartnerStatusLayout.Trailer>.FieldValue> BuildTrailerFields(KitSnapshotRun snapshotRun) {
+        public string BuildTrailerLine(KitSnapshotRun snapshotRun) {
             var layout = new PartnerStatusLayout.Trailer();
             var lineBuilder = new FlatFileLine<PartnerStatusLayout.Trailer>();
 
-            return new List<FlatFileLine<PartnerStatusLayout.Trailer>.FieldValue> {
+            var fields = new List<FlatFileLine<PartnerStatusLayout.Trailer>.FieldValue> {
                 lineBuilder.CreateFieldValue(t => t.TLR_RECORD_TYPE, PartnerStatusLayout.TLR_RECORD_TYPE_VAL),
                 lineBuilder.CreateFieldValue(t => t.TLR_FILE_NAME, PartnerStatusLayout.TLR_FILE_NAME_VAL),
                 lineBuilder.CreateFieldValue(t => t.TLR_KD_PLANT_GSDB, snapshotRun.Plant.Code),
@@ -168,6 +164,8 @@ namespace SKD.Service {
                     (snapshotRun.KitSnapshots.Count + 2).ToString().PadLeft(layout.TLR_TOTAL_RECORDS, '0')),
                 lineBuilder.CreateFieldValue(t => t.TLR_FILLER, ""),
             };
+
+            return lineBuilder.Build(fields);
         }
 
         public string ToFordTimelineCode(TimeLineEventCode timeLineEventType) {

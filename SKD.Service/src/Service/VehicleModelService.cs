@@ -177,7 +177,6 @@ namespace SKD.Service {
                 errors.Add(ErrorHelper.Create<T>(t => t.ComponentStationInputs, $"duplicate component + production station entries {String.Join(", ", entries)}"));
             }
 
-
             return errors;
         }
 
