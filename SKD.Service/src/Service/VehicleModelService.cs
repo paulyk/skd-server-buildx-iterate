@@ -38,61 +38,72 @@ namespace SKD.Service {
                 context.VehicleModels.Add(vehicleModel);
             }
             vehicleModel.Name = input.Name;
+            vehicleModel.ModelYear = input.ModelYear;
+            vehicleModel.Model = input.Model;
+            vehicleModel.Series = input.Series;
+            vehicleModel.Body = input.Body;
 
-            // current_pairs, 
-            var current_pairs = vehicleModel.ModelComponents.Any()
-                ? vehicleModel.ModelComponents.Select(t => new ComponentStationPair(
-                    ComponentCode: t.Component.Code,
-                    StationCode: t.ProductionStation.Code
-                  )).ToList()
-                : new List<ComponentStationPair>();
-
-            // incomming_pairs
-            var incomming_pairts = input.ComponentStationInputs.Select(t => new ComponentStationPair(
-                ComponentCode: t.ComponentCode,
-                StationCode: t.ProductionStationCode
-            )).ToList();
-
-            // to_remove, to_add
-            var to_remove = current_pairs.Except(incomming_pairts).ToList();
-            var to_add = incomming_pairts.Except(current_pairs).ToList();
-
-
-            var vehicle_model_components = vehicleModel.ModelComponents.Any()
-                ? vehicleModel.ModelComponents.ToList()
-                : new List<VehicleModelComponent>();
-
-            // remove
-            foreach (var entry in vehicle_model_components
-                .Where(t => t.RemovedAt == null)
-                .Where(t => to_remove.Any(tr => tr.ComponentCode == t.Component.Code && tr.StationCode == t.ProductionStation.Code))
-                .ToList()) {
-                entry.RemovedAt = DateTime.UtcNow;
-            }
-
-            // add             
-            foreach (var ta in to_add) {
-                var existing = vehicle_model_components
-                    .Where(t => t.Component.Code == ta.ComponentCode && t.ProductionStation.Code == ta.StationCode)
-                    .FirstOrDefault();
-                if (existing != null) {
-                    existing.RemovedAt = null;
-                } else {
-                    var modelComponent = new VehicleModelComponent {
-                        Component = await context.Components.FirstOrDefaultAsync(t => t.Code == ta.ComponentCode),
-                        ProductionStation = await context.ProductionStations.FirstOrDefaultAsync(t => t.Code == ta.StationCode)
-                    };
-                    vehicleModel.ModelComponents.Add(modelComponent);
-                }
-            }
+            await UpdateComponents();
 
             // save
             await context.SaveChangesAsync();
             payload.Payload = vehicleModel;
             return payload;
+
+
+            //
+            async Task UpdateComponents() {
+                // current_pairs, 
+                var current_pairs = vehicleModel.ModelComponents.Any()
+                    ? vehicleModel.ModelComponents.Select(t => new ComponentStationPair(
+                        ComponentCode: t.Component.Code,
+                        StationCode: t.ProductionStation.Code
+                      )).ToList()
+                    : new List<ComponentStationPair>();
+
+                // incomming_pairs
+                var incomming_pairts = input.ComponentStationInputs.Select(t => new ComponentStationPair(
+                    ComponentCode: t.ComponentCode,
+                    StationCode: t.ProductionStationCode
+                )).ToList();
+
+                // to_remove, to_add
+                var to_remove = current_pairs.Except(incomming_pairts).ToList();
+                var to_add = incomming_pairts.Except(current_pairs).ToList();
+
+
+                var vehicle_model_components = vehicleModel.ModelComponents.Any()
+                    ? vehicleModel.ModelComponents.ToList()
+                    : new List<VehicleModelComponent>();
+
+                // remove
+                foreach (var entry in vehicle_model_components
+                    .Where(t => t.RemovedAt == null)
+                    .Where(t => to_remove.Any(tr => tr.ComponentCode == t.Component.Code && tr.StationCode == t.ProductionStation.Code))
+                    .ToList()) {
+                    entry.RemovedAt = DateTime.UtcNow;
+                }
+
+                // add             
+                foreach (var ta in to_add) {
+                    var existing = vehicle_model_components
+                        .Where(t => t.Component.Code == ta.ComponentCode && t.ProductionStation.Code == ta.StationCode)
+                        .FirstOrDefault();
+                    if (existing != null) {
+                        existing.RemovedAt = null;
+                    } else {
+                        var modelComponent = new VehicleModelComponent {
+                            Component = await context.Components.FirstOrDefaultAsync(t => t.Code == ta.ComponentCode),
+                            ProductionStation = await context.ProductionStations.FirstOrDefaultAsync(t => t.Code == ta.StationCode)
+                        };
+                        vehicleModel.ModelComponents.Add(modelComponent);
+                    }
+                }
+
+            }
         }
 
-        
+
         public async Task<List<Error>> ValidateSaveVehicleModel<T>(T input) where T : VehicleModelInput {
             var errors = new List<Error>();
 
@@ -115,8 +126,8 @@ namespace SKD.Service {
             // validate model name format
             if (input.Name.Trim().Length == 0) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Code, "name requred"));
-            } else if (input.Name.Length > EntityFieldLen.VehicleModel_Name) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityFieldLen.VehicleModel_Name} characters "));
+            } else if (input.Name.Length > EntityFieldLen.VehicleModel_Description) {
+                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityFieldLen.VehicleModel_Description} characters "));
             }
 
             // unknown componet codes
@@ -182,7 +193,7 @@ namespace SKD.Service {
 
 
         public async Task<MutationPayload<VehicleModel>> CreateFromExisting(VehicleModelFromExistingInput input) {
-            var payload  = new MutationPayload<VehicleModel>(null);
+            var payload = new MutationPayload<VehicleModel>(null);
             payload.Errors = await ValidateCreateFromExisting(input);
             if (payload.Errors.Any()) {
                 return payload;
@@ -194,7 +205,11 @@ namespace SKD.Service {
 
             var newModel = new VehicleModel {
                 Code = input.Code,
-                Name = input.Name,
+                Name = existingModel.Name,
+                ModelYear = input.ModelYear,
+                Model = existingModel.Model,
+                Body = existingModel.Body,
+                Series = existingModel.Series,
                 ModelComponents = existingModel.ModelComponents.Select(mc => new VehicleModelComponent {
                     ComponentId = mc.ComponentId,
                     ProductionStationId = mc.ProductionStationId
@@ -206,22 +221,16 @@ namespace SKD.Service {
             payload.Payload = newModel;
 
             return payload;
-    
-        }        
 
-        public async Task<List<Error>> ValidateCreateFromExisting(VehicleModelFromExistingInput input)  {
+        }
+
+        public async Task<List<Error>> ValidateCreateFromExisting(VehicleModelFromExistingInput input) {
             var errors = new List<Error>();
             var validator = new Validator();
-        
+
             var codeAlreadyTaken = await context.VehicleModels.AnyAsync(t => t.Code == input.Code);
             if (codeAlreadyTaken) {
                 errors.Add(new Error("", $"Model code already exists: {input.Code}"));
-                return errors;
-            }
-
-            var nameAlreadyTaken = await context.VehicleModels.AnyAsync(t => t.Name == input.Name);
-            if (nameAlreadyTaken) {
-                errors.Add(new Error("", $"Model name already exists:  {input.Name}"));
                 return errors;
             }
 
@@ -230,14 +239,11 @@ namespace SKD.Service {
                 errors.Add(new Error("", $"Existing model PCV not found: {input.ExistingModelCode}"));
                 return errors;
             }
-            
+
             if (!validator.Valid_PCV(input.Code)) {
                 errors.Add(new Error("", $"invalid PCV code: {input.Code}"));
             }
 
-            if (String.IsNullOrEmpty((input.Name?? "").Trim())) {
-                errors.Add(new Error("", $"Model name required"));                                
-            }
 
             return errors;
         }

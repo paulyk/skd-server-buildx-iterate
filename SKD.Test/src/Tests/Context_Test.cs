@@ -81,8 +81,8 @@ namespace SKD.Test {
                 // setup
                 var vehicleModel = new VehicleModel() {
                     Code = new String('X', EntityFieldLen.VehicleModel_Code),
-                    Name = new String('X', EntityFieldLen.VehicleModel_Name),
-                    Type = new String('X', EntityFieldLen.VehicleModel_Type),
+                    Name = new String('X', EntityFieldLen.VehicleModel_Description),
+                    ModelYear = new String('X', EntityFieldLen.VehicleModel_ModelYear),
                 };
 
                 ctx.VehicleModels.Add(vehicleModel);
@@ -102,14 +102,14 @@ namespace SKD.Test {
                 var modelCode = new String('A', EntityFieldLen.VehicleModel_Code);
                 var vehicleModel_1 = new VehicleModel() {
                     Code = modelCode,
-                    Name = new String('A', EntityFieldLen.VehicleModel_Name),
-                    Type = new String('A', EntityFieldLen.VehicleModel_Type),
+                    Name = new String('A', EntityFieldLen.VehicleModel_Description),
+                    ModelYear = new String('A', EntityFieldLen.VehicleModel_ModelYear),
                 };
 
                 var vehicleModel_2 = new VehicleModel() {
                     Code = modelCode,
-                    Name = new String('B', EntityFieldLen.VehicleModel_Name),
-                    Type = new String('B', EntityFieldLen.VehicleModel_Type),
+                    Name = new String('B', EntityFieldLen.VehicleModel_Description),
+                    ModelYear = new String('B', EntityFieldLen.VehicleModel_ModelYear),
                 };
 
                 ctx.VehicleModels.AddRange(vehicleModel_1, vehicleModel_2);
@@ -120,26 +120,27 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public void cannot_add_duplicate_vehicle_model_name() {
+        public void can_add_duplicate_vehicle_model_name() {
             using (var ctx = GetAppDbContext()) {
                 // setup
                 var modelName = new String('A', EntityFieldLen.Component_Name);
                 var vehicleModel_1 = new VehicleModel() {
                     Code = new String('A', EntityFieldLen.VehicleModel_Code),
                     Name = modelName,
-                    Type = new String('A', EntityFieldLen.VehicleModel_Type),
+                    ModelYear = new String('A', EntityFieldLen.VehicleModel_ModelYear),
                 };
 
                 var vehicleModel_2 = new VehicleModel() {
                     Code = new String('B', EntityFieldLen.VehicleModel_Code),
                     Name = modelName,
-                    Type = new String('B', EntityFieldLen.VehicleModel_Type),
+                    ModelYear = new String('B', EntityFieldLen.VehicleModel_ModelYear),
                 };
 
                 ctx.VehicleModels.AddRange(vehicleModel_1, vehicleModel_2);
+                ctx.SaveChanges();
 
-                // test + assert
-                Assert.Throws<DbUpdateException>(() => ctx.SaveChanges());
+                var count = ctx.VehicleModels.Count(t => t.Name == modelName);
+                Assert.Equal(2, count);
             }
         }
 
@@ -150,8 +151,8 @@ namespace SKD.Test {
                 // setup
                 var vehicleModel = new VehicleModel() {
                     Code = new String('X', EntityFieldLen.VehicleModel_Code),
-                    Name = new String('X', EntityFieldLen.VehicleModel_Name),
-                    Type = new String('X', EntityFieldLen.VehicleModel_Type),
+                    Name = new String('X', EntityFieldLen.VehicleModel_Description),
+                    ModelYear = new String('X', EntityFieldLen.VehicleModel_ModelYear),
                 };
                 ctx.VehicleModels.Add(vehicleModel);
                 ctx.SaveChanges();
@@ -217,8 +218,8 @@ namespace SKD.Test {
                 // setup
                 var vehicleModel = new VehicleModel() {
                     Code = new String('X', EntityFieldLen.VehicleModel_Code),
-                    Name = new String('X', EntityFieldLen.VehicleModel_Name),
-                    Type = new String('X', EntityFieldLen.VehicleModel_Type),
+                    Name = new String('X', EntityFieldLen.VehicleModel_Description),
+                    ModelYear = new String('X', EntityFieldLen.VehicleModel_ModelYear),
                 };
 
                 ctx.VehicleModels.Add(vehicleModel);

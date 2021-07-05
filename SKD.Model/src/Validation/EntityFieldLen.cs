@@ -27,9 +27,12 @@ namespace SKD.Model {
         public static int Part_Desc = 50;
 
 
-        public static int VehicleModel_Code = 11;
-        public static int VehicleModel_Name = 100;
-        public static int VehicleModel_Type = 4;
+        public static int VehicleModel_Code = 7;
+        public static int VehicleModel_Description = 100;
+        public static int VehicleModel_ModelYear = 4;
+        public static int VehicleModel_Model = 30;
+        public static int VehicleModel_Series = 30;
+        public static int VehicleModel_Body = 30;
 
         public static int ComponentSerial_Min = 5;
         public static int ComponentSerial = 100;

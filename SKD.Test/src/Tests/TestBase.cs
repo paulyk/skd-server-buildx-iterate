@@ -385,7 +385,7 @@ namespace SKD.Test {
         }
 
         public string Gen_VehicleModel_Name() {
-            return Util.RandomString(EntityFieldLen.VehicleModel_Name).ToUpper();
+            return Util.RandomString(EntityFieldLen.VehicleModel_Description).ToUpper();
         }
         public string Gen_VIN() {
             return Util.RandomString(EntityFieldLen.VIN).ToUpper();

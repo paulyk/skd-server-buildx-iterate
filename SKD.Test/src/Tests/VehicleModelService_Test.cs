@@ -27,9 +27,18 @@ namespace SKD.Test {
 
             var payload = await service.Save(input);
 
+
             // assert
             var model_after_count = await context.VehicleModels.CountAsync();
             Assert.Equal(model_before_count + 1, model_after_count);
+
+            var vehicleModel = await context.VehicleModels.FirstOrDefaultAsync(t => t.Code == input.Code);
+
+            Assert.Equal(input.Name, vehicleModel.Name);
+            Assert.Equal(input.Model, vehicleModel.Model);
+            Assert.Equal(input.ModelYear, vehicleModel.ModelYear);
+            Assert.Equal(input.Series, vehicleModel.Series);
+            Assert.Equal(input.Body, vehicleModel.Body);
         }
 
         [Fact]
@@ -48,9 +57,6 @@ namespace SKD.Test {
             var errors = payload_2.Errors.Select(t => t.Message).ToList();
 
             var ducplicateCode = errors.Any(error => error.StartsWith("duplicate code"));
-            Assert.True(ducplicateCode);
-
-            var ducplicateName = errors.Any(error => error.StartsWith("duplicate name"));
             Assert.True(ducplicateCode);
         }
         [Fact]
@@ -94,7 +100,7 @@ namespace SKD.Test {
 
             var model_1 = new VehicleModelInput {
                 Code = Util.RandomString(EntityFieldLen.VehicleModel_Code),
-                Name = Util.RandomString(EntityFieldLen.VehicleModel_Name)
+                Name = Util.RandomString(EntityFieldLen.VehicleModel_Description)
             };
             var payload = await service.Save(model_1);
 
@@ -144,22 +150,26 @@ namespace SKD.Test {
 
         [Fact]
         public async Task can_create_vehicle_model_from_existing() {
-            // setup
-          
-            var templateModelInput = GenVehilceModelInput();
-          
+            // setup          
+            var templateModelInput = GenVehilceModelInput();        
             var service = new VehicleModelService(context);
             await service.Save(templateModelInput);
+            var existingModel = await context.VehicleModels.FirstOrDefaultAsync(t => t.Code == templateModelInput.Code);
+
             // test
             var newModelInput = new VehicleModelFromExistingInput {
                 Code = Gen_VehicleModel_Code(),
-                Name = Gen_VehicleModel_Name(),
-                ExistingModelCode = templateModelInput.Code
+                ModelYear = "2030",                
+                ExistingModelCode = existingModel.Code
             };
 
             var result = await service.CreateFromExisting(newModelInput);
 
             // assert
+            var newModel = await context.VehicleModels.FirstOrDefaultAsync(t => t.Code == newModelInput.Code);
+
+            Assert.Equal(existingModel.Name, newModel.Name);
+
             var templateModelComponents = await context.VehicleModelComponents
                     .OrderBy(t => t.ProductionStation.Code).ThenBy(t => t.Component.Code)
                     .Where(t => t.VehicleModel.Code == templateModelInput.Code)
@@ -170,6 +180,7 @@ namespace SKD.Test {
                     .Where(t => t.VehicleModel.Code == newModelInput.Code)
                     .ToListAsync();
 
+                
             for (var i = 0; i < templateModelComponents.Count; i++) {
                 var templateEntry = templateModelComponents[i];
                 var newEntry = newModelComponents[i];
@@ -178,6 +189,9 @@ namespace SKD.Test {
                 Assert.Equal(templateEntry.ProductionStationId, newEntry.ProductionStationId);
             }
         }
+
+
+
 
         private VehicleModelInput GenVehilceModelInput() {
             var componentCodes = new string[] { "component_1", "component_2" };
@@ -188,6 +202,10 @@ namespace SKD.Test {
             return new VehicleModelInput {
                 Code = Gen_VehicleModel_Code(),
                 Name = Gen_VehicleModel_Name(),
+                ModelYear = DateTime.Now.Year.ToString(),
+                Model = Util.RandomString(EntityFieldLen.VehicleModel_Model),
+                Series = Util.RandomString(EntityFieldLen.VehicleModel_Series),
+                Body = Util.RandomString(EntityFieldLen.VehicleModel_Body),                
                 ComponentStationInputs = Enumerable.Range(0, componentCodes.Length)
                     .Select(i => new ComponentStationInput {
                         ComponentCode = componentCodes[i],

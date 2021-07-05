@@ -5,7 +5,10 @@ namespace SKD.Model {
     public partial class VehicleModel : EntityBase {
         public string Code { get; set; } 
         public string Name { get; set; }
-        public string Type { get; set; }
+        public string ModelYear { get; set; }
+        public string Model { get; set; }
+        public string Series { get; set; }
+        public string Body { get; set; }
         public ICollection<Lot> Lots { get; set; }
         public ICollection<VehicleModelComponent> ModelComponents { get; set; }
 
