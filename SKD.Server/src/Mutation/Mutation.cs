@@ -18,6 +18,11 @@ namespace SKD.Server {
             VehicleModelInput input
         ) => await service.Save(input);
 
+        public async Task<MutationPayload<VehicleModel>> CreateVehicleModelFromExisting(
+            [Service] VehicleModelService service,
+            VehicleModelFromExistingInput input
+        ) => await service.CreateFromExisting(input);
+
         public async Task<MutationPayload<Lot>> ImportVIN(
             [Service] KitService service,
             ImportVinInput input
