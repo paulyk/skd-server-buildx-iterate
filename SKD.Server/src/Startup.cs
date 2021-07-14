@@ -10,7 +10,6 @@ using SKD.Model;
 using SKD.Service;
 using SKD.Dcws;
 using SKD.Seed;
-using GraphQL.Server.Ui.Voyager;
 using HotChocolate.Data;
 
 namespace SKD.Server {
@@ -66,6 +65,7 @@ namespace SKD.Server {
 
             services.AddGraphQLServer()
                 .AddQueryType<Query>()
+                    .AddTypeExtension<ProjectionQueries>()
                 .AddMutationType<Mutation>()
                 .AddType<VehicleType>()
                 .AddType<SerialCaptureVehicleDTOType>()
@@ -117,12 +117,7 @@ namespace SKD.Server {
                     });
                 }
             });
-
-            app.UseGraphQLVoyager(new GraphQLVoyagerOptions {
-                GraphQLEndPoint = "/graphql",
-                Path = "/graphql-voyager"
-            });
-
+            
         }
     }
 }
