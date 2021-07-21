@@ -10,6 +10,7 @@ namespace SKD.Server {
         public string ModelCode { get; set; } = "";
         public string ModelName { get; set; } = "";
         public string? LastTimelineEvent { get; set; } = "";
+        public DateTime? LastTimelineEventDate { get; set; }
         public int? ComponentCount { get; set; }
         public int? ScannedComponentCount { get; set; }
         public int? VerifiedComponentCount { get; set; }

@@ -239,6 +239,10 @@ namespace SKD.Server {
                         .OrderByDescending(t => t.CreatedAt)
                         .Select(t => t.EventType.Description)
                         .FirstOrDefault(),
+                    LastTimelineEventDate = t.TimelineEvents
+                        .OrderByDescending(t => t.CreatedAt)
+                        .Select(t => t.EventDate)
+                        .FirstOrDefault(),
                     ComponentCount = t.KitComponents
                         .Where(t => t.RemovedAt == null)
                         .Where(t => t.Component.DcwsSerialCaptureRule != DcwsSerialCaptureRule.NOT_REQUIED)
