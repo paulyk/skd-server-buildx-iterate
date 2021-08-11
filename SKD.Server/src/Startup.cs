@@ -78,7 +78,8 @@ namespace SKD.Server {
                 .AddProjections()
                 .AddFiltering()
                 .AddSorting()
-                .AddInMemorySubscriptions();
+                .AddInMemorySubscriptions()
+                .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = _env.IsDevelopment());  
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
