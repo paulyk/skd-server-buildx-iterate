@@ -15,7 +15,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task can_add_plant() {
+        public async Task Can_add_plant() {
             // setup
             var input = new PlantInput {
                 Code = Gen_PlantCode(),

@@ -2,24 +2,20 @@
 
 namespace SKD.Seed {
    
-    public class VehicleModel_MockData_DTO{
-        public string code { get; set; }
-        public string name { get; set; }
-    }
     public class Component_MockData_DTO {
-        public string code { get; set; }
-        public string name { get; set; }
-        public string type { get; set; }
+        public string Code { get; set; }
+        public string Name { get; set; }
+        public string Type { get; set; }
     }
 
     public class CmponentStation_McckData_DTO {
-        public string componentCode { get; set; }
-        public string stationCode { get; set; }
+        public string ComponentCode { get; set; }
+        public string StationCode { get; set; }
     }
 
     public class ProductionStation_Mock_DTO {
-        public string code { get; set; }
-        public string name { get; set; }
-        public int sortOrder { get; set; }
+        public string Code { get; set; }
+        public string Name { get; set; }
+        public int SortOrder { get; set; }
     }
 }

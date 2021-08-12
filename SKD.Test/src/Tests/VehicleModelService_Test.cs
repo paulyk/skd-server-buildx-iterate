@@ -16,7 +16,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task can_add_vehicle_model() {
+        public async Task Can_add_vehicle_model() {
             // setup
             var input = GenVehilceModelInput();
             var service = new VehicleModelService(context);
@@ -42,7 +42,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task cannot_save_if_duplicate_code_or_name() {
+        public async Task Cannot_save_if_duplicate_code_or_name() {
             // setup
             var input = GenVehilceModelInput();
 
@@ -60,7 +60,7 @@ namespace SKD.Test {
             Assert.True(ducplicateCode);
         }
         [Fact]
-        public async Task can_modify_model_name() {
+        public async Task Can_modify_model_name() {
             // setup
             var input = GenVehilceModelInput();
             var service = new VehicleModelService(context);
@@ -93,7 +93,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task cannot_create_vehicle_model_without_components() {
+        public async Task Cannot_create_vehicle_model_without_components() {
             // setup
             var service = new VehicleModelService(context);
             var before_count = await context.VehicleModels.CountAsync();
@@ -108,12 +108,12 @@ namespace SKD.Test {
             var after_count = await context.VehicleModels.CountAsync();
             Assert.Equal(before_count, after_count);
 
-            var errorCount = payload.Errors.Count();
+            var errorCount = payload.Errors.Count;
             Assert.Equal(1, errorCount);
         }
 
         [Fact]
-        public async Task cannot_add_vehicle_model_with_duplicate_component_station_entries() {
+        public async Task Cannot_add_vehicle_model_with_duplicate_component_station_entries() {
             // setup
             Gen_Components("component_1", "component_2");
             Gen_ProductionStations("station_1", "station_2");
@@ -141,7 +141,7 @@ namespace SKD.Test {
             var payload = await service.Save(vehilceModel);
 
             // assert
-            var errorCount = payload.Errors.Count();
+            var errorCount = payload.Errors.Count;
             Assert.Equal(1, errorCount);
             var expectedErrorMessage = "duplicate component + production station entries";
             var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
@@ -149,7 +149,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task can_create_vehicle_model_from_existing() {
+        public async Task Can_create_vehicle_model_from_existing() {
             // setup          
             var templateModelInput = GenVehilceModelInput();        
             var service = new VehicleModelService(context);

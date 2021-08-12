@@ -28,9 +28,9 @@ namespace SKD.Service {
         #region import vin
 
         public async Task<MutationPayload<Lot>> ImportVIN(ImportVinInput input) {
-            var payload = new MutationPayload<Lot>(null);
+            MutationPayload<Lot> payload = new();
             payload.Errors = await ValidateImportVINInput(input);
-            if (payload.Errors.Count() > 0) {
+            if (payload.Errors.Any()) {
                 return payload;
             }
 
@@ -105,10 +105,9 @@ namespace SKD.Service {
             }
 
             // invalid VIN(s)
-            var validator = new Validator();
             var invalidVins = input.Kits
                 .Select(t => t.VIN)
-                .Where(vin => !validator.Valid_KitNo(vin))
+                .Where(vin => !Validator.Valid_KitNo(vin))
                 .ToList();
 
             if (invalidVins.Any()) {
@@ -155,7 +154,7 @@ namespace SKD.Service {
                 .Select(t => t.KitNo)
                 .Distinct().ToList();
 
-            if (duplicateKitNos.Count() > 0) {
+            if (duplicateKitNos.Any()) {
                 errors.Add(new Error("lotNo", $"duplicate kitNo(s) in payload: {String.Join(", ", duplicateKitNos)}"));
                 return errors;
             }
@@ -168,7 +167,7 @@ namespace SKD.Service {
 
         #region create kit timeline event
         public async Task<MutationPayload<KitTimelineEvent>> CreateKitTimelineEvent(KitTimelineEventInput input) {
-            var payload = new MutationPayload<KitTimelineEvent>(null);
+            MutationPayload<KitTimelineEvent> payload = new();
             payload.Errors = await ValidateCreateKitTimelineEvent(input);
             if (payload.Errors.Count > 0) {
                 return payload;
@@ -291,7 +290,7 @@ namespace SKD.Service {
 
         #region create lot timeline event
         public async Task<MutationPayload<Lot>> CreateLotTimelineEvent(LotTimelineEventInput dto) {
-            var payload = new MutationPayload<Lot>(null);
+            MutationPayload<Lot> payload = new();
             payload.Errors = await ValidateCreateLotTimelineEvent(dto);
             if (payload.Errors.Count > 0) {
                 return payload;
@@ -384,7 +383,7 @@ namespace SKD.Service {
 
 
         public async Task<MutationPayload<KitComponent>> ChangeKitComponentProductionStation(KitComponentProductionStationInput input) {
-            var payload = new MutationPayload<KitComponent>(null);
+            MutationPayload<KitComponent> payload = new();
             payload.Errors = await ValidateChangeKitCXomponentStationImput(input);
             if (payload.Errors.Count > 0) {
                 return payload;
@@ -433,19 +432,14 @@ namespace SKD.Service {
                 return false;
             }
 
-            switch (input.EventType) {
-                case TimeLineEventCode.CUSTOM_RECEIVED:
-                    return kitSnapshot.CustomReceived != null;
-                case TimeLineEventCode.PLAN_BUILD:
-                    return kitSnapshot.PlanBuild != null;
-                case TimeLineEventCode.BUILD_COMPLETED:
-                    return kitSnapshot.BuildCompleted != null;
-                case TimeLineEventCode.GATE_RELEASED:
-                    return kitSnapshot.GateRelease != null;
-                case TimeLineEventCode.WHOLE_SALE:
-                    return kitSnapshot.Wholesale != null;
-                default: return false;
-            }
+            return input.EventType switch {
+                TimeLineEventCode.CUSTOM_RECEIVED => kitSnapshot.CustomReceived != null,
+                TimeLineEventCode.PLAN_BUILD => kitSnapshot.PlanBuild != null,
+                TimeLineEventCode.BUILD_COMPLETED => kitSnapshot.BuildCompleted != null,
+                TimeLineEventCode.GATE_RELEASED => kitSnapshot.GateRelease != null,
+                TimeLineEventCode.WHOLE_SALE => kitSnapshot.Wholesale != null,
+                _ => false
+            };
         }
     }
 }

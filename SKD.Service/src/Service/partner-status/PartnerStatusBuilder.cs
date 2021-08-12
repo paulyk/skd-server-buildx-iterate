@@ -23,7 +23,7 @@ namespace SKD.Service {
         public async Task<PartnerStatusDTO> GeneratePartnerStatusFilePaylaod(string plantCode, int sequence) {
 
             var kitSnapshotRun = await context.KitSnapshotRuns
-                .Include(t => t.Plant)                
+                .Include(t => t.Plant)
                 .Include(t => t.KitSnapshots.Where(u => u.RemovedAt == null).OrderBy(u => u.Kit.Lot.LotNo).ThenBy(u => u.Kit.KitNo)).ThenInclude(t => t.Kit)
                     .ThenInclude(t => t.Lot)
                 .Include(t => t.KitSnapshots.Where(u => u.RemovedAt == null).OrderBy(u => u.Kit.Lot.LotNo).ThenBy(u => u.Kit.KitNo)).ThenInclude(t => t.Kit)
@@ -58,15 +58,15 @@ namespace SKD.Service {
                 PlantCode = kitSnapshotRun.Plant.Code,
                 Sequence = kitSnapshotRun.Sequence,
                 RunDate = kitSnapshotRun.RunDate,
-                Filename =  BuildFilename(kitSnapshotRun.Plant.Code, kitSnapshotRun.Plant.PartnerPlantCode, kitSnapshotRun.RunDate),
+                Filename = BuildFilename(kitSnapshotRun.Plant.Code, kitSnapshotRun.Plant.PartnerPlantCode, kitSnapshotRun.RunDate),
                 PayloadText = String.Join('\n', lines)
             };
             return payload;
         }
 
-        private string BuildFilename( string plantCode, string partnerPlantCode, DateTime runDate) {
+        private string BuildFilename(string plantCode, string partnerPlantCode, DateTime runDate) {
             var formattedRunDate = runDate.ToString(PartnerStatusLayout.FILENAME_DATE_FORMAT);
-            var prefix = PartnerStatusLayout.FILENAME_PREFIX;            
+            var prefix = PartnerStatusLayout.FILENAME_PREFIX;
             return $"{prefix}_{plantCode}_{partnerPlantCode}_{formattedRunDate}.txt";
         }
         private string BuildHeaderLine(KitSnapshotRun snapshotRun) {
@@ -75,28 +75,28 @@ namespace SKD.Service {
 
             var fields = new List<FlatFileLine<PartnerStatusLayout.Header>.FieldValue> {
                 headerLineBuilder.CreateFieldValue(t => t.HDR_RECORD_TYPE, PartnerStatusLayout.Header.HDR_RECORD_TYPE_VAL),
-                headerLineBuilder.CreateFieldValue(t => t.HDR_FILE_NAME, PartnerStatusLayout.Header.HDR_FILE_NAME_VAL),                
-                headerLineBuilder.CreateFieldValue(t => t.HDR_KD_PLANT_GSDB, snapshotRun.Plant.Code),                
+                headerLineBuilder.CreateFieldValue(t => t.HDR_FILE_NAME, PartnerStatusLayout.Header.HDR_FILE_NAME_VAL),
+                headerLineBuilder.CreateFieldValue(t => t.HDR_KD_PLANT_GSDB, snapshotRun.Plant.Code),
                 headerLineBuilder.CreateFieldValue(t => t.HDR_PARTNER_GSDB,snapshotRun.Plant.PartnerPlantCode),
-                headerLineBuilder.CreateFieldValue(t => t.HDR_PARTNER_TYPE, snapshotRun.Plant.PartnerPlantType),            
+                headerLineBuilder.CreateFieldValue(t => t.HDR_PARTNER_TYPE, snapshotRun.Plant.PartnerPlantType),
                 headerLineBuilder.CreateFieldValue(
                     t => t.HDR_SEQ_NBR,
-                    snapshotRun.Sequence.ToString().PadLeft(headerLayout.HDR_SEQ_NBR,'0')),                
+                    snapshotRun.Sequence.ToString().PadLeft(headerLayout.HDR_SEQ_NBR,'0')),
                 headerLineBuilder.CreateFieldValue(
                     t => t.HDR_BATCH_DATE,
                     snapshotRun.RunDate.ToString(PartnerStatusLayout.Header.HDR_BATCH_DATE_FORMAT)),
                 headerLineBuilder.CreateFieldValue(
-                    t => t.HDR_FILLER, new String(' ', headerLayout.HDR_FILLER)),                
+                    t => t.HDR_FILLER, new String(' ', headerLayout.HDR_FILLER)),
             };
 
             return headerLineBuilder.Build(fields);
         }
 
-        private string BuildDetailLine(KitSnapshot snapshot) {     
+        private string BuildDetailLine(KitSnapshot snapshot) {
             var layout = new PartnerStatusLayout.Detail();
             var lineBuilder = new FlatFileLine<PartnerStatusLayout.Detail>();
-            
-            var fields =  new List<FlatFileLine<PartnerStatusLayout.Detail>.FieldValue> {
+
+            var fields = new List<FlatFileLine<PartnerStatusLayout.Detail>.FieldValue> {
                 lineBuilder.CreateFieldValue(t => t.PST_RECORD_TYPE, PartnerStatusLayout.PST_RECORD_TYPE_VAL),
                 lineBuilder.CreateFieldValue(t => t.PST_TRAN_TYPE, snapshot.ChangeStatusCode.ToString()),
                 lineBuilder.CreateFieldValue(t => t.PST_LOT_NUMBER, snapshot.Kit.Lot.LotNo),
@@ -112,7 +112,7 @@ namespace SKD.Service {
 
                 lineBuilder.CreateFieldValue(
                     t => t.PST_ACTUAL_DEALER_CODE,
-                    snapshot.DealerCode != null ? snapshot.DealerCode : ""
+                    snapshot.DealerCode ?? ""
                 ),
                 lineBuilder.CreateFieldValue(
                     t => t.PST_ENGINE_SERIAL_NUMBER,
@@ -168,16 +168,16 @@ namespace SKD.Service {
             return lineBuilder.Build(fields);
         }
 
-        public string ToFordTimelineCode(TimeLineEventCode timeLineEventType) {
-            switch (timeLineEventType) {
-                case TimeLineEventCode.CUSTOM_RECEIVED: return   FordTimeLineCode.FPCR.ToString(); //"FPCR";
-                case TimeLineEventCode.PLAN_BUILD: return FordTimeLineCode.FPBP.ToString(); //"FPBP";
-                case TimeLineEventCode.BUILD_COMPLETED: return FordTimeLineCode.FPBC.ToString(); //"FPBC";
-                case TimeLineEventCode.GATE_RELEASED: return FordTimeLineCode.FPGR.ToString(); //"FPGR";
-                case TimeLineEventCode.WHOLE_SALE: return  FordTimeLineCode.FPWS.ToString(); //"FPWS";
-                default: throw new Exception("Unexpected timlien event " + timeLineEventType);
-            }
-        }
+        public string ToFordTimelineCode(TimeLineEventCode timeLineEventType) =>
+            timeLineEventType switch {
+                TimeLineEventCode.CUSTOM_RECEIVED => FordTimeLineCode.FPCR.ToString(),
+                TimeLineEventCode.PLAN_BUILD => FordTimeLineCode.FPBP.ToString(),
+                TimeLineEventCode.BUILD_COMPLETED => FordTimeLineCode.FPBC.ToString(),
+                TimeLineEventCode.GATE_RELEASED => FordTimeLineCode.FPGR.ToString(),
+                TimeLineEventCode.WHOLE_SALE => FordTimeLineCode.FPWS.ToString(),
+                _ => throw new Exception("Unexpected timeline event")
+            };
+
 
         private string FormattedDate(DateTime? date, string dateFormat) {
             return date.HasValue
@@ -185,6 +185,6 @@ namespace SKD.Service {
                 : "";
         }
 
-            
+
     }
 }

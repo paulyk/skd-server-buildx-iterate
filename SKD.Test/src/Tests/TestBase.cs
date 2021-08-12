@@ -51,9 +51,8 @@ namespace SKD.Test {
             Gen_Model_From_Existing_Component_And_Stations();
             var bom = Gen_Plant_Bom();
             if (generateLot) {
-                var plant = bom.Plant;
                 var model = context.VehicleModels.First();
-                var lot = Gen_Lot(bom.Id, model.Id, kitCount: 6, assignVin: assignVin);
+                Gen_Lot(bom.Id, model.Id, kitCount: 6, assignVin: assignVin);
             }
         }
         public Bom Gen_Plant_Bom(string plantCode = null) {
@@ -63,9 +62,8 @@ namespace SKD.Test {
         }
         public void Gen_Bom_Lot_and_Kits(string plantCode = null, bool assignVin = false) {
             var bom = Gen_Plant_Bom(plantCode);
-            var plant = bom.Plant;
             var model = context.VehicleModels.First();
-            var lot = Gen_Lot(bom.Id, model.Id, kitCount: 6, assignVin: assignVin);
+            Gen_Lot(bom.Id, model.Id, kitCount: 6, assignVin: assignVin);
         }
 
         public void Gen_Model_From_Existing_Component_And_Stations() {
@@ -134,11 +132,11 @@ namespace SKD.Test {
         }
 
         public Plant Gen_Plant(string plantCode = null) {
-            plantCode = plantCode != null ? plantCode : Gen_PlantCode();
+            plantCode = plantCode ?? Gen_PlantCode();
 
             var plant = new Plant {
                 Code = plantCode,
-                PartnerPlantCode =  Gen_PartnerPLantCode(),
+                PartnerPlantCode = Gen_PartnerPLantCode(),
                 PartnerPlantType = Gen_PartnerPlantType(),
                 Name = $"{plantCode} name"
             };
@@ -172,8 +170,8 @@ namespace SKD.Test {
             }).ToList();
 
             foreach (var component in components) {
-                if (context.Components.Count(t => t.Code == component.Code) == 0) {
-                    context.Components.AddRange(components);
+                if (!context.Components.Any(t => t.Code == component.Code)) {
+                    context.Components.AddRange(component);
                 }
             }
 
@@ -336,7 +334,7 @@ namespace SKD.Test {
             });
 
             foreach (var eventType in eventTypes) {
-                if (context.KitTimelineEventTypes.Count(t => t.Code == eventType.Code) == 0) {
+                if (!context.KitTimelineEventTypes.Any(t => t.Code == eventType.Code)) {
                     context.KitTimelineEventTypes.AddRange(eventTypes);
                 }
             }
@@ -364,7 +362,7 @@ namespace SKD.Test {
             var sequence = 1;
             var lotNo = modelCode + sequence.ToString().PadLeft(EntityFieldLen.LotNo - EntityFieldLen.VehicleModel_Code, '0');
             var lotExists = context.Lots.Any(t => t.LotNo == lotNo);
-            while(lotExists) {
+            while (lotExists) {
                 sequence++;
                 lotNo = modelCode + sequence.ToString().PadLeft(EntityFieldLen.LotNo - EntityFieldLen.VehicleModel_Code, '0');
                 lotExists = context.Lots.Any(t => t.LotNo == lotNo);

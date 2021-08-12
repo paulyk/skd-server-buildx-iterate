@@ -12,7 +12,7 @@ namespace SKD.Service {
         public BomFileParser() {
         }
         public MutationPayload<BomLotPartDTO> BuildBomLotPartInput(string text) {
-            var payload = new MutationPayload<BomLotPartDTO>(null);
+            MutationPayload<BomLotPartDTO> payload = new();
 
             try {
                 var headerLineBuilder = new FlatFileLine<BomFileLayout.Header>();
@@ -66,7 +66,7 @@ namespace SKD.Service {
             return lotParts;
         }
         public MutationPayload<BomLotKitDTO> BuildBomLotKitInput(string text) {
-            var payload = new MutationPayload<BomLotKitDTO>(null);
+            MutationPayload<BomLotKitDTO> payload = new();
 
             try {
                 var (headerTextLine, detailTextLines) = ParseTextLines(text);
@@ -118,11 +118,11 @@ namespace SKD.Service {
             return lots;
         }
 
-        private (string headerLineText, List<string> detailTextLines) ParseTextLines(string text) {
+        private static (string headerLineText, List<string> detailTextLines) ParseTextLines(string text) {
             var lines = text.Split('\n')
                 // remove emply lines
                 .Where(t => t.Length > 0).ToList();
-                
+
             var headerTextLine = "";
             var detailTextLines = new List<string>();
             if (lines.Count > 0) {

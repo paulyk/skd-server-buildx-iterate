@@ -42,7 +42,7 @@ namespace SKD.Common {
 
         }
 
-        private List<Field> GetSchemaFields() {
+        private static List<Field> GetSchemaFields() {
             var schemaObject = (T)Activator.CreateInstance(typeof(T));
 
             var fields = schemaObject.GetType()

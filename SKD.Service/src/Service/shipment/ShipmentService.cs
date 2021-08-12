@@ -17,7 +17,7 @@ namespace SKD.Service {
         }
 
         public async Task<MutationPayload<ShipmentOverviewDTO>> ImportShipment(ShipmentInput input) {
-            var payload = new MutationPayload<ShipmentOverviewDTO>(null);
+            MutationPayload<ShipmentOverviewDTO> payload = new ();
             payload.Errors = await ValidateShipmentInput<ShipmentInput>(input);
             if (payload.Errors.Count > 0) {
                 return payload;
@@ -147,13 +147,13 @@ namespace SKD.Service {
             }
 
             // lots must have invoices
-            if (input.Lots.Any(t => t.Invoices.Count() == 0)) {
+            if (input.Lots.Any(t => !t.Invoices.Any())) {
                 errors.Add(new Error("", "shipment lots must have invoices"));
                 return errors;
             }
 
             // inoices must have parts
-            if (input.Lots.Any(t => t.Invoices.Any(u => u.Parts.Count() == 0))) {
+            if (input.Lots.Any(t => t.Invoices.Any(u => u.Parts.Count == 0))) {
                 errors.Add(new Error("", "shipment invoices must have parts"));
                 return errors;
             }
@@ -216,10 +216,10 @@ namespace SKD.Service {
                 Id = t.Id,
                 PlantCode = t.Plant.Code,
                 Sequence = t.Sequence,
-                LotCount = t.ShipmentLots.Count(),
+                LotCount = t.ShipmentLots.Count,
                 InvoiceCount = t.ShipmentLots.SelectMany(t => t.Invoices).Count(),
                 HandlingUnitCount = t.ShipmentLots.SelectMany(t => t.Invoices).SelectMany(t => t.HandlingUnits).Count(),
-                handlingUnitReceivedCount = t.ShipmentLots.SelectMany(t => t.Invoices).SelectMany(t => t.HandlingUnits)
+                HandlingUnitReceivedCount = t.ShipmentLots.SelectMany(t => t.Invoices).SelectMany(t => t.HandlingUnits)
                     .Where(t => t.Received.Any(t => t.RemovedAt== null)).Count(),                
                 PartCount = t.ShipmentLots
                     .SelectMany(t => t.Invoices)
@@ -234,9 +234,9 @@ namespace SKD.Service {
             return shipmentInput.Lots.Select(t => new {
                 LotParts = t.Invoices.SelectMany(u => u.Parts)
                     .Select(u => new {
-                        LotNo = t.LotNo,
-                        PartNo = u.PartNo,
-                        Quantity = u.Quantity
+                        t.LotNo,
+                        u.PartNo,
+                        u.Quantity
                     })
             })
                 .SelectMany(t => t.LotParts)

@@ -6,13 +6,13 @@ namespace SKD.Service {
     public class KitVinAckLayout {
 
         // filename
-        public static string FILENAME_DATE_FORMAT = "yyMMdd_HHmmss";
+        public readonly static string FILENAME_DATE_FORMAT = "yyMMdd_HHmmss";
 
         public class Header {
 
-            public static string HDR_RECORD_TYPE_VAL = "HDR";
-            public static string HDR_FILE_NAME_VAL = "KIT_VIN_MAP_ACK";
-            public static string HDR_BATCH_DATE_FORMAT = "yyyy-MM-dd";
+            public static readonly string HDR_RECORD_TYPE_VAL = "HDR";
+            public static readonly string HDR_FILE_NAME_VAL = "KIT_VIN_MAP_ACK";
+            public static readonly string HDR_BATCH_DATE_FORMAT = "yyyy-MM-dd";
 
             public int HDR_RECORD_TYPE = 3;   // 'HDR'
             public int HDR_FILE_NAME = 20;    // 'KIT_VIN_MAP_ACK'
@@ -28,8 +28,8 @@ namespace SKD.Service {
 
         public class Trailer {
 
-            public static string TLR_RECORD_TYPE_VAL = "TLR";
-            public static string TLR_FILE_NAME_VAL = "KIT_VIN_MAP_ACK";
+            public static readonly string TLR_RECORD_TYPE_VAL = "TLR";
+            public static readonly string TLR_FILE_NAME_VAL = "KIT_VIN_MAP_ACK";
 
             public int TLR_RECORD_TYPE = 3;       // 'TLR'
             public int TLR_FILE_NAME = 20;        // 'KIT_VIN_MAP_ACK'
@@ -41,8 +41,8 @@ namespace SKD.Service {
         }
 
         public class Detail {
-            public static string KVM_ACK_RECORD_TYPE_VAL = "DTL";
-            public static string KVM_ACK_FILE_STATUS_ACCEPTED = "ACCEPTED";
+            public static readonly string KVM_ACK_RECORD_TYPE_VAL = "DTL";
+            public static readonly string KVM_ACK_FILE_STATUS_ACCEPTED = "ACCEPTED";
 
             public int KVM_ACK_RECORD_TYPE = 3;           // 'DTL'
             public int KVM_ACK_FILE_STATUS = 10;          // ACCEPTED / REJECTED

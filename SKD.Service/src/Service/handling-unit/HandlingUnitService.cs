@@ -24,7 +24,7 @@ namespace SKD.Service{
                 HandlingUnitCode = input.HandlingUnitCode.PadLeft(EntityFieldLen.HandlingUnit_Code, '0')
             };
             
-            var payload = new MutationPayload<ReceiveHandlingUnitPayload>(null);
+            MutationPayload<ReceiveHandlingUnitPayload> payload = new ();
             payload.Errors = await ValidateSetHandlingUnitReceived(input);
 
             if (payload.Errors.Any()) {
@@ -100,10 +100,10 @@ namespace SKD.Service{
                     PlantCode = t.ShipmentInvoice.ShipmentLot.Shipment.Plant.Code,
                     ShipmentSequence = t.ShipmentInvoice.ShipmentLot.Shipment.Sequence,
                     HandlingUnitCode = t.Code,
-                    LotNo = t.ShipmentInvoice.ShipmentLot.Lot.LotNo,
-                    InvoiceNo = t.ShipmentInvoice.InvoiceNo,
+                    t.ShipmentInvoice.ShipmentLot.Lot.LotNo,
+                    t.ShipmentInvoice.InvoiceNo,
                     PartCount = t.Parts.Where(t => t.RemovedAt == null).Count(),
-                    CreatedAt = t.CreatedAt,
+                    t.CreatedAt,
                     ReceiveEntry = t.Received.OrderByDescending(t => t.CreatedAt)
                         .FirstOrDefault()
                 }).ToListAsync();
@@ -147,7 +147,7 @@ namespace SKD.Service{
                           LotNo = lot.LotNo,
                           ModelCode = model.Code,
                           ModelName = model.Description,
-                          PartCount = hu.Parts.Count(),
+                          PartCount = hu.Parts.Count,
                           Parts = hu.Parts.Select(p => new HU_Part{
                               PartNo = p.Part.PartNo,
                               PartDesc = p.Part.PartDesc,

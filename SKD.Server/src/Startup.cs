@@ -12,7 +12,8 @@ using SKD.Dcws;
 using SKD.Seed;
 using HotChocolate.Data;
 
-namespace SKD.Server {
+namespace SKD.Server 
+{
     public class Startup {
 
         public Startup(IConfiguration configuration, IWebHostEnvironment env) {
@@ -25,8 +26,7 @@ namespace SKD.Server {
 
         public void ConfigureServices(IServiceCollection services) {
 
-            int planBuildLeadTimeDays = 6;
-            Int32.TryParse(Configuration[ConfigSettingKey.PlanBuildLeadTimeDays], out planBuildLeadTimeDays);
+            Int32.TryParse(Configuration[ConfigSettingKey.PlanBuildLeadTimeDays], out int planBuildLeadTimeDays);
 
             services.AddCors(options => {
                 options.AddDefaultPolicy(
@@ -47,21 +47,21 @@ namespace SKD.Server {
             services
                 .AddScoped<SearchService>()
                 .AddScoped<KitService>(sp =>
-                    new KitService(sp.GetRequiredService<SkdContext>(),currentDate: DateTime.Now,  planBuildLeadTimeDays))
+                    new KitService(sp.GetRequiredService<SkdContext>(), currentDate: DateTime.Now, planBuildLeadTimeDays))
                 .AddScoped<KitSnapshotService>()
                 .AddScoped<VehicleModelService>()
                 .AddScoped<ComponentService>()
                 .AddScoped<DCWSResponseService>()
                 .AddScoped<ProductionStationService>()
-                .AddScoped<ComponentSerialService>(sp => 
-                    new ComponentSerialService(sp.GetRequiredService<SkdContext>(), new DcwsSerialFormatter()))
+                .AddScoped<ComponentSerialService>(sp =>
+                    new ComponentSerialService(sp.GetRequiredService<SkdContext>()))
                 .AddScoped<ShipmentService>()
                 .AddScoped<LotService>()
                 .AddScoped<PlantService>()
                 .AddScoped<LotPartService>()
                 .AddScoped<HandlingUnitService>()
                 .AddScoped<QueryService>().AddSingleton<DcwsService>(sp => new DcwsService(Configuration[ConfigSettingKey.DcwsServiceAddress]))
-                .AddScoped<PartnerStatusBuilder>();                
+                .AddScoped<PartnerStatusBuilder>();
 
             services.AddGraphQLServer()
                 .AddQueryType<Query>()
@@ -79,7 +79,7 @@ namespace SKD.Server {
                 .AddFiltering()
                 .AddSorting()
                 .AddInMemorySubscriptions()
-                .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = _env.IsDevelopment());  
+                .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = _env.IsDevelopment());
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
@@ -118,7 +118,7 @@ namespace SKD.Server {
                     });
                 }
             });
-            
+
         }
     }
 }

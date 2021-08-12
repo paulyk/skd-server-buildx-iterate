@@ -16,9 +16,6 @@ namespace SKD.Service {
                 path =  ((MemberExpression)op).Member.Name;
             }
 
-            // var expr = (MemberExpression)expression.Body;
-            // var prop = (PropertyInfo)expr.Member;
-
             return new Error() {
                 Path = new List<string> { path },
                 Message = msg

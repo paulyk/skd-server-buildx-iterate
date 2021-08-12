@@ -19,7 +19,7 @@ namespace SKD.Service {
         }
 
         public async Task<MutationPayload<VehicleModel>> Save(VehicleModelInput input) {
-            var payload = new MutationPayload<VehicleModel>(null);
+            MutationPayload<VehicleModel> payload = new();
             payload.Errors = await ValidateSaveVehicleModel(input);
             if (payload.Errors.Any()) {
                 return payload;
@@ -171,7 +171,7 @@ namespace SKD.Service {
             }
 
             // components required
-            if (input.ComponentStationInputs.Count() == 0) {
+            if (input.ComponentStationInputs.Count == 0) {
                 errors.Add(ErrorHelper.Create<T>(t => t.ComponentStationInputs, "components requird"));
             }
 
@@ -179,7 +179,7 @@ namespace SKD.Service {
             var duplicate_component_station_entries = input.ComponentStationInputs
                 .GroupBy(mc => new { mc.ComponentCode, mc.ProductionStationCode })
                 .Select(g => new {
-                    Key = g.Key,
+                    g.Key,
                     Count = g.Count()
                 }).Where(t => t.Count > 1).ToList();
 
@@ -193,7 +193,7 @@ namespace SKD.Service {
 
 
         public async Task<MutationPayload<VehicleModel>> CreateFromExisting(VehicleModelFromExistingInput input) {
-            var payload = new MutationPayload<VehicleModel>(null);
+            MutationPayload<VehicleModel> payload = new();
             payload.Errors = await ValidateCreateFromExisting(input);
             if (payload.Errors.Any()) {
                 return payload;
@@ -226,7 +226,7 @@ namespace SKD.Service {
 
         public async Task<List<Error>> ValidateCreateFromExisting(VehicleModelFromExistingInput input) {
             var errors = new List<Error>();
-            var validator = new Validator();
+
 
             var codeAlreadyTaken = await context.VehicleModels.AnyAsync(t => t.Code == input.Code);
             if (codeAlreadyTaken) {
@@ -240,16 +240,15 @@ namespace SKD.Service {
                 return errors;
             }
 
-            if (!validator.Valid_PCV(input.Code)) {
+            if (!Validator.Valid_PCV(input.Code)) {
                 errors.Add(new Error("", $"invalid PCV code: {input.Code}"));
             }
-
 
             return errors;
         }
 
         public async Task<MutationPayload<Kit>> SyncKfitModelComponents(string kitNo) {
-            var payload = new MutationPayload<Kit>(null);
+            MutationPayload<Kit> payload = new (null);
             payload.Errors = await ValidateSyncKitModelComponents(kitNo);
             if (payload.Errors.Any()) {
                 return payload;

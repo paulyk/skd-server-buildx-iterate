@@ -5,7 +5,7 @@ using System;
 
 namespace SKD.Seed {
     public class DbService {
-        private SkdContext ctx;
+        private readonly SkdContext ctx;
         public DbService(SkdContext ctx) {
             this.ctx = ctx;
         }

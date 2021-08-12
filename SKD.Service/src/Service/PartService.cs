@@ -12,7 +12,6 @@ namespace SKD.Service {
 
         private readonly SkdContext context;
 
-        private List<Part> PartsList = new List<Part>();
         public PartService(SkdContext ctx) {
             this.context = ctx;
         }

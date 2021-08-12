@@ -30,7 +30,7 @@ namespace SKD.Service {
             }
             Trim.TrimStringProperties<ProductionStation>(productionStation);
 
-            var payload = new MutationPayload<ProductionStation>(productionStation);
+            MutationPayload<ProductionStation> payload = new(productionStation);
 
             // validate
             payload.Errors = await ValidateCreateProductionStation<ProductionStation>(productionStation);

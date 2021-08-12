@@ -1,3 +1,5 @@
+#pragma warning disable
+
 using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +17,7 @@ namespace SKD.Server {
 
 
     public class Query {
+        private const int V = 0;
 
         IConfiguration Configuration { get; }
 
@@ -23,12 +26,16 @@ namespace SKD.Server {
         }
 
         public ConfigettingDTO GetServerConfigSettings() {
-            var planBuildLeadTimeDays = 0;
-            Int32.TryParse(Configuration[ConfigSettingKey.PlanBuildLeadTimeDays], out planBuildLeadTimeDays);
+            if (Int32.TryParse(Configuration[ConfigSettingKey.PlanBuildLeadTimeDays], out int planBuildLeadTimeDays)) {
 
+                return new ConfigettingDTO {
+                    DcwsServiceAddress = Configuration[ConfigSettingKey.DcwsServiceAddress],
+                    PlanBuildLeadTimeDays = planBuildLeadTimeDays
+                };
+            }
             return new ConfigettingDTO {
                 DcwsServiceAddress = Configuration[ConfigSettingKey.DcwsServiceAddress],
-                PlanBuildLeadTimeDays = planBuildLeadTimeDays
+                PlanBuildLeadTimeDays = 0
             };
         }
 
@@ -166,7 +173,7 @@ namespace SKD.Server {
                     ? new TimelineEventDTO {
                         EventType = TimeLineEventCode.CUSTOM_RECEIVED,
                         EventDate = customReceivedEvent != null ? customReceivedEvent.EventDate : (DateTime?)null,
-                        EventNote = customReceivedEvent != null ? customReceivedEvent.EventNote : null,
+                        EventNote = customReceivedEvent?.EventNote,
                         CreatedAt = customReceivedEvent != null ? customReceivedEvent.CreatedAt : (DateTime?)null,
                         RemovedAt = customReceivedEvent != null ? customReceivedEvent.RemovedAt : (DateTime?)null
                     }
@@ -303,7 +310,8 @@ namespace SKD.Server {
             var result = await context.LotParts
                 .Where(t => t.Lot.Bom.Id == id)
                 .GroupBy(t => new {
-                    PartNo = t.Part.PartNo, PartDesc = t.Part.PartDesc
+                    PartNo = t.Part.PartNo,
+                    PartDesc = t.Part.PartDesc
                 })
                 .Select(g => new PartQuantityDTO {
                     PartNo = g.Key.PartNo,

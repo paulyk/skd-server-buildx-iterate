@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace SKD.Service {
 
     public class MutationPayload<T> where T : class {
-        public MutationPayload(T? payload) {
+        public MutationPayload(T? payload = null) {
             Payload = payload;
         }
         public T? Payload { get; set; }

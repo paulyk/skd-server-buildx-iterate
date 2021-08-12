@@ -13,20 +13,19 @@ namespace SKD.Service {
 
     public class ComponentSerialService {
         private readonly SkdContext context;
-        private readonly DcwsSerialFormatter serialFormatter;
 
-        public ComponentSerialService(SkdContext ctx, DcwsSerialFormatter serialFormatter) {
+
+        public ComponentSerialService(SkdContext ctx) {
             this.context = ctx;
-            this.serialFormatter = serialFormatter;
         }
 
         public async Task<MutationPayload<ComponentSerialDTO>> CaptureComponentSerial(ComponentSerialInput input) {
             input = SwapSerial(input);
 
-            var payload = new MutationPayload<ComponentSerialDTO>(null);
+            MutationPayload<ComponentSerialDTO> payload = new();
 
             payload.Errors = await ValidateCaptureComponentSerial<ComponentSerialInput>(input with { });
-            if (payload.Errors.Count() > 0) {
+            if (payload.Errors.Any()) {
                 return payload;
             }
 
@@ -37,14 +36,14 @@ namespace SKD.Service {
             // Some serial1 must be formatted acording to DCWS rules
             // The following formats EN / TR serials if they need adjusting
             // Other compoent serials are returned unchanged.
-            var formatSerialResult = serialFormatter.FormatSerial(kitComponent.Component.Code, new Serials(input.Serial1, input.Serial2));
+            var formatSerialResult = DcwsSerialFormatter.FormatSerial(kitComponent.Component.Code, new Serials(input.Serial1, input.Serial2));
 
             // create
             var componentSerial = new ComponentSerial {
                 KitComponentId = input.KitComponentId,
                 Serial1 = formatSerialResult.Serials.Serial1,
                 Serial2 = formatSerialResult.Serials.Serial2,
-                
+
                 // if inputSerial1 different from formatted then set original serial 1 & 2
                 Original_Serial1 = formatSerialResult.Serials.Serial1 != input.Serial1
                     ? input.Serial1
@@ -118,9 +117,9 @@ namespace SKD.Service {
             var kitComponent = await context.KitComponents
                 .Include(t => t.Component)
                 .FirstOrDefaultAsync(t => t.Id == input.KitComponentId);
-            var formatResult = serialFormatter.FormatSerial(kitComponent.Component.Code, new Serials(input.Serial1, input.Serial2));
+            var formatResult = DcwsSerialFormatter.FormatSerial(kitComponent.Component.Code, new Serials(input.Serial1, input.Serial2));
             // set input.Serial1 to the formatted result before proceeding with the validation
-            input = input with { 
+            input = input with {
                 Serial1 = formatResult.Serials.Serial1,
                 Serial2 = formatResult.Serials.Serial2
             };
@@ -226,10 +225,10 @@ namespace SKD.Service {
                         .Any(u => u.Serial1 != input.Serial1 || u.Serial2 != input.Serial2)
                 )
                 .Select(t => new {
-                    Sequence = t.ProductionStation.Sequence,
-                    StationCode = t.ProductionStation.Code,
-                    Serial1 = t.ComponentSerials.Where(u => u.RemovedAt == null).First().Serial1,
-                    Serial2 = t.ComponentSerials.Where(u => u.RemovedAt == null).First().Serial2,
+                    t.ProductionStation.Sequence,
+                    t.ProductionStation.Code,
+                    t.ComponentSerials.Where(u => u.RemovedAt == null).First().Serial1,
+                    t.ComponentSerials.Where(u => u.RemovedAt == null).First().Serial2,
                 })
                 .ToListAsync();
 
@@ -237,7 +236,7 @@ namespace SKD.Service {
                 var entry = prior_kit_components_with_same_compoent_code_different_serial_numbers
                     .OrderByDescending(t => t.Sequence)
                     .Last();
-                var text = $"serial does not match previous station: {entry.StationCode}, {entry.Serial1}, {entry.Serial2}";
+                var text = $"serial does not match previous station: {entry.Code}, {entry.Serial1}, {entry.Serial2}";
                 errors.Add(new Error("", text.Trim(' ', ',')));
                 return errors;
             }
@@ -245,7 +244,7 @@ namespace SKD.Service {
             return errors;
         }
 
-        private ComponentSerialInput SwapSerial(ComponentSerialInput input) {
+        private static ComponentSerialInput SwapSerial(ComponentSerialInput input) {
             input = input with {
                 Serial1 = input.Serial1 is null or "" ? "" : input.Serial1,
                 Serial2 = input.Serial2 is null or "" ? "" : input.Serial2
@@ -270,7 +269,7 @@ namespace SKD.Service {
                 throw new Exception("EN Component only");
             }
 
-            var formatResult = serialFormatter.FormatSerial(cs.KitComponent.Component.Code, new Serials(cs.Serial1, cs.Serial2));
+            var formatResult = DcwsSerialFormatter.FormatSerial(cs.KitComponent.Component.Code, new Serials(cs.Serial1, cs.Serial2));
             if (!formatResult.Success) {
                 throw new Exception("Could not trasform: " + formatResult.Message);
             }
@@ -315,7 +314,7 @@ namespace SKD.Service {
                 return (KitComponentSerialInfo?)null;
             }
 
-            var result = new KitComponentSerialInfo {            
+            var result = new KitComponentSerialInfo {
                 ComponentCode = data[0].ComponentCode,
                 ComponentName = data[0].ComponentCode,
                 RemovedAt = data[0].RemvoedAt,

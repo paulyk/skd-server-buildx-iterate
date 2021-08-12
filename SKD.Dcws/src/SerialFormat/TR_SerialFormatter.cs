@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace SKD.Dcws {
 
-    public record MatchVarientResult(TR_Varient Varient, Serials serials);
+    public record MatchVarientResult(TR_Varient Varient, Serials Serials);
     public enum TR_Variant_Type {
         V_6R80,
         V_10R80,
@@ -22,11 +22,11 @@ namespace SKD.Dcws {
 
     public class TR_SerialFormatter {
 
-        SerialUtil serialUtil = new SerialUtil();
+        readonly SerialUtil serialUtil = new();
 
-        public static string NO_MATCHIN_TR_VARIENT = "No matching TR variant";
+        public static readonly string NO_MATCHIN_TR_VARIENT = "No matching TR variant";
 
-        public List<TR_Varient> TR_Varients = new List<TR_Varient> {
+        public List<TR_Varient> TR_Varients = new () {
             new TR_Varient {
                 VarientType = TR_Variant_Type.V_6R80,
                 Match_Serial1_Regex = @"^(\w+)\s+(\w+)\s+(\w+)\s+(\w+)\s+(\w+)\s+(\w+)\s+$",
@@ -68,7 +68,6 @@ namespace SKD.Dcws {
             if (!matchesOutputFormat) {
                 throw new Exception("Did not match outptut format");
             }
-
 
             return new SerialFormatResult(new Serials(formattedSerial, ""), true, "");
         }

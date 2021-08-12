@@ -90,11 +90,5 @@ namespace SKD.Service {
             };
             return lineBuilder.Build(fields);
         }
-
-        private string BuildFilename(KitVinImport kitVinImport) {
-            var formattedDate = DateTime.UtcNow.ToString(KitVinAckLayout.Header.HDR_BATCH_DATE_FORMAT);
-            var prefix = KitVinAckLayout.Header.HDR_FILE_NAME_VAL;
-            return $"{prefix}_{kitVinImport.Plant.Code}_{kitVinImport.Plant.PartnerPlantCode}_{formattedDate}.txt";
-        }
     }
 }

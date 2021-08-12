@@ -107,13 +107,7 @@ namespace SKD.Server {
         public async Task<MutationPayload<LotPartDTO>> CreateLotPartQuantityReceived(
             [Service] LotPartService service,
             ReceiveLotPartInput input
-        ) => await service.CreateLotPartQuantityReceived(input);
-
-        private Guid ToGuid(string str) {
-            Guid gOut;
-            Guid.TryParse(str, out gOut);
-            return gOut;
-        }
+        ) => await service.CreateLotPartQuantityReceived(input);      
 
         public async Task<MutationPayload<DcwsResponse>> VerifyComponentSerial(
             [Service] DcwsService dcwsService,

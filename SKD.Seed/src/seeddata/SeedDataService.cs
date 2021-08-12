@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace SKD.Seed {
     public class SeedDataService {
 
-        SkdContext ctx;
+        readonly SkdContext ctx;
         public SeedDataService(SkdContext ctx) {
             this.ctx = ctx;
         }
@@ -19,14 +19,13 @@ namespace SKD.Seed {
             var dbService = new DbService(ctx);
             await dbService.MigrateDb();
 
-            if (await ctx.KitTimelineEventTypes.CountAsync() > 0) {
+            if (await ctx.KitTimelineEventTypes.AnyAsync()) {
                 // already seeded
                 return;
             }
 
-            // seed
-            var seedDataPath = Path.Combine(Directory.GetCurrentDirectory(), "src/json");
-            var seedData = new SeedData(seedDataPath);
+            // seed            
+            var seedData = new SeedData();
 
             var generator = new SeedDataGenerator(ctx);
             await generator.Seed_VehicleTimelineVentType();

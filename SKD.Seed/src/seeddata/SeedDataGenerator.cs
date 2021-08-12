@@ -8,7 +8,7 @@ using System.Transactions;
 
 namespace SKD.Seed {
     internal class SeedDataGenerator {
-        private SkdContext ctx;
+        private readonly SkdContext ctx;
 
         public SeedDataGenerator(SkdContext ctx) {
             this.ctx = ctx;
@@ -47,9 +47,9 @@ namespace SKD.Seed {
 
         public async Task Seed_ProductionStations(ICollection<ProductionStation_Mock_DTO> data) {
             var stations = data.ToList().Select(x => new ProductionStation() {
-                Code = x.code,
-                Name = x.name,
-                Sequence = x.sortOrder,
+                Code = x.Code,
+                Name = x.Name,
+                Sequence = x.SortOrder,
                 CreatedAt = Util.RandomDateTime(DateTime.UtcNow)
             });
 
@@ -58,8 +58,8 @@ namespace SKD.Seed {
         }
         public async Task Seed_Components(ICollection<Component_MockData_DTO> componentData) {
             var components = componentData.ToList().Select(x => new Component() {
-                Code = x.code,
-                Name = x.name,
+                Code = x.Code,
+                Name = x.Name,
                 CreatedAt = Util.RandomDateTime(DateTime.UtcNow)
             });
 
@@ -69,9 +69,9 @@ namespace SKD.Seed {
             Console.WriteLine($"Added {ctx.Components.Count()} components");
         }
 
-        private string UnderscoreToPascalCase(string input) {
+        private static string UnderscoreToPascalCase(string input) {
             var str = input.Split("_").Aggregate((x, y) => x + "  " + y);
-            return str.Substring(0, 1).ToUpper() + str.Substring(1).ToLower();
+            return str.Substring(0, 1).ToUpper() + str[1..].ToLower();
         }
 
     }

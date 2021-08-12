@@ -15,7 +15,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        private async Task can_save_new_production_station() {
+        public async Task Can_save_new_production_station() {
             var service = new ProductionStationService(context);
             var productionStationDTO = new ProductionStationInput() {
                 Code = Util.RandomString(EntityFieldLen.ProductionStation_Code),
@@ -32,7 +32,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        private async Task can_update_new_production_station() {
+        public async Task Can_update_new_production_station() {
             var service = new ProductionStationService(context);
             var productionStationDTO = new ProductionStationInput() {
                 Code = Util.RandomString(EntityFieldLen.ProductionStation_Code),
@@ -64,7 +64,7 @@ namespace SKD.Test {
 
 
         [Fact]
-        private async Task cannot_add_duplicate_production_station() {
+        public async Task Cannot_add_duplicate_production_station() {
             // setup
             var service = new ProductionStationService(context);
 
@@ -90,7 +90,7 @@ namespace SKD.Test {
             var count_3 = context.ProductionStations.Count();
             Assert.Equal(count_2, count_3);
 
-            var errorCount = payload2.Errors.Count();
+            var errorCount = payload2.Errors.Count;
             Assert.Equal(2, errorCount);
 
             var duplicateCode = payload2.Errors.Any(e => e.Message == "duplicate code");

@@ -12,9 +12,9 @@ using SKD.Common;
 namespace SKD.Test {
     public class KitSnapshotServiceTest : TestBase {
 
-        string engineCode = "EN";
-        int wholeSateCutOffDays = 7;
-        int planBuildLeadTimeDays = 2;
+        readonly string  engineCode = "EN";
+        readonly int wholeSateCutOffDays = 7;
+        readonly int planBuildLeadTimeDays = 2;
 
         public KitSnapshotServiceTest() {
             context = GetAppDbContext();
@@ -22,7 +22,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task can_generate_snapshot() {
+        public async Task Can_generate_snapshot() {
             // setup
             var baseDate = DateTime.Now.Date;
             var custom_receive_date = baseDate.AddDays(1);
@@ -61,7 +61,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task can_create_full_snapshot_timeline() {
+        public async Task Can_create_full_snapshot_timeline() {
             var baseDate = DateTime.Now.Date;
             var dates = new List<(TimelineTestEvent eventType, DateTime date)>() {
                 (TimelineTestEvent.BEFORE, baseDate ),
@@ -191,7 +191,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task creates_original_plan_build_date_only_once() {
+        public async Task Creates_original_plan_build_date_only_once() {
             // setup
             var service = new KitSnapshotService(context);
             var snapshotInput = new KitSnapshotInput {
@@ -259,7 +259,7 @@ namespace SKD.Test {
         /// THe next snapshot generated selects the timline event status based on KitTimelineEventType sequence
         ///</remarks>
         [Fact]
-        public async Task kit_can_have_multiple_timeline_events_before_first_snapshot() {
+        public async Task Kit_can_have_multiple_timeline_events_before_first_snapshot() {
             // setup
             var plantCode = context.Plants.Select(t => t.Code).First();
             var baseDate = DateTime.Now.Date;
@@ -391,7 +391,7 @@ namespace SKD.Test {
 
 
         [Fact]
-        public async Task cannot_generate_snapshot_with_same_run_date() {
+        public async Task Cannot_generate_snapshot_with_same_run_date() {
             // setup
             var kit = context.Kits.OrderBy(t => t.KitNo).First();
 
@@ -421,7 +421,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task generate_snapshot_with_same_plant_code_increments_sequence() {
+        public async Task Generate_snapshot_with_same_plant_code_increments_sequence() {
             // setup 
             var baseDate = DateTime.Now.Date;
 
@@ -479,7 +479,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task cannot_add_timline_event_if_snapshot_already_generated_with_that_event() {
+        public async Task Cannot_add_timline_event_if_snapshot_already_generated_with_that_event() {
 
             // setup
             var service = new KitSnapshotService(context);
@@ -495,25 +495,25 @@ namespace SKD.Test {
             };
 
             var expecedErrorMessage = "cannot change date after snapshot taken";
-            foreach (var entry in eventList) {
+            foreach (var (eventType,trxDate, eventDate ) in eventList) {
 
-                var payload = await AddKitTimelineEntry(entry.eventType, kit.KitNo, "", entry.trxDate, entry.eventDate);
-                var actualErrorCount = payload.Errors.Count();
+                var payload = await AddKitTimelineEntry(eventType, kit.KitNo, "", trxDate, eventDate);
+                var actualErrorCount = payload.Errors.Count;
                 Assert.Equal(0, actualErrorCount);
                 await service.GenerateSnapshot(new KitSnapshotInput {
                     PlantCode = plantCode,
-                    RunDate = entry.trxDate,
+                    RunDate = trxDate,
                     EngineComponentCode = engineCode
                 });
                 // edit date
-                var payload_2 = await AddKitTimelineEntry(entry.eventType, kit.KitNo, "", entry.trxDate.AddDays(1), entry.eventDate.AddDays(1));
+                var payload_2 = await AddKitTimelineEntry(eventType, kit.KitNo, "", trxDate.AddDays(1), eventDate.AddDays(1));
                 var actualErrorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
                 Assert.Equal(expecedErrorMessage, actualErrorMessage);
             }
         }
 
         [Fact]
-        public async Task can_get_vehicle_snapshot_dates() {
+        public async Task Can_get_vehicle_snapshot_dates() {
             // setup
             var plantCode = context.Plants.Select(t => t.Code).First();
             var baseDate = DateTime.Now.Date;
@@ -562,7 +562,7 @@ namespace SKD.Test {
         }
 
         #region test helper methods
-        private async Task<List<KitSnapshotRunDTO.Entry>> GetVehiclePartnerStatusReport(
+        public async Task<List<KitSnapshotRunDTO.Entry>> GetVehiclePartnerStatusReport(
             string plantCode,
             string engineComponentCode,
             DateTime date) {
@@ -579,7 +579,7 @@ namespace SKD.Test {
             return payload.Entries.ToList();
         }
 
-        private async Task<MutationPayload<KitTimelineEvent>> AddKitTimelineEntry(
+        public async Task<MutationPayload<KitTimelineEvent>> AddKitTimelineEntry(
             TimeLineEventCode eventType,
             string kitNo,
             string eventNote,

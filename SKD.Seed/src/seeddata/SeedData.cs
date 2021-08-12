@@ -14,13 +14,16 @@ namespace SKD.Seed {
         public ICollection<CmponentStation_McckData_DTO> ComponentStation_MockData;
         public ICollection<ProductionStation_Mock_DTO> ProductionStation_MockData;
 
-        public SeedData(string dirPath) {
-            Component_MockData = JsonSerializer.Deserialize<List<Component_MockData_DTO>>(Components_JSON.Replace("'", "\""));
-            ProductionStation_MockData = JsonSerializer.Deserialize<List<ProductionStation_Mock_DTO>>(ProductionStations_JSON.Replace("'", "\""));
-            ComponentStation_MockData = JsonSerializer.Deserialize<List<CmponentStation_McckData_DTO>>(ComponentStationMapping_JSON.Replace("'", "\""));          
+        public SeedData() {
+            var options = new JsonSerializerOptions {
+              PropertyNameCaseInsensitive = true              
+            };
+            Component_MockData = JsonSerializer.Deserialize<List<Component_MockData_DTO>>(Components_JSON.Replace("'", "\""),options);
+            ProductionStation_MockData = JsonSerializer.Deserialize<List<ProductionStation_Mock_DTO>>(ProductionStations_JSON.Replace("'", "\""),options);
+            ComponentStation_MockData = JsonSerializer.Deserialize<List<CmponentStation_McckData_DTO>>(ComponentStationMapping_JSON.Replace("'", "\""), options);          
         }
 
-        private string Components_JSON = @"
+        private readonly string Components_JSON = @"
   [
        {'code':'DA','name':'Driver Airbag'}
       ,{'code':'DKA','name':'Driver Knee Airbag'}
@@ -39,7 +42,7 @@ namespace SKD.Seed {
       ,{'code':'VIN','name':'Marry Body & Frame Check'}
   ]
 ";
- private string ComponentStationMapping_JSON = @"
+ private readonly string ComponentStationMapping_JSON = @"
  
  [
   {
@@ -111,7 +114,7 @@ namespace SKD.Seed {
  ";
 
 
-        private string ProductionStations_JSON = @"
+        private readonly string  ProductionStations_JSON = @"
 [
   {
     'code': 'FRM10',

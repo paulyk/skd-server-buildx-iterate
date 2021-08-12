@@ -4,7 +4,7 @@ using static ServiceReference.HTTPDataCollectionSoapClient;
 
 namespace SKD.Dcws {
     public class DcwsService {
-        private HTTPDataCollectionSoapClient client;
+        private readonly HTTPDataCollectionSoapClient client;
 
         public DcwsService(string serviceAddress) {
             this.client = new HTTPDataCollectionSoapClient(EndpointConfiguration.HTTPDataCollectionSoap, serviceAddress);

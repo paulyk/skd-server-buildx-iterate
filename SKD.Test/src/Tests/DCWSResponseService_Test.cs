@@ -14,7 +14,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task can_create_dcws_response() {
+        public async Task Can_create_dcws_response() {
             // setup
             var vehicle = context.Kits.First();
             var vehicleComponent = vehicle.KitComponents.First();
@@ -29,7 +29,7 @@ namespace SKD.Test {
             };
             var payload = await service.SaveDcwsComponentResponse(input);
             // assert
-            Assert.True(payload.Errors.Count() == 0, "error count should be 0");
+            Assert.True(payload.Errors.Count == 0, "error count should be 0");
             var responseCoount = context.DCWSResponses.Count();
             Assert.True(responseCoount == 1, "should have 1 DCWSResponse entry");
 
@@ -42,7 +42,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task previous_dcws_response_codes_marked_removed_when_new_one_submitted() {
+        public async Task Previous_dcws_response_codes_marked_removed_when_new_one_submitted() {
             // setup
             var vehicle = context.Kits.First();
             var vehicleComponent = vehicle.KitComponents.First();
@@ -68,7 +68,7 @@ namespace SKD.Test {
             var csr = await context.ComponentSerials.Include(t => t.DcwsResponses)
                 .FirstOrDefaultAsync(t => t.Id == comonentSerial.Id);
 
-            var dcws_resposne_count = csr.DcwsResponses.Count();
+            var dcws_resposne_count = csr.DcwsResponses.Count;
             Assert.Equal(2, dcws_resposne_count);
 
             var by_date = csr.DcwsResponses.OrderByDescending(t => t.CreatedAt).ToList();
@@ -81,7 +81,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task ignores_dcws_response_if_matches_latest_entry() {
+        public async Task Ignores_dcws_response_if_matches_latest_entry() {
             var vehicle = context.Kits.First();
             var vehicleComponent = vehicle.KitComponents.First();
             var comonentSerial = Gen_ComponentScan(vehicleComponent.Id);
@@ -100,7 +100,7 @@ namespace SKD.Test {
             var csr = await context.ComponentSerials.Include(t => t.DcwsResponses)
               .FirstOrDefaultAsync(t => t.Id == comonentSerial.Id);
 
-            var dcws_resposne_count = csr.DcwsResponses.Count();
+            var dcws_resposne_count = csr.DcwsResponses.Count;
             Assert.Equal(1, dcws_resposne_count);
         }
     }

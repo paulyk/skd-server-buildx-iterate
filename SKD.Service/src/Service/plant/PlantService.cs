@@ -18,7 +18,7 @@ namespace SKD.Service {
         }
 
         public async Task<MutationPayload<PlantOverviewDTO>> CreatePlant(PlantInput input) {
-            var paylaod = new MutationPayload<PlantOverviewDTO>(null);
+            MutationPayload<PlantOverviewDTO> paylaod = new ();
             paylaod.Errors = await ValidateCreatePlant(input);
             if (paylaod.Errors.Any()) {
                 return paylaod;

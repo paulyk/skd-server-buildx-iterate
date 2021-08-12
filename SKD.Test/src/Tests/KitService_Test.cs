@@ -10,14 +10,14 @@ using System.Threading.Tasks;
 namespace SKD.Test {
     public class KitServiceTest : TestBase {
 
-        int planBuildLeadTimeDays = 2;
+        readonly int planBuildLeadTimeDays = 2;
         public KitServiceTest() {
             context = GetAppDbContext();
             Gen_Baseline_Test_Seed_Data();
         }
 
         [Fact]
-        public async Task can_import_kit_vin() {
+        public async Task Can_import_kit_vin() {
             // setup
             var lot = context.Lots.First();
             var plant = context.Plants.First();
@@ -37,7 +37,7 @@ namespace SKD.Test {
 
             // test
             var kits = await context.Kits.Where(t => t.Lot.LotNo == lot.LotNo).ToListAsync();
-            var lot_vehicles_count = kits.Count();
+            var lot_vehicles_count = kits.Count;
             var with_vin_count = kits.Count(t => t.VIN != "");
             Assert.True(0 == with_vin_count);
 
@@ -49,7 +49,7 @@ namespace SKD.Test {
             Assert.NotNull(kitVinImport);
 
             var kitvin_count = await context.KitVins.CountAsync(t => t.KitVinImportId == kitVinImport.Id);
-            var expected_count = input.Kits.Count();
+            var expected_count = input.Kits.Count;
             Assert.True(expected_count == kitvin_count);
 
             // partner code
@@ -61,7 +61,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task cannot_import_kit_vins_if_kits_not_found() {
+        public async Task Cannot_import_kit_vins_if_kits_not_found() {
             // setup
             var lot = context.Lots.First();
             var plant = context.Plants.First();
@@ -92,7 +92,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task cannot_import_kit_vins_with_kits_in_payload() {
+        public async Task Cannot_import_kit_vins_with_kits_in_payload() {
             // setup
             var lot = context.Lots.First();
             var plant = context.Plants.First();
@@ -128,8 +128,8 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task can_create_kit_timeline_events() {
-            var baseDate= DateTime.Now.Date;
+        public async Task Can_create_kit_timeline_events() {
+            var baseDate = DateTime.Now.Date;
             // setup        
             var timelineEvents = new List<(TimeLineEventCode eventType, DateTime eventDate)>() {
                 (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(-5)),
@@ -165,7 +165,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task error_if_custom_receive_date_greater_than_current_date() {
+        public async Task Error_if_custom_receive_date_greater_than_current_date() {
 
             // test
             var kit = context.Kits.First();
@@ -194,12 +194,12 @@ namespace SKD.Test {
             var actualMessage = payload_1.Errors.Select(t => t.Message).FirstOrDefault();
             Assert.Equal(expectedError, actualMessage);
 
-            var errorCount = payload_2.Errors.Count();
+            var errorCount = payload_2.Errors.Count;
             Assert.Equal(0, errorCount);
         }
 
         [Fact]
-        public async Task cannot_create_kit_timeline_events_out_of_sequence() {
+        public async Task Cannot_create_kit_timeline_events_out_of_sequence() {
             // setup
             var baseDate = DateTime.Now.Date;
             var timelineEvents = new List<(TimeLineEventCode eventType, DateTime trxDate, DateTime eventDate)>() {
@@ -212,13 +212,13 @@ namespace SKD.Test {
             KitService service = null;
             var payloads = new List<MutationPayload<KitTimelineEvent>>();
 
-            foreach (var entry in timelineEvents) {
+            foreach (var (eventType, eventDate, trxDate ) in timelineEvents) {
                 var input = new KitTimelineEventInput {
                     KitNo = kit.KitNo,
-                    EventType = entry.eventType,
-                    EventDate = entry.eventDate,
+                    EventType = eventType,
+                    EventDate = eventDate,
                 };
-                service = new KitService(context, entry.trxDate, planBuildLeadTimeDays);
+                service = new KitService(context, trxDate, planBuildLeadTimeDays);
                 var payload = await service.CreateKitTimelineEvent(input);
                 payloads.Add(payload);
             }
@@ -232,7 +232,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task create_kit_timeline_event_with_note() {
+        public async Task Create_kit_timeline_event_with_note() {
             // setup
             var kit = context.Kits.First();
             var eventNote = "DLR_9977";
@@ -274,7 +274,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task create_kit_timline_event_removes_prior_events_of_the_same_type() {
+        public async Task Create_kit_timline_event_removes_prior_events_of_the_same_type() {
             // setup
             var kit = context.Kits.First();
             var before_count = context.KitTimelineEvents.Count();
@@ -312,7 +312,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task cannot_add_duplicate_kit_timline_event_if_same_type_and_date_and_note() {
+        public async Task Cannot_add_duplicate_kit_timline_event_if_same_type_and_date_and_note() {
             // setup
             var kit = context.Kits.First();
 
@@ -349,12 +349,12 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task can_create_kit_timeline_event_by_lot() {
+        public async Task Can_create_kit_timeline_event_by_lot() {
             // setup
             var vehicleLot = context.Lots
                 .Include(t => t.Kits)
                 .First();
-            var vehicleCoount = vehicleLot.Kits.Count();
+            var vehicleCoount = vehicleLot.Kits.Count;
 
             var baseDate = DateTime.Now.Date;
             var eventDate = baseDate.AddDays(-10);
@@ -377,7 +377,7 @@ namespace SKD.Test {
                 .Include(t => t.Kit)
                 .Include(t => t.EventType).ToList();
 
-            var timelineEventCount = timelineEvents.Count();
+            var timelineEventCount = timelineEvents.Count;
             Assert.Equal(vehicleCoount, timelineEventCount);
 
             foreach (var timelineEvent in timelineEvents) {
@@ -387,7 +387,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task cannot_create_kit_timeline_event_by_lot_with_dupliate_date() {
+        public async Task Cannot_create_kit_timeline_event_by_lot_with_dupliate_date() {
             // setup
             var lot = context.Lots.First();
 
@@ -410,7 +410,7 @@ namespace SKD.Test {
             Assert.Equal(0, errorCount);
 
             var payload_2 = await service.CreateLotTimelineEvent(input);
-            var errorCount_2 = payload_2.Errors.Count();
+            var errorCount_2 = payload_2.Errors.Count;
             Assert.Equal(1, errorCount_2);
 
             var errorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
@@ -420,7 +420,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task cannot_create_lot_custom_receive_with_date_6_months_ago() {
+        public async Task Cannot_create_lot_custom_receive_with_date_6_months_ago() {
             // setup
             var lot = context.Lots.First();
 
@@ -444,7 +444,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task can_change_kit_component_production_station() {
+        public async Task Can_change_kit_component_production_station() {
             // setup
             var kit = await context.Kits
                 .Include(t => t.KitComponents).ThenInclude(t => t.ProductionStation)
@@ -468,7 +468,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task kit_model_component_diff_works() {
+        public async Task Kit_model_component_diff_works() {
 
             // setup
             var service = new VehicleModelService(context);
@@ -518,7 +518,7 @@ namespace SKD.Test {
 
 
         [Fact]
-        public async Task can_sync_kit_model_components_if_model_component_removed() {
+        public async Task Can_sync_kit_model_components_if_model_component_removed() {
             // setup
             var model = await context.VehicleModels.FirstOrDefaultAsync();
             await RemoveOneComponentFromModel(model);
@@ -539,7 +539,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task can_sync_kit_model_components_if_kit_component_removed() {
+        public async Task Can_sync_kit_model_components_if_kit_component_removed() {
             // setup
             var kit = await context.Kits
                 .Include(t => t.KitComponents)

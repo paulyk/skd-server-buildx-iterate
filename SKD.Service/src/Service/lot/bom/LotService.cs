@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using SKD.Common;
 using SKD.Model;
 
-namespace SKD.Service{
+namespace SKD.Service {
 
     public class LotService {
         private readonly SkdContext context;
@@ -22,7 +22,7 @@ namespace SKD.Service{
         /// Import lot part and quantity associated with a BOM  sequence
         ///</summary>
         public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotParts(BomLotPartDTO input) {
-            var payload = new MutationPayload<BomOverviewDTO>(null);
+            MutationPayload<BomOverviewDTO> payload = new();
             payload.Errors = await ValidateVehicleLotPartsInput<BomLotPartDTO>(input);
             if (payload.Errors.Count > 0) {
                 return payload;
@@ -161,7 +161,7 @@ namespace SKD.Service{
         /// Import vehicle lot and kits associated with a plant and BOM sequence
         ///</summary>
         public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotKits(BomLotKitDTO input) {
-            var payload = new MutationPayload<BomOverviewDTO>(null);
+            MutationPayload<BomOverviewDTO> payload = new ();
             payload.Errors = await ValidateBomLotKitInput<BomLotKitDTO>(input);
             if (payload.Errors.Count > 0) {
                 return payload;
@@ -223,8 +223,7 @@ namespace SKD.Service{
             }
 
             // validate lotNo format
-            var validator = new Validator();
-            if (input.LotParts.Any(t => !validator.Valid_LotNo(t.LotNo))) {
+            if (input.LotParts.Any(t => !Validator.Valid_LotNo(t.LotNo))) {
                 errors.Add(new Error("", "lot numbers with invalid format found"));
                 return errors;
             }
@@ -303,14 +302,13 @@ namespace SKD.Service{
             }
 
             // validate lotNo format
-            var validator = new Validator();
-            if (input.Lots.Any(t => !validator.Valid_LotNo(t.LotNo))) {
+            if (input.Lots.Any(t => !Validator.Valid_LotNo(t.LotNo))) {
                 errors.Add(new Error("", "lot numbers  with invalid format found"));
                 return errors;
             }
 
             // validate kitNo format
-            if (input.Lots.Any(t => t.Kits.Any(k => !validator.Valid_KitNo(k.KitNo)))) {
+            if (input.Lots.Any(t => t.Kits.Any(k => !Validator.Valid_KitNo(k.KitNo)))) {
                 errors.Add(new Error("", "kit numbers with invalid format found"));
                 return errors;
             }
@@ -345,7 +343,7 @@ namespace SKD.Service{
                     Id = t.Id,
                     PlantCode = t.Plant.Code,
                     Sequence = t.Sequence,
-                    LotCount = t.Lots.Count(),
+                    LotCount = t.Lots.Count,
                     PartCount = t.Lots.SelectMany(u => u.LotParts).Select(u => u.Part).Distinct().Count(),
                     VehicleCount = t.Lots.SelectMany(u => u.Kits).Count(),
                     CreatedAt = t.CreatedAt
@@ -362,7 +360,7 @@ namespace SKD.Service{
                     Id = t.Id,
                     PlantCode = t.Plant.Code,
                     Sequence = t.Sequence,
-                    LotCount = t.Lots.Count(),
+                    LotCount = t.Lots.Count,
                     PartCount = t.Lots.SelectMany(u => u.LotParts).Select(u => u.Part).Distinct().Count(),
                     VehicleCount = t.Lots.SelectMany(u => u.Kits).Count(),
                     CreatedAt = t.CreatedAt
@@ -379,7 +377,7 @@ namespace SKD.Service{
                     Id = t.Id,
                     PlantCode = t.Plant.Code,
                     Sequence = t.Sequence,
-                    LotCount = t.Lots.Count(),
+                    LotCount = t.Lots.Count,
                     PartCount = t.Lots.SelectMany(u => u.LotParts).Select(u => u.Part).Distinct().Count(),
                     VehicleCount = t.Lots.SelectMany(u => u.Kits).Count(),
                     CreatedAt = t.CreatedAt
@@ -391,7 +389,7 @@ namespace SKD.Service{
 
         #region lot note
         public async Task<MutationPayload<Lot>> SetLotNote(LotNoteInput input) {
-            var paylaod = new MutationPayload<Lot>(null);
+            MutationPayload<Lot> paylaod = new();
             paylaod.Errors = await ValidateSetLotNote(input);
             if (paylaod.Errors.Any()) {
                 return paylaod;

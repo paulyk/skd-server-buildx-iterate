@@ -11,7 +11,7 @@ using SKD.Common;
 namespace SKD.Test {
     public class BomFileParser_Test : TestBase {
 
-        private string BomFileText =
+        private readonly string BomFileText =
 @" HEADERHPUDABRIG2-7A20201222123231WSPA91366A0063CMMS3AMA
 DTLBPA0A0F21028001012021-01-28200WSPA9TKDCATCH PART            CAT   YL84- 58024A38-HAA     -                                     0000000003.00000
 DTLBPA0A0F21028001012021-01-28200WSPA9TKDCABIN01               KIT   AB39-    5A216-AB      -   PIP-MFLR INLT INTERM              0000000001.00000
@@ -24,7 +24,7 @@ DTLBPA0A0F21028001022021-01-28200WSPA9TKDCABIN01               KIT   EB3B-    16
 
 
         [Fact]
-        public void can_parse_bom_file_header() {
+        public void Can_parse_bom_file_header() {
             // setup
             var lineBuilder = new FlatFileLine<BomFileLayout.Header>();
             var headerLineText = BomFileText.Split('\n').First();
@@ -39,11 +39,11 @@ DTLBPA0A0F21028001022021-01-28200WSPA9TKDCABIN01               KIT   EB3B-    16
         }
 
         [Fact]
-        public void can_build_bom_lot_kit_input() {
+        public void Can_build_bom_lot_kit_input() {
             var parser = new BomFileParser();
             var payload = parser.BuildBomLotKitInput(BomFileText);
 
-            var lotCount = payload.Payload.Lots.Count();
+            var lotCount = payload.Payload.Lots.Count;
             Assert.Equal(1, lotCount);
 
             var kitCount = payload.Payload.Lots.SelectMany(t => t.Kits).Count();
@@ -51,11 +51,11 @@ DTLBPA0A0F21028001022021-01-28200WSPA9TKDCABIN01               KIT   EB3B-    16
         }
 
         [Fact]
-        public void can_build_bom_lot_part_input() {
+        public void Can_build_bom_lot_part_input() {
             var parser = new BomFileParser();
             var payload = parser.BuildBomLotPartInput(BomFileText);
 
-            var partsCount = payload.Payload.LotParts.Count();
+            var partsCount = payload.Payload.LotParts.Count;
             Assert.Equal(4, partsCount);
         }
     }

@@ -18,7 +18,7 @@ namespace SKD.Common  {
             }
 
             if (memberExpression == null) {
-                throw new ArgumentException("Not a member access", "expression");
+                throw new ArgumentException("Not a member access", nameof(expression));
             }
 
             return memberExpression.Member;

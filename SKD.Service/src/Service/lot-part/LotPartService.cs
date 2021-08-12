@@ -18,7 +18,7 @@ namespace SKD.Service {
         }
 
         public async Task<MutationPayload<LotPartDTO>> CreateLotPartQuantityReceived(ReceiveLotPartInput input) {
-            var paylaod = new MutationPayload<LotPartDTO>(null);
+            MutationPayload<LotPartDTO> paylaod = new ();
             paylaod.Errors = await ValidateCreateLotPartReceipt(input);
             if (paylaod.Errors.Any()) {
                 return paylaod;

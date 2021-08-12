@@ -16,7 +16,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        private async Task can_save_new_component() {
+        public async Task Can_save_new_component() {
             var service = new ComponentService(context);
             var input = new ComponentInput() {
                 Code = Util.RandomString(EntityFieldLen.Component_Code),
@@ -33,7 +33,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        private async Task can_set_component_serial_requirement() {
+        public async Task Can_set_component_serial_requirement() {
             var service = new ComponentService(context);
             var input = new ComponentInput() {
                 Code = Util.RandomString(EntityFieldLen.Component_Code),
@@ -56,7 +56,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        private async Task can_update_component() {
+        public async Task Can_update_component() {
             // setup
             Gen_Components(Gen_ComponentCode(), Gen_ComponentCode());
 
@@ -89,7 +89,7 @@ namespace SKD.Test {
 
 
         [Fact]
-        private async Task can_save_multiple_component() {
+        public async Task Can_save_multiple_component() {
             var before_count = context.Components.Count();
             var componentService = new ComponentService(context);
 
@@ -107,7 +107,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        private async Task can_modify_componetn_code() {
+        public async Task Can_modify_componetn_code() {
             // setup
             Gen_Components(Gen_ComponentCode(), Gen_ComponentCode());
             var component = await context.Components.FirstOrDefaultAsync();
@@ -121,13 +121,13 @@ namespace SKD.Test {
                 Name = component.Name
             });
 
-            var errorCount = payload.Errors.Count();
+            var errorCount = payload.Errors.Count;
             Assert.Equal(0, errorCount);
             Assert.Equal(newCode, payload.Payload.Code);
         }
 
         [Fact]
-        private async Task can_remove_componet() {
+        public async Task Can_remove_componet() {
             var service = new ComponentService(context);
             var before_count = context.Components.Count();
 
@@ -142,12 +142,12 @@ namespace SKD.Test {
             Assert.Equal(before_count + 1, after_count);
             Assert.Null(payload.Payload.RemovedAt);
 
-            var payload2 = await service.RemoveComponent(payload.Payload.Id);
+            await service.RemoveComponent(payload.Payload.Id);
             Assert.NotNull(payload.Payload.RemovedAt);
         }
 
         [Fact]
-        private async Task can_restore_componet() {
+        public async Task Can_restore_componet() {
             var service = new ComponentService(context);
 
             // setup
@@ -164,12 +164,12 @@ namespace SKD.Test {
             Assert.NotNull(payload.Payload.RemovedAt);
 
             // test
-            var payload3 = service.RestoreComponent(payload2.Payload.Id);
+            await service.RestoreComponent(payload2.Payload.Id);
             Assert.Null(payload.Payload.RemovedAt);
         }
 
         [Fact]
-        private async Task validate_component_warns_duplicate_code() {
+        public async Task Validate_component_warns_duplicate_code() {
             // setup
             Gen_Components(Gen_ComponentCode(), Gen_ComponentCode());
 
@@ -185,14 +185,14 @@ namespace SKD.Test {
             var errors = await service.ValidateCreateComponent<ComponentInput>(input);
 
             // assert
-            var errorCount = errors.Count();
+            var errorCount = errors.Count;
             Assert.Equal(1, errorCount);
 
             Assert.Equal("duplicate code", errors.First().Message);
         }
 
         [Fact]
-        private async Task validate_component_warns_duplicate_name() {
+        public async Task Validate_component_warns_duplicate_name() {
             // setup
             Gen_Components(Gen_ComponentCode(), Gen_ComponentCode());
 
@@ -208,7 +208,7 @@ namespace SKD.Test {
             var errors = await service.ValidateCreateComponent<ComponentInput>(input);
 
             // assert
-            var errorCount = errors.Count();
+            var errorCount = errors.Count;
             Assert.Equal(1, errorCount);
 
             Assert.Equal("duplicate name", errors.First().Message);

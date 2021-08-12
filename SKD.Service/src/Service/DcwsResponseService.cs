@@ -21,7 +21,7 @@ namespace SKD.Service {
         }
 
         public async Task<MutationPayload<DcwsResponse>> SaveDcwsComponentResponse(DcwsComponentResponseInput input) {
-            var payload = new MutationPayload<DcwsResponse>(null);
+            MutationPayload<DcwsResponse> payload = new ();
             payload.Errors = await ValidateDcwsComponentResponse<DcwsComponentResponseInput>(input);
             if (payload.Errors.Any()) {
                 return payload;

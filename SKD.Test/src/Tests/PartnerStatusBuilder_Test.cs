@@ -12,13 +12,13 @@ namespace SKD.Test {
 
     public class PartnerStatusBuilder_Test : TestBase {
 
-        private string DEALEAR_CODE = "DLR13";
-        private DateTime CUSTOM_RECEIVED_DATE = DateTime.UtcNow.AddDays(-15).Date;
-        private DateTime PLAN_BUILD_DATE = DateTime.UtcNow.AddDays(-7).Date;
-        private DateTime BUILD_COMPLETE_DATE = DateTime.UtcNow.AddDays(-6).Date;
-        private DateTime GATE_RELEASE_DATE = DateTime.UtcNow.AddDays(-3).Date;
-        private DateTime WHOLESALED_DATE = DateTime.UtcNow.AddDays(-2).Date;
-        private string ENGINE_SERIAL = "GRBPA20346000023FB3Q 6007 AE3E MORE THAN";
+        private readonly string DEALEAR_CODE = "DLR13";
+        private readonly DateTime CUSTOM_RECEIVED_DATE = DateTime.UtcNow.AddDays(-15).Date;
+        private readonly DateTime PLAN_BUILD_DATE = DateTime.UtcNow.AddDays(-7).Date;
+        private readonly DateTime BUILD_COMPLETE_DATE = DateTime.UtcNow.AddDays(-6).Date;
+        private readonly DateTime GATE_RELEASE_DATE = DateTime.UtcNow.AddDays(-3).Date;
+        private readonly DateTime WHOLESALED_DATE = DateTime.UtcNow.AddDays(-2).Date;
+        private readonly string ENGINE_SERIAL = "GRBPA20346000023FB3Q 6007 AE3E MORE THAN";
 
         public PartnerStatusBuilder_Test() {
             context = GetAppDbContext();
@@ -26,7 +26,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task can_generate_partner_status_file_payload() {
+        public async Task Can_generate_partner_status_file_payload() {
             var snapshotRun = await GenerateKitSnapshotRun_TestData();
 
             var service = new PartnerStatusBuilder(context);
@@ -37,9 +37,9 @@ namespace SKD.Test {
 
             var exptectedLines = 8;  // header + trailer + 6 kits
             var lines = payload.PayloadText.Split('\n');
-            var actuaLineCount = lines.Count();
+            var actuaLineCount = lines.Length;
             var headerLineText = lines[0];
-            var trailerLineText = lines[lines.Length - 1];
+            var trailerLineText = lines[^1];
             // assert line count
             Assert.Equal(exptectedLines, actuaLineCount);
 
@@ -129,7 +129,7 @@ namespace SKD.Test {
             void AssertTrailer() {
                 var trailerLineParser = new FlatFileLine<PartnerStatusLayout.Trailer>();
                 var detailLayout = new PartnerStatusLayout.Trailer();
-                var trailerLineText = lines[lines.Length - 1];
+                var trailerLineText = lines[^1];
 
                 // HDR_PARTNER_TYPE 
                 var actual_TLR_RECORD_TYPE = trailerLineParser.GetFieldValue(trailerLineText, t => t.TLR_RECORD_TYPE).Trim();

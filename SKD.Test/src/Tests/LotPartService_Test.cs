@@ -15,7 +15,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task can_add_lot_part_quantity_received() {
+        public async Task Can_add_lot_part_quantity_received() {
             // setup
             var plant = Gen_Plant();
 
@@ -54,7 +54,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task can_replace_lot_part_quantity_received() {
+        public async Task Can_replace_lot_part_quantity_received() {
             // setup
             var plant = Gen_Plant();
 
@@ -88,7 +88,7 @@ namespace SKD.Test {
                 .FirstOrDefaultAsync();
 
             // lot part received entries
-            var recevied_count = lotPart.Received.Count();
+            var recevied_count = lotPart.Received.Count;
             var expected_received_count = 2;
             Assert.Equal(recevied_count, expected_received_count);
 
@@ -103,7 +103,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task cannot_add_duplicate_lot_part_quantity_received() {
+        public async Task Cannot_add_duplicate_lot_part_quantity_received() {
             var plant = Gen_Plant();
 
             var bomLotPartInput = Gen_BomLotPartInput(plant.Code);
