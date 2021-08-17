@@ -386,5 +386,7 @@ namespace SKD.Server {
                 sequence: sequence
             );
 
+        public ShipFile ParseShipFile(string text) => 
+            new ShipFileParser().ParseShipmentFile(text);
     }
 }

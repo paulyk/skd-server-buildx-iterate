@@ -16,9 +16,9 @@ namespace SKD.Service {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<ShipmentOverviewDTO>> ImportShipment(ShipmentInput input) {
+        public async Task<MutationPayload<ShipmentOverviewDTO>> ImportShipment(ShipFile input) {
             MutationPayload<ShipmentOverviewDTO> payload = new ();
-            payload.Errors = await ValidateShipmentInput<ShipmentInput>(input);
+            payload.Errors = await ValidateShipmentInput<ShipFile>(input);
             if (payload.Errors.Count > 0) {
                 return payload;
             }
@@ -42,7 +42,7 @@ namespace SKD.Service {
             return payload;
         }
 
-        private async Task<List<Part>> GetEnsureParts(ShipmentInput input) {
+        private async Task<List<Part>> GetEnsureParts(ShipFile input) {
             input.Lots.SelectMany(t => t.Invoices).SelectMany(t => t.Parts).ToList().ForEach(p => {
                 p.PartNo = PartService.ReFormatPartNo(p.PartNo);
             });
@@ -54,7 +54,7 @@ namespace SKD.Service {
             return await partService.GetEnsureParts(inputParts);
         }
 
-        private async  Task<Shipment> AddShipment(ShipmentInput input, Plant plant, List<Part> parts) {
+        private async  Task<Shipment> AddShipment(ShipFile input, Plant plant, List<Part> parts) {
             // lots
             var lotNos = input.Lots.Select(t => t.LotNo).ToList();
             var lots = await context.Lots.Where(t => lotNos.Any(lotNos=> lotNos == t.LotNo)).ToListAsync();
@@ -85,7 +85,7 @@ namespace SKD.Service {
             return shipment;
         }
 
-        private async Task AddUpdateLotParts(ShipmentInput input, List<Part> parts) {
+        private async Task AddUpdateLotParts(ShipFile input, List<Part> parts) {
             var lotPartInputs = Get_LotPartInputs_from_ShipmentInput(input);
             var lotNumbers = lotPartInputs.Select(t => t.LotNo).Distinct().ToList();
             var lots = await context.Lots
@@ -109,7 +109,7 @@ namespace SKD.Service {
             }
         }
 
-        public async Task<List<Error>> ValidateShipmentInput<T>(ShipmentInput input) where T : ShipmentInput {
+        public async Task<List<Error>> ValidateShipmentInput<T>(ShipFile input) where T : ShipFile {
             var errors = new List<Error>();
 
             // plant
@@ -230,7 +230,7 @@ namespace SKD.Service {
             }).FirstOrDefaultAsync(t => t.Id == id);
         }
 
-        public List<LotPartQuantityDTO> Get_LotPartInputs_from_ShipmentInput(ShipmentInput shipmentInput) {
+        public List<LotPartQuantityDTO> Get_LotPartInputs_from_ShipmentInput(ShipFile shipmentInput) {
             return shipmentInput.Lots.Select(t => new {
                 LotParts = t.Invoices.SelectMany(u => u.Parts)
                     .Select(u => new {

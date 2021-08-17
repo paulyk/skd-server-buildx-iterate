@@ -19,7 +19,6 @@ dotnet run --project SKD.Server
 
 ## dev database and connections string
 
-
 Create your own `touch src/skd-server/developer.json`
 
 ```json
@@ -60,7 +59,8 @@ From solution folder
 dotnet run --project skd.server
 ```
 
-### Create component and stations 
+### Create component and stations
+
 ```bash
 curl http://localhost:5100/gen_ref_data -X POST -d "{}"
 ```
@@ -78,7 +78,6 @@ http://localhost:5100/graphql
 ### import LOT and Shipments
 
 Todo...
-
 
 ## Database migration
 
@@ -122,4 +121,4 @@ dotnet ef database update --project skd.server --connection "target connection s
 
 ```bash
 dotnet ef migrations list --project skd.server
-```
+``

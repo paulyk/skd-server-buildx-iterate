@@ -180,16 +180,16 @@ namespace SKD.Test {
             var plant = await context.Plants.FirstAsync();
             var lot = await context.Lots.FirstAsync();
 
-            var input = new ShipmentInput() {
+            var input = new ShipFile() {
                 PlantCode = plant.Code,
                 Sequence = 1,
-                Lots = new List<ShipmentLotInput> {
-                    new ShipmentLotInput {
+                Lots = new List<ShipFileLot> {
+                    new ShipFileLot {
                         LotNo = lot.LotNo,
-                        Invoices = new List<ShipmentInvoiceInput> {
-                            new ShipmentInvoiceInput {
+                        Invoices = new List<ShipFileInvoice> {
+                            new ShipFileInvoice {
                                 InvoiceNo = "001",
-                                Parts = new List<ShipmentPartInput>()
+                                Parts = new List<ShipFilePart>()
                             }
                         }
                     }
@@ -213,16 +213,16 @@ namespace SKD.Test {
             // setup
             var plant = await context.Plants.FirstAsync();
             var lot = await context.Lots.FirstAsync();
-            var input = new ShipmentInput() {
+            var input = new ShipFile() {
                 PlantCode = plant.Code,
                 Sequence = 1,
-                Lots = new List<ShipmentLotInput> {
-                    new ShipmentLotInput {
+                Lots = new List<ShipFileLot> {
+                    new ShipFileLot {
                         LotNo = lot.LotNo,
-                        Invoices = new List<ShipmentInvoiceInput> {
-                            new ShipmentInvoiceInput {
+                        Invoices = new List<ShipFileInvoice> {
+                            new ShipFileInvoice {
                                 InvoiceNo = "001",
-                                Parts = new List<ShipmentPartInput>()
+                                Parts = new List<ShipFilePart>()
                             }
                         }
                     }
@@ -245,13 +245,13 @@ namespace SKD.Test {
             // setup
             var plant = await context.Plants.FirstAsync();
             var lot = await context.Lots.FirstAsync();
-            var input = new ShipmentInput() {
+            var input = new ShipFile() {
                 PlantCode = plant.Code,
                 Sequence = 1,
-                Lots = new List<ShipmentLotInput> {
-                    new ShipmentLotInput {
+                Lots = new List<ShipFileLot> {
+                    new ShipFileLot {
                         LotNo = lot.LotNo,
-                        Invoices = new List<ShipmentInvoiceInput>()
+                        Invoices = new List<ShipFileInvoice>()
                     }
                 }
             };
@@ -386,7 +386,7 @@ namespace SKD.Test {
             int HandlingUnitCount,
             int LotPartCount);
 
-        public ShipentInputMetrics GetShipmentInputMetrics(ShipmentInput input) {
+        public ShipentInputMetrics GetShipmentInputMetrics(ShipFile input) {
 
             return new ShipentInputMetrics(
                LotCount: input.Lots.Count,
@@ -402,20 +402,20 @@ namespace SKD.Test {
             );
         }
 
-        public ShipmentInput Gen_ShipmentInput(string plantCode, string lotNo, int sequence, int startInvoiceNo = 1) {
+        public ShipFile Gen_ShipmentInput(string plantCode, string lotNo, int sequence, int startInvoiceNo = 1) {
             var invoiceNo = startInvoiceNo;
 
-            var input = new ShipmentInput() {
+            var input = new ShipFile() {
                 PlantCode = plantCode,
                 Sequence = sequence,
-                Lots = new List<ShipmentLotInput> {
-                    new ShipmentLotInput {
+                Lots = new List<ShipFileLot> {
+                    new ShipFileLot {
                         LotNo = lotNo,
-                        Invoices = new List<ShipmentInvoiceInput> {
-                            new ShipmentInvoiceInput {
+                        Invoices = new List<ShipFileInvoice> {
+                            new ShipFileInvoice {
                                 InvoiceNo = (invoiceNo++).ToString().PadLeft(EntityFieldLen.Shipment_InvoiceNo, '0'),
-                                Parts = new List<ShipmentPartInput> {
-                                    new ShipmentPartInput {
+                                Parts = new List<ShipFilePart> {
+                                    new ShipFilePart {
                                         HandlingUnitCode = "0000001",
                                         PartNo = "part-1",
                                         CustomerPartDesc = "part 1 desc",
@@ -424,31 +424,31 @@ namespace SKD.Test {
                                     }
                                 }
                             },
-                            new ShipmentInvoiceInput {
+                            new ShipFileInvoice {
                                 InvoiceNo = (invoiceNo++).ToString().PadLeft(EntityFieldLen.Shipment_InvoiceNo, '0'),
-                                Parts = new List<ShipmentPartInput> {
-                                    new ShipmentPartInput {
+                                Parts = new List<ShipFilePart> {
+                                    new ShipFilePart {
                                         HandlingUnitCode = "0000002",
                                         PartNo = "part-1",
                                         CustomerPartDesc = "part 1 desc",
                                         CustomerPartNo = "part 1 desc",
                                         Quantity = 3
                                     },
-                                    new ShipmentPartInput {
+                                    new ShipFilePart {
                                         HandlingUnitCode = "0000002",
                                         PartNo = "part-2",
                                         CustomerPartDesc = "part 2 desc",
                                         CustomerPartNo = "part 2 desc",
                                         Quantity = 2
                                     },
-                                    new ShipmentPartInput {
+                                    new ShipFilePart {
                                         HandlingUnitCode = "0000003",
                                         PartNo = "part-3",
                                         CustomerPartDesc = "part 3 desc",
                                         CustomerPartNo = "part 3 desc",
                                         Quantity = 4
                                     },
-                                    new ShipmentPartInput {
+                                    new ShipFilePart {
                                         HandlingUnitCode = "0000003",
                                         PartNo = "part-4",
                                         CustomerPartDesc = "part 4 desc",

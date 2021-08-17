@@ -133,17 +133,17 @@ namespace SKD.Test {
         }
 
 
-        private ShipmentInput Gen_ShipmentInput_From_BomLotPartInput(BomLotPartDTO bomLotPartInput) {
-            return new ShipmentInput {
+        private ShipFile Gen_ShipmentInput_From_BomLotPartInput(BomLotPartDTO bomLotPartInput) {
+            return new ShipFile {
                 PlantCode = bomLotPartInput.PlantCode,
                 Sequence = 1,
-                Lots = bomLotPartInput.LotParts.Select(t => new ShipmentLotInput {
+                Lots = bomLotPartInput.LotParts.Select(t => new ShipFileLot {
                     LotNo = t.LotNo,
-                    Invoices = new List<ShipmentInvoiceInput> {
-                        new ShipmentInvoiceInput {
+                    Invoices = new List<ShipFileInvoice> {
+                        new ShipFileInvoice {
                             InvoiceNo = Gen_ShipmentInvoiceNo(),
-                            Parts = new List<ShipmentPartInput> {
-                                new ShipmentPartInput {
+                            Parts = new List<ShipFilePart> {
+                                new ShipFilePart {
                                     PartNo = t.PartNo,
                                     CustomerPartDesc = t.PartDesc,
                                     Quantity = t.Quantity

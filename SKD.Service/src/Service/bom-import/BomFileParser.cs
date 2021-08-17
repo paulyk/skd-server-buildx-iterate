@@ -15,10 +15,9 @@ namespace SKD.Service {
             MutationPayload<BomLotPartDTO> payload = new();
 
             try {
-                var headerLineBuilder = new FlatFileLine<BomFileLayout.Header>();
-
                 var (headerTextLine, detailTextLines) = ParseTextLines(text);
 
+                var headerLineBuilder = new FlatFileLine<BomFileLayout.Header>();
                 payload.Payload = new BomLotPartDTO {
                     PlantCode = headerLineBuilder.GetFieldValue(headerTextLine, t => t.HDR_KD_PLANT_GSDB),
                     Sequence = Int16.Parse(headerLineBuilder.GetFieldValue(headerTextLine, t => t.HDR_BRIDGE_SEQ_NBR)),

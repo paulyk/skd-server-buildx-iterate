@@ -80,9 +80,8 @@ namespace SKD.Server {
 
         public async Task<MutationPayload<ShipmentOverviewDTO>> ImportShipment(
             [Service] ShipmentService service,
-            ShipmentInput input
+            ShipFile input
         ) => await service.ImportShipment(input);
-
 
         public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotKits(
             [Service] LotService service,
