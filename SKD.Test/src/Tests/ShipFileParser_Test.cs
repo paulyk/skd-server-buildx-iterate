@@ -11,7 +11,7 @@ using Xunit;
 namespace SKD.Test {
     public class ShipFileParser_Test : TestBase {
 
-        private readonly string ShipFileText =
+        private readonly string fileText =
 @" HEADERHPUDABRIG2-7F202106151645030157CMMS9CCA
 00000101BPA0A02210950011366A1366A     GQQLA04O
 00000202SUDU5653774000002000532021-06-15000004082.40
@@ -33,7 +33,7 @@ namespace SKD.Test {
             var serivce = new ShipFileParser();
 
             // act 
-            var headerLine = ShipFileText.Split('\n').First();
+            var headerLine = fileText.Split('\n').First();
             var (plantCode, sequence) = serivce.ParseHeaderLine(headerLine);
 
             // assert
@@ -47,7 +47,7 @@ namespace SKD.Test {
             var serivce = new ShipFileParser();
 
             // act 
-            var line = ShipFileText.Split('\n').Skip(1).First();
+            var line = fileText.Split('\n').Skip(1).First();
             var result = serivce.ParseLotLine(line);
 
             // assert
@@ -61,7 +61,7 @@ namespace SKD.Test {
             var serivce = new ShipFileParser();
 
             // act 
-            var line = ShipFileText.Split('\n').Skip(2).First();
+            var line = fileText.Split('\n').Skip(2).First();
             var result = serivce.ParseInvoiceLine(line);
 
             var exptectedInvoiceNo = "00000200053";
@@ -77,7 +77,7 @@ namespace SKD.Test {
             var serivce = new ShipFileParser();
 
             // act 
-            var line = ShipFileText.Split('\n').Skip(3).First();
+            var line = fileText.Split('\n').Skip(3).First();
             var result = serivce.ParsePartLine(line);
 
             var expected_PartNo = "AB39-5418-AA";
@@ -97,7 +97,7 @@ namespace SKD.Test {
             var service = new ShipFileParser();
 
             // act
-            var result = service.ParseShipmentFile(ShipFileText);
+            var result = service.ParseShipmentFile(fileText);
 
             // assert
             var expectedLotCount = 1;

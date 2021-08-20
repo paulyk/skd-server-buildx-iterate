@@ -388,5 +388,9 @@ namespace SKD.Server {
 
         public ShipFile ParseShipFile(string text) => 
             new ShipFileParser().ParseShipmentFile(text);
+
+        public VinFile ParseVinFile(string text) => 
+            new VinFileParser().ParseVinFile(text);
+
     }
 }

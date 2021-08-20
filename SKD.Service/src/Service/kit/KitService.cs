@@ -27,7 +27,7 @@ namespace SKD.Service {
 
         #region import vin
 
-        public async Task<MutationPayload<Lot>> ImportVIN(ImportVinInput input) {
+        public async Task<MutationPayload<Lot>> ImportVIN(VinFile input) {
             MutationPayload<Lot> payload = new();
             payload.Errors = await ValidateImportVINInput(input);
             if (payload.Errors.Any()) {
@@ -56,7 +56,7 @@ namespace SKD.Service {
             return payload;
         }
 
-        public async Task<List<Error>> ValidateImportVINInput(ImportVinInput input) {
+        public async Task<List<Error>> ValidateImportVINInput(VinFile input) {
             var errors = new List<Error>();
 
             // plant
