@@ -13,7 +13,7 @@ namespace SKD.Seed {
             this.ctx = ctx;
         }
 
-        public async Task GenerateReferencekData() {
+        public async Task GenerateReferenceData() {
 
             // drop & create
             var dbService = new DbService(ctx);

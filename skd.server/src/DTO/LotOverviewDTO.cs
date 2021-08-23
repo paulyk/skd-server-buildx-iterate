@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 
 namespace SKD.Server {
@@ -5,7 +6,9 @@ namespace SKD.Server {
         public Guid Id { get; set; }
 
         public Guid BomId { get; set; }
-        public int BomSequenceNo { get; set; }
+        public int BomSequence { get; set; }
+        public Guid ShipmentId { get; set; }
+        public int ShipmentSequence { get; set; }
         public string LotNo { get; set; } = "";
         public string Note { get; set; } = "";
         public string PlantCode { get; set; } = "";

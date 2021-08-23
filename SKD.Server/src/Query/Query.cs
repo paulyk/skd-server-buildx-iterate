@@ -138,10 +138,14 @@ namespace SKD.Server {
 
         public async Task<LotOverviewDTO?> GetLotOverview([Service] SkdContext context, string lotNo) {
             var lot = await context.Lots.OrderBy(t => t.LotNo).AsNoTracking()
-                .Include(t => t.Kits).ThenInclude(t => t.TimelineEvents).ThenInclude(t => t.EventType)
+                .Include(t => t.Kits)
+                    .ThenInclude(t => t.TimelineEvents)
+                    .ThenInclude(t => t.EventType)
                 .Include(t => t.Model)
                 .Include(t => t.Plant)
                 .Include(t => t.Bom)
+                .Include(t => t.ShipmentLots)
+                    .ThenInclude(t => t.Shipment)
                 .FirstOrDefaultAsync(t => t.LotNo == lotNo);
 
             if (lot == null) {
@@ -164,7 +168,9 @@ namespace SKD.Server {
                 LotNo = lot.LotNo,
                 Note = lot.Note,
                 BomId = lot.Bom.Id,
-                BomSequenceNo = lot.Bom.Sequence,
+                BomSequence = lot.Bom.Sequence,
+                ShipmentId = lot.ShipmentLots.Select(x => x.Shipment.Id).FirstOrDefault(),
+                ShipmentSequence = lot.ShipmentLots.Select(x => x.Shipment.Sequence).FirstOrDefault(),
                 PlantCode = lot.Plant.Code,
                 ModelCode = lot.Model.Code,
                 ModelName = lot.Model.Description,

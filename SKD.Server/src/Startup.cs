@@ -61,12 +61,14 @@ namespace SKD.Server
                 .AddScoped<LotPartService>()
                 .AddScoped<HandlingUnitService>()
                 .AddScoped<QueryService>().AddSingleton<DcwsService>(sp => new DcwsService(Configuration[ConfigSettingKey.DcwsServiceAddress]))
-                .AddScoped<PartnerStatusBuilder>();
+                .AddScoped<PartnerStatusBuilder>()
+                .AddScoped<DevMutation>(sp => new DevMutation(_env.IsDevelopment()));
 
             services.AddGraphQLServer()
                 .AddQueryType<Query>()
                     .AddTypeExtension<ProjectionQueries>()
                 .AddMutationType<Mutation>()
+                     .AddTypeExtension<DevMutation>()
                 .AddType<VehicleType>()
                 .AddType<SerialCaptureVehicleDTOType>()
                 .AddType<ComponentSerialDtoType>()
@@ -80,6 +82,8 @@ namespace SKD.Server
                 .AddSorting()
                 .AddInMemorySubscriptions()
                 .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = _env.IsDevelopment());
+
+            
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
@@ -110,7 +114,7 @@ namespace SKD.Server
                     ep.MapPost("/gen_ref_data", async (context) => {
                         var ctx = context.RequestServices.GetService<SkdContext>();
                         var service = new SeedDataService(ctx);
-                        await service.GenerateReferencekData();
+                        await service.GenerateReferenceData();
                         context.Response.StatusCode = 200;
                     });
                     ep.MapGet("/ping", async context => {

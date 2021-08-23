@@ -7,10 +7,11 @@ using HotChocolate;
 using System.Threading.Tasks;
 using SKD.Service;
 using SKD.Model;
-
-
+using HotChocolate.Types;
 
 namespace SKD.Server {
+    
+    
     public class Mutation {
 
         public async Task<MutationPayload<VehicleModel>> SaveVehicleModel(
