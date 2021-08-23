@@ -17,9 +17,9 @@ namespace SKD.Service {
 
             var (headerLine, detailLines) = ParseLines(text);
 
-            var headerParser = new FlatFileLine<ShipFileLayout.HeaderLine>();
-            shipmentInput.PlantCode = headerParser.GetFieldValue(headerLine, t => t.HDR_CD_PLANT);
-            shipmentInput.Sequence = Int32.Parse(headerParser.GetFieldValue(headerLine, t => t.HDR_BRIG_SEQ_NO));
+            var (plantCode, sequence) = ParseHeaderLine(headerLine);
+            shipmentInput.PlantCode = plantCode;
+            shipmentInput.Sequence = sequence;
 
             ShipFileLot? currentLot = null;
             ShipFileInvoice? currentInvoice = null;
@@ -51,6 +51,7 @@ namespace SKD.Service {
             var sequence = Int32.Parse(lineParser.GetFieldValue(line, t => t.HDR_BRIG_SEQ_NO));
             return (plantCode, sequence);
         }
+
         public ShipFileLot ParseLotLine(string line) {
             var lineParser = new FlatFileLine<ShipFileLayout.LotLine>();
             return new ShipFileLot {

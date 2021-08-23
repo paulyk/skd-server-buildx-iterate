@@ -1,7 +1,6 @@
 namespace SKD.Service {
 
-    /// <summary>Kit VIN import acknowledgement file layout</summary>
-    /// <remarks>Ford interface requires acknowledgment when VINs are imported</remarks>
+    /// <summary>Shipment Import File Layout</summary>
     public  class ShipFileLayout {
         public  class HeaderLine {
             public  readonly int HDR_RECORD_ID = 7;

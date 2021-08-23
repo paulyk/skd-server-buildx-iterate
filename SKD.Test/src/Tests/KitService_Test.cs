@@ -24,11 +24,11 @@ namespace SKD.Test {
             var partnerPlantCode = Gen_PartnerPLantCode();
             var sequence = 3;
 
-            var input = new ImportVinInput {
+            var input = new VinFile {
                 PlantCode = plant.Code,
                 PartnerPlantCode = partnerPlantCode,
                 Sequence = sequence,
-                Kits = lot.Kits.Select(t => new ImportVinInput.KitVin {
+                Kits = lot.Kits.Select(t => new VinFile.VinFileKit {
                     LotNo = lot.LotNo,
                     KitNo = t.KitNo,
                     VIN = Gen_VIN()
@@ -68,11 +68,11 @@ namespace SKD.Test {
             var partnerPlantCode = Gen_PartnerPLantCode();
             var sequence = 3;
 
-            var kitVinDto = new ImportVinInput {
+            var kitVinDto = new VinFile {
                 PlantCode = plant.Code,
                 PartnerPlantCode = partnerPlantCode,
                 Sequence = sequence,
-                Kits = lot.Kits.Select(t => new ImportVinInput.KitVin {
+                Kits = lot.Kits.Select(t => new VinFile.VinFileKit {
                     LotNo = lot.LotNo,
                     KitNo = Gen_KitNo(), // generate a kit not thats different
                     VIN = Gen_VIN()
@@ -101,20 +101,20 @@ namespace SKD.Test {
 
             var lotVehicles = lot.Kits.ToList();
 
-            var input = new ImportVinInput {
+            var input = new VinFile {
                 PlantCode = plant.Code,
                 PartnerPlantCode = partnerPlantCode,
                 Sequence = sequence,
             };
 
-            input.Kits = new List<ImportVinInput.KitVin>() {
-                new ImportVinInput.KitVin {LotNo = lot.LotNo, KitNo = lotVehicles[0].KitNo, VIN = Gen_VIN() },
-                new ImportVinInput.KitVin {LotNo = lot.LotNo, KitNo = lotVehicles[1].KitNo, VIN = Gen_VIN() },
-                new ImportVinInput.KitVin {LotNo = lot.LotNo, KitNo = lotVehicles[2].KitNo, VIN = Gen_VIN() },
-                new ImportVinInput.KitVin {LotNo = lot.LotNo, KitNo = lotVehicles[3].KitNo, VIN = Gen_VIN() },
+            input.Kits = new List<VinFile.VinFileKit>() {
+                new VinFile.VinFileKit {LotNo = lot.LotNo, KitNo = lotVehicles[0].KitNo, VIN = Gen_VIN() },
+                new VinFile.VinFileKit {LotNo = lot.LotNo, KitNo = lotVehicles[1].KitNo, VIN = Gen_VIN() },
+                new VinFile.VinFileKit {LotNo = lot.LotNo, KitNo = lotVehicles[2].KitNo, VIN = Gen_VIN() },
+                new VinFile.VinFileKit {LotNo = lot.LotNo, KitNo = lotVehicles[3].KitNo, VIN = Gen_VIN() },
                 // duplicate kits
-                new ImportVinInput.KitVin {LotNo = lot.LotNo, KitNo = lotVehicles[5].KitNo, VIN = Gen_VIN() },
-                new ImportVinInput.KitVin {LotNo = lot.LotNo, KitNo = lotVehicles[5].KitNo, VIN = Gen_VIN() },
+                new VinFile.VinFileKit {LotNo = lot.LotNo, KitNo = lotVehicles[5].KitNo, VIN = Gen_VIN() },
+                new VinFile.VinFileKit {LotNo = lot.LotNo, KitNo = lotVehicles[5].KitNo, VIN = Gen_VIN() },
             };
             // test
             var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);

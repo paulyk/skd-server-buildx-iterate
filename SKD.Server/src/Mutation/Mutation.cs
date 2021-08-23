@@ -24,11 +24,6 @@ namespace SKD.Server {
             VehicleModelFromExistingInput input
         ) => await service.CreateFromExisting(input);
 
-        public async Task<MutationPayload<Lot>> ImportVIN(
-            [Service] KitService service,
-            ImportVinInput input
-        ) => await service.ImportVIN(input);
-
         public async Task<MutationPayload<KitTimelineEvent>> CreateKitTimelineEvent(
             [Service] KitService service,
             KitTimelineEventInput input
@@ -83,6 +78,11 @@ namespace SKD.Server {
             [Service] ShipmentService service,
             ShipFile input
         ) => await service.ImportShipment(input);
+
+        public async Task<MutationPayload<Lot>> ImportVIN(
+            [Service] KitService service,
+            VinFile input
+        ) => await service.ImportVIN(input);
 
         public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotKits(
             [Service] LotService service,
