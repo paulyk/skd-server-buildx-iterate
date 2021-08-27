@@ -8,6 +8,7 @@ namespace SKD.Service {
     public class ShipFile {
         public string PlantCode { get; set; } = "";
         public int Sequence { get; set; } 
+        public DateTime Created { get; set; }
         public ICollection<ShipFileLot> Lots { get; set; } = new List<ShipFileLot>();
     }
 

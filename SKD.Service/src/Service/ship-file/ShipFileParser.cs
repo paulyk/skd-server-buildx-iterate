@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using SKD.Common;
 using SKD.Model;
@@ -17,9 +18,10 @@ namespace SKD.Service {
 
             var (headerLine, detailLines) = ParseLines(text);
 
-            var (plantCode, sequence) = ParseHeaderLine(headerLine);
+            var (plantCode, sequence, dateCreated) = ParseHeaderLine(headerLine);
             shipmentInput.PlantCode = plantCode;
             shipmentInput.Sequence = sequence;
+            shipmentInput.Created = dateCreated;
 
             ShipFileLot? currentLot = null;
             ShipFileInvoice? currentInvoice = null;
@@ -45,11 +47,18 @@ namespace SKD.Service {
             return shipmentInput;
         }
 
-        public (string plantCode, int sequence ) ParseHeaderLine(string line)  {
+        public (string plantCode, int sequence, DateTime dateCreated ) ParseHeaderLine(string line)  {
             var lineParser = new FlatFileLine<ShipFileLayout.HeaderLine>();
             var plantCode = lineParser.GetFieldValue(line, t => t.HDR_CD_PLANT);
             var sequence = Int32.Parse(lineParser.GetFieldValue(line, t => t.HDR_BRIG_SEQ_NO));
-            return (plantCode, sequence);
+
+            // date created
+            var dateStr = lineParser.GetFieldValue(line, t => t.HDR_DATE_CREATED);
+            CultureInfo provider = CultureInfo.InvariantCulture;
+            var format = "yyyyMMdd";
+            var dateCreated = DateTime.ParseExact(dateStr, format, provider);
+
+            return (plantCode, sequence, dateCreated);
         }
 
         public ShipFileLot ParseLotLine(string line) {

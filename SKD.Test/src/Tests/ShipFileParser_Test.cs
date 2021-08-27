@@ -34,11 +34,17 @@ namespace SKD.Test {
 
             // act 
             var headerLine = fileText.Split('\n').First();
-            var (plantCode, sequence) = serivce.ParseHeaderLine(headerLine);
+            var (plantCode, sequence, dateCreated) = serivce.ParseHeaderLine(headerLine);
 
             // assert
-            Assert.Equal("HPUDA", plantCode);
-            Assert.Equal(157, sequence);
+            var expectedPlantCode = "HPUDA";
+            Assert.Equal(expectedPlantCode, plantCode);
+            
+            var exptectedSequence = 157;
+            Assert.Equal(exptectedSequence, sequence);
+
+            var expectedDate = new DateTime(2021,6,15);
+            Assert.Equal(expectedDate, dateCreated);
         }
 
         [Fact]
@@ -97,21 +103,29 @@ namespace SKD.Test {
             var service = new ShipFileParser();
 
             // act
-            var result = service.ParseShipmentFile(fileText);
+            var shipFile = service.ParseShipmentFile(fileText);
 
             // assert
+            var expectedPlantCode = "HPUDA";
+            Assert.Equal(expectedPlantCode, shipFile.PlantCode);
+            
+            var exptectedSequence = 157;
+            Assert.Equal(exptectedSequence, shipFile.Sequence);
+
+            var expectedDate = new DateTime(2021,6,15);
+            Assert.Equal(expectedDate, shipFile.Created);            
+            
             var expectedLotCount = 1;
-            var actualLotCount = result.Lots.Count;
+            var actualLotCount = shipFile.Lots.Count;
             Assert.Equal(expectedLotCount, actualLotCount);
 
             var exptecedInvoiceCount = 2;
-            var actualInvoiceCount= result.Lots.SelectMany(x => x.Invoices).Count();
+            var actualInvoiceCount= shipFile.Lots.SelectMany(x => x.Invoices).Count();
             Assert.Equal(exptecedInvoiceCount, actualInvoiceCount);
 
             var exptecedPartCount = 7;
-            var actualPartCount= result.Lots.SelectMany(x => x.Invoices).SelectMany(x => x.Parts).Count();
-            Assert.Equal(exptecedPartCount, actualPartCount);
-            
+            var actualPartCount= shipFile.Lots.SelectMany(x => x.Invoices).SelectMany(x => x.Parts).Count();
+            Assert.Equal(exptecedPartCount, actualPartCount);            
         }
     }
 }
