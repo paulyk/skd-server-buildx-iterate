@@ -12,7 +12,7 @@ using SKD.Common;
 namespace SKD.Test {
     public class KitSnapshotServiceTest : TestBase {
 
-        readonly string  engineCode = "EN";
+        readonly string engineCode = "EN";
         readonly int wholeSateCutOffDays = 7;
         readonly int planBuildLeadTimeDays = 2;
 
@@ -85,7 +85,8 @@ namespace SKD.Test {
             var snapshotInput = new KitSnapshotInput {
                 RunDate = new DateTime(2020, 12, 2),
                 PlantCode = plantCode,
-                EngineComponentCode = engineCode
+                EngineComponentCode = engineCode,
+                RejectIfNoChanges = false
             };
 
             // 1.  empty
@@ -266,7 +267,8 @@ namespace SKD.Test {
             var snapshotInput = new KitSnapshotInput {
                 RunDate = baseDate,
                 PlantCode = plantCode,
-                EngineComponentCode = engineCode
+                EngineComponentCode = engineCode,
+                RejectIfNoChanges = false
             };
             var base_date = baseDate.AddDays(1);
 
@@ -310,7 +312,7 @@ namespace SKD.Test {
                 var partnerStatusDTO = await partnerStatusBuilder.GeneratePartnerStatusFilePaylaod(snapshotRun.PlantCode, snapshotRun.Sequence);
                 var detailLine = partnerStatusDTO.PayloadText.Split('\n')[1];
                 var customReceiveDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPRE_STATUS_DATE);
-                
+
                 var originalPlanBuild = detailLineParser.GetFieldValue(detailLine, t => t.PST_BUILD_DATE);
                 var planBuildDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBP_STATUS_DATE);
                 var buildCompleteDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBC_STATUS_DATE);
@@ -436,7 +438,8 @@ namespace SKD.Test {
 
             var snapshotInput = new KitSnapshotInput {
                 PlantCode = plantCode,
-                EngineComponentCode = engineCode
+                EngineComponentCode = engineCode,
+                RejectIfNoChanges = false
             };
 
             var kit = context.Kits.Where(t => t.Lot.Plant.Code == plantCode).OrderBy(t => t.KitNo).First();
@@ -458,7 +461,8 @@ namespace SKD.Test {
 
             snapshotInput = new KitSnapshotInput {
                 PlantCode = plantCode,
-                EngineComponentCode = engineCode
+                EngineComponentCode = engineCode,
+                RejectIfNoChanges = false
             };
 
             kit = context.Kits.Where(t => t.Lot.Plant.Code == plantCode).OrderBy(t => t.KitNo).First();
@@ -495,7 +499,7 @@ namespace SKD.Test {
             };
 
             var expecedErrorMessage = "cannot change date after snapshot taken";
-            foreach (var (eventType,trxDate, eventDate ) in eventList) {
+            foreach (var (eventType, trxDate, eventDate) in eventList) {
 
                 var payload = await AddKitTimelineEntry(eventType, kit.KitNo, "", trxDate, eventDate);
                 var actualErrorCount = payload.Errors.Count;
@@ -528,7 +532,8 @@ namespace SKD.Test {
             // 1. kit snapshot run with no entries
             var snapshotInput = new KitSnapshotInput {
                 PlantCode = plantCode,
-                EngineComponentCode = engineCode
+                EngineComponentCode = engineCode,
+                RejectIfNoChanges = false
             };
             snapshotInput.RunDate = baseDate;
             await service.GenerateSnapshot(snapshotInput);
@@ -547,7 +552,7 @@ namespace SKD.Test {
             snapshotCount = context.KitSnapshotRuns.Count();
             Assert.Equal(1, snapshotCount);
 
-            // 3.  no change
+            // 3.  no change will be rejected
             snapshotInput.RunDate = snapshotInput.RunDate.Value.AddDays(1);
             await service.GenerateSnapshot(snapshotInput);
 
@@ -560,6 +565,56 @@ namespace SKD.Test {
             snapshotCount = context.KitSnapshotRuns.Count();
             Assert.Equal(3, snapshotCount);
         }
+
+        [Fact]
+        public async Task Reject_kit_snapshot_generation_if_no_changes() {
+            // setup
+            var plantCode = context.Plants.Select(t => t.Code).First();
+            var baseDate = DateTime.Now.Date;
+
+            var custom_receive_date = baseDate.AddDays(1);
+            var custom_receive_date_trx = baseDate.AddDays(2);
+            var plan_build_date = baseDate.AddDays(8);
+            var plan_build_date_trx = baseDate.AddDays(3);
+
+            var service = new KitSnapshotService(context);
+            var kit_1 = context.Kits.OrderBy(t => t.KitNo).First();
+            var kit_2 = context.Kits.OrderBy(t => t.KitNo).Skip(1).First();
+
+            var snapshotInput = new KitSnapshotInput {
+                PlantCode = plantCode,
+                EngineComponentCode = engineCode,
+                RejectIfNoChanges = true,
+                RunDate = baseDate.AddDays(3)
+            };
+
+            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit_1.KitNo, "", custom_receive_date_trx, custom_receive_date);
+            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit_2.KitNo, "", custom_receive_date_trx, custom_receive_date);
+
+            MutationPayload<SnapshotDTO> payload = await service.GenerateSnapshot(snapshotInput);
+            Assert.Equal(2, payload.Payload.SnapshotCount);
+            Assert.Equal(2, payload.Payload.ChangedCount);
+
+            // no changes should reject
+            snapshotInput.RunDate = baseDate.AddDays(4);
+            payload = await service.GenerateSnapshot(snapshotInput);
+            var expectedError = "No changes since last snapshot";
+            var actualError = payload.Errors.Select(t => t.Message).FirstOrDefault();
+            Assert.Equal(expectedError, actualError);
+            Assert.Equal(null, payload.Payload);
+
+            // add one change should not reject
+            await AddKitTimelineEntry(TimeLineEventCode.PLAN_BUILD, kit_1.KitNo, "", plan_build_date_trx, plan_build_date);
+            snapshotInput.RunDate = baseDate.AddDays(5);
+            payload = await service.GenerateSnapshot(snapshotInput);
+
+            expectedError = null;
+            actualError = payload.Errors.Select(t => t.Message).FirstOrDefault();
+            Assert.Equal(expectedError, actualError);
+            Assert.Equal(1, payload.Payload.ChangedCount);
+
+        }
+
 
         #region test helper methods
         public async Task<List<KitSnapshotRunDTO.Entry>> GetVehiclePartnerStatusReport(

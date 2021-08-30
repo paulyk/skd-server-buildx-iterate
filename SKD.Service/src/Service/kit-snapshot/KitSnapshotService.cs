@@ -86,6 +86,15 @@ namespace SKD.Service {
                 kitSnapshotRun.KitSnapshots.Add(ks);
             }
 
+            // reject if no changes
+            if (input.RejectIfNoChanges) {
+                bool hasChanges = kitSnapshotRun.KitSnapshots.Any(x => x.ChangeStatusCode != PartnerStatus_ChangeStatus.NoChange);
+                if (!hasChanges) {
+                    payload.Errors.Add(new Error("", "No changes since last snapshot"));
+                    return payload;
+                }
+            }
+
             // save
             context.KitSnapshotRuns.Add(kitSnapshotRun);
             var entity = await context.SaveChangesAsync();
@@ -95,6 +104,7 @@ namespace SKD.Service {
                 RunDate = input.RunDate.Value.Date,
                 PlantCode = input.PlantCode,
                 SnapshotCount = kitSnapshotRun.KitSnapshots.Count,
+                ChangedCount = kitSnapshotRun.KitSnapshots.Count(x => x.ChangeStatusCode != PartnerStatus_ChangeStatus.NoChange),
                 Sequence = kitSnapshotRun.Sequence
             };
 

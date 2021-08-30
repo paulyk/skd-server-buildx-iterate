@@ -7,5 +7,6 @@ namespace SKD.Service {
         public int Sequence { get; set; }
         public string PlantCode { get; set; }
         public int SnapshotCount { get; set; }
+        public int ChangedCount { get; set; }
     }
 }
