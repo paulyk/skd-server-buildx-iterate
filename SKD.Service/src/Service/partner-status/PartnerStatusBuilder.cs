@@ -15,6 +15,11 @@ using SKD.Service;
 namespace SKD.Service {
     public class PartnerStatusBuilder {
 
+        private static readonly FlatFileLine<PartnerStatusLayout.Header> headerLineParser = new();
+        private static readonly  FlatFileLine<PartnerStatusLayout.Detail> detailLineParser = new();
+
+
+
         private readonly SkdContext context;
         public PartnerStatusBuilder(SkdContext context) {
             this.context = context;
@@ -71,82 +76,80 @@ namespace SKD.Service {
         }
         private string BuildHeaderLine(KitSnapshotRun snapshotRun) {
             var headerLayout = new PartnerStatusLayout.Header();
-            var headerLineBuilder = new FlatFileLine<PartnerStatusLayout.Header>();
 
             var fields = new List<FlatFileLine<PartnerStatusLayout.Header>.FieldValue> {
-                headerLineBuilder.CreateFieldValue(t => t.HDR_RECORD_TYPE, PartnerStatusLayout.Header.HDR_RECORD_TYPE_VAL),
-                headerLineBuilder.CreateFieldValue(t => t.HDR_FILE_NAME, PartnerStatusLayout.Header.HDR_FILE_NAME_VAL),
-                headerLineBuilder.CreateFieldValue(t => t.HDR_KD_PLANT_GSDB, snapshotRun.Plant.Code),
-                headerLineBuilder.CreateFieldValue(t => t.HDR_PARTNER_GSDB,snapshotRun.Plant.PartnerPlantCode),
-                headerLineBuilder.CreateFieldValue(t => t.HDR_PARTNER_TYPE, snapshotRun.Plant.PartnerPlantType),
-                headerLineBuilder.CreateFieldValue(
+                headerLineParser.CreateFieldValue(t => t.HDR_RECORD_TYPE, PartnerStatusLayout.Header.HDR_RECORD_TYPE_VAL),
+                headerLineParser.CreateFieldValue(t => t.HDR_FILE_NAME, PartnerStatusLayout.Header.HDR_FILE_NAME_VAL),
+                headerLineParser.CreateFieldValue(t => t.HDR_KD_PLANT_GSDB, snapshotRun.Plant.Code),
+                headerLineParser.CreateFieldValue(t => t.HDR_PARTNER_GSDB,snapshotRun.Plant.PartnerPlantCode),
+                headerLineParser.CreateFieldValue(t => t.HDR_PARTNER_TYPE, snapshotRun.Plant.PartnerPlantType),
+                headerLineParser.CreateFieldValue(
                     t => t.HDR_SEQ_NBR,
                     snapshotRun.Sequence.ToString().PadLeft(headerLayout.HDR_SEQ_NBR,'0')),
-                headerLineBuilder.CreateFieldValue(
+                headerLineParser.CreateFieldValue(
                     t => t.HDR_BATCH_DATE,
                     snapshotRun.RunDate.ToString(PartnerStatusLayout.Header.HDR_BATCH_DATE_FORMAT)),
-                headerLineBuilder.CreateFieldValue(
+                headerLineParser.CreateFieldValue(
                     t => t.HDR_FILLER, new String(' ', headerLayout.HDR_FILLER)),
             };
 
-            return headerLineBuilder.Build(fields);
+            return headerLineParser.Build(fields);
         }
 
         private string BuildDetailLine(KitSnapshot snapshot) {
             var layout = new PartnerStatusLayout.Detail();
-            var lineBuilder = new FlatFileLine<PartnerStatusLayout.Detail>();
 
             var fields = new List<FlatFileLine<PartnerStatusLayout.Detail>.FieldValue> {
-                lineBuilder.CreateFieldValue(t => t.PST_RECORD_TYPE, PartnerStatusLayout.PST_RECORD_TYPE_VAL),
-                lineBuilder.CreateFieldValue(t => t.PST_TRAN_TYPE, snapshot.ChangeStatusCode.ToString()),
-                lineBuilder.CreateFieldValue(t => t.PST_LOT_NUMBER, snapshot.Kit.Lot.LotNo),
-                lineBuilder.CreateFieldValue(t => t.PST_KIT_NUMBER,snapshot.Kit.KitNo),
-                lineBuilder.CreateFieldValue(t => t.PST_PHYSICAL_VIN, snapshot.VIN),
+                detailLineParser.CreateFieldValue(t => t.PST_RECORD_TYPE, PartnerStatusLayout.PST_RECORD_TYPE_VAL),
+                detailLineParser.CreateFieldValue(t => t.PST_TRAN_TYPE, snapshot.ChangeStatusCode.ToString()),
+                detailLineParser.CreateFieldValue(t => t.PST_LOT_NUMBER, snapshot.Kit.Lot.LotNo),
+                detailLineParser.CreateFieldValue(t => t.PST_KIT_NUMBER,snapshot.Kit.KitNo),
+                detailLineParser.CreateFieldValue(t => t.PST_PHYSICAL_VIN, snapshot.VIN),
 
-                lineBuilder.CreateFieldValue(
+                detailLineParser.CreateFieldValue(
                     t => t.PST_BUILD_DATE,
                     snapshot.OrginalPlanBuild != null
                         ? snapshot.OrginalPlanBuild.Value.ToString(PartnerStatusLayout.PST_DATE_FORMAT)
                         : ""
                 ),
 
-                lineBuilder.CreateFieldValue(
+                detailLineParser.CreateFieldValue(
                     t => t.PST_ACTUAL_DEALER_CODE,
                     snapshot.DealerCode ?? ""
                 ),
-                lineBuilder.CreateFieldValue(
+                detailLineParser.CreateFieldValue(
                     t => t.PST_ENGINE_SERIAL_NUMBER,
                     snapshot.EngineSerialNumber
                 ),
-                lineBuilder.CreateFieldValue(
+                detailLineParser.CreateFieldValue(
                     t => t.PST_CURRENT_STATUS,
                     ToFordTimelineCode(snapshot.KitTimeLineEventType.Code)
                 ),
 
-                lineBuilder.CreateFieldValue(t => t.PST_IP1R_STATUS_DATE, ""),
-                lineBuilder.CreateFieldValue(t => t.PST_IP1S_STATUS_DATE, ""),
-                lineBuilder.CreateFieldValue(t => t.PST_IP2R_STATUS_DATE, ""),
-                lineBuilder.CreateFieldValue(t => t.PST_IP2S_STATUS_DATE,""),
+                detailLineParser.CreateFieldValue(t => t.PST_IP1R_STATUS_DATE, ""),
+                detailLineParser.CreateFieldValue(t => t.PST_IP1S_STATUS_DATE, ""),
+                detailLineParser.CreateFieldValue(t => t.PST_IP2R_STATUS_DATE, ""),
+                detailLineParser.CreateFieldValue(t => t.PST_IP2S_STATUS_DATE,""),
 
-                lineBuilder.CreateFieldValue(
+                detailLineParser.CreateFieldValue(
                     t => t.PST_FPRE_STATUS_DATE,
                     FormattedDate(snapshot.CustomReceived, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
-                lineBuilder.CreateFieldValue(
+                detailLineParser.CreateFieldValue(
                     t => t.PST_FPBP_STATUS_DATE,
                     FormattedDate(snapshot.PlanBuild, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
-                lineBuilder.CreateFieldValue(
+                detailLineParser.CreateFieldValue(
                     t => t.PST_FPBC_STATUS_DATE,
                     FormattedDate(snapshot.BuildCompleted, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
-                lineBuilder.CreateFieldValue(
+                detailLineParser.CreateFieldValue(
                     t => t.PST_FPGR_STATUS_DATE,
                         FormattedDate(snapshot.GateRelease, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
-                lineBuilder.CreateFieldValue(
+                detailLineParser.CreateFieldValue(
                     t => t.PST_FPWS_STATUS_DATE,
                         FormattedDate(snapshot.Wholesale, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
-                lineBuilder.CreateFieldValue(t => t.PST_FILLER, "")
+                detailLineParser.CreateFieldValue(t => t.PST_FILLER, "")
             };
 
-            return lineBuilder.Build(fields);
+            return detailLineParser.Build(fields);
         }
 
         public string BuildTrailerLine(KitSnapshotRun snapshotRun) {
@@ -184,7 +187,5 @@ namespace SKD.Service {
                 ? date.Value.ToString(dateFormat)
                 : "";
         }
-
-
     }
 }

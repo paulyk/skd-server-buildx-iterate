@@ -7,8 +7,11 @@ using SKD.Common;
 using SKD.Service;
 
 namespace SKD.Service {
-
     public class BomFileParser {
+
+        private static readonly FlatFileLine<BomFileLayout.Header> headerLineParser = new();
+        private static readonly FlatFileLine<BomFileLayout.Detail> detailLineParser = new();
+
         public BomFileParser() {
         }
         public MutationPayload<BomLotPartDTO> BuildBomLotPartInput(string text) {
@@ -17,11 +20,10 @@ namespace SKD.Service {
             try {
                 var (headerTextLine, detailTextLines) = ParseTextLines(text);
 
-                var headerLineBuilder = new FlatFileLine<BomFileLayout.Header>();
                 payload.Payload = new BomLotPartDTO {
-                    PlantCode = headerLineBuilder.GetFieldValue(headerTextLine, t => t.HDR_KD_PLANT_GSDB),
-                    Sequence = Int16.Parse(headerLineBuilder.GetFieldValue(headerTextLine, t => t.HDR_BRIDGE_SEQ_NBR)),
-                    BomFileCreatedAt = headerLineBuilder.GetFieldValue(headerTextLine, t => t.HDR_DATE_CREATED),
+                    PlantCode = headerLineParser.GetFieldValue(headerTextLine, t => t.HDR_KD_PLANT_GSDB),
+                    Sequence = Int16.Parse(headerLineParser.GetFieldValue(headerTextLine, t => t.HDR_BRIDGE_SEQ_NBR)),
+                    BomFileCreatedAt = headerLineParser.GetFieldValue(headerTextLine, t => t.HDR_DATE_CREATED),
                     LotParts = BuildLotParts(detailTextLines)
                 };
                 return payload;
@@ -31,19 +33,19 @@ namespace SKD.Service {
                 return payload;
             }
         }
+
         private List<BomLotPartDTO.BomLotPartItem> BuildLotParts(List<string> detailTextLines) {
             var lotParts = new List<BomLotPartDTO.BomLotPartItem>();
-            var detailLineBuilder = new FlatFileLine<BomFileLayout.Detail>();
 
             foreach (var lineText in detailTextLines) {
                 var builder = new FlatFileLine<BomFileLayout.Detail>();
-                var partType = detailLineBuilder.GetFieldValue(lineText, t => t.KBM_KIT_PART_TYPE);
+                var partType = detailLineParser.GetFieldValue(lineText, t => t.KBM_KIT_PART_TYPE);
                 if (partType == "KIT") {
-                    var kitSeqNo = detailLineBuilder.GetFieldValue(lineText, t => t.KBM_KIT_NUMBER);
-                    var lotNo = detailLineBuilder.GetFieldValue(lineText, t => t.KBM_LOT_NUMBER);
-                    var partNo = detailLineBuilder.GetFieldValue(lineText, t => t.KBM_NO_PART);
-                    var partDesc = detailLineBuilder.GetFieldValue(lineText, t => t.KBM_PART_DESCRIPTION);
-                    var quantity = (int)Double.Parse(detailLineBuilder.GetFieldValue(lineText, t => t.KBM_NET_PART_QTY));
+                    var kitSeqNo = detailLineParser.GetFieldValue(lineText, t => t.KBM_KIT_NUMBER);
+                    var lotNo = detailLineParser.GetFieldValue(lineText, t => t.KBM_LOT_NUMBER);
+                    var partNo = detailLineParser.GetFieldValue(lineText, t => t.KBM_NO_PART);
+                    var partDesc = detailLineParser.GetFieldValue(lineText, t => t.KBM_PART_DESCRIPTION);
+                    var quantity = (int)Double.Parse(detailLineParser.GetFieldValue(lineText, t => t.KBM_NET_PART_QTY));
 
                     var kitNo = $"{lotNo}{kitSeqNo}";
                     var modelCode = kitNo.Substring(0, 7);
@@ -70,11 +72,10 @@ namespace SKD.Service {
             try {
                 var (headerTextLine, detailTextLines) = ParseTextLines(text);
 
-                var headerLineBuildr = new FlatFileLine<BomFileLayout.Header>();
                 payload.Payload = new BomLotKitDTO {
-                    PlantCode = headerLineBuildr.GetFieldValue(headerTextLine, t => t.HDR_KD_PLANT_GSDB),
-                    BomFileCreatedAt = headerLineBuildr.GetFieldValue(headerTextLine, t => t.HDR_DATE_CREATED),
-                    Sequence = Int16.Parse(headerLineBuildr.GetFieldValue(headerTextLine, t => t.HDR_BRIDGE_SEQ_NBR)),
+                    PlantCode = headerLineParser.GetFieldValue(headerTextLine, t => t.HDR_KD_PLANT_GSDB),
+                    BomFileCreatedAt = headerLineParser.GetFieldValue(headerTextLine, t => t.HDR_DATE_CREATED),
+                    Sequence = Int16.Parse(headerLineParser.GetFieldValue(headerTextLine, t => t.HDR_BRIDGE_SEQ_NBR)),
                     Lots = BuildKitInputLots(detailTextLines)
                 };
                 return payload;
@@ -85,13 +86,12 @@ namespace SKD.Service {
         }
         private List<BomLotKitDTO.LotEntry> BuildKitInputLots(List<string> detailTextLines) {
             var lots = new List<BomLotKitDTO.LotEntry>();
-            var detailLineBuilder = new FlatFileLine<BomFileLayout.Detail>();
 
             foreach (var lineText in detailTextLines) {
-                var partType = detailLineBuilder.GetFieldValue(lineText, t => t.KBM_KIT_PART_TYPE);
+                var partType = detailLineParser.GetFieldValue(lineText, t => t.KBM_KIT_PART_TYPE);
                 if (partType == "KIT") {
-                    var lotNo = detailLineBuilder.GetFieldValue(lineText, t => t.KBM_LOT_NUMBER);
-                    var kitSeqNo = detailLineBuilder.GetFieldValue(lineText, t => t.KBM_KIT_NUMBER);
+                    var lotNo = detailLineParser.GetFieldValue(lineText, t => t.KBM_LOT_NUMBER);
+                    var kitSeqNo = detailLineParser.GetFieldValue(lineText, t => t.KBM_KIT_NUMBER);
 
                     var kitNo = $"{lotNo}{kitSeqNo}";
                     var modelCode = kitNo.Substring(0, 7);

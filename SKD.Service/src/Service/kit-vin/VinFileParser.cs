@@ -11,6 +11,9 @@ namespace SKD.Service {
 
     public class VinFileParser {
 
+        private static readonly FlatFileLine<VinFileLayout.HeaderLine> headerLineParser = new();
+        private static readonly FlatFileLine<VinFileLayout.DetailLine> detailLineParser = new();
+
         public VinFile ParseVinFile(string text) {
             var kitVinFile = new VinFile();
 
@@ -30,20 +33,18 @@ namespace SKD.Service {
 
 
         public (string plantCode, string partnerPlantCode, int sequence) ParseHeaderLine(string line) {
-            var headerParser = new FlatFileLine<VinFileLayout.HeaderLine>();
-            var plantCode = headerParser.GetFieldValue(line, t => t.HDR_KD_PLANT_GSDB);
-            var partnerPlantCode = headerParser.GetFieldValue(line, t => t.HDR_PARTNER_GSDB);
-            var sequence = Int32.Parse(headerParser.GetFieldValue(line, t => t.HDR_SEQ_NBR));
+            var plantCode = headerLineParser.GetFieldValue(line, t => t.HDR_KD_PLANT_GSDB);
+            var partnerPlantCode = headerLineParser.GetFieldValue(line, t => t.HDR_PARTNER_GSDB);
+            var sequence = Int32.Parse(headerLineParser.GetFieldValue(line, t => t.HDR_SEQ_NBR));
 
             return (plantCode, partnerPlantCode, sequence);
         }
 
         public VinFile.VinFileKit ParseDetailLine(string line) {
-            var lineParser = new FlatFileLine<VinFileLayout.DetailLine>();
             return new VinFile.VinFileKit {
-                LotNo = lineParser.GetFieldValue(line, x => x.KVM_LOT_NUMBER),
-                KitNo = lineParser.GetFieldValue(line, x => x.KVM_KIT_NUMBER),
-                VIN = lineParser.GetFieldValue(line, x => x.KVM_PHYSICAL_VIN)
+                LotNo = detailLineParser.GetFieldValue(line, x => x.KVM_LOT_NUMBER),
+                KitNo = detailLineParser.GetFieldValue(line, x => x.KVM_KIT_NUMBER),
+                VIN = detailLineParser.GetFieldValue(line, x => x.KVM_PHYSICAL_VIN)
             };
         }
 

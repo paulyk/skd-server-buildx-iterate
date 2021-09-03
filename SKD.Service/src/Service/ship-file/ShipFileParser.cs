@@ -12,6 +12,12 @@ namespace SKD.Service {
 
     public class ShipFileParser {
 
+        private static readonly FlatFileLine<ShipFileLayout.HeaderLine> headerLineParser = new();
+        private static readonly FlatFileLine<ShipFileLayout.LotLine> lotLineParser = new();
+        private static readonly FlatFileLine<ShipFileLayout.InvoiceLine> invoiceLineParser = new();
+        private static readonly FlatFileLine<ShipFileLayout.PartLine> partLineParser = new();
+
+
         public ShipFile ParseShipmentFile(string text) {
 
             var shipmentInput = new ShipFile();
@@ -47,13 +53,12 @@ namespace SKD.Service {
             return shipmentInput;
         }
 
-        public (string plantCode, int sequence, DateTime dateCreated ) ParseHeaderLine(string line)  {
-            var lineParser = new FlatFileLine<ShipFileLayout.HeaderLine>();
-            var plantCode = lineParser.GetFieldValue(line, t => t.HDR_CD_PLANT);
-            var sequence = Int32.Parse(lineParser.GetFieldValue(line, t => t.HDR_BRIG_SEQ_NO));
+        public (string plantCode, int sequence, DateTime dateCreated) ParseHeaderLine(string line) {
+            var plantCode = headerLineParser.GetFieldValue(line, t => t.HDR_CD_PLANT);
+            var sequence = Int32.Parse(headerLineParser.GetFieldValue(line, t => t.HDR_BRIG_SEQ_NO));
 
             // date created
-            var dateStr = lineParser.GetFieldValue(line, t => t.HDR_DATE_CREATED);
+            var dateStr = headerLineParser.GetFieldValue(line, t => t.HDR_DATE_CREATED);
             CultureInfo provider = CultureInfo.InvariantCulture;
             var format = "yyyyMMdd";
             var dateCreated = DateTime.ParseExact(dateStr, format, provider);
@@ -62,30 +67,27 @@ namespace SKD.Service {
         }
 
         public ShipFileLot ParseLotLine(string line) {
-            var lineParser = new FlatFileLine<ShipFileLayout.LotLine>();
             return new ShipFileLot {
-                LotNo = lineParser.GetFieldValue(line, t => t.LOT_NUMBER),
+                LotNo = lotLineParser.GetFieldValue(line, t => t.LOT_NUMBER),
                 Invoices = new List<ShipFileInvoice>()
             };
         }
 
         public ShipFileInvoice ParseInvoiceLine(string line) {
-            var lineParser = new FlatFileLine<ShipFileLayout.InvoiceLine>();
             return new ShipFileInvoice {
-                InvoiceNo = lineParser.GetFieldValue(line, t => t.NO_INVOICE),
-                ShipDate = DateTime.Parse(lineParser.GetFieldValue(line, t => t.DT_SHIPPED)),
+                InvoiceNo = invoiceLineParser.GetFieldValue(line, t => t.NO_INVOICE),
+                ShipDate = DateTime.Parse(invoiceLineParser.GetFieldValue(line, t => t.DT_SHIPPED)),
                 Parts = new List<ShipFilePart>()
             };
         }
 
         public ShipFilePart ParsePartLine(string line) {
-            var lineParser = new FlatFileLine<ShipFileLayout.PartLine>();
             return new ShipFilePart {
-                PartNo = lineParser.GetFieldValue(line, t => t.NO_PART),
-                HandlingUnitCode = lineParser.GetFieldValue(line, t => t.HANDLER_UNIT_CODE),
-                CustomerPartNo = lineParser.GetFieldValue(line, t => t.NO_PART_BUS),
-                CustomerPartDesc = lineParser.GetFieldValue(line, t => t.DS_PART),
-                Quantity = Int32.Parse(lineParser.GetFieldValue(line, t => t.QT_SHIPPED))
+                PartNo = partLineParser.GetFieldValue(line, t => t.NO_PART),
+                HandlingUnitCode = partLineParser.GetFieldValue(line, t => t.HANDLER_UNIT_CODE),
+                CustomerPartNo = partLineParser.GetFieldValue(line, t => t.NO_PART_BUS),
+                CustomerPartDesc = partLineParser.GetFieldValue(line, t => t.DS_PART),
+                Quantity = Int32.Parse(partLineParser.GetFieldValue(line, t => t.QT_SHIPPED))
             };
         }
 

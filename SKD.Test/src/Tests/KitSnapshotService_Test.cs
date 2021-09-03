@@ -601,7 +601,7 @@ namespace SKD.Test {
             var expectedError = "No changes since last snapshot";
             var actualError = payload.Errors.Select(t => t.Message).FirstOrDefault();
             Assert.Equal(expectedError, actualError);
-            Assert.Equal(null, payload.Payload);
+            Assert.Null(payload.Payload);
 
             // add one change should not reject
             await AddKitTimelineEntry(TimeLineEventCode.PLAN_BUILD, kit_1.KitNo, "", plan_build_date_trx, plan_build_date);
