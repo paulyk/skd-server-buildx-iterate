@@ -71,7 +71,7 @@ namespace SKD.Service {
                 ks.ChangeStatusCode = changeStatus;
                 ks.KitTimeLineEventType = selectedKitTimeLineEvent.EventType;
                 ks.VIN = Get_KitVIN_IfBuildComplete(kit);
-                ks.DealerCode = GetDealerCode(kit);
+                ks.DealerCode = kit.Dealer?.Code;
                 ks.EngineSerialNumber = await GetEngineSerialNumber(kit, input.EngineComponentCode);
 
                 ks.OrginalPlanBuild = await GetKit_OriginalPlanBuildDate(kit, selectedKitTimeLineEvent);
@@ -126,7 +126,7 @@ namespace SKD.Service {
                 return null;
             }
 
-            return BuildKitSnapshotgRunDTO(snapshotRun);
+            return BuildKitSnapshotRunDTO(snapshotRun);
         }
 
         public async Task<KitSnapshotRunDTO?> GetSnapshotRunByDate(string plantCode, DateTime runDate) {
@@ -144,10 +144,10 @@ namespace SKD.Service {
                 return null;
             }
 
-            return BuildKitSnapshotgRunDTO(snapshotRun);
+            return BuildKitSnapshotRunDTO(snapshotRun);
         }
 
-        private KitSnapshotRunDTO BuildKitSnapshotgRunDTO(KitSnapshotRun snapshotRun) {
+        private KitSnapshotRunDTO BuildKitSnapshotRunDTO(KitSnapshotRun snapshotRun) {
             var dto = new KitSnapshotRunDTO {
                 PlantCode = snapshotRun.Plant.Code,
                 PartnerPlantCode = snapshotRun.Plant.PartnerPlantCode,
@@ -341,16 +341,6 @@ namespace SKD.Service {
 
             // Use PlanBuild date from timeline events
             return Get_EventDate_ForEventType(kit, TimeLineEventCode.PLAN_BUILD, selectedTimeLineEvent);
-        }
-
-        private string? GetDealerCode(Kit kit) {
-            var timeLineEvnet = kit.TimelineEvents
-                .Where(t => t.RemovedAt == null)
-                .Where(t => t.EventType.Code == TimeLineEventCode.WHOLE_SALE)
-                .FirstOrDefault();
-
-
-            return timeLineEvnet?.EventNote;
         }
 
         ///<remarks>

@@ -54,11 +54,22 @@ namespace SKD.Test {
                 var model = context.VehicleModels.First();
                 Gen_Lot(bom.Id, model.Id, kitCount: 6, assignVin: assignVin);
             }
+            Gen_Dealers();
         }
         public Bom Gen_Plant_Bom(string plantCode = null) {
             var plant = Gen_Plant(plantCode);
             var bom = Gen_Bom(plant.Code);
             return bom;
+        }
+
+        public Dealer Gen_Dealers() {
+            var dealer = new Dealer {
+                Code = Util.RandomString(10),
+                Name = Util.RandomString(10)
+            };
+            context.Dealers.Add(dealer);
+            context.SaveChanges();
+            return dealer;
         }
         public void Gen_Bom_Lot_and_Kits(string plantCode = null, bool assignVin = false) {
             var bom = Gen_Plant_Bom(plantCode);

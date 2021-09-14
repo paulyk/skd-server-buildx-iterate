@@ -40,7 +40,7 @@ namespace SKD.Test {
             Assert.Equal(0, payload.Payload.SnapshotCount);
 
             // custom received
-            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", custom_receive_date_trx, custom_receive_date);
+            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", "", custom_receive_date_trx, custom_receive_date);
             snapshotInput.RunDate = custom_receive_date_trx;
             payload = await service.GenerateSnapshot(snapshotInput);
             var snapshots_count = context.KitSnapshots.Count();
@@ -79,7 +79,7 @@ namespace SKD.Test {
             // setup
             var service = new KitSnapshotService(context);
             var kit = context.Kits.OrderBy(t => t.KitNo).First();
-            var dealerCode = "DLR_1";
+            var dealerCode = await context.Dealers.Select(t => t.Code).FirstOrDefaultAsync();
             var plantCode = context.Plants.Select(t => t.Code).First();
             DateTime eventDate = DateTime.Now.Date;
             var snapshotInput = new KitSnapshotInput {
@@ -97,7 +97,7 @@ namespace SKD.Test {
 
             // 2.  custom received
             eventDate = dates.Where(t => t.eventType == TimelineTestEvent.CUSTOM_RECEIVED_TRX).First().date;
-            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", eventDate, eventDate.AddDays(-1));
+            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", "", eventDate, eventDate.AddDays(-1));
             snapshotInput.RunDate = eventDate;
             await service.GenerateSnapshot(snapshotInput);
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
@@ -120,7 +120,7 @@ namespace SKD.Test {
             // 3.  plan build
             eventDate = dates.Where(t => t.eventType == TimelineTestEvent.PLAN_BUILD_TRX).First().date;
             snapshotInput.RunDate = eventDate;
-            await AddKitTimelineEntry(TimeLineEventCode.PLAN_BUILD, kit.KitNo, "", eventDate, eventDate);
+            await AddKitTimelineEntry(TimeLineEventCode.PLAN_BUILD, kit.KitNo, "", "", eventDate, eventDate);
             await service.GenerateSnapshot(snapshotInput);
 
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
@@ -140,7 +140,7 @@ namespace SKD.Test {
             // 5. build completed
             eventDate = dates.Where(t => t.eventType == TimelineTestEvent.BUILD_COMPLETE_TRX).First().date;
             snapshotInput.RunDate = eventDate;
-            await AddKitTimelineEntry(TimeLineEventCode.BUILD_COMPLETED, kit.KitNo, "", eventDate, eventDate);
+            await AddKitTimelineEntry(TimeLineEventCode.BUILD_COMPLETED, kit.KitNo, "", "", eventDate, eventDate);
             await service.GenerateSnapshot(snapshotInput);
 
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
@@ -151,7 +151,7 @@ namespace SKD.Test {
             // 5.  gate release
             eventDate = dates.Where(t => t.eventType == TimelineTestEvent.GATE_RELEASE_TRX).First().date;
             snapshotInput.RunDate = eventDate;
-            await AddKitTimelineEntry(TimeLineEventCode.GATE_RELEASED, kit.KitNo, "", eventDate, eventDate);
+            await AddKitTimelineEntry(TimeLineEventCode.GATE_RELEASED, kit.KitNo, "", "", eventDate, eventDate);
             await service.GenerateSnapshot(snapshotInput);
 
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
@@ -163,7 +163,7 @@ namespace SKD.Test {
             // 6.  wholesale
             eventDate = dates.Where(t => t.eventType == TimelineTestEvent.WHOLE_SALE_TRX).First().date;
             snapshotInput.RunDate = eventDate;
-            await AddKitTimelineEntry(TimeLineEventCode.WHOLE_SALE, kit.KitNo, dealerCode, eventDate, eventDate);
+            await AddKitTimelineEntry(TimeLineEventCode.WHOLE_SALE, kit.KitNo, "", dealerCode, eventDate, eventDate);
             await service.GenerateSnapshot(snapshotInput);
 
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
@@ -188,7 +188,6 @@ namespace SKD.Test {
             await service.GenerateSnapshot(snapshotInput);
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
             Assert.Null(snapshotPayload);
-
         }
 
         [Fact]
@@ -213,7 +212,7 @@ namespace SKD.Test {
             var new_plan_build_date = custom_receive_date.AddDays(planBuildLeadTimeDays + 2);
 
             // 1.  custom received
-            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "note", custom_receive_date_trx, custom_receive_date);
+            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "note", "", custom_receive_date_trx, custom_receive_date);
             snapshotInput.RunDate = custom_receive_date_trx;
             var payload = await service.GenerateSnapshot(snapshotInput);
             var snapshotRun = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, payload.Payload.Sequence);
@@ -223,7 +222,7 @@ namespace SKD.Test {
             Assert.Equal(PartnerStatus_ChangeStatus.Added, kitSnapshot.TxType);
 
             // 1.  plan build 
-            await AddKitTimelineEntry(TimeLineEventCode.PLAN_BUILD, kit.KitNo, "note", plan_build_date_trx, plan_build_date);
+            await AddKitTimelineEntry(TimeLineEventCode.PLAN_BUILD, kit.KitNo, "note", "", plan_build_date_trx, plan_build_date);
             snapshotInput.RunDate = plan_build_date_trx;
             payload = await service.GenerateSnapshot(snapshotInput);
             snapshotRun = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, payload.Payload.Sequence);
@@ -236,7 +235,7 @@ namespace SKD.Test {
 
 
             // 1. edit plan build date does not change original
-            var payload_2 = await AddKitTimelineEntry(TimeLineEventCode.PLAN_BUILD, kit.KitNo, "note", new_plan_build_date_trx, new_plan_build_date);
+            var payload_2 = await AddKitTimelineEntry(TimeLineEventCode.PLAN_BUILD, kit.KitNo, "note", "", new_plan_build_date_trx, new_plan_build_date);
             var expectedErrorMessage = "cannot change date after snapshot taken";
             var actualErrorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
             Assert.Equal(expectedErrorMessage, actualErrorMessage);
@@ -277,9 +276,9 @@ namespace SKD.Test {
             var build_completed_date = baseDate.AddDays(12);
 
             var kit = context.Kits.OrderBy(t => t.KitNo).First();
-            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", first_trx_date, base_date);
-            await AddKitTimelineEntry(TimeLineEventCode.PLAN_BUILD, kit.KitNo, "", first_trx_date, plan_build_date);
-            await AddKitTimelineEntry(TimeLineEventCode.BUILD_COMPLETED, kit.KitNo, "", first_trx_date, build_completed_date);
+            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", "", first_trx_date, base_date);
+            await AddKitTimelineEntry(TimeLineEventCode.PLAN_BUILD, kit.KitNo, "", "", first_trx_date, plan_build_date);
+            await AddKitTimelineEntry(TimeLineEventCode.BUILD_COMPLETED, kit.KitNo, "", "", first_trx_date, build_completed_date);
 
             var snapShotService = new KitSnapshotService(context);
             var partnerStatusBuilder = new PartnerStatusBuilder(context);
@@ -402,7 +401,7 @@ namespace SKD.Test {
             var custom_receive_date = baseDate.AddDays(1);
             var custom_receive_date_trx = baseDate.AddDays(2);
 
-            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", custom_receive_date_trx, custom_receive_date);
+            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", "", custom_receive_date_trx, custom_receive_date);
             var service = new KitSnapshotService(context);
 
             var snapshotInput = new KitSnapshotInput {
@@ -443,7 +442,7 @@ namespace SKD.Test {
             };
 
             var kit = context.Kits.Where(t => t.Lot.Plant.Code == plantCode).OrderBy(t => t.KitNo).First();
-            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", custom_receive_date_trx, custom_receive_date);
+            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", "", custom_receive_date_trx, custom_receive_date);
 
             snapshotInput.RunDate = run_date_1;
             var payload = await service.GenerateSnapshot(snapshotInput);
@@ -466,7 +465,7 @@ namespace SKD.Test {
             };
 
             kit = context.Kits.Where(t => t.Lot.Plant.Code == plantCode).OrderBy(t => t.KitNo).First();
-            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", custom_receive_date_trx, custom_receive_date);
+            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", "", custom_receive_date_trx, custom_receive_date);
 
             snapshotInput.RunDate = run_date_1;
             payload = await service.GenerateSnapshot(snapshotInput);
@@ -501,7 +500,7 @@ namespace SKD.Test {
             var expecedErrorMessage = "cannot change date after snapshot taken";
             foreach (var (eventType, trxDate, eventDate) in eventList) {
 
-                var payload = await AddKitTimelineEntry(eventType, kit.KitNo, "", trxDate, eventDate);
+                var payload = await AddKitTimelineEntry(eventType, kit.KitNo, "", "", trxDate, eventDate);
                 var actualErrorCount = payload.Errors.Count;
                 Assert.Equal(0, actualErrorCount);
                 await service.GenerateSnapshot(new KitSnapshotInput {
@@ -510,7 +509,7 @@ namespace SKD.Test {
                     EngineComponentCode = engineCode
                 });
                 // edit date
-                var payload_2 = await AddKitTimelineEntry(eventType, kit.KitNo, "", trxDate.AddDays(1), eventDate.AddDays(1));
+                var payload_2 = await AddKitTimelineEntry(eventType, kit.KitNo, "", "", trxDate.AddDays(1), eventDate.AddDays(1));
                 var actualErrorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
                 Assert.Equal(expecedErrorMessage, actualErrorMessage);
             }
@@ -543,8 +542,8 @@ namespace SKD.Test {
             Assert.Equal(0, snapshotCount);
 
             // 2.  custom received
-            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit_1.KitNo, "", custom_receive_date_trx, custom_receive_date);
-            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit_2.KitNo, "", custom_receive_date_trx, custom_receive_date);
+            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit_1.KitNo, "", "", custom_receive_date_trx, custom_receive_date);
+            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit_2.KitNo, "", "", custom_receive_date_trx, custom_receive_date);
             snapshotInput.RunDate = custom_receive_date_trx;
             await service.GenerateSnapshot(snapshotInput);
             snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
@@ -588,8 +587,8 @@ namespace SKD.Test {
                 RunDate = baseDate.AddDays(3)
             };
 
-            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit_1.KitNo, "", custom_receive_date_trx, custom_receive_date);
-            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit_2.KitNo, "", custom_receive_date_trx, custom_receive_date);
+            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit_1.KitNo, "", "", custom_receive_date_trx, custom_receive_date);
+            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit_2.KitNo, "", "", custom_receive_date_trx, custom_receive_date);
 
             MutationPayload<SnapshotDTO> payload = await service.GenerateSnapshot(snapshotInput);
             Assert.Equal(2, payload.Payload.SnapshotCount);
@@ -604,7 +603,7 @@ namespace SKD.Test {
             Assert.Null(payload.Payload);
 
             // add one change should not reject
-            await AddKitTimelineEntry(TimeLineEventCode.PLAN_BUILD, kit_1.KitNo, "", plan_build_date_trx, plan_build_date);
+            await AddKitTimelineEntry(TimeLineEventCode.PLAN_BUILD, kit_1.KitNo, "", "", plan_build_date_trx, plan_build_date);
             snapshotInput.RunDate = baseDate.AddDays(5);
             payload = await service.GenerateSnapshot(snapshotInput);
 
@@ -638,6 +637,7 @@ namespace SKD.Test {
             TimeLineEventCode eventType,
             string kitNo,
             string eventNote,
+            string dealerCode,
             DateTime trxDate,
             DateTime eventDate
         ) {
@@ -646,7 +646,8 @@ namespace SKD.Test {
                 KitNo = kitNo,
                 EventType = eventType,
                 EventNote = eventNote,
-                EventDate = eventDate
+                EventDate = eventDate,
+                DealerCode = dealerCode
             });
             return payload;
         }

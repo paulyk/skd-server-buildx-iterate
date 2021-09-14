@@ -193,6 +193,11 @@ namespace SKD.Service {
                 EventNote = input.EventNote
             };
 
+            // if dealer code provided associate kit with dealer code
+            if (!String.IsNullOrWhiteSpace(input.DealerCode)) {
+                kit.Dealer = await context.Dealers.FirstOrDefaultAsync(t => t.Code == input.DealerCode);
+            }
+
             kit.TimelineEvents.Add(newTimelineEvent);
 
             // save
@@ -280,6 +285,18 @@ namespace SKD.Service {
                 if (custom_receive_plus_lead_time_date > plan_build_date) {
                     errors.Add(new Error("", $"plan build must greater custom receive by {planBuildLeadTimeDays} days"));
                     return errors;
+                }
+            }
+
+            if (input.EventType == TimeLineEventCode.WHOLE_SALE) {
+                if (String.IsNullOrWhiteSpace(input.DealerCode)) {
+                    errors.Add(new Error("", "Dealer code required"));
+                    return errors;                
+                }
+                var dealer = await context.Dealers.FirstOrDefaultAsync(t => t.Code == input.DealerCode);
+                if (dealer == null) {
+                    errors.Add(new Error("", $"Dealer not found for: {input.DealerCode}"));
+                    return errors;                
                 }
             }
 

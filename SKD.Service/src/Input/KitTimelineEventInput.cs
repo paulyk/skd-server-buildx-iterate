@@ -8,6 +8,7 @@ namespace SKD.Service {
         public TimeLineEventCode EventType { get; init; }
         public DateTime EventDate { get; init; }
         public string EventNote { get; init; }
+        public string DealerCode { get; set; }
     }
     
 }
