@@ -70,8 +70,6 @@ namespace SKD.Test {
 
             // test + assert
             Assert.Throws<DbUpdateException>(() => ctx.SaveChanges());
-
-
         }
 
         [Fact]
@@ -91,7 +89,6 @@ namespace SKD.Test {
             // assert
             var count = ctx.VehicleModels.Count();
             Assert.Equal(1, count);
-
         }
 
         [Fact]
@@ -140,9 +137,7 @@ namespace SKD.Test {
 
             var count = ctx.VehicleModels.Count(t => t.Description == modelName);
             Assert.Equal(2, count);
-
         }
-
 
         [Fact]
         public void Can_add_kit() {
@@ -193,7 +188,6 @@ namespace SKD.Test {
             // assert
             var kitCount = ctx.VehicleModels.Count();
             Assert.Equal(1, kitCount);
-
         }
 
         [Fact]
@@ -208,7 +202,6 @@ namespace SKD.Test {
 
             // test + assert
             Assert.Throws<DbUpdateException>(() => ctx.SaveChanges());
-
         }
 
         [Fact]
@@ -235,7 +228,6 @@ namespace SKD.Test {
 
             // test + assert
             Assert.Throws<DbUpdateException>(() => ctx.SaveChanges());
-
         }
 
         [Fact]
@@ -254,6 +246,24 @@ namespace SKD.Test {
 
             var after_count = ctx.Parts.Count();
             Assert.Equal(parts.Count, after_count);
+        }
+
+        [Fact]
+        public void Can_add_dealers() {
+            using var ctx = GetAppDbContext();
+            var dealers = new List<Dealer> {
+                    new Dealer { Code = "D1", Name = "name 1"},
+                    new Dealer { Code = "D2", Name = "Name 2"},
+                };
+
+            ctx.Dealers.AddRange(dealers);
+            var before_count = ctx.Dealers.Count();
+            Assert.Equal(0, before_count);
+
+            ctx.SaveChanges();
+
+            var after_count = ctx.Dealers.Count();
+            Assert.Equal(dealers.Count, after_count);
         }
 
     }

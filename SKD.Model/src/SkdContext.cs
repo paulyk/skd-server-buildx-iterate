@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace SKD.Model {
     public class SkdContext : DbContext {
         public DbSet<Plant> Plants => Set<Plant>();
+        public DbSet<Dealer> Dealers => Set<Dealer>();
         public DbSet<Kit> Kits => Set<Kit>();
         public DbSet<KitVinImport> KitVinImports => Set<KitVinImport>();
         public DbSet<KitVin> KitVins => Set<KitVin>(); 
@@ -40,6 +41,7 @@ namespace SKD.Model {
             builder.ApplyConfiguration(new Component_Config());
             builder.ApplyConfiguration(new User_Config());
             builder.ApplyConfiguration(new Plant_Config());
+            builder.ApplyConfiguration(new Dealer_Config());
 
             builder.ApplyConfiguration(new Bom_Config());
             
@@ -54,7 +56,6 @@ namespace SKD.Model {
             builder.ApplyConfiguration(new Lot_Config());
             builder.ApplyConfiguration(new LotPart_Config());
             builder.ApplyConfiguration(new LotPartReceived_Config());
-
 
             builder.ApplyConfiguration(new VehicleModel_Config());
             builder.ApplyConfiguration(new KitComponent_Config());

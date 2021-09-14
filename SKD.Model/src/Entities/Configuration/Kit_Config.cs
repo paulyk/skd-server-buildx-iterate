@@ -31,6 +31,10 @@ namespace SKD.Model {
             builder.HasMany(t => t.Snapshots)
                 .WithOne(t => t.Kit)
                 .HasForeignKey(t => t.KitId);
+
+            builder.HasOne(t => t.Dealer)
+                .WithMany(t => t.Kits)
+                .HasForeignKey(t => t.DealerId);
         }
     }
 }
