@@ -157,5 +157,12 @@ namespace SKD.Server {
             [Service] SkdContext context
         ) => context.KitSnapshots;
 
+        [UsePaging(MaxPageSize = 10000)]
+        [UseProjection]
+        [UseFiltering]
+        [UseSorting]
+        public IQueryable<Dealer> GetDealers([Service] SkdContext context)
+            => context.Dealers.AsQueryable();
+
     }
 }

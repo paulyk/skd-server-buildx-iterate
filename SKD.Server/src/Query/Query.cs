@@ -78,7 +78,7 @@ namespace SKD.Server {
                         .ThenInclude(t => t.ComponentSerials)
                         .ThenInclude(t => t.DcwsResponses)
                     .Include(t => t.Lot).ThenInclude(t => t.Model)
-                    .Include(t => t.TimelineEvents)
+                    .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                     .FirstOrDefaultAsync(t => t.KitNo == kitNo);
 
             return result;
