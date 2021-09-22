@@ -5,14 +5,15 @@ using SKD.Service;
 using Xunit;
 using System.Linq;
 using SKD.Common;
+using System.Reflection;
 
 namespace SKD.Test {
     public class FlatFile_Test {
 
         public class HeaderLayout {
-            public int RECORD_TYPE = 3;
-            public int SEQUENCE  = 4;
-            public int NAME = 10;
+            public readonly int RECORD_TYPE = 3;
+            public readonly int SEQUENCE = 4;
+            public readonly int NAME = 10;
         }
 
         [Fact]
@@ -56,11 +57,48 @@ namespace SKD.Test {
             };
             var expectedText = String.Join("", inputFields.Select(t => t.Value));
 
-            var outputFiels = lineBuilder.Parse(expectedText);
-            var outputText = String.Join("", outputFiels.Select(t => t.Value));
+            var outputFields = lineBuilder.Parse(expectedText);
+            var outputText = String.Join("", outputFields.Select(t => t.Value));
 
             Assert.Equal(expectedText, outputText);
         }
 
+        [Fact]
+        public void FlatFileLine_can_set_field() {
+            // setup
+            var lineBuilder = new FlatFileLine<HeaderLayout>();
+
+            var recordType =  "HDR";
+            var sequence = "0004"; 
+            var name= "1234567890";
+
+            var inputFields = new List<FlatFileLine<HeaderLayout>.FieldValue> {
+                lineBuilder.CreateFieldValue(t => t.RECORD_TYPE, recordType),
+                lineBuilder.CreateFieldValue(t => t.SEQUENCE,sequence),
+                lineBuilder.CreateFieldValue(t => t.NAME, name)
+            };
+            var line = String.Join("", inputFields.Select(t => t.Value));
+
+            // test
+            var newSequence = "0005";
+            var newLine = lineBuilder.SetFieldValue(line, t => t.SEQUENCE, newSequence);
+
+            // assert
+            var fields = typeof(HeaderLayout).GetFields().Select((v,i) => {
+                return new {
+                    Name = v.Name,
+                    Index = i
+                };
+            }).ToList();
+
+            var actual = lineBuilder.GetFieldValue(newLine, x => x.RECORD_TYPE);
+            Assert.Equal(recordType, actual);
+
+            actual = lineBuilder.GetFieldValue(newLine, x => x.SEQUENCE);
+            Assert.Equal(newSequence, actual);
+
+            actual = lineBuilder.GetFieldValue(newLine, x => x.NAME);
+            Assert.Equal(name, actual);
+        }
     }
 }

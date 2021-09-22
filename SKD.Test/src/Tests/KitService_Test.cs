@@ -22,7 +22,7 @@ namespace SKD.Test {
             var lot = context.Lots.First();
             var plant = context.Plants.First();
             var partnerPlantCode = Gen_PartnerPLantCode();
-            var sequence = 3;
+            var sequence = 1;
 
             var input = new VinFile {
                 PlantCode = plant.Code,
@@ -37,8 +37,8 @@ namespace SKD.Test {
 
             // test
             var kits = await context.Kits.Where(t => t.Lot.LotNo == lot.LotNo).ToListAsync();
-            var lot_vehicles_count = kits.Count;
-            var with_vin_count = kits.Count(t => t.VIN != "");
+            var lot_kit_count = kits.Count;
+            var with_vin_count = kits.Count(t => !String.IsNullOrWhiteSpace(t.VIN));
             Assert.True(0 == with_vin_count);
 
             var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
@@ -57,8 +57,99 @@ namespace SKD.Test {
 
             kits = await context.Kits.Where(t => t.Lot.LotNo == lot.LotNo).ToListAsync();
             with_vin_count = kits.Count(t => t.VIN != "");
-            Assert.True(lot_vehicles_count == with_vin_count);
+            Assert.Equal(lot_kit_count,with_vin_count);
         }
+
+        [Fact]
+        public async Task Cannot_re_import_vin_file_with_same_plant_and_sequence() {
+            // setup
+            var lot = context.Lots.First();
+            var plant = context.Plants.First();
+            var partnerPlantCode = Gen_PartnerPLantCode();
+            var sequence = 1;
+
+            var input = new VinFile {
+                PlantCode = plant.Code,
+                PartnerPlantCode = partnerPlantCode,
+                Sequence = sequence,
+                Kits = lot.Kits.Select(t => new VinFile.VinFileKit {
+                    LotNo = lot.LotNo,
+                    KitNo = t.KitNo,
+                    VIN = Gen_VIN()
+                }).ToList()
+            };
+
+            // test
+            var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
+            await service.ImportVIN(input);
+            var payload = await service.ImportVIN(input);
+
+            // assert
+            var expectedErrorMessage = "Already imported plant - sequence";
+            var actualErrorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
+            Assert.Equal(expectedErrorMessage, actualErrorMessage.Substring(0, expectedErrorMessage.Length));
+        }
+
+        [Fact]
+        public async Task VIN_Import_can_change_vin() {
+            // setup
+            var lot = context.Lots.First();
+            var plant = context.Plants.First();
+            var partnerPlantCode = Gen_PartnerPLantCode();
+            var sequence = 1;
+
+            var firstInput = new VinFile {
+                PlantCode = plant.Code,
+                PartnerPlantCode = partnerPlantCode,
+                Sequence = sequence,
+                Kits = lot.Kits.Select(t => new VinFile.VinFileKit {
+                    LotNo = lot.LotNo,
+                    KitNo = t.KitNo,
+                    VIN = Gen_VIN()
+                }).ToList()
+            };
+
+            var newVin = Gen_VIN();
+            var change_vin_kitNo = firstInput.Kits.Select(t => t.KitNo).First();
+
+            var secontInput = new VinFile {
+                PlantCode = firstInput.PlantCode,
+                PartnerPlantCode = firstInput.PartnerPlantCode,
+                Sequence = firstInput.Sequence + 1,
+                Kits = firstInput.Kits.Select(t => new VinFile.VinFileKit{
+                    LotNo = lot.LotNo,
+                    KitNo = t.KitNo,
+                    VIN = t.KitNo == change_vin_kitNo ? newVin : t.VIN
+                }).ToList()              
+            };
+            
+            // first import kit vinds
+            var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
+            await service.ImportVIN(firstInput);            
+            var kitVinCount_before  = await context.KitVins.CountAsync();
+
+            // now import with one VIN change
+            var paylaod = service.ImportVIN(secontInput);
+
+            var kitVinCount_after  = await context.KitVins.CountAsync();
+            Assert.Equal(kitVinCount_before + 1, kitVinCount_after);
+
+            // assert vin match for each kit
+            foreach(var inputKit in secontInput.Kits.ToList()) {
+                var kit = await context.Kits
+                    .Include(t => t.KitVins)
+                    .FirstOrDefaultAsync(t => t.KitNo == inputKit.KitNo);
+                Assert.Equal(inputKit.VIN, kit.VIN);
+
+                var kitVins_count = kit.KitVins.Count();
+                if (inputKit.VIN == newVin) {
+                    Assert.Equal(2, kitVins_count);
+                } else {
+                    Assert.Equal(1, kitVins_count);
+                }
+            }
+        }
+
 
         [Fact]
         public async Task Cannot_import_kit_vins_if_kits_not_found() {
@@ -88,11 +179,10 @@ namespace SKD.Test {
             var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
             errorMessage = errorMessage.Substring(0, expectedError.Length);
             Assert.Equal(expectedError, errorMessage);
-
         }
 
         [Fact]
-        public async Task Cannot_import_kit_vins_with_kits_in_payload() {
+        public async Task Cannot_import_vins_with_duplicate_KitNo_in_payload() {
             // setup
             var lot = context.Lots.First();
             var plant = context.Plants.First();
@@ -139,7 +229,6 @@ namespace SKD.Test {
                 (TimeLineEventCode.GATE_RELEASED, baseDate.AddDays(10)),
                 (TimeLineEventCode.WHOLE_SALE, baseDate.AddDays(12)),
             };
-
 
             // test
             var kit = context.Kits.First();
@@ -214,7 +303,7 @@ namespace SKD.Test {
             KitService service = null;
             var payloads = new List<MutationPayload<KitTimelineEvent>>();
 
-            foreach (var (eventType, eventDate, trxDate ) in timelineEvents) {
+            foreach (var (eventType, eventDate, trxDate) in timelineEvents) {
                 var input = new KitTimelineEventInput {
                     KitNo = kit.KitNo,
                     EventType = eventType,
@@ -519,7 +608,6 @@ namespace SKD.Test {
             Assert.Equal(componentToRemove.Component.Code, diff.InKitButNoModel[0].ComponentCode);
         }
 
-
         [Fact]
         public async Task Can_sync_kit_model_components_if_model_component_removed() {
             // setup
@@ -590,6 +678,4 @@ namespace SKD.Test {
             await service.Save(saveModelInput);
         }
     }
-
-
 }

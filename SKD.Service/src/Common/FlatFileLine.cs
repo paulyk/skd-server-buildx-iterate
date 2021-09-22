@@ -81,6 +81,23 @@ namespace SKD.Common {
             }
             throw new Exception($"field '{prop.Name}' not found in layout");
         }
+        public string SetFieldValue(string lineText, Expression<Func<T, object>> prop, string newValue) {
+            var member = prop.GetAccessedMemberInfo();
+
+            StringBuilder stringBuilder = new StringBuilder();
+            var pos = 0;
+            foreach (var field in Fields) {
+                if (field.Name != member.Name) {
+                    stringBuilder.Append(lineText.Substring(pos, field.Length));
+                }   else if (field.Name == member.Name) {
+                    var text = field.Length >= newValue.Length 
+                        ? newValue.Substring(0, field.Length)
+                        : newValue.PadRight(field.Length, ' ');
+                    stringBuilder.Append(text);
+                }
+                pos += field.Length;
+            }
+            return stringBuilder.ToString();        }
 
         public string Build(List<FieldValue> values) {
             var builder = new StringBuilder();

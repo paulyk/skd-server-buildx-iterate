@@ -43,14 +43,20 @@ namespace SKD.Service {
             context.KitVinImports.Add(kitVinImport);
 
             foreach (var inputKitVin in input.Kits) {
-                var kit = await context.Kits.FirstOrDefaultAsync(t => t.KitNo == inputKitVin.KitNo);
-                kit.VIN = inputKitVin.VIN;
-                var kitVin = new KitVin {
-                    Kit = kit,
-                    VIN = inputKitVin.VIN
-                };
-                kitVinImport.KitVins.Add(kitVin);
-            }
+                var kit = await context.Kits
+                    .Include(t => t.KitVins).ThenInclude(t => t.Kit)
+                    .FirstOrDefaultAsync(t => t.KitNo == inputKitVin.KitNo);
+
+                bool kitVinAlreadyExists = kit.KitVins.Any(t => t.Kit.KitNo == inputKitVin.KitNo && t.VIN == inputKitVin.VIN);
+
+                if (!kitVinAlreadyExists) {
+                    kit.VIN = inputKitVin.VIN;
+                    var kitVin = new KitVin {
+                        Kit = kit,
+                        VIN = inputKitVin.VIN
+                    };
+                    kitVinImport.KitVins.Add(kitVin);
+                } }
 
             await context.SaveChangesAsync();
             return payload;
@@ -73,12 +79,12 @@ namespace SKD.Service {
             }
 
             // already imported 
-            var kitVinImport = await context.KitVinImports.FirstOrDefaultAsync(
+            var kitVinAlreadyImported = await context.KitVinImports.AnyAsync(
                 t => t.Plant.Code == input.PlantCode && t.Sequence == input.Sequence
             );
 
-            if (kitVinImport != null) {
-                errors.Add(new Error("", $"Already imported: plant {input.PlantCode} sequence {input.Sequence}"));
+            if (kitVinAlreadyImported) {
+                errors.Add(new Error("", $"Already imported plant - sequence {input.PlantCode} - {input.Sequence}"));
                 return errors;
             }
 
@@ -121,18 +127,6 @@ namespace SKD.Service {
                 .Where(t => kitNos.Any(kitNo => kitNo == t.KitNo))
                 .ToListAsync();
 
-            // kits already assigned different vin
-
-            var kitsAlreadyAssignedDifferentVin = kits
-                .Where(t => !String.IsNullOrEmpty(t.VIN))
-                .Where(t => t.VIN != input.Kits.First(inputKit => inputKit.KitNo == t.KitNo).VIN)
-                .ToList();
-
-            if (kitsAlreadyAssignedDifferentVin.Any()) {
-                errors.Add(new Error("", $"found kits with different VIN already assigned"));
-                return errors;
-            }
-
             // Wehicles with matching kit numbers not found
             var kit_numbers_not_found = new List<string>();
             foreach (var kit in input.Kits) {
@@ -146,7 +140,7 @@ namespace SKD.Service {
                 return errors;
             }
 
-            // duplicate kitNos in payload
+            // duplicate kitNo in payload
             var duplicateKitNos = input.Kits
                 .GroupBy(t => t.KitNo)
                 .Where(g => g.Count() > 1)
@@ -291,12 +285,12 @@ namespace SKD.Service {
             if (input.EventType == TimeLineEventCode.WHOLE_SALE) {
                 if (String.IsNullOrWhiteSpace(input.DealerCode)) {
                     errors.Add(new Error("", "Dealer code required"));
-                    return errors;                
+                    return errors;
                 }
                 var dealer = await context.Dealers.FirstOrDefaultAsync(t => t.Code == input.DealerCode);
                 if (dealer == null) {
                     errors.Add(new Error("", $"Dealer not found for: {input.DealerCode}"));
-                    return errors;                
+                    return errors;
                 }
             }
 
