@@ -78,6 +78,7 @@ namespace SKD.Server
                 .AddType<VehicleModelType>()
                 .AddType<VehicleComponentType>()
                 .AddType<KitListItemDtoType>()
+                .AddType<KitVinType>()
                 .AddProjections()
                 .AddFiltering()
                 .AddSorting()

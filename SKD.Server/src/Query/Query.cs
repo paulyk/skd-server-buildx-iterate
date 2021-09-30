@@ -58,12 +58,13 @@ namespace SKD.Server {
 
         public async Task<Kit?> GetKitById([Service] SkdContext context, Guid id) {
             var result = await context.Kits.AsNoTracking()
-                    .Include(t => t.Lot)
+                    .Include(t => t.Lot)                    
+                    .Include(t => t.Lot).ThenInclude(t => t.Model)
                     .Include(t => t.KitComponents).ThenInclude(t => t.Component)
                     .Include(t => t.KitComponents).ThenInclude(t => t.ProductionStation)
                     .Include(t => t.KitComponents).ThenInclude(t => t.ComponentSerials)
-                    .Include(t => t.Lot).ThenInclude(t => t.Model)
                     .Include(t => t.TimelineEvents)
+                    .Include(t => t.KitVins)
                     .FirstOrDefaultAsync(t => t.Id == id);
 
             return result;
@@ -79,6 +80,7 @@ namespace SKD.Server {
                         .ThenInclude(t => t.DcwsResponses)
                     .Include(t => t.Lot).ThenInclude(t => t.Model)
                     .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
+                    .Include(t => t.KitVins)
                     .FirstOrDefaultAsync(t => t.KitNo == kitNo);
 
             return result;
