@@ -1,0 +1,5 @@
+{
+    "ConnectionStrings": {
+        "Default": "server=localhost,9301;database=skd;uid=sa;pwd=DevDevDude119#"
+    }
+}

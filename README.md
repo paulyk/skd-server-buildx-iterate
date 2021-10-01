@@ -24,7 +24,7 @@ Create your own `touch src/skd-server/developer.json`
 ```json
 {
     "ConnectionStrings": {
-        "Default": "server=localhost,9301;database=skd;uid=sa;pwd=DevOnlyPassword119"
+        "Default": "server=localhost,9301;database=skd;uid=sa;pwd=DevDevDude119#"
     }
 }
 ```
