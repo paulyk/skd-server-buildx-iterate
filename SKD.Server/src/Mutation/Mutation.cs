@@ -86,7 +86,7 @@ namespace SKD.Server {
 
         public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotKits(
             [Service] LotService service,
-            BomLotKitDTO input
+            BomFile input
        ) => await service.ImportBomLotKits(input);
 
         public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotParts(
@@ -163,19 +163,13 @@ namespace SKD.Server {
           string kitNo
         ) => await service.SyncKfitModelComponents(kitNo);
 
-        public MutationPayload<BomLotKitDTO> GenBomLotKitInput(
-          string text
-        ) {
-            var parser = new BomFileParser();
-            return parser.BuildBomLotKitInput(text);
-        }
 
-        public MutationPayload<BomLotPartDTO> GenBomLotPartInput(
-          string text
-        ) {
-            var parser = new BomFileParser();
-            return parser.BuildBomLotPartInput(text);
-        }
+        // public MutationPayload<BomLotPartDTO> GenBomLotPartInput(
+        //   string text
+        // ) {
+        //     var parser = new BomFileParser();
+        //     return parser.BuildBomLotPartInput(text);
+        // }
 
     }
 }

@@ -394,6 +394,10 @@ namespace SKD.Server {
                 sequence: sequence
             );
 
+
+        public BomFile ParseBomFile(string text) => 
+            new BomFileParser().ParseBomFile(text);
+
         public ShipFile ParseShipFile(string text) => 
             new ShipFileParser().ParseShipmentFile(text);
 

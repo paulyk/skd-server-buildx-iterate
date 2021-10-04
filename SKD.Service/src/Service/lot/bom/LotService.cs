@@ -18,6 +18,26 @@ namespace SKD.Service {
             this.context = ctx;
         }
 
+
+        ///<summary>
+        /// Import vehicle lot and kits associated with a plant and BOM sequence
+        ///</summary>
+        public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotKits(BomFile input) {
+            MutationPayload<BomOverviewDTO> payload = new();
+            payload.Errors = await ValidateBomLotKitInput<BomFile>(input);
+            if (payload.Errors.Count > 0) {
+                return payload;
+            }
+
+            var bom = await GetEnsureBom(plantCode: input.PlantCode, sequence: input.Sequence);
+
+            await AddLotAndKits(bom, input);
+
+            await context.SaveChangesAsync();
+            payload.Payload = await GetBomOverview(bom.Sequence);
+            return payload;
+        }
+
         ///<summary>
         /// Import lot part and quantity associated with a BOM  sequence
         ///</summary>
@@ -32,7 +52,7 @@ namespace SKD.Service {
 
             var lots = await GetEnsureLots(input);
 
-            await Add_Update_Remove_LotParts(input, lots, parts);
+            Add_LotParts(input, lots, parts);
 
             await context.SaveChangesAsync();
             payload.Payload = await GetBomOverview(lots.First().BomId);
@@ -41,6 +61,24 @@ namespace SKD.Service {
 
 
         #region import bom lot helpers
+
+        private async Task<Bom> GetEnsureBom(string plantCode, int sequence) {
+            var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == plantCode);
+            var bom = await context.Boms
+                .Include(t => t.Plant)
+                .Include(t => t.Lots).ThenInclude(t => t.Kits)
+                .FirstOrDefaultAsync(t => t.Plant.Code == plantCode && t.Sequence == sequence);
+
+            if (bom == null) {
+                bom = new Bom {
+                    Plant = plant,
+                    Sequence = sequence
+                };
+                context.Boms.Add(bom);
+            }
+            return bom;
+        }
+
 
         private async Task<List<Part>> GetEnsureParts(BomLotPartDTO input) {
             input.LotParts.ToList().ForEach(t => {
@@ -102,7 +140,7 @@ namespace SKD.Service {
             return existingLots.Concat(newLots).ToList();
         }
 
-        private async Task Add_Update_Remove_LotParts(
+        private void Add_LotParts(
             BomLotPartDTO input,
             IEnumerable<Lot> lots,
             IEnumerable<Part> parts
@@ -112,93 +150,16 @@ namespace SKD.Service {
                 var lot = lots.First(t => t.LotNo == lotGroup.Key);
                 foreach (var inputLotPart in lotGroup) {
 
-                    var existingLotPart = await context.LotParts
-                        .Where(t => t.Lot.LotNo == inputLotPart.LotNo)
-                        .Where(t => t.Part.PartNo == inputLotPart.PartNo)
-                        .FirstOrDefaultAsync();
-
-                    if (existingLotPart == null || existingLotPart.BomQuantity != inputLotPart.Quantity) {
-                        // add new because null or because BomQuantity changed
-                        var newLotPart = new LotPart {
-                            Part = parts.First(t => t.PartNo == inputLotPart.PartNo),
-                            BomQuantity = inputLotPart.Quantity
-                        };
-                        lot.LotParts.Add(newLotPart);
-
-                        if (existingLotPart != null) {
-                            // since a new lot part was added with a different quantity
-                            // flag the existing one as REMOVED
-                            existingLotPart.RemovedAt = DateTime.UtcNow;
-                        }
-                    }
+                    var newLotPart = new LotPart {
+                        Part = parts.First(t => t.PartNo == inputLotPart.PartNo),
+                        BomQuantity = inputLotPart.Quantity
+                    };
+                    lot.LotParts.Add(newLotPart);
                 }
             }
-
-            /*
-            "Remove" any lotPart that is in LotPart table,  
-            but is not found in the BomLotPartInput payload
-            */
-            var inputLotNos = input.LotParts.Select(t => t.LotNo).Distinct().ToList();
-            var existingLotParts = await context.LotParts
-                .Include(t => t.Lot).Include(t => t.Part)
-                .Where(t => t.RemovedAt == null)
-                .Where(lotPart => inputLotNos.Any(inputLotNo => lotPart.Lot.LotNo == inputLotNo))
-                .ToListAsync();
-
-            var removedLotParts = existingLotParts
-                .Where(t => !input.LotParts.Any(i => i.LotNo == t.Lot.LotNo && i.PartNo == t.Part.PartNo))
-                .ToList();
-
-            removedLotParts.ForEach(lotPart => {
-                lotPart.RemovedAt = DateTime.UtcNow;
-            });
-
         }
 
         #endregion
-
-        ///<summary>
-        /// Import vehicle lot and kits associated with a plant and BOM sequence
-        ///</summary>
-        public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotKits(BomLotKitDTO input) {
-            MutationPayload<BomOverviewDTO> payload = new ();
-            payload.Errors = await ValidateBomLotKitInput<BomLotKitDTO>(input);
-            if (payload.Errors.Count > 0) {
-                return payload;
-            }
-            var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
-            var modelCode = input.Lots.SelectMany(t => t.Kits).Select(t => t.ModelCode).First();
-            var model = await context.VehicleModels.FirstOrDefaultAsync(t => t.Code == modelCode);
-            var bom = await context.Boms.FirstOrDefaultAsync(t => t.Plant.Code == input.PlantCode && t.Sequence == input.Sequence);
-            if (bom == null) {
-                bom = new Bom {
-                    Plant = plant,
-                    Sequence = input.Sequence
-                };
-                context.Boms.Add(bom);
-            }
-
-
-            foreach (var inputLot in input.Lots) {
-                var lot = await context.Lots.FirstOrDefaultAsync(t => t.LotNo == inputLot.LotNo);
-                if (lot == null) {
-                    lot = new Lot {
-                        LotNo = inputLot.LotNo,
-                        Model = model,
-                        Plant = plant
-                    };
-                    bom.Lots.Add(lot);
-                }
-                foreach (var inputKit in inputLot.Kits) {
-                    var vehicle = await CreateVehicleKit(inputKit);
-                    lot.Kits.Add(vehicle);
-                }
-            }
-
-            await context.SaveChangesAsync();
-            payload.Payload = await GetBomOverview(bom.Sequence);
-            return payload;
-        }
 
         public async Task<List<Error>> ValidateVehicleLotPartsInput<T>(BomLotPartDTO input) where T : BomLotPartDTO {
             var errors = new List<Error>();
@@ -246,7 +207,29 @@ namespace SKD.Service {
             return errors;
         }
 
-        private async Task<Kit> CreateVehicleKit(BomLotKitDTO.LotEntry.LotKit input) {
+
+        private async Task AddLotAndKits(Bom bom, BomFile input) {
+
+            foreach (var inputLot in input.LotEntries) {
+                var modelCode = inputLot.Kits.Select(t => t.ModelCode).First();
+                var lot = await context.Lots.FirstOrDefaultAsync(t => t.LotNo == inputLot.LotNo);
+                var model = await context.VehicleModels.FirstOrDefaultAsync(t => t.Code == modelCode);
+                if (lot == null) {
+                    lot = new Lot {
+                        LotNo = inputLot.LotNo,
+                        Model = model,
+                        Plant = bom.Plant
+                    };
+                    bom.Lots.Add(lot);
+                }
+                foreach (var inputKit in inputLot.Kits) {
+                    var kit = await CreateKit(inputKit);
+                    lot.Kits.Add(kit);
+                }
+            }
+        }
+
+        private async Task<Kit> CreateKit(BomFile.BomFileLot.BomFileKit input) {
             var kits = new List<Kit>();
 
             var model = await context.VehicleModels
@@ -270,7 +253,7 @@ namespace SKD.Service {
             return kit;
         }
 
-        public async Task<List<Error>> ValidateBomLotKitInput<T>(BomLotKitDTO input) where T : BomLotKitDTO {
+        public async Task<List<Error>> ValidateBomLotKitInput<T>(BomFile input) where T : BomFile {
             var errors = new List<Error>();
 
             var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
@@ -279,13 +262,18 @@ namespace SKD.Service {
                 return errors;
             }
 
-            if (!input.Lots.Any()) {
+            if (!input.LotEntries.Any()) {
                 errors.Add(new Error("", "no lots found"));
                 return errors;
             }
 
+            // if (!input.LotParts.Any()) {
+            //     errors.Add(new Error("", "no lot parts found"));
+            //     return errors;
+            // }
+
             // kits alread imported
-            var newKitNumbers = input.Lots.SelectMany(t => t.Kits).Select(t => t.KitNo).ToList();
+            var newKitNumbers = input.LotEntries.SelectMany(t => t.Kits).Select(t => t.KitNo).ToList();
             var alreadyImportedKitNumbers = await context.Kits
                 .AnyAsync(t => newKitNumbers.Any(newKitNo => newKitNo == t.KitNo));
 
@@ -294,7 +282,7 @@ namespace SKD.Service {
             }
 
             // duplicate lot number in payload
-            var duplicate_lotNo = input.Lots.GroupBy(t => t.LotNo)
+            var duplicate_lotNo = input.LotEntries.GroupBy(t => t.LotNo)
                 .Any(g => g.Count() > 1);
             if (duplicate_lotNo) {
                 errors.Add(new Error("", "duplicate Lot numbers in payload"));
@@ -302,25 +290,25 @@ namespace SKD.Service {
             }
 
             // validate lotNo format
-            if (input.Lots.Any(t => !Validator.Valid_LotNo(t.LotNo))) {
+            if (input.LotEntries.Any(t => !Validator.Valid_LotNo(t.LotNo))) {
                 errors.Add(new Error("", "lot numbers  with invalid format found"));
                 return errors;
             }
 
             // validate kitNo format
-            if (input.Lots.Any(t => t.Kits.Any(k => !Validator.Valid_KitNo(k.KitNo)))) {
+            if (input.LotEntries.Any(t => t.Kits.Any(k => !Validator.Valid_KitNo(k.KitNo)))) {
                 errors.Add(new Error("", "kit numbers with invalid format found"));
                 return errors;
             }
 
             // missing model code
-            if (input.Lots.Any(t => t.Kits.Any(k => k.ModelCode is null or ""))) {
+            if (input.LotEntries.Any(t => t.Kits.Any(k => k.ModelCode is null or ""))) {
                 errors.Add(new Error("", "kits with missing model code found"));
                 return errors;
             }
 
             // model codes not found
-            var incommingModelCodes = input.Lots.SelectMany(t => t.Kits).Select(k => k.ModelCode);
+            var incommingModelCodes = input.LotEntries.SelectMany(t => t.Kits).Select(k => k.ModelCode);
             var systemModelCodes = await context.VehicleModels
                 .Where(t => t.RemovedAt == null).Select(t => t.Code).ToListAsync();
 
