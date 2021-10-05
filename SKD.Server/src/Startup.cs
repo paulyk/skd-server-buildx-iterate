@@ -56,7 +56,7 @@ namespace SKD.Server
                 .AddScoped<ComponentSerialService>(sp =>
                     new ComponentSerialService(sp.GetRequiredService<SkdContext>()))
                 .AddScoped<ShipmentService>()
-                .AddScoped<LotService>()
+                .AddScoped<BomService>()
                 .AddScoped<PlantService>()
                 .AddScoped<LotPartService>()
                 .AddScoped<HandlingUnitService>()

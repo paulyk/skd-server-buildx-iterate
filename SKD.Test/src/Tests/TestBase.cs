@@ -6,10 +6,13 @@ using SKD.Model;
 using System.Linq;
 using System;
 using System.Threading.Tasks;
+using SKD.Service;
 
 namespace SKD.Test {
+    using PartQuantities = IEnumerable<(string partNo, int quantity)>;
 
     public class TestBase {
+
 
         protected SkdContext context;
         public SkdContext GetAppDbContext() {
@@ -432,6 +435,43 @@ namespace SKD.Test {
             return Util.RandomString(EntityFieldLen.ComponentSerial).ToUpper();
         }
 
+        #endregion
+
+        #region bom import 
+
+        public BomFile Gen_BomFileInput(string plantCode, IEnumerable<string> lotNumbers, int kitCount, PartQuantities partQuantities) {
+            return new BomFile() {
+                PlantCode = plantCode,
+                Sequence = 1,
+                LotEntries = Gen_LotEntries(lotNumbers, kitCount),
+                LotParts = Gen_BomLotParts(lotNumbers, partQuantities)
+            };
+        }
+
+        private List<BomFile.BomFileLot> Gen_LotEntries(IEnumerable<string> lotNumbers, int kitCount) {
+            return lotNumbers.Select(lotNo => new BomFile.BomFileLot {
+                LotNo = lotNo,
+                Kits = Enumerable.Range(1, kitCount).Select(num => new BomFile.BomFileLot.BomFileKit {
+                    KitNo = Gen_KitNo(lotNo, num),
+                    ModelCode = lotNo.Substring(0, EntityFieldLen.VehicleModel_Code)
+                }).ToList()
+            }).ToList();
+        }
+
+        private List<BomFile.BomFileLotPart> Gen_BomLotParts(IEnumerable<string> lotNumbers, PartQuantities partQuantities) {
+            if (!partQuantities.Any()) {
+                return new List<BomFile.BomFileLotPart>();
+            }
+
+            return lotNumbers.SelectMany(t =>
+                partQuantities.Select(lp => new BomFile.BomFileLotPart {
+                    LotNo = t,
+                    PartNo = lp.partNo,
+                    PartDesc = lp.partNo + " desc",
+                    Quantity = lp.quantity
+                })
+            ).ToList();
+        }        
         #endregion
     }
 }

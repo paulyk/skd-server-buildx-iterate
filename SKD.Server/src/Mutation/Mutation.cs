@@ -84,15 +84,10 @@ namespace SKD.Server {
             VinFile input
         ) => await service.ImportVIN(input);
 
-        public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotKits(
-            [Service] LotService service,
+        public async Task<MutationPayload<BomOverviewDTO>> ImportBom(
+            [Service] BomService service,
             BomFile input
-       ) => await service.ImportBomLotKits(input);
-
-        public async Task<MutationPayload<BomOverviewDTO>> ImportBomLotParts(
-            [Service] LotService service,
-            BomLotPartDTO input
-       ) => await service.ImportBomLotParts(input);
+       ) => await service.ImportBom(input);
 
         public async Task<MutationPayload<SnapshotDTO>> GenerateKitSnapshotRun(
             [Service] KitSnapshotService service,
@@ -154,7 +149,7 @@ namespace SKD.Server {
         ) => await service.ApplyComponentSerialFormat(input.Id);
 
         public async Task<MutationPayload<Lot>> SetLotNote(
-            [Service] LotService service,
+            [Service] BomService service,
             LotNoteInput input
         ) => await service.SetLotNote(input);
 

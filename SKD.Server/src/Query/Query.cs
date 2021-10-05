@@ -295,7 +295,7 @@ namespace SKD.Server {
                         .Include(t => t.Lots).ThenInclude(t => t.LotParts)
                         .FirstOrDefaultAsync(t => t.Id == id);
 
-        public async Task<BomOverviewDTO?> GetBomOverview([Service] LotService service, Guid id) =>
+        public async Task<BomOverviewDTO?> GetBomOverview([Service] BomService service, Guid id) =>
              await service.GetBomOverview(id);
 
         public async Task<List<LotListDTO>> GetLotListByBomId([Service] SkdContext context, Guid id) =>
