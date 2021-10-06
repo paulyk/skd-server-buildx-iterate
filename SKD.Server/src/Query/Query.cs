@@ -286,7 +286,12 @@ namespace SKD.Server {
                         PlantCode = t.Plant.Code,
                         Sequence = t.Sequence,
                         PartCount = t.Lots.SelectMany(t => t.LotParts).Select(t => t.Part).Distinct().Count(),
-                        LotNumbers = t.Lots.Select(t => t.LotNo),
+                        Lots = t.Lots.Select(t => new BomListDTO.BomList_Lot{
+                            LotNo = t.LotNo,
+                            ShipmentSequence = t.ShipmentLots.Select(s => s.Shipment.Sequence).Any()
+                                ?t.ShipmentLots.Select(s => s.Shipment.Sequence).First()
+                                : null
+                        }),
                         CreatedAt = t.CreatedAt
                     }).AsQueryable();
 
