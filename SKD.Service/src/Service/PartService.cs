@@ -17,6 +17,7 @@ namespace SKD.Service {
         }
 
         public static string ReFormatPartNo(string part) {
+            // replace leading and trailng '-', ' '
             return Regex.Replace(part, @"(^[- ]+|[ ]|[- ]*$)", "");
         }
 

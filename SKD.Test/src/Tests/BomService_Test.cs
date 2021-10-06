@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 namespace SKD.Test {
     using PartQuantities = IEnumerable<(string partNo, int quantity)>;
 
-    public class LotService_Test : TestBase {
+    public class BomService_Test : TestBase {
 
-        public LotService_Test() {
+        public BomService_Test() {
             context = GetAppDbContext();
             Gen_Baseline_Test_Seed_Data(generateLot: false);
         }
