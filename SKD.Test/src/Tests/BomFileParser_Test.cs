@@ -21,8 +21,6 @@ DTLBPA0A0F21028001022021-01-28200WSPA9TKDCABIN01               KIT   EB3B-    16
 9TRAILRHPUDABRIG2-7A20210512123438WSPA91366A0000004824
 ";
 
-
-
         [Fact]
         public void Can_parse_bom_file_header() {
             // setup
@@ -39,7 +37,7 @@ DTLBPA0A0F21028001022021-01-28200WSPA9TKDCABIN01               KIT   EB3B-    16
         }
 
         [Fact]
-        public void Can_build_bom_lot_kit_input() {
+        public void Can_build_bom_file_input() {
             var parser = new BomFileParser();
             var bomFile = parser.ParseBomFile(BomFileText);
 

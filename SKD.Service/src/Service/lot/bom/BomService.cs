@@ -27,15 +27,19 @@ namespace SKD.Service {
                 return payload;
             }
 
+            // add BOM
             var bom = await GetEnsureBom(plantCode: input.PlantCode, sequence: input.Sequence);
 
-            // add lots
-            await EnsureLots(input, bom);
-
+            // add parts
             var parts = await GetEnsureParts(input);
 
+            // add Lots
+            await EnsureLots(input, bom);
+
+            // add Kits
             await AddKits(input, bom);
 
+            // add Lot Part
             Add_LotParts(input, bom, parts);
 
             await context.SaveChangesAsync();

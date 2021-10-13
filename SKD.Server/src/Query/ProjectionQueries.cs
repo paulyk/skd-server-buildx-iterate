@@ -137,7 +137,7 @@ namespace SKD.Server {
         [UseProjection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<KitVinImport> GetKtvVinImports(
+        public IQueryable<KitVinImport> GetVinImports(
             [Service] SkdContext context
         ) => context.KitVinImports;
 

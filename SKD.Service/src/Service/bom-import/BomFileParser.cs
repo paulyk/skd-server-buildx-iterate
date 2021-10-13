@@ -14,26 +14,6 @@ namespace SKD.Service {
 
         public BomFileParser() {
         }
-        // public MutationPayload<BomLotPartDTO> BuildBomLotPartInput(string text) {
-        //     MutationPayload<BomLotPartDTO> payload = new();
-
-        //     try {
-        //         var (headerTextLine, detailTextLines) = GetHeaderAndDetailLines(text);
-
-        //         payload.Payload = new BomLotPartDTO {
-        //             PlantCode = headerLineParser.GetFieldValue(headerTextLine, t => t.HDR_KD_PLANT_GSDB),
-        //             Sequence = Int16.Parse(headerLineParser.GetFieldValue(headerTextLine, t => t.HDR_BRIDGE_SEQ_NBR)),
-        //             BomFileCreatedAt = headerLineParser.GetFieldValue(headerTextLine, t => t.HDR_DATE_CREATED),
-        //             // LotParts = BuildLotParts(detailTextLines)
-        //         };
-        //         return payload;
-        //     } catch (Exception ex) {
-        //         Console.WriteLine(ex.Message);
-        //         payload.Errors.Add(new Error("", "Error parsing bom text"));
-        //         return payload;
-        //     }
-        // }
-
 
         public BomFile ParseBomFile(string text) {
 
@@ -49,6 +29,7 @@ namespace SKD.Service {
 
             return bomFile;
         }
+        
         private List<BomFile.BomFileLot> ParseLotKits(List<string> detailTextLines) {
             var lots = new List<BomFile.BomFileLot>();
 

@@ -40,7 +40,14 @@ namespace SKD.Server
                 var connectionString = Configuration.GetConnectionString(ConfigSettingKey.DefaultConnectionString);
                 options.UseSqlServer(
                     connectionString,
-                    o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery)
+                    sqlOptions =>
+                    {
+                        sqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(30),
+                        errorNumbersToAdd: null);
+                        sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
+                    }
                 );
             });
 

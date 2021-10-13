@@ -15,9 +15,7 @@ using HotChocolate.Types;
 
 namespace SKD.Server {
 
-
     public class Query {
-        private const int V = 0;
 
         IConfiguration Configuration { get; }
 
@@ -398,7 +396,6 @@ namespace SKD.Server {
                 plantCode: plantCode,
                 sequence: sequence
             );
-
 
         public BomFile ParseBomFile(string text) => 
             new BomFileParser().ParseBomFile(text);

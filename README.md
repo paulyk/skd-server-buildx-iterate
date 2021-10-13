@@ -47,7 +47,7 @@ dotnet run --project SKD.Server
 4. generate production plants
 5. import BOM/Lots and shipments
 
-### create the DB
+### create the DB / migrate
 
 dotnet ef database update --project skd.server
 

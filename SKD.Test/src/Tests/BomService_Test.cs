@@ -18,7 +18,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task Can_import_bom_lot_kits() {
+        public async Task Can_import_bom_file() {
 
             // setup
             var plant = Gen_Plant();
@@ -63,7 +63,7 @@ namespace SKD.Test {
 
 
         [Fact]
-        public async Task Import_bom_re_fromats_part_no() {
+        public async Task Import_bom_reformats_part_no() {
 
             // setup
             var plant = Gen_Plant();
@@ -128,7 +128,6 @@ namespace SKD.Test {
             errorMessage = (errorMessage ?? "").Substring(0, expectedError.Length);
             Assert.Equal(expectedError, errorMessage);
         }
-
 
         [Fact]
         public async Task Cannot_import_if_no_lot_parts() {

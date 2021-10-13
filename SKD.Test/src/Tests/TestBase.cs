@@ -13,7 +13,6 @@ namespace SKD.Test {
 
     public class TestBase {
 
-
         protected SkdContext context;
         public SkdContext GetAppDbContext() {
 
