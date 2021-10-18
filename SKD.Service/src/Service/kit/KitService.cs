@@ -187,9 +187,10 @@ namespace SKD.Service {
                 EventNote = input.EventNote
             };
 
-            // if dealer code provided associate kit with dealer code
-            if (!String.IsNullOrWhiteSpace(input.DealerCode)) {
-                kit.Dealer = await context.Dealers.FirstOrDefaultAsync(t => t.Code == input.DealerCode);
+            // if wholesale event set the kit dealer code
+            if (input.EventType == TimeLineEventCode.WHOLE_SALE) {
+                // As of this moment: There should only be on dealer code.
+                kit.Dealer = await context.Dealers.FirstOrDefaultAsync();
             }
 
             kit.TimelineEvents.Add(newTimelineEvent);
