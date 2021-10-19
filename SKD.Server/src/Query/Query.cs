@@ -404,7 +404,10 @@ namespace SKD.Server {
             new ShipFileParser().ParseShipmentFile(text);
 
         public VinFile ParseVinFile(string text) => 
-            new VinFileParser().ParseVinFile(text);
+            new VinFileParser().ParseVinFile(text);            
+
+        public Task<KitVinAckDTO> GenerateKitVinAcknowledgment([Service] KitVinAckBuilder kitVinAckBuilder, string plantCode, int sequence) => 
+            kitVinAckBuilder.GenerateKitVinAcknowledgment(plantCode, sequence);
 
     }
 }

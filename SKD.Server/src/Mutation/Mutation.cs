@@ -79,7 +79,7 @@ namespace SKD.Server {
             ShipFile input
         ) => await service.ImportShipment(input);
 
-        public async Task<MutationPayload<Lot>> ImportVIN(
+        public async Task<MutationPayload<KitVinImport>> ImportVIN(
             [Service] KitService service,
             VinFile input
         ) => await service.ImportVIN(input);
@@ -157,14 +157,6 @@ namespace SKD.Server {
           [Service] VehicleModelService service,
           string kitNo
         ) => await service.SyncKfitModelComponents(kitNo);
-
-
-        // public MutationPayload<BomLotPartDTO> GenBomLotPartInput(
-        //   string text
-        // ) {
-        //     var parser = new BomFileParser();
-        //     return parser.BuildBomLotPartInput(text);
-        // }
 
     }
 }

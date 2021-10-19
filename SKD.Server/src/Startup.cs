@@ -69,6 +69,7 @@ namespace SKD.Server
                 .AddScoped<HandlingUnitService>()
                 .AddScoped<QueryService>().AddSingleton<DcwsService>(sp => new DcwsService(Configuration[ConfigSettingKey.DcwsServiceAddress]))
                 .AddScoped<PartnerStatusBuilder>()
+                .AddScoped<KitVinAckBuilder>()
                 .AddScoped<DevMutation>(sp => new DevMutation(_env.IsDevelopment()));
 
             services.AddGraphQLServer()

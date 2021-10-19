@@ -17,6 +17,7 @@ namespace SKD.Service {
 
         public async Task<KitVinAckDTO> GenerateKitVinAcknowledgment(string plantCode, int sequence) {
             KitVinImport kitVinImport = await context.KitVinImports
+                .Include(t => t.Plant)
                 .Include(t => t.KitVins).ThenInclude(t => t.Kit)
                 .FirstOrDefaultAsync(t => t.Plant.Code == plantCode && t.Sequence == sequence);
 
@@ -37,10 +38,16 @@ namespace SKD.Service {
             var dto = new KitVinAckDTO {
                 PlantCode = kitVinImport.Plant.Code,
                 Sequence = kitVinImport.Sequence,
-                Filename = "",
+                Filename = BuildFilename(kitVinImport),
                 PayloadText = String.Join('\n', lines)
             };
             return dto;
+        }
+
+        public string BuildFilename(KitVinImport kitVinImport) {
+            var date = DateTime.UtcNow.ToString("yyyy_MM_dd_hh_mm");
+            var sequence = kitVinImport.Sequence.ToString().PadLeft(6,'0');
+            return $"{KitVinAckLayout.HDR_FILE_NAME_VAL}_{kitVinImport.Plant.Code}_{sequence}_{date}.txt";
         }
 
         private string BuildHeaderLine(KitVinImport kitVinImport) {
@@ -48,13 +55,13 @@ namespace SKD.Service {
             var lineBuilder = new FlatFileLine<KitVinAckLayout.Header>();
 
             var fields = new List<FlatFileLine<KitVinAckLayout.Header>.FieldValue>{
-                lineBuilder.CreateFieldValue(t => t.HDR_RECORD_TYPE, KitVinAckLayout.Header.HDR_RECORD_TYPE_VAL),
-                lineBuilder.CreateFieldValue(t => t.HDR_FILE_NAME, KitVinAckLayout.Header.HDR_FILE_NAME_VAL),
+                lineBuilder.CreateFieldValue(t => t.HDR_RECORD_TYPE, KitVinAckLayout.HDR_RECORD_TYPE_VAL),
+                lineBuilder.CreateFieldValue(t => t.HDR_FILE_NAME, KitVinAckLayout.HDR_FILE_NAME_VAL),
                 lineBuilder.CreateFieldValue(t => t.HDR_KD_PLANT_GSDB, kitVinImport.Plant.Code),
                 lineBuilder.CreateFieldValue(t => t.HDR_PARTNER_GSDB, kitVinImport.Plant.PartnerPlantCode),
                 lineBuilder.CreateFieldValue(t => t.HDR_PARTNER_TYPE, kitVinImport.Plant.PartnerPlantType),
                 lineBuilder.CreateFieldValue(t => t.HDR_SEQ_NBR, kitVinImport.Sequence.ToString().PadLeft(lineBuilder.FieldLength(t => t.HDR_SEQ_NBR), '0')),
-                lineBuilder.CreateFieldValue(t => t.HDR_BATCH_DATE, DateTime.UtcNow.ToString(KitVinAckLayout.Header.HDR_BATCH_DATE_FORMAT)),
+                lineBuilder.CreateFieldValue(t => t.HDR_BATCH_DATE, DateTime.UtcNow.ToString(KitVinAckLayout.HDR_BATCH_DATE_FORMAT)),
                 lineBuilder.CreateFieldValue(t => t.HDR_FILLER, "".PadLeft(lineBuilder.FieldLength(t => t.HDR_FILLER), ' ')),
             };
             return lineBuilder.Build(fields);
@@ -65,8 +72,8 @@ namespace SKD.Service {
             var lineBuilder = new FlatFileLine<KitVinAckLayout.Detail>();
 
             var fields = new List<FlatFileLine<KitVinAckLayout.Detail>.FieldValue>{
-                lineBuilder.CreateFieldValue(t => t.KVM_ACK_RECORD_TYPE, KitVinAckLayout.Detail.KVM_ACK_RECORD_TYPE_VAL),
-                lineBuilder.CreateFieldValue(t => t.KVM_ACK_FILE_STATUS, KitVinAckLayout.Detail.KVM_ACK_FILE_STATUS_ACCEPTED),
+                lineBuilder.CreateFieldValue(t => t.KVM_ACK_RECORD_TYPE, KitVinAckLayout.DTL_KVM_ACK_RECORD_TYPE_VAL),
+                lineBuilder.CreateFieldValue(t => t.KVM_ACK_FILE_STATUS, KitVinAckLayout.DTL_KVM_ACK_FILE_STATUS_ACCEPTED),
                 lineBuilder.CreateFieldValue(t => t.KVM_ACK_TOTAL_DTL_RECORD, kitVinImport.KitVins.Count.ToString()),
                 lineBuilder.CreateFieldValue(t => t.KVM_ACK_TOTAL_DTL_ACCEPTED, kitVinImport.KitVins.Count.ToString()),
                 lineBuilder.CreateFieldValue(t => t.KVM_ACK_TOTAL_DTL_REJECTED, "0"),

@@ -27,11 +27,11 @@ namespace SKD.Service {
 
         #region import vin
 
-        public async Task<MutationPayload<Lot>> ImportVIN(VinFile input) {
-            MutationPayload<Lot> payload = new();
-            payload.Errors = await ValidateImportVINInput(input);
-            if (payload.Errors.Any()) {
-                return payload;
+        public async Task<MutationPayload<KitVinImport>> ImportVIN(VinFile input) {
+            MutationPayload<KitVinImport> result = new();
+            result.Errors = await ValidateImportVINInput(input);
+            if (result.Errors.Any()) {
+                return result;
             }
 
             // new KitVinImport / existing        
@@ -44,7 +44,7 @@ namespace SKD.Service {
 
             foreach (var inputKitVin in input.Kits) {
                 var kit = await context.Kits
-                    .Include(t => t.KitVins).ThenInclude(t => t.Kit)
+                    .Include(t => t.KitVins).ThenInclude(t => t.Kit).ThenInclude(t => t.Lot)
                     .FirstOrDefaultAsync(t => t.KitNo == inputKitVin.KitNo);
 
                 bool kitVinAlreadyExists = kit.KitVins.Any(t => t.Kit.KitNo == inputKitVin.KitNo && t.VIN == inputKitVin.VIN);
@@ -59,7 +59,9 @@ namespace SKD.Service {
                 } }
 
             await context.SaveChangesAsync();
-            return payload;
+            
+            result.Payload = kitVinImport;
+            return result;
         }
 
         public async Task<List<Error>> ValidateImportVINInput(VinFile input) {

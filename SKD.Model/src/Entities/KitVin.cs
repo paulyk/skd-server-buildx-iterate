@@ -11,5 +11,4 @@ namespace SKD.Model {
         
         public string VIN { get; set; }
     }
-    
 }

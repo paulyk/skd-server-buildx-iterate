@@ -64,10 +64,8 @@ TLRKIT_VIN_MAP         HPUDAGQQLA0000000008
 
         }
 
-
-
         [Fact]
-        public void Can_parse_ship_file() {
+        public void Can_parse_vin_file() {
             var service = new VinFileParser();
 
             // act
