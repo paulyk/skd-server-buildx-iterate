@@ -354,6 +354,37 @@ namespace SKD.Test {
             context.SaveChanges();
         }
 
+
+        public async Task Gen_ShipmentLot_ForKit(string kitNo) {
+            var kit = await context.Kits
+                .Include(t => t.Lot)
+                .FirstOrDefaultAsync(t => t.KitNo == kitNo);
+
+            await Gen_ShipmentLot(kit.Lot.LotNo);
+        }
+
+        public async Task Gen_ShipmentLot(string lotNo) {
+            var lot = await context.Lots
+                .Include(t => t.Bom).ThenInclude(t => t.Plant)
+                .FirstOrDefaultAsync(t => t.LotNo == lotNo);
+            if (await context.ShipmentLots.AnyAsync(t => t.Lot.LotNo == lot.LotNo)) {
+                return;
+            }
+
+            var shipment = new Shipment {
+                Plant = lot.Bom.Plant,
+                Sequence = 2,
+                ShipmentLots = new List<ShipmentLot> {
+                    new ShipmentLot {
+                        Lot = lot
+                    }
+                }
+            };
+
+            context.Shipments.Add(shipment);
+            await context.SaveChangesAsync();
+        }
+
         #region generators for specific entity fields
         public string Get_Code(int len) {
             return Util.RandomString(len).ToUpper();
@@ -470,7 +501,7 @@ namespace SKD.Test {
                     Quantity = lp.quantity
                 })
             ).ToList();
-        }        
+        }
         #endregion
     }
 }

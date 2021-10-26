@@ -32,7 +32,7 @@ namespace SKD.Service {
             // get qualifying kit list
             var query = GetPartnerStatusQualifyingKitsQuery(input);
             var qualifyingKits = await query
-                .Include(t => t.Lot)
+                .Include(t => t.Lot).ThenInclude(t => t.ShipmentLots)
                 .Include(t => t.Snapshots.Where(t => t.RemovedAt == null).OrderBy(t => t.KitTimeLineEventType.Sequence))
                 .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .ToListAsync();

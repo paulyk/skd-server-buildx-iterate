@@ -150,7 +150,6 @@ namespace SKD.Test {
             }
         }
 
-
         [Fact]
         public async Task Cannot_import_kit_vins_if_kits_not_found() {
             // setup
@@ -232,6 +231,7 @@ namespace SKD.Test {
 
             // test
             var kit = context.Kits.First();
+            await Gen_ShipmentLot_ForKit(kit.KitNo);
 
             var service = new KitService(context, baseDate, planBuildLeadTimeDays);
             var payloads = new List<MutationPayload<KitTimelineEvent>>();
@@ -260,6 +260,7 @@ namespace SKD.Test {
 
             // test
             var kit = context.Kits.First();
+            await Gen_ShipmentLot_ForKit(kit.KitNo);
 
             var currentDate = DateTime.Now.Date;
             var service = new KitService(context, currentDate, planBuildLeadTimeDays);
@@ -298,8 +299,10 @@ namespace SKD.Test {
                 (TimeLineEventCode.BUILD_COMPLETED, baseDate.AddDays(2), baseDate.AddDays(2)),
             };
 
-            // test
             var kit = context.Kits.First();
+            await Gen_ShipmentLot_ForKit(kit.KitNo);
+
+            // test
             KitService service = null;
             var payloads = new List<MutationPayload<KitTimelineEvent>>();
 
@@ -326,6 +329,8 @@ namespace SKD.Test {
         public async Task Create_kit_timeline_event_with_note() {
             // setup
             var kit = context.Kits.First();
+            await Gen_ShipmentLot_ForKit(kit.KitNo);
+
             var dealer = await context.Dealers.FirstOrDefaultAsync();
             var eventNote = Util.RandomString(15);
             var baseDate = DateTime.Now.Date;
@@ -369,6 +374,8 @@ namespace SKD.Test {
         public async Task Create_kit_timline_event_removes_prior_events_of_the_same_type() {
             // setup
             var kit = context.Kits.First();
+            await Gen_ShipmentLot_ForKit(kit.KitNo);
+
             var before_count = context.KitTimelineEvents.Count();
 
             var originalDate = new DateTime(2020, 11, 28);
@@ -407,6 +414,7 @@ namespace SKD.Test {
         public async Task Cannot_add_duplicate_kit_timline_event_if_same_type_and_date_and_note() {
             // setup
             var kit = context.Kits.First();
+            await Gen_ShipmentLot_ForKit(kit.KitNo);
 
             var originalDate = new DateTime(2020, 11, 28);
             var newDate = new DateTime(2020, 11, 30);
@@ -443,16 +451,18 @@ namespace SKD.Test {
         [Fact]
         public async Task Can_create_kit_timeline_event_by_lot() {
             // setup
-            var vehicleLot = context.Lots
+            var lot = context.Lots
                 .Include(t => t.Kits)
                 .First();
-            var vehicleCoount = vehicleLot.Kits.Count;
+            await Gen_ShipmentLot(lot.LotNo);
+
+            var kitCount = lot.Kits.Count;
 
             var baseDate = DateTime.Now.Date;
             var eventDate = baseDate.AddDays(-10);
             var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
             var input = new LotTimelineEventInput {
-                LotNo = vehicleLot.LotNo,
+                LotNo = lot.LotNo,
                 EventType = TimeLineEventCode.CUSTOM_RECEIVED,
                 EventDate = eventDate,
                 EventNote = eventNote
@@ -470,7 +480,7 @@ namespace SKD.Test {
                 .Include(t => t.EventType).ToList();
 
             var timelineEventCount = timelineEvents.Count;
-            Assert.Equal(vehicleCoount, timelineEventCount);
+            Assert.Equal(kitCount, timelineEventCount);
 
             foreach (var timelineEvent in timelineEvents) {
                 Assert.Equal(eventDate, timelineEvent.EventDate);
@@ -482,6 +492,7 @@ namespace SKD.Test {
         public async Task Cannot_create_kit_timeline_event_by_lot_with_dupliate_date() {
             // setup
             var lot = context.Lots.First();
+            await Gen_ShipmentLot(lot.LotNo);
 
             var baseDate = DateTime.Now.Date;
             var event_date = baseDate.AddDays(1);
@@ -515,6 +526,7 @@ namespace SKD.Test {
         public async Task Cannot_create_lot_custom_receive_with_date_6_months_ago() {
             // setup
             var lot = context.Lots.First();
+            await Gen_ShipmentLot(lot.LotNo);
 
             var baseDate = DateTime.Now.Date;
             var event_date = baseDate.AddMonths(-6).AddDays(-1);

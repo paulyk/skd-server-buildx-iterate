@@ -208,11 +208,19 @@ namespace SKD.Service {
 
             // kitNo
             var kit = await context.Kits.AsNoTracking()
+                .Include(t => t.Lot)
                 .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .FirstOrDefaultAsync(t => t.KitNo == input.KitNo);
 
             if (kit == null) {
                 errors.Add(new Error("KitNo", $"kit not found for kitNo: {input.KitNo}"));
+                return errors;
+            }
+
+            // shipment missing
+            var hasAssociatedShipment = await context.ShipmentLots.AnyAsync(t => t.Lot.LotNo == kit.Lot.LotNo);
+            if (!hasAssociatedShipment) {
+                errors.Add(new Error("", $"shipment missing for lot: {kit.Lot.LotNo}"));
                 return errors;
             }
 
@@ -357,6 +365,12 @@ namespace SKD.Service {
                 return errors;
             }
 
+            // shipment missing
+            var hasAssociatedShipment = await context.ShipmentLots.AnyAsync(t => t.Lot.LotNo == lot.LotNo);
+            if (!hasAssociatedShipment) {
+                errors.Add(new Error("", $"shipment missing for lot: {lot.LotNo}"));
+                return errors;
+            }
 
             // duplicate 
             var duplicateTimelineEventsFound = lot.Kits.SelectMany(t => t.TimelineEvents)

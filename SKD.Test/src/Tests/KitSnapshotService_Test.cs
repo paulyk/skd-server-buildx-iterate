@@ -29,7 +29,8 @@ namespace SKD.Test {
             var custom_receive_date_trx = baseDate.AddDays(2);
 
             var plantCode = context.Plants.Select(t => t.Code).First();
-            var kit = context.Kits.OrderBy(t => t.KitNo).First();
+            var kit = context.Kits.OrderBy(t => t.KitNo).Include(t => t.Lot).First();
+            
             var snapshotInput = new KitSnapshotInput {
                 PlantCode = plantCode,
                 EngineComponentCode = engineCode
@@ -641,6 +642,9 @@ namespace SKD.Test {
             DateTime trxDate,
             DateTime eventDate
         ) {
+            // ensure shipment lot
+            await Gen_ShipmentLot_ForKit(kitNo);
+
             var service = new KitService(context, trxDate, planBuildLeadTimeDays);
             var payload = await service.CreateKitTimelineEvent(new KitTimelineEventInput {
                 KitNo = kitNo,
@@ -649,8 +653,12 @@ namespace SKD.Test {
                 EventDate = eventDate,
                 DealerCode = dealerCode
             });
+
+
             return payload;
         }
+
+        
 
         #endregion
 
