@@ -409,5 +409,7 @@ namespace SKD.Server {
         public Task<KitVinAckDTO> GenerateKitVinAcknowledgment([Service] KitVinAckBuilder kitVinAckBuilder, string plantCode, int sequence) => 
             kitVinAckBuilder.GenerateKitVinAcknowledgment(plantCode, sequence);
 
+        public FordInterfaceFileType GetFordInterfaceFileType(string filename) =>
+            FordInterfaceFileTypeService.GetFordInterfaceFileType(filename);
     }
 }
