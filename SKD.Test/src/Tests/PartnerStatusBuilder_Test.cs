@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using SKD.Common;
+using System.Text.RegularExpressions;
 
 namespace SKD.Test {
 
@@ -27,7 +28,11 @@ namespace SKD.Test {
 
         [Fact]
         public async Task Can_generate_partner_status_file_payload() {
-            var snapshotRun = await GenerateKitSnapshotRun_TestData();
+            var result = await GenerateKitSnapshotRun_TestData();
+            var snapshotRun = await context.KitSnapshotRuns
+                .Include(t => t.Plant)
+                .FirstOrDefaultAsync(t => t.Id == result.Id);
+
 
             var service = new PartnerStatusBuilder(context);
             var payload = await service.GeneratePartnerStatusFilePaylaod(
@@ -51,6 +56,16 @@ namespace SKD.Test {
             AssertHeader();
             AssertDetial();
             AssertTrailer();
+            await AssertFilename();
+
+            async Task AssertFilename() {
+                var filename = await service.GenPartnerStatusFilename(snapshotRun.Id);
+                var runDate = snapshotRun.RunDate.ToString(PartnerStatusLayout.FILENAME_DATE_FORMAT);
+                var pattern = $"{PartnerStatusLayout.FILENAME_PREFIX}_{snapshotRun.Plant.Code}_{snapshotRun.Plant.PartnerPlantCode}_{runDate}.txt";
+                var regex = new Regex(pattern);
+                var match = regex.Match(filename);
+                Assert.True(match.Success);
+            }            
 
             void AssertHeader() {
                 // Header 
@@ -176,6 +191,7 @@ namespace SKD.Test {
 
             context.KitSnapshotRuns.Add(kitSnapshotRun);
             await context.SaveChangesAsync();
+
             return kitSnapshotRun;
         }
     }

@@ -56,7 +56,7 @@ namespace SKD.Server {
 
         public async Task<Kit?> GetKitById([Service] SkdContext context, Guid id) {
             var result = await context.Kits.AsNoTracking()
-                    .Include(t => t.Lot)                    
+                    .Include(t => t.Lot)
                     .Include(t => t.Lot).ThenInclude(t => t.Model)
                     .Include(t => t.KitComponents).ThenInclude(t => t.Component)
                     .Include(t => t.KitComponents).ThenInclude(t => t.ProductionStation)
@@ -284,10 +284,10 @@ namespace SKD.Server {
                         PlantCode = t.Plant.Code,
                         Sequence = t.Sequence,
                         PartCount = t.Lots.SelectMany(t => t.LotParts).Select(t => t.Part).Distinct().Count(),
-                        Lots = t.Lots.Select(t => new BomListDTO.BomList_Lot{
+                        Lots = t.Lots.Select(t => new BomListDTO.BomList_Lot {
                             LotNo = t.LotNo,
                             ShipmentSequence = t.ShipmentLots.Select(s => s.Shipment.Sequence).Any()
-                                ?t.ShipmentLots.Select(s => s.Shipment.Sequence).First()
+                                ? t.ShipmentLots.Select(s => s.Shipment.Sequence).First()
                                 : null
                         }),
                         CreatedAt = t.CreatedAt
@@ -397,19 +397,25 @@ namespace SKD.Server {
                 sequence: sequence
             );
 
-        public BomFile ParseBomFile(string text) => 
+        public BomFile ParseBomFile(string text) =>
             new BomFileParser().ParseBomFile(text);
 
-        public ShipFile ParseShipFile(string text) => 
+        public ShipFile ParseShipFile(string text) =>
             new ShipFileParser().ParseShipmentFile(text);
 
-        public VinFile ParseVinFile(string text) => 
-            new VinFileParser().ParseVinFile(text);            
+        public VinFile ParseVinFile(string text) =>
+            new VinFileParser().ParseVinFile(text);
 
-        public Task<KitVinAckDTO> GenerateKitVinAcknowledgment([Service] KitVinAckBuilder kitVinAckBuilder, string plantCode, int sequence) => 
+        public Task<KitVinAckDTO> GenerateKitVinAcknowledgment([Service] KitVinAckBuilder kitVinAckBuilder, string plantCode, int sequence) =>
             kitVinAckBuilder.GenerateKitVinAcknowledgment(plantCode, sequence);
 
         public FordInterfaceFileType GetFordInterfaceFileType(string filename) =>
             FordInterfaceFileTypeService.GetFordInterfaceFileType(filename);
+
+        public async Task<string> GenPartnerStatusFilename(
+            [Service] PartnerStatusBuilder service,
+            Guid kitSnapshotRunId
+        ) => await service.GenPartnerStatusFilename(kitSnapshotRunId);
+
     }
 }

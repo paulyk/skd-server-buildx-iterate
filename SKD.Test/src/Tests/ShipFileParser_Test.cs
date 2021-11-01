@@ -26,7 +26,6 @@ namespace SKD.Test {
 9TRAILRHPUDABRIG2-7F202106151645030000702
 ";
 
-
         [Fact]
         public void Can_parse_ship_file_header() {
             // setup

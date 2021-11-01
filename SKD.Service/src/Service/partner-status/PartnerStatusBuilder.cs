@@ -18,8 +18,6 @@ namespace SKD.Service {
         private static readonly FlatFileLine<PartnerStatusLayout.Header> headerLineParser = new();
         private static readonly  FlatFileLine<PartnerStatusLayout.Detail> detailLineParser = new();
 
-
-
         private readonly SkdContext context;
         public PartnerStatusBuilder(SkdContext context) {
             this.context = context;
@@ -63,17 +61,31 @@ namespace SKD.Service {
                 PlantCode = kitSnapshotRun.Plant.Code,
                 Sequence = kitSnapshotRun.Sequence,
                 RunDate = kitSnapshotRun.RunDate,
-                Filename = BuildFilename(kitSnapshotRun.Plant.Code, kitSnapshotRun.Plant.PartnerPlantCode, kitSnapshotRun.RunDate),
+                Filename = await  GenPartnerStatusFilename(kitSnapshotRun.Id),
                 PayloadText = String.Join('\n', lines)
             };
             return payload;
         }
 
-        private string BuildFilename(string plantCode, string partnerPlantCode, DateTime runDate) {
-            var formattedRunDate = runDate.ToString(PartnerStatusLayout.FILENAME_DATE_FORMAT);
+        // private async Task<string> GenPartnerStatusFilename2(string plantCode, string partnerPlantCode, DateTime runDate) {
+        //     await Task.Delay(0);
+        //     var formattedRunDate = runDate.ToString(PartnerStatusLayout.FILENAME_DATE_FORMAT);
+        //     var prefix = PartnerStatusLayout.FILENAME_PREFIX;
+        //     return $"{prefix}_{plantCode}_{partnerPlantCode}_{formattedRunDate}.txt";
+        // }
+
+        public async Task<string> GenPartnerStatusFilename(Guid kitSnapshotRunId) {
+            var snapshotRun = await context.KitSnapshotRuns.Include(t => t.Plant)
+                .FirstOrDefaultAsync(t => t.Id == kitSnapshotRunId);
+
+            await Task.Delay(0);
+            var formattedRunDate = snapshotRun.RunDate.ToString(PartnerStatusLayout.FILENAME_DATE_FORMAT);
             var prefix = PartnerStatusLayout.FILENAME_PREFIX;
+            var plantCode = snapshotRun.Plant.Code;
+            var partnerPlantCode = snapshotRun.Plant.PartnerPlantCode;
             return $"{prefix}_{plantCode}_{partnerPlantCode}_{formattedRunDate}.txt";
         }
+
         private string BuildHeaderLine(KitSnapshotRun snapshotRun) {
             var headerLayout = new PartnerStatusLayout.Header();
 
