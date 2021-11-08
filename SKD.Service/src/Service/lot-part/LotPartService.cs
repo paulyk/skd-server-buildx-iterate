@@ -130,7 +130,11 @@ namespace SKD.Service {
         public async Task<LotDTO?> GetLotInfo(string lotNo) {
             var result = await context.Lots.Select(t => new LotDTO {
                 LotNo = t.LotNo,
-                ModelName = t.Model.Description,
+                Model = t.Model.Model,
+                ModelCode = t.Model.Code,
+                ModelDesc = t.Model.Description,
+                ModelSeries = t.Model.Series,
+                ModelBody = t.Model.Body,
                 CreatedAt = t.CreatedAt,
             }).FirstOrDefaultAsync(t => t.LotNo == lotNo);
 
