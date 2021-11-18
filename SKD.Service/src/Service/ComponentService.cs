@@ -43,7 +43,7 @@ namespace SKD.Service {
         }
 
         public async Task<MutationPayload<Component>> RemoveComponent(Guid componentId) {
-            var component = await context.Components.FirstOrDefaultAsync(t => t.Id == componentId);
+            var component = await context.Components.FirstAsync(t => t.Id == componentId);
             MutationPayload<Component> payload = new(component);
 
             payload.Errors = ValidateRemoveComponent<Component>(component);
@@ -58,7 +58,7 @@ namespace SKD.Service {
         }
 
         public async Task<MutationPayload<Component>> RestoreComponent(Guid componentId) {
-            var component = await context.Components.FirstOrDefaultAsync(t => t.Id == componentId);
+            var component = await context.Components.FirstAsync(t => t.Id == componentId);
             MutationPayload<Component> payload = new(component);
 
             payload.Errors = ValidateRestoreComponent<Component>(component);

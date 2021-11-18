@@ -31,7 +31,7 @@ namespace SKD.Service {
 
             var kitComponent = await context.KitComponents
                 .Include(t => t.Component)
-                .FirstOrDefaultAsync(t => t.Id == input.KitComponentId);
+                .FirstAsync(t => t.Id == input.KitComponentId);
 
             // Some serial1 must be formatted acording to DCWS rules
             // The following formats EN / TR serials if they need adjusting
@@ -89,6 +89,7 @@ namespace SKD.Service {
 
             var targetKitCmponent = await context.KitComponents
                 .Include(t => t.ProductionStation)
+                .Include(t => t.Component)
                 .FirstOrDefaultAsync(t => t.Id == input.KitComponentId);
 
             if (targetKitCmponent == null) {
@@ -114,10 +115,7 @@ namespace SKD.Service {
             }
 
             // Transform input.Serial1 before continuing the validateion
-            var kitComponent = await context.KitComponents
-                .Include(t => t.Component)
-                .FirstOrDefaultAsync(t => t.Id == input.KitComponentId);
-            var formatResult = DcwsSerialFormatter.FormatSerial(kitComponent.Component.Code, new Serials(input.Serial1, input.Serial2));
+            var formatResult = DcwsSerialFormatter.FormatSerial(targetKitCmponent.Component.Code, new Serials(input.Serial1, input.Serial2));
             // set input.Serial1 to the formatted result before proceeding with the validation
             input = input with {
                 Serial1 = formatResult.Serials.Serial1,
@@ -264,6 +262,10 @@ namespace SKD.Service {
             var cs = await context.ComponentSerials
                 .Include(t => t.KitComponent).ThenInclude(t => t.Component)
                 .FirstOrDefaultAsync(t => t.Id == componentSerialId);
+
+            if (cs == null) {
+                throw new Exception("Component serial not found");
+            }
 
             if (cs.KitComponent.Component.Code != "EN") {
                 throw new Exception("EN Component only");

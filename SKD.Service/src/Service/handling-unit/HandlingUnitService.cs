@@ -34,7 +34,7 @@ namespace SKD.Service{
             var handlingUnit = await context.HandlingUnits
                 .Include(t => t.Received)
                 .Include(t => t.ShipmentInvoice).ThenInclude(t => t.ShipmentLot).ThenInclude(t => t.Lot)
-                .FirstOrDefaultAsync(t => t.Code == input.HandlingUnitCode);
+                .FirstAsync(t => t.Code == input.HandlingUnitCode);
 
             HandlingUnitReceived? handlingUnitReceived = null;
             if (input.Remove) {
@@ -154,7 +154,7 @@ namespace SKD.Service{
                               Quantity = p.Quantity
                               
                           }).ToList()
-                      }).FirstOrDefaultAsync();
+                      }).FirstAsync();
 
             var received = await context.HandlingUnitReceived
                 .OrderByDescending(t => t.CreatedAt)

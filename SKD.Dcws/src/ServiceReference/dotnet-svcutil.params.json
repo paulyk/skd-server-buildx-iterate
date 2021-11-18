@@ -9,7 +9,7 @@
       "*, ServiceReference"
     ],
     "outputFile": "Reference.cs",
-    "targetFramework": "net5.0",
+    "targetFramework": "net6.0",
     "typeReuseMode": "All"
   }
 }

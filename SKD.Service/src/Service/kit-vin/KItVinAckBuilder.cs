@@ -16,7 +16,7 @@ namespace SKD.Service {
         }
 
         public async Task<KitVinAckDTO> GenerateKitVinAcknowledgment(string plantCode, int sequence) {
-            KitVinImport kitVinImport = await context.KitVinImports
+            KitVinImport? kitVinImport = await context.KitVinImports
                 .Include(t => t.Plant)
                 .Include(t => t.KitVins).ThenInclude(t => t.Kit)
                 .FirstOrDefaultAsync(t => t.Plant.Code == plantCode && t.Sequence == sequence);

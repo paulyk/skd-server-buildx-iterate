@@ -28,7 +28,7 @@ namespace SKD.Service {
                 .Include(t => t.Received)
                 .Where(t => t.Lot.LotNo == input.LotNo)
                 .Where(t => t.Part.PartNo == input.PartNo)
-                .FirstOrDefaultAsync();
+                .FirstAsync();
 
             // mark existing received records as removed
             lotPart.Received

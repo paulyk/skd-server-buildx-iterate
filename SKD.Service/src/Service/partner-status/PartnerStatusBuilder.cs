@@ -67,16 +67,9 @@ namespace SKD.Service {
             return payload;
         }
 
-        // private async Task<string> GenPartnerStatusFilename2(string plantCode, string partnerPlantCode, DateTime runDate) {
-        //     await Task.Delay(0);
-        //     var formattedRunDate = runDate.ToString(PartnerStatusLayout.FILENAME_DATE_FORMAT);
-        //     var prefix = PartnerStatusLayout.FILENAME_PREFIX;
-        //     return $"{prefix}_{plantCode}_{partnerPlantCode}_{formattedRunDate}.txt";
-        // }
-
         public async Task<string> GenPartnerStatusFilename(Guid kitSnapshotRunId) {
             var snapshotRun = await context.KitSnapshotRuns.Include(t => t.Plant)
-                .FirstOrDefaultAsync(t => t.Id == kitSnapshotRunId);
+                .FirstAsync(t => t.Id == kitSnapshotRunId);
 
             await Task.Delay(0);
             var formattedRunDate = snapshotRun.RunDate.ToString(PartnerStatusLayout.FILENAME_DATE_FORMAT);

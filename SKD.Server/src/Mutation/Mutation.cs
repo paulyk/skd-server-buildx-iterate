@@ -10,8 +10,8 @@ using SKD.Model;
 using HotChocolate.Types;
 
 namespace SKD.Server {
-    
-    
+
+
     public class Mutation {
 
         public async Task<MutationPayload<VehicleModel>> SaveVehicleModel(
@@ -102,7 +102,7 @@ namespace SKD.Server {
         public async Task<MutationPayload<LotPartDTO>> CreateLotPartQuantityReceived(
             [Service] LotPartService service,
             ReceiveLotPartInput input
-        ) => await service.CreateLotPartQuantityReceived(input);      
+        ) => await service.CreateLotPartQuantityReceived(input);
 
         public async Task<MutationPayload<DcwsResponse>> VerifyComponentSerial(
             [Service] DcwsService dcwsService,
@@ -110,6 +110,13 @@ namespace SKD.Server {
             [Service] SkdContext context,
             Guid kitComponentId
         ) {
+            var kc = await context.KitComponents
+                .Where(t => t.Id == kitComponentId && t.RemovedAt != null).FirstOrDefaultAsync();
+            if (kc == null) {
+                // todo: move to validation
+                throw new Exception("Kit component not found, or was makred removed");
+            }
+
             var componentSerial = await context.ComponentSerials
                 .Include(t => t.KitComponent).ThenInclude(t => t.Kit)
                 .Include(t => t.KitComponent).ThenInclude(t => t.Component)
@@ -117,6 +124,11 @@ namespace SKD.Server {
                 .Where(t => t.KitComponentId == kitComponentId)
                 .Where(t => t.RemovedAt == null)
                 .FirstOrDefaultAsync();
+
+            if (componentSerial == null) {
+                // todo: move to validation
+                throw new Exception("No component serial found for this kit component");
+            }
 
             var input = new SubmitDcwsComponentInput {
                 VIN = componentSerial.KitComponent.Kit.VIN,

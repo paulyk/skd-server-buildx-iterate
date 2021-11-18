@@ -27,7 +27,7 @@ namespace SKD.Service {
             var parts = await GetEnsureParts(input);
 
             // plant
-            var plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode);
+            var plant = await context.Plants.FirstAsync(t => t.Code == input.PlantCode);
 
             // add shipment
             var shipment = await AddShipment(input, plant, parts);

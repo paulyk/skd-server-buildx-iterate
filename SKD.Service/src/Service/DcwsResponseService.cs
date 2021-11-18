@@ -21,7 +21,7 @@ namespace SKD.Service {
         }
 
         public async Task<MutationPayload<DcwsResponse>> SaveDcwsComponentResponse(DcwsComponentResponseInput input) {
-            MutationPayload<DcwsResponse> payload = new ();
+            MutationPayload<DcwsResponse> payload = new();
             payload.Errors = await ValidateDcwsComponentResponse<DcwsComponentResponseInput>(input);
             if (payload.Errors.Any()) {
                 return payload;
@@ -30,9 +30,9 @@ namespace SKD.Service {
             var kitComponent = await context.KitComponents
                 .Include(t => t.ComponentSerials).ThenInclude(t => t.DcwsResponses)
                 .Where(t => t.Id == input.VehicleComponentId)
-                .FirstOrDefaultAsync();
+                .FirstAsync();
 
-            var componentSerial = kitComponent.ComponentSerials.Where(t =>t.RemovedAt == null).First();
+            var componentSerial = kitComponent.ComponentSerials.Where(t => t.RemovedAt == null).First();
 
             // skip if duplicate
             var duplicate = componentSerial.DcwsResponses.ToList()
@@ -72,17 +72,22 @@ namespace SKD.Service {
         public async Task<List<Error>> ValidateDcwsComponentResponse<T>(DcwsComponentResponseInput input) where T : DcwsComponentResponseInput {
             var errors = new List<Error>();
 
-            var vehicleComponent = await context.KitComponents
+            var kitComponent = await context.KitComponents
                 .Include(t => t.ComponentSerials)
                 .Where(t => t.Id == input.VehicleComponentId)
                 .FirstOrDefaultAsync();
 
-            if (vehicleComponent.RemovedAt != null) {
-                errors.Add(new Error("", $"vehicle component removed for ComponentScanId = {input.VehicleComponentId}"));
+            if (kitComponent == null) {
+                errors.Add(new Error("", $"kit component not found"));
                 return errors;
             }
 
-            var componentSerial = vehicleComponent.ComponentSerials
+            if (kitComponent.RemovedAt != null) {
+                errors.Add(new Error("", $"kit component removed for ComponentScanId = {input.VehicleComponentId}"));
+                return errors;
+            }
+
+            var componentSerial = kitComponent.ComponentSerials
                 .Where(t => t.RemovedAt == null)
                 .First();
 
@@ -95,7 +100,7 @@ namespace SKD.Service {
                 errors.Add(new Error("ResponseCode", "response code required"));
                 return errors;
             }
-        
+
             return errors;
         }
 

@@ -17,7 +17,7 @@ namespace SKD.Test {
         }
 
         [Fact]
-        public async Task Can_import_kit_vin() {
+        public async Task Can_import_vin() {
             // setup
             var lot = context.Lots.First();
             var plant = context.Plants.First();

@@ -28,40 +28,45 @@ namespace SKD.Service {
         #region import vin
 
         public async Task<MutationPayload<KitVinImport>> ImportVIN(VinFile input) {
-            MutationPayload<KitVinImport> result = new();
-            result.Errors = await ValidateImportVINInput(input);
-            if (result.Errors.Any()) {
+            try {
+                MutationPayload<KitVinImport> result = new();
+                result.Errors = await ValidateImportVINInput(input);
+                if (result.Errors.Any()) {
+                    return result;
+                }
+
+                // new KitVinImport / existing        
+                var kitVinImport = new KitVinImport {
+                    Plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode),
+                    Sequence = input.Sequence,
+                    PartnerPlantCode = input.PartnerPlantCode,
+                };
+                context.KitVinImports.Add(kitVinImport);
+
+                foreach (var inputKitVin in input.Kits) {
+
+                    // bool kitVinAlreadyExists =   kit.KitVins.Any(t => t.Kit.KitNo == inputKitVin.KitNo && t.VIN == inputKitVin.VIN);
+                    bool kitVinAlreadyExists = await context.KitVins.AnyAsync(t => t.Kit.KitNo == inputKitVin.KitNo && t.VIN == inputKitVin.VIN);
+
+                    if (!kitVinAlreadyExists) {
+                        var kit = await context.Kits.FirstAsync(t => t.KitNo == inputKitVin.KitNo);
+                        kit.VIN = inputKitVin.VIN;
+                        var kitVin = new KitVin {
+                            Kit = kit,
+                            VIN = inputKitVin.VIN
+                        };
+                        kitVinImport.KitVins.Add(kitVin);
+                    }
+                }
+
+                await context.SaveChangesAsync();
+
+                result.Payload = kitVinImport;
                 return result;
+            } catch (System.Exception ex) {
+                Console.WriteLine(ex.Message);
+                throw;
             }
-
-            // new KitVinImport / existing        
-            var kitVinImport = new KitVinImport {
-                Plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode),
-                Sequence = input.Sequence,
-                PartnerPlantCode = input.PartnerPlantCode,
-            };
-            context.KitVinImports.Add(kitVinImport);
-
-            foreach (var inputKitVin in input.Kits) {
-                var kit = await context.Kits
-                    .Include(t => t.KitVins).ThenInclude(t => t.Kit).ThenInclude(t => t.Lot)
-                    .FirstOrDefaultAsync(t => t.KitNo == inputKitVin.KitNo);
-
-                bool kitVinAlreadyExists = kit.KitVins.Any(t => t.Kit.KitNo == inputKitVin.KitNo && t.VIN == inputKitVin.VIN);
-
-                if (!kitVinAlreadyExists) {
-                    kit.VIN = inputKitVin.VIN;
-                    var kitVin = new KitVin {
-                        Kit = kit,
-                        VIN = inputKitVin.VIN
-                    };
-                    kitVinImport.KitVins.Add(kitVin);
-                } }
-
-            await context.SaveChangesAsync();
-            
-            result.Payload = kitVinImport;
-            return result;
         }
 
         public async Task<List<Error>> ValidateImportVINInput(VinFile input) {
@@ -171,7 +176,7 @@ namespace SKD.Service {
 
             var kit = await context.Kits
                 .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
-                .FirstOrDefaultAsync(t => t.KitNo == input.KitNo);
+                .FirstAsync(t => t.KitNo == input.KitNo);
 
             // mark other timeline events of the same type as removed for this kit
             kit.TimelineEvents
@@ -252,7 +257,7 @@ namespace SKD.Service {
 
             // missing prerequisite timeline events
             var currentTimelineEventType = await context.KitTimelineEventTypes
-                .FirstOrDefaultAsync(t => t.Code == input.EventType);
+                .FirstAsync(t => t.Code == input.EventType);
 
             var missingTimlineSequences = Enumerable.Range(1, currentTimelineEventType.Sequence - 1)
                 .Where(seq => !kit.TimelineEvents
@@ -311,9 +316,9 @@ namespace SKD.Service {
         #endregion
 
         #region create lot timeline event
-        public async Task<MutationPayload<Lot>> CreateLotTimelineEvent(LotTimelineEventInput dto) {
+        public async Task<MutationPayload<Lot>> CreateLotTimelineEvent(LotTimelineEventInput input) {
             MutationPayload<Lot> payload = new();
-            payload.Errors = await ValidateCreateLotTimelineEvent(dto);
+            payload.Errors = await ValidateCreateLotTimelineEvent(input);
             if (payload.Errors.Count > 0) {
                 return payload;
             }
@@ -322,13 +327,13 @@ namespace SKD.Service {
                 .Include(t => t.Kits)
                     .ThenInclude(t => t.TimelineEvents)
                     .ThenInclude(t => t.EventType)
-                .FirstOrDefaultAsync(t => t.LotNo == dto.LotNo);
+                .FirstAsync(t => t.LotNo == input.LotNo);
 
             foreach (var kit in kitLot.Kits) {
 
                 // mark other timeline events of the same type as removed for this kit
                 kit.TimelineEvents
-                    .Where(t => t.EventType.Code == dto.EventType)
+                    .Where(t => t.EventType.Code == input.EventType)
                     .ToList().ForEach(timelieEvent => {
                         if (timelieEvent.RemovedAt == null) {
                             timelieEvent.RemovedAt = DateTime.UtcNow;
@@ -337,9 +342,9 @@ namespace SKD.Service {
 
                 // create timeline event and add to kit
                 var newTimelineEvent = new KitTimelineEvent {
-                    EventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == dto.EventType),
-                    EventDate = dto.EventDate,
-                    EventNote = dto.EventNote
+                    EventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == input.EventType),
+                    EventDate = input.EventDate,
+                    EventNote = input.EventNote
                 };
 
                 kit.TimelineEvents.Add(newTimelineEvent);
@@ -412,13 +417,13 @@ namespace SKD.Service {
 
         public async Task<MutationPayload<KitComponent>> ChangeKitComponentProductionStation(KitComponentProductionStationInput input) {
             MutationPayload<KitComponent> payload = new();
-            payload.Errors = await ValidateChangeKitCXomponentStationImput(input);
+            payload.Errors = await ValidateChangeKitComponentStationImput(input);
             if (payload.Errors.Count > 0) {
                 return payload;
             }
 
-            var kitComponent = await context.KitComponents.FirstOrDefaultAsync(t => t.Id == input.KitComponentId);
-            var productionStation = await context.ProductionStations.FirstOrDefaultAsync(t => t.Code == input.ProductionStationCode);
+            var kitComponent = await context.KitComponents.FirstAsync(t => t.Id == input.KitComponentId);
+            var productionStation = await context.ProductionStations.FirstAsync(t => t.Code == input.ProductionStationCode);
 
             kitComponent.ProductionStation = productionStation;
             // // save
@@ -427,7 +432,7 @@ namespace SKD.Service {
             return payload;
         }
 
-        public async Task<List<Error>> ValidateChangeKitCXomponentStationImput(KitComponentProductionStationInput input) {
+        public async Task<List<Error>> ValidateChangeKitComponentStationImput(KitComponentProductionStationInput input) {
             var errors = new List<Error>();
 
             var kitComponent = await context.KitComponents.FirstOrDefaultAsync(t => t.Id == input.KitComponentId);

@@ -178,8 +178,7 @@ namespace SKD.Service {
             var model = await context.VehicleModels
                 .Include(t => t.ModelComponents)
                 .Where(t => t.Code == input.ModelCode)
-                .FirstOrDefaultAsync();
-
+                .FirstAsync();
 
             var kit = new Kit {
                 KitNo = input.KitNo
@@ -287,7 +286,7 @@ namespace SKD.Service {
                     VehicleCount = t.Lots.SelectMany(u => u.Kits).Count(),
                     CreatedAt = t.CreatedAt
                 })
-                .FirstOrDefaultAsync();
+                .FirstAsync();
 
             return bom;
         }
@@ -304,7 +303,7 @@ namespace SKD.Service {
                     VehicleCount = t.Lots.SelectMany(u => u.Kits).Count(),
                     CreatedAt = t.CreatedAt
                 })
-                .FirstOrDefaultAsync();
+                .FirstAsync();
 
             return bom;
         }
@@ -321,7 +320,7 @@ namespace SKD.Service {
                     VehicleCount = t.Lots.SelectMany(u => u.Kits).Count(),
                     CreatedAt = t.CreatedAt
                 })
-                .FirstOrDefaultAsync();
+                .FirstAsync();
 
             return bom;
         }
@@ -333,7 +332,7 @@ namespace SKD.Service {
             if (paylaod.Errors.Any()) {
                 return paylaod;
             }
-            var lot = await context.Lots.FirstOrDefaultAsync(t => t.LotNo == input.LotNo);
+            var lot = await context.Lots.FirstAsync(t => t.LotNo == input.LotNo);
             lot.Note = input.Note;
 
             await context.SaveChangesAsync();
