@@ -1465,6 +1465,13 @@ namespace ServiceReference
                 base(HTTPDataCollectionSoapClient.GetBindingForEndpoint(endpointConfiguration), new System.ServiceModel.EndpointAddress(remoteAddress))
         {
             this.Endpoint.Name = endpointConfiguration.ToString();
+            //
+            // this.Endpoint.Binding.OpenTimeout = new System.TimeSpan(0, 0, 5);
+            // this.Endpoint.Binding.CloseTimeout = new System.TimeSpan(0, 0, 5);
+            // this.Endpoint.Binding.SendTimeout = new System.TimeSpan(0, 0, 5);
+            // this.Endpoint.Binding.ReceiveTimeout = new System.TimeSpan(0, 0, 5);
+            // System.Console.WriteLine("** set timeout (a) **");
+            //
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
         
@@ -1472,6 +1479,13 @@ namespace ServiceReference
                 base(HTTPDataCollectionSoapClient.GetBindingForEndpoint(endpointConfiguration), remoteAddress)
         {
             this.Endpoint.Name = endpointConfiguration.ToString();
+            //
+            // this.Endpoint.Binding.OpenTimeout = new System.TimeSpan(0, 0, 5);
+            // this.Endpoint.Binding.CloseTimeout = new System.TimeSpan(0, 0, 5);
+            // this.Endpoint.Binding.SendTimeout = new System.TimeSpan(0, 0, 5);
+            // this.Endpoint.Binding.ReceiveTimeout = new System.TimeSpan(0, 0, 5);
+            // System.Console.WriteLine("** set timeout (6) **");
+            //
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
         

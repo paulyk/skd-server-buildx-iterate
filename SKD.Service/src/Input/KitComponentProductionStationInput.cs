@@ -1,8 +1,8 @@
 using System;
 
-namespace SKD.Service {
-    public class KitComponentProductionStationInput {
-        public Guid KitComponentId { get; init; }
-        public string ProductionStationCode { get; init; }
-    }
+namespace SKD.Service;
+
+public class KitComponentProductionStationInput {
+    public Guid KitComponentId { get; init; }
+    public string ProductionStationCode { get; init; }
 }

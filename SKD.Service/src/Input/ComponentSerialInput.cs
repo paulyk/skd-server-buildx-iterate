@@ -1,10 +1,10 @@
 using System;
 
-namespace SKD.Service {
-    public record ComponentSerialInput (
-        Guid KitComponentId,
-        string Serial1, 
-        string Serial2 = "",
-        Boolean Replace = false
-    );
-}
+namespace SKD.Service;
+
+public record ComponentSerialInput(
+    Guid KitComponentId,
+    string Serial1,
+    string Serial2 = "",
+    Boolean Replace = false
+);

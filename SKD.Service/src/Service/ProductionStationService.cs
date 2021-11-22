@@ -9,64 +9,64 @@ using Microsoft.EntityFrameworkCore;
 using SKD.Common;
 using SKD.Model;
 
-namespace SKD.Service {
+namespace SKD.Service;
 
-    public class ProductionStationService {
-        private readonly SkdContext context;
+public class ProductionStationService {
+    private readonly SkdContext context;
 
-        public ProductionStationService(SkdContext ctx) {
-            this.context = ctx;
+    public ProductionStationService(SkdContext ctx) {
+        this.context = ctx;
+    }
+
+    public async Task<MutationPayload<ProductionStation>> SaveProductionStation(ProductionStationInput input) {
+        var productionStation = await context.ProductionStations.FirstOrDefaultAsync(t => t.Id == input.Id);
+
+        if (productionStation != null) {
+            productionStation.Code = input.Code;
+            productionStation.Name = input.Name;
+        } else {
+            productionStation = new ProductionStation { Code = input.Code, Name = input.Name };
+            context.ProductionStations.Add(productionStation);
         }
+        Trim.TrimStringProperties<ProductionStation>(productionStation);
 
-        public async Task<MutationPayload<ProductionStation>> SaveProductionStation(ProductionStationInput input) {
-            var productionStation = await context.ProductionStations.FirstOrDefaultAsync(t => t.Id == input.Id);
+        MutationPayload<ProductionStation> payload = new(productionStation);
 
-            if (productionStation != null) {
-                productionStation.Code = input.Code;
-                productionStation.Name = input.Name;
-            } else {
-                productionStation = new ProductionStation { Code = input.Code, Name = input.Name };
-                context.ProductionStations.Add(productionStation);
-            }
-            Trim.TrimStringProperties<ProductionStation>(productionStation);
-
-            MutationPayload<ProductionStation> payload = new(productionStation);
-
-            // validate
-            payload.Errors = await ValidateCreateProductionStation<ProductionStation>(productionStation);
-            if (payload.Errors.Any()) {
-                return payload;
-            }
-
-            // save
-            await context.SaveChangesAsync();
-
-            payload.Payload = productionStation;
+        // validate
+        payload.Errors = await ValidateCreateProductionStation<ProductionStation>(productionStation);
+        if (payload.Errors.Any()) {
             return payload;
         }
 
-        public async Task<List<Error>> ValidateCreateProductionStation<T>(ProductionStation productionStation) where T : ProductionStation {
-            var errors = new List<Error>();
+        // save
+        await context.SaveChangesAsync();
 
-            if (productionStation.Code.Trim().Length == 0) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Code, "code requred"));
-            } else if (productionStation.Code.Length > EntityFieldLen.ProductionStation_Code) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityFieldLen.ProductionStation_Code} characters "));
-            }
-            if (productionStation.Name.Trim().Length == 0) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Name, "name required"));
-            } else if (productionStation.Code.Length > EntityFieldLen.ProductionStation_Name) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded name max length of {EntityFieldLen.ProductionStation_Name} characters "));
-            }
+        payload.Payload = productionStation;
+        return payload;
+    }
 
-            if (await context.ProductionStations.AnyAsync(t => t.Id != productionStation.Id && t.Code == productionStation.Code)) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Code, "duplicate code"));
-            }
-            if (await context.ProductionStations.AnyAsync(t => t.Id != productionStation.Id && t.Name == productionStation.Name)) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Name, "duplicate name"));
-            }
+    public async Task<List<Error>> ValidateCreateProductionStation<T>(ProductionStation productionStation) where T : ProductionStation {
+        var errors = new List<Error>();
 
-            return errors;
+        if (productionStation.Code.Trim().Length == 0) {
+            errors.Add(ErrorHelper.Create<T>(t => t.Code, "code requred"));
+        } else if (productionStation.Code.Length > EntityFieldLen.ProductionStation_Code) {
+            errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityFieldLen.ProductionStation_Code} characters "));
         }
+        if (productionStation.Name.Trim().Length == 0) {
+            errors.Add(ErrorHelper.Create<T>(t => t.Name, "name required"));
+        } else if (productionStation.Code.Length > EntityFieldLen.ProductionStation_Name) {
+            errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded name max length of {EntityFieldLen.ProductionStation_Name} characters "));
+        }
+
+        if (await context.ProductionStations.AnyAsync(t => t.Id != productionStation.Id && t.Code == productionStation.Code)) {
+            errors.Add(ErrorHelper.Create<T>(t => t.Code, "duplicate code"));
+        }
+        if (await context.ProductionStations.AnyAsync(t => t.Id != productionStation.Id && t.Name == productionStation.Name)) {
+            errors.Add(ErrorHelper.Create<T>(t => t.Name, "duplicate name"));
+        }
+
+        return errors;
     }
 }
+

@@ -6,40 +6,39 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SKD.Model;
 
-namespace SKD.Service {
+namespace SKD.Service;
 
-    public class PartService {
+public class PartService {
 
-        private readonly SkdContext context;
+    private readonly SkdContext context;
 
-        public PartService(SkdContext ctx) {
-            this.context = ctx;
-        }
+    public PartService(SkdContext ctx) {
+        this.context = ctx;
+    }
 
-        public static string ReFormatPartNo(string part) {
-            // replace leading and trailng '-', ' '
-            return Regex.Replace(part, @"(^[- ]+|[ ]|[- ]*$)", "");
-        }
+    public static string ReFormatPartNo(string part) {
+        // replace leading and trailng '-', ' '
+        return Regex.Replace(part, @"(^[- ]+|[ ]|[- ]*$)", "");
+    }
 
-        public async Task<List<Part>> GetEnsureParts(List<(string partNo, string partDesc)> inputParts) {
-            var parts = new List<Part>();
+    public async Task<List<Part>> GetEnsureParts(List<(string partNo, string partDesc)> inputParts) {
+        var parts = new List<Part>();
 
-            foreach (var inputPart in inputParts) {
-                if (!parts.Any(t => t.PartNo == inputPart.partNo)) {
-                    var part = await context.Parts.FirstOrDefaultAsync(t => t.PartNo == inputPart.partNo);
-                    if (part == null) {
-                        part = new Part {
-                            PartNo = inputPart.partNo,
-                            OriginalPartNo = inputPart.partNo,
-                            PartDesc = inputPart.partDesc
-                        };
-                        context.Parts.Add(part);
-                    }
-                    parts.Add(part);
+        foreach (var inputPart in inputParts) {
+            if (!parts.Any(t => t.PartNo == inputPart.partNo)) {
+                var part = await context.Parts.FirstOrDefaultAsync(t => t.PartNo == inputPart.partNo);
+                if (part == null) {
+                    part = new Part {
+                        PartNo = inputPart.partNo,
+                        OriginalPartNo = inputPart.partNo,
+                        PartDesc = inputPart.partDesc
+                    };
+                    context.Parts.Add(part);
                 }
+                parts.Add(part);
             }
-
-            return parts;
         }
+
+        return parts;
     }
 }

@@ -105,47 +105,10 @@ namespace SKD.Server {
         ) => await service.CreateLotPartQuantityReceived(input);
 
         public async Task<MutationPayload<DcwsResponse>> VerifyComponentSerial(
-            [Service] DcwsService dcwsService,
-            [Service] DCWSResponseService dcwsResponseService,
-            [Service] SkdContext context,
+            [Service] VerifySerialService verifySerialService,
             Guid kitComponentId
-        ) {
-            var kc = await context.KitComponents
-                .Where(t => t.Id == kitComponentId && t.RemovedAt != null).FirstOrDefaultAsync();
-            if (kc == null) {
-                // todo: move to validation
-                throw new Exception("Kit component not found, or was makred removed");
-            }
-
-            var componentSerial = await context.ComponentSerials
-                .Include(t => t.KitComponent).ThenInclude(t => t.Kit)
-                .Include(t => t.KitComponent).ThenInclude(t => t.Component)
-                .OrderByDescending(t => t.CreatedAt)
-                .Where(t => t.KitComponentId == kitComponentId)
-                .Where(t => t.RemovedAt == null)
-                .FirstOrDefaultAsync();
-
-            if (componentSerial == null) {
-                // todo: move to validation
-                throw new Exception("No component serial found for this kit component");
-            }
-
-            var input = new SubmitDcwsComponentInput {
-                VIN = componentSerial.KitComponent.Kit.VIN,
-                ComponentTypeCode = componentSerial.KitComponent.Component.Code,
-                Serial1 = componentSerial.Serial1,
-                Serial2 = componentSerial.Serial2
-            };
-
-            var submitDcwsComponentResponse = await dcwsService.SubmitDcwsComponent(input);
-            var dcwsResponsePayload = await dcwsResponseService.SaveDcwsComponentResponse(new DcwsComponentResponseInput {
-                VehicleComponentId = kitComponentId,
-                ResponseCode = submitDcwsComponentResponse.ProcessExceptionCode,
-            });
-
-            return dcwsResponsePayload;
-        }
-
+        ) => await verifySerialService.VerifyComponentSerial(kitComponentId);
+            
         public async Task<MutationPayload<ReceiveHandlingUnitPayload>> SetHandlingUnitReceived(
             [Service] HandlingUnitService service,
             ReceiveHandlingUnitInput input

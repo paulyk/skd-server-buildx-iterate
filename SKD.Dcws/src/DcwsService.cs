@@ -7,7 +7,8 @@ namespace SKD.Dcws {
         private readonly HTTPDataCollectionSoapClient client;
 
         public DcwsService(string serviceAddress) {
-            this.client = new HTTPDataCollectionSoapClient(EndpointConfiguration.HTTPDataCollectionSoap, serviceAddress);
+            var config = EndpointConfiguration.HTTPDataCollectionSoap;
+            this.client = new HTTPDataCollectionSoapClient(config, serviceAddress);
         }
 
         public async Task<string> GetServiceVersion() {
