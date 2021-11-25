@@ -218,9 +218,22 @@ namespace SKD.Service {
                 Sequence = t.Sequence,
                 LotCount = t.ShipmentLots.Count,
                 InvoiceCount = t.ShipmentLots.SelectMany(t => t.Invoices).Count(),
+
                 HandlingUnitCount = t.ShipmentLots.SelectMany(t => t.Invoices).SelectMany(t => t.HandlingUnits).Count(),
                 HandlingUnitReceivedCount = t.ShipmentLots.SelectMany(t => t.Invoices).SelectMany(t => t.HandlingUnits)
                     .Where(t => t.Received.Any(t => t.RemovedAt== null)).Count(),                
+
+                LotPartCount = t.ShipmentLots.SelectMany(u => u.Lot.LotParts).Count(),
+                LotPartReceivedCount = t.ShipmentLots.SelectMany(u => u.Lot.LotParts)
+                    .Where(u => u.Received.Any(y => y.RemovedAt == null)).Count(),
+
+                BomShipDiffCount = t.ShipmentLots.SelectMany(u => u.Lot.LotParts)
+                    .Where(u => u.BomQuantity != u.ShipmentQuantity).Count(),
+
+                LotPartReceiveBomDiffCount = t.ShipmentLots
+                    .SelectMany(u => u.Lot.LotParts)
+                    .Where(lp => lp.Received.Any(r => r.RemovedAt == null && r.Quantity != lp.BomQuantity)).Count(),
+
                 PartCount = t.ShipmentLots
                     .SelectMany(t => t.Invoices)
                     .SelectMany(t => t.HandlingUnits)

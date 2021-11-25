@@ -12,6 +12,5 @@ namespace SKD.Model {
         public ShipmentLot ShipmentLot { get; set; }
         
         public ICollection<HandlingUnit> HandlingUnits { get; set; } = new List<HandlingUnit>();
-        // public ICollection<ShipmentPart> Parts { get; set; } = new List<ShipmentPart>();
     }
 }

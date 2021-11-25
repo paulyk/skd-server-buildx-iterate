@@ -7,26 +7,25 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace SKD.Server {
-    public class Program {
-        public static void Main(string[] args) {
-            CreateHostBuilder(args).Build().Run();
-        }
+namespace SKD.Server;
+public class Program {
+    public static void Main(string[] args) {
+        CreateHostBuilder(args).Build().Run();
+    }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) {
-            return Host.CreateDefaultBuilder(args)
-                .ConfigureLogging(logging => {
-                    logging.AddConsole();
-                })
-                .ConfigureWebHostDefaults(webBuilder => {
-                    webBuilder
-                        .UseStartup<Startup>()
-                        .ConfigureAppConfiguration(config => {
-                            config.AddJsonFile("appsettings.json", optional: false)
-                            .AddJsonFile("developer.json", optional: true)
-                            .AddEnvironmentVariables();
-                        });
-                });
-        }
+    public static IHostBuilder CreateHostBuilder(string[] args) {
+        return Host.CreateDefaultBuilder(args)
+            .ConfigureLogging(logging => {
+                logging.AddConsole();
+            })
+            .ConfigureWebHostDefaults(webBuilder => {
+                webBuilder
+                    .UseStartup<Startup>()
+                    .ConfigureAppConfiguration(config => {
+                        config.AddJsonFile("appsettings.json", optional: false)
+                        .AddJsonFile("developer.json", optional: true)
+                        .AddEnvironmentVariables();
+                    });
+            });
     }
 }

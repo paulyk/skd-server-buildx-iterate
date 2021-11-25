@@ -1,14 +1,11 @@
-using System;
-using System.Collections.Generic;
+namespace SKD.Model;
 
-namespace SKD.Model {
-    public class DcwsResponse : EntityBase {
-        public string ProcessExcptionCode { get; set; } = "";
-        public string ErrorMessage { get; set; }
+public class DcwsResponse : EntityBase {
+    public string ProcessExcptionCode { get; set; } = "";
+    public string ErrorMessage { get; set; }
 
-        public Guid ComponentSerialId { get; set;}
-        public ComponentSerial ComponentSerial { get; set; }
+    public Guid ComponentSerialId { get; set; }
+    public ComponentSerial ComponentSerial { get; set; }
 
-        public bool DcwsSuccessfulSave { get; set; }
-    }
+    public bool DcwsSuccessfulSave { get; set; }
 }

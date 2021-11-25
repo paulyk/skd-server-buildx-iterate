@@ -24,7 +24,7 @@ namespace SKD.Service {
                     LotNo = t.Lot.LotNo,
                     PartNo = t.Part.PartNo,
                     PartDesc = t.Part.PartDesc,
-                    BomQuantity  = t.BomQuantity,
+                    BomQuantity = t.BomQuantity,
                     ShipmentQuantity = t.ShipmentQuantity,
                     RemovedDate = t.RemovedAt,
 
@@ -40,13 +40,14 @@ namespace SKD.Service {
 
                     ImportDate = t.CreatedAt
                 })
+                .OrderBy(t => t.LotNo).ThenBy(t => t.PartNo)
                 .ToListAsync();
 
             return result;
         }
 
         public async Task<List<LotPartDTO>> GetLotPartsByShipment(Guid shipmentId) {
-            var lotNumbers = await context.ShipmentLots   
+            var lotNumbers = await context.ShipmentLots
                 .Where(t => t.Shipment.Id == shipmentId)
                 .Select(t => t.Lot.LotNo).Distinct()
                 .ToListAsync();
@@ -57,13 +58,16 @@ namespace SKD.Service {
                     LotNo = t.Lot.LotNo,
                     PartNo = t.Part.PartNo,
                     PartDesc = t.Part.PartDesc,
-                    BomQuantity  = t.BomQuantity,
+                    BomQuantity = t.BomQuantity,
                     ShipmentQuantity = t.ShipmentQuantity,
 
                     ReceivedDate = t.Received.OrderByDescending(t => t.CreatedAt)
                         .Where(t => t.RemovedAt == null)
-                        .Select(t => t.CreatedAt)
-                        .FirstOrDefault(),
+                        .Select(t => t.CreatedAt).Any()
+                        ? t.Received.OrderByDescending(t => t.CreatedAt)
+                            .Where(t => t.RemovedAt == null)
+                            .Select(t => t.CreatedAt).First()
+                        : null,
 
                     ReceivedQuantity = t.Received.OrderByDescending(t => t.CreatedAt)
                         .Where(t => t.RemovedAt == null)
@@ -72,6 +76,7 @@ namespace SKD.Service {
 
                     ImportDate = t.CreatedAt
                 })
+                .OrderBy(t => t.LotNo).ThenBy(t => t.PartNo)
                 .ToListAsync();
 
             return result;

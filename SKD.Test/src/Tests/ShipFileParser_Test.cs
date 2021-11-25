@@ -1,17 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using SKD.Common;
-using SKD.Dcws;
-using SKD.Service;
-using Xunit;
+namespace SKD.Test;
 
-namespace SKD.Test {
-    public class ShipFileParser_Test : TestBase {
+public class ShipFileParser_Test : TestBase {
 
-        private readonly string fileText =
+    private readonly string fileText =
 @" HEADERHPUDABRIG2-7F202106151645030157CMMS9CCA
 00000101BPA0A02210950011366A1366A     GQQLA04O
 00000202SUDU5653774000002000532021-06-15000004082.40
@@ -26,105 +17,105 @@ namespace SKD.Test {
 9TRAILRHPUDABRIG2-7F202106151645030000702
 ";
 
-        [Fact]
-        public void Can_parse_ship_file_header() {
-            // setup
-            var serivce = new ShipFileParser();
+    [Fact]
+    public void Can_parse_ship_file_header() {
+        // setup
+        var serivce = new ShipFileParser();
 
-            // act 
-            var headerLine = fileText.Split('\n').First();
-            var (plantCode, sequence, dateCreated) = serivce.ParseHeaderLine(headerLine);
+        // act 
+        var headerLine = fileText.Split('\n').First();
+        var (plantCode, sequence, dateCreated) = serivce.ParseHeaderLine(headerLine);
 
-            // assert
-            var expectedPlantCode = "HPUDA";
-            Assert.Equal(expectedPlantCode, plantCode);
-            
-            var exptectedSequence = 157;
-            Assert.Equal(exptectedSequence, sequence);
+        // assert
+        var expectedPlantCode = "HPUDA";
+        Assert.Equal(expectedPlantCode, plantCode);
 
-            var expectedDate = new DateTime(2021,6,15);
-            Assert.Equal(expectedDate, dateCreated);
-        }
+        var exptectedSequence = 157;
+        Assert.Equal(exptectedSequence, sequence);
 
-        [Fact]
-        public void Can_parse_ship_file_lot() {
-            // setup
-            var serivce = new ShipFileParser();
+        var expectedDate = new DateTime(2021, 6, 15);
+        Assert.Equal(expectedDate, dateCreated);
+    }
 
-            // act 
-            var line = fileText.Split('\n').Skip(1).First();
-            var result = serivce.ParseLotLine(line);
+    [Fact]
+    public void Can_parse_ship_file_lot() {
+        // setup
+        var serivce = new ShipFileParser();
 
-            // assert
-            var expectedLotNo = "BPA0A0221095001";
-            Assert.Equal(expectedLotNo, result.LotNo);
-        }
+        // act 
+        var line = fileText.Split('\n').Skip(1).First();
+        var result = serivce.ParseLotLine(line);
 
-        [Fact]
-        public void Can_parse_ship_file_invoice() {
-            // setup
-            var serivce = new ShipFileParser();
+        // assert
+        var expectedLotNo = "BPA0A0221095001";
+        Assert.Equal(expectedLotNo, result.LotNo);
+    }
 
-            // act 
-            var line = fileText.Split('\n').Skip(2).First();
-            var result = serivce.ParseInvoiceLine(line);
+    [Fact]
+    public void Can_parse_ship_file_invoice() {
+        // setup
+        var serivce = new ShipFileParser();
 
-            var exptectedInvoiceNo = "00000200053";
-            var expectedShiptDate = DateTime.Parse("2021-06-15");
-            // assert
-            Assert.Equal(exptectedInvoiceNo, result.InvoiceNo);
-            Assert.Equal(expectedShiptDate, result.ShipDate);
-        }
+        // act 
+        var line = fileText.Split('\n').Skip(2).First();
+        var result = serivce.ParseInvoiceLine(line);
 
-        [Fact]
-        public void Can_parse_ship_file_part() {
-            // setup
-            var serivce = new ShipFileParser();
+        var exptectedInvoiceNo = "00000200053";
+        var expectedShiptDate = DateTime.Parse("2021-06-15");
+        // assert
+        Assert.Equal(exptectedInvoiceNo, result.InvoiceNo);
+        Assert.Equal(expectedShiptDate, result.ShipDate);
+    }
 
-            // act 
-            var line = fileText.Split('\n').Skip(3).First();
-            var result = serivce.ParsePartLine(line);
+    [Fact]
+    public void Can_parse_ship_file_part() {
+        // setup
+        var serivce = new ShipFileParser();
 
-            var expected_PartNo = "AB39-5418-AA";
-            var expteced_HandlingUnitCode = "0155418";
-            var expected_Quantity = Int16.Parse("0000012");
-            var expected_PartDesc = "PLT-CAB MTNG FR MBR";
+        // act 
+        var line = fileText.Split('\n').Skip(3).First();
+        var result = serivce.ParsePartLine(line);
 
-            // assert
-            Assert.Equal(expected_PartNo, result.PartNo.Trim());
-            Assert.Equal(expected_PartDesc, result.CustomerPartDesc.Trim());
-            Assert.Equal(expteced_HandlingUnitCode, result.HandlingUnitCode);
-            Assert.Equal(expected_Quantity, result.Quantity);
-        }
+        var expected_PartNo = "AB39-5418-AA";
+        var expteced_HandlingUnitCode = "0155418";
+        var expected_Quantity = Int16.Parse("0000012");
+        var expected_PartDesc = "PLT-CAB MTNG FR MBR";
 
-        [Fact]
-        public void Can_parse_ship_file() {
-            var service = new ShipFileParser();
+        // assert
+        Assert.Equal(expected_PartNo, result.PartNo.Trim());
+        Assert.Equal(expected_PartDesc, result.CustomerPartDesc.Trim());
+        Assert.Equal(expteced_HandlingUnitCode, result.HandlingUnitCode);
+        Assert.Equal(expected_Quantity, result.Quantity);
+    }
 
-            // act
-            var shipFile = service.ParseShipmentFile(fileText);
+    [Fact]
+    public void Can_parse_ship_file() {
+        var service = new ShipFileParser();
 
-            // assert
-            var expectedPlantCode = "HPUDA";
-            Assert.Equal(expectedPlantCode, shipFile.PlantCode);
-            
-            var exptectedSequence = 157;
-            Assert.Equal(exptectedSequence, shipFile.Sequence);
+        // act
+        var shipFile = service.ParseShipmentFile(fileText);
 
-            var expectedDate = new DateTime(2021,6,15);
-            Assert.Equal(expectedDate, shipFile.Created);            
-            
-            var expectedLotCount = 1;
-            var actualLotCount = shipFile.Lots.Count;
-            Assert.Equal(expectedLotCount, actualLotCount);
+        // assert
+        var expectedPlantCode = "HPUDA";
+        Assert.Equal(expectedPlantCode, shipFile.PlantCode);
 
-            var exptecedInvoiceCount = 2;
-            var actualInvoiceCount= shipFile.Lots.SelectMany(x => x.Invoices).Count();
-            Assert.Equal(exptecedInvoiceCount, actualInvoiceCount);
+        var exptectedSequence = 157;
+        Assert.Equal(exptectedSequence, shipFile.Sequence);
 
-            var exptecedPartCount = 7;
-            var actualPartCount= shipFile.Lots.SelectMany(x => x.Invoices).SelectMany(x => x.Parts).Count();
-            Assert.Equal(exptecedPartCount, actualPartCount);            
-        }
+        var expectedDate = new DateTime(2021, 6, 15);
+        Assert.Equal(expectedDate, shipFile.Created);
+
+        var expectedLotCount = 1;
+        var actualLotCount = shipFile.Lots.Count;
+        Assert.Equal(expectedLotCount, actualLotCount);
+
+        var exptecedInvoiceCount = 2;
+        var actualInvoiceCount = shipFile.Lots.SelectMany(x => x.Invoices).Count();
+        Assert.Equal(exptecedInvoiceCount, actualInvoiceCount);
+
+        var exptecedPartCount = 7;
+        var actualPartCount = shipFile.Lots.SelectMany(x => x.Invoices).SelectMany(x => x.Parts).Count();
+        Assert.Equal(exptecedPartCount, actualPartCount);
     }
 }
+

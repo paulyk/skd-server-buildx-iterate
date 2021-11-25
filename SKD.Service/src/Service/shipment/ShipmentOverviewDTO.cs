@@ -7,8 +7,17 @@ namespace SKD.Service {
         public int Sequence { get; set; }
         public int LotCount { get; set; }
         public int InvoiceCount { get; set; }
+        
         public int HandlingUnitCount { get; set; }
         public int HandlingUnitReceivedCount { get; set; }
+
+        public int LotPartCount { get; set; }
+        public int LotPartReceivedCount { get; set; }
+
+        public int BomShipDiffCount { get; set; }
+
+        public int LotPartReceiveBomDiffCount { get; set; }
+
         public int PartCount { get; set; }
         public DateTime CreatedAt {get; set; }
     }
