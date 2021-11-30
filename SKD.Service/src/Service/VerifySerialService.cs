@@ -1,10 +1,4 @@
-using System;
-using System.Threading.Tasks;
-using SKD.Model;
-using SKD.Service;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using SKD.Dcws;
+#nullable enable
 
 namespace SKD.Service;
 

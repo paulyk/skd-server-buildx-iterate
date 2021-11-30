@@ -1,33 +1,30 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+namespace SKD.Model;
 
-namespace SKD.Model {
-    public class KitVinImport_Config : IEntityTypeConfiguration<KitVinImport> {
-        public void Configure(EntityTypeBuilder<KitVinImport> builder) {
+public class KitVinImport_Config : IEntityTypeConfiguration<KitVinImport> {
+    public void Configure(EntityTypeBuilder<KitVinImport> builder) {
 
-            builder.ToTable("kit_vin_import");
-            
-            builder.HasKey(t => t.Id);
-            builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
+        builder.ToTable("kit_vin_import");
 
-            builder.HasIndex(t => new { t.PlantId, t.Sequence }).IsUnique();
-                            
-            builder.Property(t => t.Sequence)
-                .IsRequired()
-                .HasMaxLength(EntityFieldLen.KitVinImport_Sequence);
+        builder.HasKey(t => t.Id);
+        builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
 
-            builder.Property(t => t.PartnerPlantCode)
-                .IsRequired()
-                .HasMaxLength(EntityFieldLen.PartnerPlant_Code);
+        builder.HasIndex(t => new { t.PlantId, t.Sequence }).IsUnique();
 
-            builder.HasOne(t => t.Plant) 
-                .WithMany(t => t.KitVinImports)
-                .HasForeignKey(t => t.PlantId);
+        builder.Property(t => t.Sequence)
+            .IsRequired()
+            .HasMaxLength(EntityFieldLen.KitVinImport_Sequence);
 
-            builder.HasMany(t => t.KitVins)
-                .WithOne(t => t.KitVinImport)
-                .HasForeignKey(t => t.KitVinImportId);
-        }
+        builder.Property(t => t.PartnerPlantCode)
+            .IsRequired()
+            .HasMaxLength(EntityFieldLen.PartnerPlant_Code);
+
+        builder.HasOne(t => t.Plant)
+            .WithMany(t => t.KitVinImports)
+            .HasForeignKey(t => t.PlantId);
+
+        builder.HasMany(t => t.KitVins)
+            .WithOne(t => t.KitVinImport)
+            .HasForeignKey(t => t.KitVinImportId);
     }
-
 }
+

@@ -1,14 +1,4 @@
-
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using SKD.Model;
-using SKD.Common;
+#nullable enable
 
 namespace SKD.Service;
 public class VehicleModelService {
@@ -107,7 +97,7 @@ public class VehicleModelService {
     public async Task<List<Error>> ValidateSaveVehicleModel<T>(T input) where T : VehicleModelInput {
         var errors = new List<Error>();
 
-        VehicleModel existingVehicleModel = null;
+        VehicleModel? existingVehicleModel = null;
         if (input.Id.HasValue) {
             existingVehicleModel = await context.VehicleModels.FirstOrDefaultAsync(t => t.Id == input.Id.Value);
             if (existingVehicleModel == null) {
@@ -201,7 +191,7 @@ public class VehicleModelService {
 
         var existingModel = await context.VehicleModels
             .Include(t => t.ModelComponents)
-            .FirstOrDefaultAsync(t => t.Code == input.ExistingModelCode);
+            .FirstAsync(t => t.Code == input.ExistingModelCode);
 
         var newModel = new VehicleModel {
             Code = input.Code,
@@ -257,7 +247,7 @@ public class VehicleModelService {
         var kit = await context.Kits
             .Include(t => t.KitComponents).ThenInclude(t => t.Component)
             .Include(t => t.KitComponents).ThenInclude(t => t.ProductionStation)
-            .FirstOrDefaultAsync(t => t.KitNo == kitNo);
+            .FirstAsync(t => t.KitNo == kitNo);
         payload.Payload = kit;
 
         var diff = await GetKitModelComponentDiff(kitNo);
@@ -298,19 +288,22 @@ public class VehicleModelService {
 
     public async Task<List<Error>> ValidateSyncKitModelComponents(string kitNo) {
         var errors = new List<Error>();
+
         var kit = await context.Kits
             .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
             .FirstOrDefaultAsync(t => t.KitNo == kitNo);
+
         if (kit == null) {
             errors.Add(new Error("", "Kit not found for " + kitNo));
             return errors;
         }
+
         if (kit.RemovedAt != null) {
             errors.Add(new Error("", "kit removed"));
             return errors;
         }
 
-        var planBuildEventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == TimeLineEventCode.BUILD_COMPLETED);
+        var planBuildEventType = await context.KitTimelineEventTypes.FirstAsync(t => t.Code == TimeLineEventCode.BUILD_COMPLETED);
         var latestTimelineEvent = kit.TimelineEvents
             .OrderByDescending(t => t.CreatedAt)
             .FirstOrDefault();
@@ -334,7 +327,7 @@ public class VehicleModelService {
 
         var kit = await context.Kits
             .Include(t => t.Lot)
-            .FirstOrDefaultAsync(t => t.KitNo == kitNo);
+            .FirstAsync(t => t.KitNo == kitNo);
 
         var kitComponents = await context.KitComponents
             .Where(t => t.Kit.KitNo == kitNo)
@@ -358,5 +351,4 @@ public class VehicleModelService {
         );
     }
     #endregion
-
 }

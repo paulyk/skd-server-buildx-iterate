@@ -1,28 +1,21 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+namespace SKD.Model;
 
-namespace SKD.Model {
-    public class ShipmentInvoice_Config : IEntityTypeConfiguration<ShipmentInvoice> {
-        public void Configure(EntityTypeBuilder<ShipmentInvoice> builder) {
+public class ShipmentInvoice_Config : IEntityTypeConfiguration<ShipmentInvoice> {
+    public void Configure(EntityTypeBuilder<ShipmentInvoice> builder) {
 
-            builder.ToTable("shipment_invoice");
+        builder.ToTable("shipment_invoice");
 
-            builder.HasKey(t => t.Id);
-            builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
+        builder.HasKey(t => t.Id);
+        builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
 
-            builder.HasIndex(t => t.InvoiceNo).IsUnique();
+        builder.HasIndex(t => t.InvoiceNo).IsUnique();
 
-            builder.Property(t => t.InvoiceNo)
-                .IsRequired()
-                .HasMaxLength(EntityFieldLen.Shipment_InvoiceNo);
+        builder.Property(t => t.InvoiceNo)
+            .IsRequired()
+            .HasMaxLength(EntityFieldLen.Shipment_InvoiceNo);
 
-            // builder.HasMany(t => t.Parts)
-            //     .WithOne(t => t.ShipmentInvoice)
-            //     .HasForeignKey(t => t.ShipmentInvoiceId);
-
-            builder.HasMany(t => t.HandlingUnits)
-                .WithOne(t => t.ShipmentInvoice)
-                .HasForeignKey(t => t.ShipmentInvoiceId);
-        }
+        builder.HasMany(t => t.HandlingUnits)
+            .WithOne(t => t.ShipmentInvoice)
+            .HasForeignKey(t => t.ShipmentInvoiceId);
     }
 }

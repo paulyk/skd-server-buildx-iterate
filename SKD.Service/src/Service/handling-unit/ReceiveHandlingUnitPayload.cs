@@ -1,7 +1,5 @@
 #nullable enable
 
-using System;
-
 namespace SKD.Service;
 
 public class ReceiveHandlingUnitPayload {

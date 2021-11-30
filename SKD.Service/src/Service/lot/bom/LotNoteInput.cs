@@ -1,4 +1,1 @@
-namespace SKD.Model {
-    public record LotNoteInput(string LotNo, string Note);
-
-}
+public record LotNoteInput(string LotNo, string Note);

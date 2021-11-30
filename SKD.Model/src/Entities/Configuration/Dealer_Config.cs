@@ -1,23 +1,19 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace SKD.Model {
-    public class Dealer_Config : IEntityTypeConfiguration<Dealer> {
-        public void Configure(EntityTypeBuilder<Dealer> builder) {
+namespace SKD.Model;
 
-            builder.ToTable("dealer");
+public class Dealer_Config : IEntityTypeConfiguration<Dealer> {
+    public void Configure(EntityTypeBuilder<Dealer> builder) {
 
-            builder.HasKey(t => t.Id);
-            builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
+        builder.ToTable("dealer");
 
-            builder.HasIndex(t => t.Code).IsUnique();
-            builder.HasIndex(t => t.Name).IsUnique();
+        builder.HasKey(t => t.Id);
+        builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
 
-            builder.HasMany(t => t.Kits)
-                .WithOne(t => t.Dealer)
-                .HasForeignKey(t => t.DealerId);
+        builder.HasIndex(t => t.Code).IsUnique();
+        builder.HasIndex(t => t.Name).IsUnique();
 
-
-        }
+        builder.HasMany(t => t.Kits)
+            .WithOne(t => t.Dealer)
+            .HasForeignKey(t => t.DealerId);
     }
 }

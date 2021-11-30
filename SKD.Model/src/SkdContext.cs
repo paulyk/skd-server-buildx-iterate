@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace SKD.Model;
 
 public class SkdContext : DbContext {

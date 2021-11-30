@@ -1,24 +1,21 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+namespace SKD.Model;
 
-namespace SKD.Model {
-    public class Shipment_Config : IEntityTypeConfiguration<Shipment> {
-        public void Configure(EntityTypeBuilder<Shipment> builder) {
+public class Shipment_Config : IEntityTypeConfiguration<Shipment> {
+    public void Configure(EntityTypeBuilder<Shipment> builder) {
 
-            builder.ToTable("shipment");
-                
-            builder.HasKey(t => t.Id);
-            builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
+        builder.ToTable("shipment");
 
-            builder.HasIndex(t => new { t.PlantId, t.Sequence }).IsUnique();
+        builder.HasKey(t => t.Id);
+        builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
 
-            builder.HasMany(t => t.ShipmentLots)
-                .WithOne(t => t.Shipment)
-                .HasForeignKey(t => t.ShipmentId);
+        builder.HasIndex(t => new { t.PlantId, t.Sequence }).IsUnique();
 
-            builder.HasOne(t => t.Plant)
-                .WithMany(t => t.Shipments)
-                .HasForeignKey(t => t.PlantId);
-        }
+        builder.HasMany(t => t.ShipmentLots)
+            .WithOne(t => t.Shipment)
+            .HasForeignKey(t => t.ShipmentId);
+
+        builder.HasOne(t => t.Plant)
+            .WithMany(t => t.Shipments)
+            .HasForeignKey(t => t.PlantId);
     }
 }

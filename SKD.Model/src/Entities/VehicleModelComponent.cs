@@ -10,6 +10,4 @@ public class VehicleModelComponent : EntityBase {
 
     public Guid ProductionStationId { get; set; }
     public ProductionStation ProductionStation { get; set; }
-
-    public VehicleModelComponent() : base() { }
 }

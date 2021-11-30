@@ -1,7 +1,5 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace SKD.Model {
+namespace SKD.Model;
     public class HandlingUnit_Config : IEntityTypeConfiguration<HandlingUnit> {
         public void Configure(EntityTypeBuilder<HandlingUnit> builder) {
 
@@ -26,4 +24,3 @@ namespace SKD.Model {
                 .HasForeignKey(t => t.HandlingUnitId);
         }
     }
-}
