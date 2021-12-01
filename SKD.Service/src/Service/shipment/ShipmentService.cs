@@ -216,7 +216,10 @@ namespace SKD.Service {
                 Id = t.Id,
                 PlantCode = t.Plant.Code,
                 Sequence = t.Sequence,
+                BomId = t.ShipmentLots.Select(u => u.Lot.BomId).First(),
+                BomSequence = t.ShipmentLots.Select(u => u.Lot.Bom.Sequence).First(),
                 LotCount = t.ShipmentLots.Count,
+                LotNumbers = t.ShipmentLots.Select(t => t.Lot.LotNo).ToList(),
                 InvoiceCount = t.ShipmentLots.SelectMany(t => t.Invoices).Count(),
 
                 HandlingUnitCount = t.ShipmentLots.SelectMany(t => t.Invoices).SelectMany(t => t.HandlingUnits).Count(),

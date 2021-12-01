@@ -273,6 +273,11 @@ public class BomService {
                 Id = t.Id,
                 PlantCode = t.Plant.Code,
                 Sequence = t.Sequence,
+                Shipments = t.Lots.SelectMany(u => u.ShipmentLots).Select(u => new BomShipInfoDTO {
+                    ShipmentId = u.ShipmentId,
+                    Sequence = u.Shipment.Sequence,
+                    PlantCode = t.Plant.Code
+                }).ToList(),
                 LotCount = t.Lots.Count,
                 PartCount = t.Lots.SelectMany(u => u.LotParts).Select(u => u.Part).Distinct().Count(),
                 VehicleCount = t.Lots.SelectMany(u => u.Kits).Count(),
@@ -288,8 +293,9 @@ public class BomService {
             .Where(t => t.Sequence == bomSequenceNo)
             .Select(t => new BomOverviewDTO {
                 Id = t.Id,
-                PlantCode = t.Plant.Code,
+                PlantCode = t.Plant.Code,                
                 Sequence = t.Sequence,
+                // ShipmentSequences = t.Lots.SelectMany(t => t.ShipmentLots).Select(u => u.Shipment).Select(u => u.Sequence).ToList(),
                 LotCount = t.Lots.Count,
                 PartCount = t.Lots.SelectMany(u => u.LotParts).Select(u => u.Part).Distinct().Count(),
                 VehicleCount = t.Lots.SelectMany(u => u.Kits).Count(),
