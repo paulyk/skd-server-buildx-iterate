@@ -33,7 +33,7 @@ namespace SKD.Dcws {
                 acceptIfInvalidScan: false,
                 acceptIfKnownBadComponent: false,
                 acceptIfNotVerified: false,
-                acceptIfPartAlreadyInstalled: false,
+                acceptIfPartAlreadyInstalled: true,
                 acceptIfVINNotFound: false,
                 acceptIfWrongComponent: false
             );
