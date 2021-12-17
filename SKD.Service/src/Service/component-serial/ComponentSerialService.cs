@@ -10,12 +10,12 @@ public class ComponentSerialService {
         this.context = ctx;
     }
 
-    public async Task<MutationPayload<ComponentSerialDTO>> CaptureComponentSerial(ComponentSerialInput input) {
+    public async Task<MutationPayload<ComponentSerialDTO>> SaveComponentSerial(ComponentSerialInput input) {
         input = SwapSerial(input);
 
         MutationPayload<ComponentSerialDTO> payload = new();
 
-        payload.Errors = await ValidateCaptureComponentSerial<ComponentSerialInput>(input with { });
+        payload.Errors = await ValidateSaveComponentSerial<ComponentSerialInput>(input with { });
         if (payload.Errors.Any()) {
             return payload;
         }
@@ -27,7 +27,7 @@ public class ComponentSerialService {
         // Some serial1 must be formatted acording to DCWS rules
         // The following formats EN / TR serials if they need adjusting
         // Other compoent serials are returned unchanged.
-        var formatSerialResult = DcwsSerialFormatter.FormatSerial(kitComponent.Component.Code, new Serials(input.Serial1, input.Serial2));
+        var formatSerialResult = DcwsSerialFormatter.FormatSerialIfNeeded(kitComponent.Component.Code, new Serials(input.Serial1, input.Serial2));
 
         // create
         var componentSerial = new ComponentSerial {
@@ -75,38 +75,40 @@ public class ComponentSerialService {
         return payload;
     }
 
-    public async Task<List<Error>> ValidateCaptureComponentSerial<T>(ComponentSerialInput input) where T : ComponentSerialInput {
+    public async Task<List<Error>> ValidateSaveComponentSerial<T>(ComponentSerialInput input) where T : ComponentSerialInput {
         var errors = new List<Error>();
 
-        var targetKitCmponent = await context.KitComponents
+        var kitComponent = await context.KitComponents
             .Include(t => t.ProductionStation)
             .Include(t => t.Component)
             .FirstOrDefaultAsync(t => t.Id == input.KitComponentId);
 
-        if (targetKitCmponent == null) {
+        if (kitComponent == null) {
             errors.Add(new Error("KitComponentId", $"kit component not found: {input.KitComponentId}"));
             return errors;
         }
 
-        if (targetKitCmponent.RemovedAt != null) {
+        if (kitComponent.RemovedAt != null) {
             errors.Add(new Error("KitComponentId", $"kit component removed: {input.KitComponentId}"));
             return errors;
         }
 
-        // serial numbers blank
-        if (input.Serial1 is null or "" && input.Serial2 is null or "") {
+        // At least one serial number 
+        if (String.IsNullOrWhiteSpace(input.Serial1) && String.IsNullOrWhiteSpace(input.Serial2)) {
             errors.Add(new Error("", "no serial numbers provided"));
             return errors;
         }
 
-        // serial not null and numbers identical 
-        if (input.Serial1 is not null or "" && input.Serial1 == input.Serial2) {
+        // Serial numbers must be different
+        if (!String.IsNullOrWhiteSpace(input.Serial1) && input.Serial1 == input.Serial2) {
             errors.Add(new Error("", "serial 1 and 2 are the same"));
             return errors;
         }
 
-        // Transform input.Serial1 before continuing the validateion
-        var formatResult = DcwsSerialFormatter.FormatSerial(targetKitCmponent.Component.Code, new Serials(input.Serial1, input.Serial2));
+        // Some components require serial numbers to be re-formatted to conform to Ford web service rule
+        // The reformatted serials will be saved
+        // We will format them now, because we will look for duplicates further down.
+        var formatResult = DcwsSerialFormatter.FormatSerialIfNeeded(kitComponent.Component.Code, new Serials(input.Serial1, input.Serial2));
         // set input.Serial1 to the formatted result before proceeding with the validation
         input = input with {
             Serial1 = formatResult.Serials.Serial1,
@@ -117,6 +119,7 @@ public class ComponentSerialService {
             errors.Add(new Error("", formatResult.Message));
             return errors;
         }
+
 
         // component serial entry for this kit component 
         var componentSerialForKitComponent = await context.ComponentSerials
@@ -140,15 +143,15 @@ public class ComponentSerialService {
             .Include(t => t.KitComponent).ThenInclude(t => t.Component)
             .Where(t => t.RemovedAt == null)
             // different component
-            .Where(t => t.KitComponent.Id != targetKitCmponent.Id)
+            .Where(t => t.KitComponent.Id != kitComponent.Id)
             // exclude if same kit and same component code   
             // ....... Engine component code will be scanned muliple times)
             .Where(t => !(
                 // same kit
-                t.KitComponent.KitId == targetKitCmponent.KitId
+                t.KitComponent.KitId == kitComponent.KitId
                 &&
                 // same component
-                t.KitComponent.ComponentId == targetKitCmponent.ComponentId
+                t.KitComponent.ComponentId == kitComponent.ComponentId
                 )
             )
             // user could point scan serial 2 before serial 1, so we check for both
@@ -173,11 +176,11 @@ public class ComponentSerialService {
         var preeceedingRequiredComponentEntriesNotCaptured = await context.KitComponents
             .OrderBy(t => t.ProductionStation.Sequence)
             // save kit         
-            .Where(t => t.Kit.Id == targetKitCmponent.KitId)
+            .Where(t => t.Kit.Id == kitComponent.KitId)
             // same component id
-            .Where(t => t.ComponentId == targetKitCmponent.ComponentId)
+            .Where(t => t.ComponentId == kitComponent.ComponentId)
             // preceeding target kit component
-            .Where(t => t.ProductionStation.Sequence < targetKitCmponent.ProductionStation.Sequence)
+            .Where(t => t.ProductionStation.Sequence < kitComponent.ProductionStation.Sequence)
             // no captured serial entries
             .Where(t => !t.ComponentSerials.Any(u => u.RemovedAt == null))
             .Select(t => new {
@@ -202,11 +205,11 @@ public class ComponentSerialService {
             .Include(t => t.ComponentSerials)
             .OrderBy(t => t.ProductionStation.Sequence)
             // save kit         
-            .Where(t => t.Kit.Id == targetKitCmponent.KitId)
+            .Where(t => t.Kit.Id == kitComponent.KitId)
             // same component id
-            .Where(t => t.ComponentId == targetKitCmponent.ComponentId)
+            .Where(t => t.ComponentId == kitComponent.ComponentId)
             // preceeding target kit component
-            .Where(t => t.ProductionStation.Sequence < targetKitCmponent.ProductionStation.Sequence)
+            .Where(t => t.ProductionStation.Sequence < kitComponent.ProductionStation.Sequence)
             // any active component serials that do not match input.Serial1, input.Serial2
             .Where(t =>
                 t.ComponentSerials
@@ -262,7 +265,7 @@ public class ComponentSerialService {
             throw new Exception("EN Component only");
         }
 
-        var formatResult = DcwsSerialFormatter.FormatSerial(cs.KitComponent.Component.Code, new Serials(cs.Serial1, cs.Serial2));
+        var formatResult = DcwsSerialFormatter.FormatSerialIfNeeded(cs.KitComponent.Component.Code, new Serials(cs.Serial1, cs.Serial2));
         if (!formatResult.Success) {
             throw new Exception("Could not trasform: " + formatResult.Message);
         }

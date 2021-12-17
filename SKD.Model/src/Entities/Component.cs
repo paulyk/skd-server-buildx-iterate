@@ -1,16 +1,17 @@
 namespace SKD.Model;
 
-public enum DcwsSerialCaptureRule {
-    UNKNOWN,
+public enum ComponentSerialRule {
+    ANY,
     SERIAL_1_ONLY,
     SERIAL_1_AND_2,
-    NOT_REQUIED,
+    VIN_BODY
 }
 public class Component : EntityBase {
     public string Code { get; set; } = "";
     public string Name { get; set; } = "";
     public string IconURL { get; set; } = "";
-    public DcwsSerialCaptureRule DcwsSerialCaptureRule { get; set; }
+
+    public ComponentSerialRule ComponentSerialRule { get; set; }
 
     public ICollection<VehicleModelComponent> VehicleModelComponents { get; set; }
     public ICollection<KitComponent> KitComponents { get; set; }

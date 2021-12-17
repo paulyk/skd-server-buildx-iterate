@@ -1,13 +1,13 @@
 namespace SKD.Dcws {
     public class DcwsSerialFormatter {
 
-        
+
         /// <summary> 
         /// Transforms EN or TR serial into format required by the Ford DCWS service
-        /// Other component types will return the original serial unchanged.
+        /// Otherwisre return the serial numbers unchanged
         /// </summary>
-         /// <returns>SerialFormatResult:  with Success false if there was an error</returns>
-        public static SerialFormatResult FormatSerial(string ComponentTypeCode, Serials serials) {
+        /// <returns>SerialFormatResult:  with Success false if there was an error</returns>
+        public static SerialFormatResult FormatSerialIfNeeded(string ComponentTypeCode, Serials serials) {
             switch (ComponentTypeCode) {
                 case "EN": {
                         return EN_SerialFormatter.FormatSerial(serials);
@@ -20,5 +20,8 @@ namespace SKD.Dcws {
                 default: return new SerialFormatResult(serials, true, "");
             }
         }
+
+
+
     }
 }

@@ -26,7 +26,7 @@ public class ComponentService {
 
         component.Code = input.Code;
         component.Name = input.Name;
-        component.DcwsSerialCaptureRule = input.DcwsSerialCaptureRule;
+        component.ComponentSerialRule = input.DcwsSerialCaptureRule;
 
         Trim.TrimStringProperties<Component>(component);
         // save

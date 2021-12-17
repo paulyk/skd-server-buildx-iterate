@@ -59,7 +59,7 @@ namespace SKD.Server {
               [Service] ComponentSerialService service,
               ComponentSerialInput input
             ) {
-            return await service.CaptureComponentSerial(input);
+            return await service.SaveComponentSerial(input);
         }
 
         public async Task<MutationPayload<DcwsResponse>> CreateDcwsResponse(

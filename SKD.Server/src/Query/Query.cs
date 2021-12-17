@@ -244,16 +244,13 @@ public class Query {
                     .FirstOrDefault(),
                 ComponentCount = t.KitComponents
                     .Where(t => t.RemovedAt == null)
-                    .Where(t => t.Component.DcwsSerialCaptureRule != DcwsSerialCaptureRule.NOT_REQUIED)
                     .Count(),
                 ScannedComponentCount = t.KitComponents
                     .Where(t => t.RemovedAt == null)
-                    .Where(t => t.Component.DcwsSerialCaptureRule != DcwsSerialCaptureRule.NOT_REQUIED)
                     .Where(t => t.ComponentSerials.Any(t => t.RemovedAt == null))
                     .Count(),
                 VerifiedComponentCount = t.KitComponents
                     .Where(t => t.RemovedAt == null)
-                    .Where(t => t.Component.DcwsSerialCaptureRule != DcwsSerialCaptureRule.NOT_REQUIED)
                     .Where(t => t.ComponentSerials.Any(u => u.RemovedAt == null && u.VerifiedAt != null))
                     .Count(),
                 Imported = t.CreatedAt

@@ -29,21 +29,21 @@ public class ComponentServiceTest : TestBase {
         var input = new ComponentInput() {
             Code = Util.RandomString(EntityFieldLen.Component_Code),
             Name = Util.RandomString(EntityFieldLen.Component_Name),
-            DcwsSerialCaptureRule = DcwsSerialCaptureRule.UNKNOWN
+            DcwsSerialCaptureRule = ComponentSerialRule.ANY
         };
 
         var before_count = await context.Components.CountAsync();
         var payload = await service.SaveComponent(input);
 
         var component = await context.Components.FirstOrDefaultAsync(t => t.Code == input.Code);
-        Assert.Equal(input.DcwsSerialCaptureRule, component.DcwsSerialCaptureRule);
+        Assert.Equal(input.DcwsSerialCaptureRule, component.ComponentSerialRule);
 
         // modify
         input.Id = payload.Payload.Id;
-        input.DcwsSerialCaptureRule = DcwsSerialCaptureRule.UNKNOWN;
+        input.DcwsSerialCaptureRule = ComponentSerialRule.ANY;
         await service.SaveComponent(input);
         component = await context.Components.FirstOrDefaultAsync(t => t.Code == input.Code);
-        Assert.Equal(input.DcwsSerialCaptureRule, component.DcwsSerialCaptureRule);
+        Assert.Equal(input.DcwsSerialCaptureRule, component.ComponentSerialRule);
     }
 
     [Fact]

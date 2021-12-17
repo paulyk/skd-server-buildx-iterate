@@ -170,7 +170,7 @@ public class TestBase {
         var components = componentCodes.ToList().Select(code => new Component {
             Code = code,
             Name = $"{code} name",
-            DcwsSerialCaptureRule = DcwsSerialCaptureRule.UNKNOWN
+            ComponentSerialRule = ComponentSerialRule.ANY
         }).ToList();
 
         foreach (var component in components) {
