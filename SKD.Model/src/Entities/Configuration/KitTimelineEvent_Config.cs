@@ -7,6 +7,7 @@ public class KitTimelineEvent_Config : IEntityTypeConfiguration<KitTimelineEvent
 
         builder.HasKey(t => t.Id);
         builder.HasIndex(t => t.CreatedAt);
+        builder.HasIndex(t => new { t.KitId, t.CreatedAt });
 
         builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
         builder.Property(t => t.EventNote).HasMaxLength(EntityFieldLen.Event_Note);

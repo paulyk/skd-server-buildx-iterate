@@ -170,7 +170,7 @@ public class TestBase {
         var components = componentCodes.ToList().Select(code => new Component {
             Code = code,
             Name = $"{code} name",
-            ComponentSerialRule = ComponentSerialRule.ANY
+            ComponentSerialRule = ComponentSerialRule.ONE_OR_BOTH_SERIALS
         }).ToList();
 
         foreach (var component in components) {
@@ -268,7 +268,8 @@ public class TestBase {
             if (!context.Components.Any(t => t.Code == code)) {
                 context.Components.Add(new Component {
                     Code = code,
-                    Name = code + " name"
+                    Name = code + " name",
+                    ComponentSerialRule = ComponentSerialRule.ONE_OR_BOTH_SERIALS
                 });
                 context.SaveChanges();
             }

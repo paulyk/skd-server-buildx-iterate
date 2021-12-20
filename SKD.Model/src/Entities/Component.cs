@@ -1,10 +1,10 @@
 namespace SKD.Model;
 
 public enum ComponentSerialRule {
-    ANY,
-    SERIAL_1_ONLY,
-    SERIAL_1_AND_2,
-    VIN_BODY
+    ONE_OR_BOTH_SERIALS,
+    ONE_SERIAL,
+    BOTH_SERIALS,
+    VIN_AND_BODY
 }
 public class Component : EntityBase {
     public string Code { get; set; } = "";
@@ -12,6 +12,7 @@ public class Component : EntityBase {
     public string IconURL { get; set; } = "";
 
     public ComponentSerialRule ComponentSerialRule { get; set; }
+    public bool DcwsComponent { get; set; }
 
     public ICollection<VehicleModelComponent> VehicleModelComponents { get; set; }
     public ICollection<KitComponent> KitComponents { get; set; }

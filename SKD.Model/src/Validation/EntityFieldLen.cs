@@ -11,7 +11,7 @@ public static class EntityFieldLen {
 
     public readonly static int Component_Code = 10;
     public readonly static int Component_Name = 100;
-    public readonly static int Component_SerialCaptureRequirement = 30;
+    public readonly static int Component_SerialRule = 30;
     public readonly static int Component_FordComponentType = 5;
 
     public readonly static int ProductionStation_Code = 15;

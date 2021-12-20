@@ -83,6 +83,7 @@ public class ComponentSerialService {
             .Include(t => t.Component)
             .FirstOrDefaultAsync(t => t.Id == input.KitComponentId);
 
+        #region kit component exists and not flagged removed
         if (kitComponent == null) {
             errors.Add(new Error("KitComponentId", $"kit component not found: {input.KitComponentId}"));
             return errors;
@@ -92,16 +93,24 @@ public class ComponentSerialService {
             errors.Add(new Error("KitComponentId", $"kit component removed: {input.KitComponentId}"));
             return errors;
         }
+        #endregion
 
-        // At least one serial number 
-        if (String.IsNullOrWhiteSpace(input.Serial1) && String.IsNullOrWhiteSpace(input.Serial2)) {
-            errors.Add(new Error("", "no serial numbers provided"));
+        #region serials not empty or null
+        if (input.Serial1.Trim().Length == 0 && input.Serial2.Trim().Length == 0) {
+            errors.Add(new Error("", "No serial numbers provided"));
             return errors;
         }
 
         // Serial numbers must be different
-        if (!String.IsNullOrWhiteSpace(input.Serial1) && input.Serial1 == input.Serial2) {
-            errors.Add(new Error("", "serial 1 and 2 are the same"));
+        if (input.Serial1?.Trim() == input.Serial2?.Trim()) {
+            errors.Add(new Error("", "Serial 1 and 2 cannot be the same"));
+            return errors;
+        }
+        #endregion
+
+        var error = ValidateComponentSerialRule(kitComponent, input);
+        if (error != null) {
+            errors.Add(error);
             return errors;
         }
 
@@ -234,12 +243,14 @@ public class ComponentSerialService {
         }
 
         return errors;
+
+
     }
 
     private static ComponentSerialInput SwapSerial(ComponentSerialInput input) {
         input = input with {
-            Serial1 = input.Serial1 is null or "" ? "" : input.Serial1,
-            Serial2 = input.Serial2 is null or "" ? "" : input.Serial2
+            Serial1 = String.IsNullOrWhiteSpace(input.Serial1) ? "" : input.Serial1,
+            Serial2 = String.IsNullOrWhiteSpace(input.Serial2) ? "" : input.Serial2
         };
 
         if (input.Serial1.Trim().Length == 0) {
@@ -250,6 +261,45 @@ public class ComponentSerialService {
             };
         }
         return input;
+    }
+
+    public Error? ValidateComponentSerialRule(KitComponent kitComponent, ComponentSerialInput input) {
+        var component = kitComponent.Component;
+        var vin = kitComponent.Kit.VIN;
+
+        switch (kitComponent.Component.ComponentSerialRule) {
+
+            case ComponentSerialRule.ONE_OR_BOTH_SERIALS: {
+                    var error = String.IsNullOrWhiteSpace(input.Serial1) && String.IsNullOrWhiteSpace(input.Serial2);
+                    return error
+                        ? new Error("", "At least one serial required for component {kitComponent.Component.Code}")
+                        : (Error?)null;
+                }
+
+            case ComponentSerialRule.ONE_SERIAL:
+                return input.Serial1?.Trim().Length > 0 && input.Serial2.Trim().Length > 0
+                    ? new Error("", $"Only one serial allowed for component {kitComponent.Component.Code}")
+                    : (Error?)null;
+
+            case ComponentSerialRule.BOTH_SERIALS:
+                return input.Serial1.Trim().Length == 0 || input.Serial2.Trim().Length == 0
+                    ? new Error("", $"Both serial 1 and 2 required for component {kitComponent.Component.Code}")
+                    : (Error?)null;
+
+            case ComponentSerialRule.VIN_AND_BODY: {
+                    var vinMissing = input.Serial1 != vin && input.Serial2 != vin;
+                    if (vinMissing) {
+                        return new Error("", $"VIN serial required for component {kitComponent.Component.Code}");
+                    }
+
+                    if (String.IsNullOrWhiteSpace(input.Serial1) || String.IsNullOrWhiteSpace(input.Serial2)) {
+                        return new Error("", $"Chassis serial required for component {kitComponent.Component.Code}");
+                    }
+                    return (Error?)null;
+                }
+
+            default: return (Error?)null;
+        }
     }
 
     public async Task<ComponentSerial> ApplyComponentSerialFormat(Guid componentSerialId) {
