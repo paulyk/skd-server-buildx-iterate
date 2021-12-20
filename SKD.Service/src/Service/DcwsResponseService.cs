@@ -4,7 +4,7 @@ namespace SKD.Service;
 
 public class DCWSResponseService {
 
-    private readonly ICollection<string> SuccessProcessExceptionCodes = new List<string> {
+    private static readonly ICollection<string> SuccessProcessExceptionCodes = new List<string> {
             "NONE", "REPAIR", "KNOWNBAD", "CHARACTERIZATIONMISSING", "CHARACTERIZATIONERROR"
         };
     private readonly SkdContext context;
@@ -97,7 +97,7 @@ public class DCWSResponseService {
         return errors;
     }
 
-    bool IsSuccessProcessExceptionCode(string processExceptionCode) {
+    public static bool IsSuccessProcessExceptionCode(string processExceptionCode) {
         return SuccessProcessExceptionCodes.Any(code => code.ToLower() == processExceptionCode.ToLower());
     }
 }

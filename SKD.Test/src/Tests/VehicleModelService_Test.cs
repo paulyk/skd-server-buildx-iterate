@@ -70,7 +70,7 @@ public class VehicleModelServiceTest : TestBase {
         var input_2 = new VehicleModelInput {
             Id = model.Id,
             Code = model.Code,
-            Description = Gen_VehicleModel_Name(),
+            Description = Gen_VehicleModel_Description(),
             ComponentStationInputs = model.ModelComponents.Select(t => new ComponentStationInput {
                 ComponentCode = t.Component.Code,
                 ProductionStationCode = t.ProductionStation.Code
@@ -192,11 +192,11 @@ public class VehicleModelServiceTest : TestBase {
 
         return new VehicleModelInput {
             Code = Gen_VehicleModel_Code(),
-            Description = Gen_VehicleModel_Name(),
+            Description = Gen_VehicleModel_Description(),
             ModelYear = DateTime.Now.Year.ToString(),
-            Model = Util.RandomString(EntityFieldLen.VehicleModel_Model),
-            Series = Util.RandomString(EntityFieldLen.VehicleModel_Series),
-            Body = Util.RandomString(EntityFieldLen.VehicleModel_Body),
+            Model = Gen_VehilceModel_Meta(),
+            Series = Gen_VehilceModel_Meta(),
+            Body = Gen_VehilceModel_Meta(),
             ComponentStationInputs = Enumerable.Range(0, componentCodes.Length)
                 .Select(i => new ComponentStationInput {
                     ComponentCode = componentCodes[i],

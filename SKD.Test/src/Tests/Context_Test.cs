@@ -72,7 +72,7 @@ public class ContextTest : TestBase {
         var vehicleModel = new VehicleModel() {
             Code = new String('X', EntityFieldLen.VehicleModel_Code),
             Description = new String('X', EntityFieldLen.VehicleModel_Description),
-            ModelYear = new String('X', EntityFieldLen.VehicleModel_ModelYear),
+            ModelYear = new String('X', EntityFieldLen.VehicleModel_Meta),
         };
 
         ctx.VehicleModels.Add(vehicleModel);
@@ -92,13 +92,13 @@ public class ContextTest : TestBase {
         var vehicleModel_1 = new VehicleModel() {
             Code = modelCode,
             Description = new String('A', EntityFieldLen.VehicleModel_Description),
-            ModelYear = new String('A', EntityFieldLen.VehicleModel_ModelYear),
+            ModelYear = new String('A', EntityFieldLen.VehicleModel_Meta),
         };
 
         var vehicleModel_2 = new VehicleModel() {
             Code = modelCode,
             Description = new String('B', EntityFieldLen.VehicleModel_Description),
-            ModelYear = new String('B', EntityFieldLen.VehicleModel_ModelYear),
+            ModelYear = new String('B', EntityFieldLen.VehicleModel_Meta),
         };
 
         ctx.VehicleModels.AddRange(vehicleModel_1, vehicleModel_2);
@@ -116,13 +116,13 @@ public class ContextTest : TestBase {
         var vehicleModel_1 = new VehicleModel() {
             Code = new String('A', EntityFieldLen.VehicleModel_Code),
             Description = modelName,
-            ModelYear = new String('A', EntityFieldLen.VehicleModel_ModelYear),
+            ModelYear = new String('A', EntityFieldLen.VehicleModel_Meta),
         };
 
         var vehicleModel_2 = new VehicleModel() {
             Code = new String('B', EntityFieldLen.VehicleModel_Code),
             Description = modelName,
-            ModelYear = new String('B', EntityFieldLen.VehicleModel_ModelYear),
+            ModelYear = new String('B', EntityFieldLen.VehicleModel_Meta),
         };
 
         ctx.VehicleModels.AddRange(vehicleModel_1, vehicleModel_2);
@@ -139,7 +139,7 @@ public class ContextTest : TestBase {
         var vehicleModel = new VehicleModel() {
             Code = new String('X', EntityFieldLen.VehicleModel_Code),
             Description = new String('X', EntityFieldLen.VehicleModel_Description),
-            ModelYear = new String('X', EntityFieldLen.VehicleModel_ModelYear),
+            ModelYear = new String('X', EntityFieldLen.VehicleModel_Meta),
         };
         ctx.VehicleModels.Add(vehicleModel);
         ctx.SaveChanges();
@@ -204,7 +204,7 @@ public class ContextTest : TestBase {
         var vehicleModel = new VehicleModel() {
             Code = new String('X', EntityFieldLen.VehicleModel_Code),
             Description = new String('X', EntityFieldLen.VehicleModel_Description),
-            ModelYear = new String('X', EntityFieldLen.VehicleModel_ModelYear),
+            ModelYear = new String('X', EntityFieldLen.VehicleModel_Meta),
         };
 
         ctx.VehicleModels.Add(vehicleModel);

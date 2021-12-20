@@ -9,10 +9,10 @@ public class VehicleModel_Config : IEntityTypeConfiguration<VehicleModel> {
         builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();
         builder.Property(t => t.Code).IsRequired().HasMaxLength(EntityFieldLen.VehicleModel_Code).ValueGeneratedOnAdd();
         builder.Property(t => t.Description).IsRequired().HasMaxLength(EntityFieldLen.VehicleModel_Description).ValueGeneratedOnAdd();
-        builder.Property(t => t.Model).HasMaxLength(EntityFieldLen.VehicleModel_Model).ValueGeneratedOnAdd();
-        builder.Property(t => t.ModelYear).HasMaxLength(EntityFieldLen.VehicleModel_ModelYear).ValueGeneratedOnAdd();
-        builder.Property(t => t.Series).HasMaxLength(EntityFieldLen.VehicleModel_Series).ValueGeneratedOnAdd();
-        builder.Property(t => t.Body).HasMaxLength(EntityFieldLen.VehicleModel_Series).ValueGeneratedOnAdd();
+        builder.Property(t => t.Model).HasMaxLength(EntityFieldLen.VehicleModel_Meta).ValueGeneratedOnAdd();
+        builder.Property(t => t.ModelYear).HasMaxLength(EntityFieldLen.VehicleModel_Meta).ValueGeneratedOnAdd();
+        builder.Property(t => t.Series).HasMaxLength(EntityFieldLen.VehicleModel_Meta).ValueGeneratedOnAdd();
+        builder.Property(t => t.Body).HasMaxLength(EntityFieldLen.VehicleModel_Meta).ValueGeneratedOnAdd();
 
         // index
         builder.HasIndex(t => t.Code).IsUnique();

@@ -12,7 +12,7 @@ public class Component : EntityBase {
     public string IconURL { get; set; } = "";
 
     public ComponentSerialRule ComponentSerialRule { get; set; }
-    public bool DcwsComponent { get; set; }
+    public bool DcwsRequired { get; set; }
 
     public ICollection<VehicleModelComponent> VehicleModelComponents { get; set; }
     public ICollection<KitComponent> KitComponents { get; set; }

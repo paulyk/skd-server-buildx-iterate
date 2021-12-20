@@ -17,6 +17,8 @@ Record and post component sseiral data to Fords "Data Collection Web Service"
 dotnet run --project SKD.Server
 ```
 
+Suggest using Docker for sql server.
+
 ## dev database and connections string
 
 Create your own `touch src/skd-server/developer.json`
@@ -27,16 +29,6 @@ Create your own `touch src/skd-server/developer.json`
         "Default": "server=localhost,9301;database=skd;uid=sa;pwd=DevDevDude119#"
     }
 }
-```
-
-## running the app
-
-1. ensure db server running
-2. run server
-
-```bash
-docker-compose  -f docker-compose.dev.yml up -d mssql
-dotnet run --project SKD.Server
 ```
 
 ## generate test data
@@ -74,10 +66,6 @@ curl \
 --data '{"query":"mutation {\n  createPlant(input:{\n    code:\"HPUDA\",\n    name:\"RMA CML\"\n  }) {\n    entity {\n      id\n      code\n      createdAt\n    }\n    errors {\n      path\n      message\n    }\n  }\n}"}' \
 http://localhost:5100/graphql
 ```
-
-### import LOT and Shipments
-
-Todo...
 
 ## Database migration
 

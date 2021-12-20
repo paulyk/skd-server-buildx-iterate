@@ -29,10 +29,7 @@ public static class EntityFieldLen {
 
     public readonly static int VehicleModel_Code = 7;
     public readonly static int VehicleModel_Description = 100;
-    public readonly static int VehicleModel_ModelYear = 10;
-    public readonly static int VehicleModel_Model = 30;
-    public readonly static int VehicleModel_Series = 30;
-    public readonly static int VehicleModel_Body = 30;
+    public readonly static int VehicleModel_Meta = 100;
 
     public readonly static int ComponentSerial_Min = 5;
     public readonly static int ComponentSerial = 100;

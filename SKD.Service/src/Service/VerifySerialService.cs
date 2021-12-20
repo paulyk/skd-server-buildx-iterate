@@ -16,34 +16,25 @@ public class VerifySerialService {
     public async Task<MutationPayload<DcwsResponse>> VerifyComponentSerial(
         Guid kitComponentId
     ) {
-        var payload = new MutationPayload<DcwsResponse>(null);
-
-        var kc = await context.KitComponents.Where(t => t.Id == kitComponentId).FirstOrDefaultAsync();
-        if (kc == null) {
-            payload.Errors.Add(new Error("", $"Kit component not found for {kitComponentId}"));
-            return payload;
-        }
-        if (kc.RemovedAt != null) {
-            payload.Errors.Add(new Error("", $"Kit component marked removed for {kitComponentId}"));
-            return payload;
+        var result = new MutationPayload<DcwsResponse>(null);
+        result.Errors = await ValidateVerifyComponentSerial(kitComponentId);
+        if (result.Errors.Any()) {
+            return result;
         }
 
-        var componentSerial = await context.ComponentSerials
-            .Include(t => t.KitComponent).ThenInclude(t => t.Kit)
-            .Include(t => t.KitComponent).ThenInclude(t => t.Component)
+        var kc = await context.KitComponents
+            .Include(t => t.Component)
+            .Include(t => t.ComponentSerials)
+            .Where(t => t.Id == kitComponentId).FirstAsync();
+
+        var componentSerial = kc.ComponentSerials
             .OrderByDescending(t => t.CreatedAt)
-            .Where(t => t.KitComponentId == kitComponentId)
             .Where(t => t.RemovedAt == null)
-            .FirstOrDefaultAsync();
-
-        if (componentSerial == null) {
-            payload.Errors.Add(new Error("", $"No component serial found for this kit component {kitComponentId}"));
-            return payload;
-        }
+            .First();
 
         var input = new SubmitDcwsComponentInput {
-            VIN = componentSerial.KitComponent.Kit.VIN,
-            ComponentTypeCode = componentSerial.KitComponent.Component.Code,
+            VIN = kc.Kit.VIN,
+            ComponentTypeCode = kc.Component.Code,
             Serial1 = componentSerial.Serial1,
             Serial2 = componentSerial.Serial2
         };
@@ -55,6 +46,53 @@ public class VerifySerialService {
         });
 
         return dcwsResponsePayload;
+    }
+
+    public async Task<List<Error>> ValidateVerifyComponentSerial(Guid kitComponentId) {
+        List<Error> errors = new();
+
+        var kc = await context.KitComponents
+            .Include(t => t.Kit)
+            .Include(t => t.Component)
+            .Include(t => t.ComponentSerials).ThenInclude(t => t.DcwsResponses)
+            .Where(t => t.Id == kitComponentId).FirstOrDefaultAsync();
+
+        if (kc == null) {
+            errors.Add(new Error("", $"Kit component not found for {kitComponentId}"));
+            return errors;
+        }
+
+        if (kc.RemovedAt != null) {
+            errors.Add(new Error("", $"Kit component marked removed for {kitComponentId}"));
+            return errors;
+        }
+
+        if (!kc.Component.DcwsRequired) {
+            errors.Add(new Error("", $"Component {kc.Component.Code} not required by DCWS"));
+            return errors;
+        }
+
+        var latestComponentSerial = kc.ComponentSerials
+            .OrderByDescending(t => t.CreatedAt)
+            .Where(t => t.RemovedAt == null)
+            .FirstOrDefault();
+
+        if (latestComponentSerial == null) {
+            errors.Add(new Error("", $"No component serial found for this kit component {kc.Kit.KitNo} {kc.Component.Code}"));
+            return errors;
+        }
+
+        var dcwsResponse = latestComponentSerial.DcwsResponses
+            .OrderByDescending(t => t.CreatedAt)
+            .Where(t => t.RemovedAt == null)
+            .FirstOrDefault();
+
+        if (dcwsResponse != null && DCWSResponseService.IsSuccessProcessExceptionCode(dcwsResponse.ProcessExcptionCode)) {
+            errors.Add(new Error("", $"Component already verfied j {kc.Kit.KitNo} {kc.Component.Code}"));
+            return errors;
+        }
+
+        return errors;
     }
 }
 

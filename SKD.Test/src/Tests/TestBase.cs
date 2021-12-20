@@ -418,8 +418,11 @@ public class TestBase {
         return Util.RandomString(EntityFieldLen.VehicleModel_Code).ToUpper();
     }
 
-    public string Gen_VehicleModel_Name() {
+    public string Gen_VehicleModel_Description() {
         return Util.RandomString(EntityFieldLen.VehicleModel_Description).ToUpper();
+    }
+    public string Gen_VehilceModel_Meta() {
+        return Util.RandomString(EntityFieldLen.VehicleModel_Meta).ToUpper();
     }
     public string Gen_VIN() {
         return Util.RandomString(EntityFieldLen.VIN).ToUpper();
