@@ -79,6 +79,7 @@ public class ComponentSerialService {
         var errors = new List<Error>();
 
         var kitComponent = await context.KitComponents
+            .Include(t => t.Kit)
             .Include(t => t.ProductionStation)
             .Include(t => t.Component)
             .FirstOrDefaultAsync(t => t.Id == input.KitComponentId);
@@ -289,7 +290,7 @@ public class ComponentSerialService {
             case ComponentSerialRule.VIN_AND_BODY: {
                     var vinMissing = input.Serial1 != vin && input.Serial2 != vin;
                     if (vinMissing) {
-                        return new Error("", $"VIN serial required for component {kitComponent.Component.Code}");
+                        return new Error("", $"VIN required for component {kitComponent.Component.Code}");
                     }
 
                     if (String.IsNullOrWhiteSpace(input.Serial1) || String.IsNullOrWhiteSpace(input.Serial2)) {
