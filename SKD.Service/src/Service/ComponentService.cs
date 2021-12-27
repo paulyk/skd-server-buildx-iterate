@@ -9,11 +9,11 @@ public class ComponentService {
         this.context = ctx;
     }
 
-    public async Task<MutationPayload<Component>> SaveComponent(ComponentInput input) {
-        MutationPayload<Component> payload = new();
-        payload.Errors = await ValidateCreateComponent<ComponentInput>(input);
-        if (payload.Errors.Any()) {
-            return payload;
+    public async Task<MutationResult<Component>> SaveComponent(ComponentInput input) {
+        MutationResult<Component> result = new();
+        result.Errors = await ValidateCreateComponent<ComponentInput>(input);
+        if (result.Errors.Any()) {
+            return result;
         }
 
 
@@ -31,38 +31,38 @@ public class ComponentService {
         Trim.TrimStringProperties<Component>(component);
         // save
         await context.SaveChangesAsync();
-        payload.Payload = component;
-        return payload;
+        result.Payload = component;
+        return result;
     }
 
-    public async Task<MutationPayload<Component>> RemoveComponent(Guid componentId) {
+    public async Task<MutationResult<Component>> RemoveComponent(Guid componentId) {
         var component = await context.Components.FirstAsync(t => t.Id == componentId);
-        MutationPayload<Component> payload = new(component);
+        MutationResult<Component> result = new(component);
 
-        payload.Errors = ValidateRemoveComponent<Component>(component);
+        result.Errors = ValidateRemoveComponent<Component>(component);
 
-        if (payload.Errors.Any()) {
-            return payload;
+        if (result.Errors.Any()) {
+            return result;
         }
 
         component.RemovedAt = DateTime.UtcNow;
         await context.SaveChangesAsync();
-        return payload;
+        return result;
     }
 
-    public async Task<MutationPayload<Component>> RestoreComponent(Guid componentId) {
+    public async Task<MutationResult<Component>> RestoreComponent(Guid componentId) {
         var component = await context.Components.FirstAsync(t => t.Id == componentId);
-        MutationPayload<Component> payload = new(component);
+        MutationResult<Component> result = new(component);
 
-        payload.Errors = ValidateRestoreComponent<Component>(component);
+        result.Errors = ValidateRestoreComponent<Component>(component);
 
-        if (payload.Errors.Any()) {
-            return payload;
+        if (result.Errors.Any()) {
+            return result;
         }
 
         component.RemovedAt = null;
         await context.SaveChangesAsync();
-        return payload;
+        return result;
     }
 
     public List<Error> ValidateRemoveComponent<T>(Component component) where T : Component {

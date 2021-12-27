@@ -46,14 +46,14 @@ public class PartnerStatusBuilder {
         // trailer
         lines.Add(BuildTrailerLine(kitSnapshotRun));
 
-        var payload = new PartnerStatusDTO {
+        var result = new PartnerStatusDTO {
             PlantCode = kitSnapshotRun.Plant.Code,
             Sequence = kitSnapshotRun.Sequence,
             RunDate = kitSnapshotRun.RunDate,
             Filename = await GenPartnerStatusFilename(kitSnapshotRun.Id),
             PayloadText = String.Join('\n', lines)
         };
-        return payload;
+        return result;
     }
 
     public async Task<string> GenPartnerStatusFilename(Guid kitSnapshotRunId) {

@@ -11,15 +11,15 @@ public class KitSnapshotService {
         this.context = ctx;
     }
 
-    public async Task<MutationPayload<SnapshotDTO>> GenerateSnapshot(KitSnapshotInput input) {
+    public async Task<MutationResult<SnapshotDTO>> GenerateSnapshot(KitSnapshotInput input) {
         // set to current date if null
         input.RunDate = input.RunDate ?? DateTime.UtcNow.Date;
 
-        MutationPayload<SnapshotDTO> payload = new();
+        MutationResult<SnapshotDTO> result = new();
         // validate
-        payload.Errors = await ValidateGenerateKitSnapshot(input);
-        if (payload.Errors.Any()) {
-            return payload;
+        result.Errors = await ValidateGenerateKitSnapshot(input);
+        if (result.Errors.Any()) {
+            return result;
         }
 
         // get qualifying kit list
@@ -38,8 +38,8 @@ public class KitSnapshotService {
                 SnapshotCount = 0
             };
 
-            payload.Payload = dto;
-            return payload;
+            result.Payload = dto;
+            return result;
         }
 
         // create entity
@@ -83,8 +83,8 @@ public class KitSnapshotService {
         if (input.RejectIfNoChanges) {
             bool hasChanges = kitSnapshotRun.KitSnapshots.Any(x => x.ChangeStatusCode != PartnerStatus_ChangeStatus.NoChange);
             if (!hasChanges) {
-                payload.Errors.Add(new Error("", "No changes since last snapshot"));
-                return payload;
+                result.Errors.Add(new Error("", "No changes since last snapshot"));
+                return result;
             }
         }
 
@@ -93,7 +93,7 @@ public class KitSnapshotService {
         var entity = await context.SaveChangesAsync();
 
         // input
-        payload.Payload = new SnapshotDTO {
+        result.Payload = new SnapshotDTO {
             RunDate = input.RunDate.Value.Date,
             PlantCode = input.PlantCode,
             SnapshotCount = kitSnapshotRun.KitSnapshots.Count,
@@ -101,7 +101,7 @@ public class KitSnapshotService {
             Sequence = kitSnapshotRun.Sequence
         };
 
-        return payload;
+        return result;
     }
 
     public async Task<KitSnapshotRunDTO?> GetSnapshotRunBySequence(string plantCode, int sequence) {

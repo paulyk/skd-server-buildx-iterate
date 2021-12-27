@@ -13,10 +13,10 @@ public class VerifySerialService {
         this.dcwsResponseService = dcwsResponseService;
     }
 
-    public async Task<MutationPayload<DcwsResponse>> VerifyComponentSerial(
+    public async Task<MutationResult<DcwsResponse>> VerifyComponentSerial(
         Guid kitComponentId
     ) {
-        var result = new MutationPayload<DcwsResponse>(null);
+        var result = new MutationResult<DcwsResponse>(null);
         result.Errors = await ValidateVerifyComponentSerial(kitComponentId);
         if (result.Errors.Any()) {
             return result;

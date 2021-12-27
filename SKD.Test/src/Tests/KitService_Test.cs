@@ -33,7 +33,7 @@ public class KitServiceTest : TestBase {
         Assert.True(0 == with_vin_count);
 
         var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
-        var payload = await service.ImportVIN(input);
+        var result = await service.ImportVIN(input);
 
         // assert
         var kitVinImport = await context.KitVinImports.FirstOrDefaultAsync(t => t.Plant.Code == input.PlantCode && t.Sequence == input.Sequence);
@@ -73,11 +73,11 @@ public class KitServiceTest : TestBase {
         // test
         var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
         await service.ImportVIN(input);
-        var payload = await service.ImportVIN(input);
+        var result = await service.ImportVIN(input);
 
         // assert
         var expectedErrorMessage = "Already imported plant - sequence";
-        var actualErrorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
+        var actualErrorMessage = result.Errors.Select(t => t.Message).FirstOrDefault();
         Assert.Equal(expectedErrorMessage, actualErrorMessage.Substring(0, expectedErrorMessage.Length));
     }
 
@@ -162,11 +162,11 @@ public class KitServiceTest : TestBase {
 
         // test
         var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
-        var payload = await service.ImportVIN(kitVinDto);
+        var result = await service.ImportVIN(kitVinDto);
 
         // assert
         var expectedError = "kit numbers not found";
-        var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
+        var errorMessage = result.Errors.Select(t => t.Message).FirstOrDefault();
         errorMessage = errorMessage.Substring(0, expectedError.Length);
         Assert.Equal(expectedError, errorMessage);
     }
@@ -198,11 +198,11 @@ public class KitServiceTest : TestBase {
             };
         // test
         var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
-        var payload_2 = await service.ImportVIN(input);
+        var result_2 = await service.ImportVIN(input);
 
         // assert
         var expectedError = "duplicate kitNo(s) in payload";
-        var errorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
+        var errorMessage = result_2.Errors.Select(t => t.Message).FirstOrDefault();
         errorMessage = errorMessage.Substring(0, expectedError.Length);
         Assert.Equal(expectedError, errorMessage);
     }
@@ -225,7 +225,7 @@ public class KitServiceTest : TestBase {
         await Gen_ShipmentLot_ForKit(kit.KitNo);
 
         var service = new KitService(context, baseDate, planBuildLeadTimeDays);
-        var payloads = new List<MutationPayload<KitTimelineEvent>>();
+        var results = new List<MutationResult<KitTimelineEvent>>();
 
         var before_count = context.KitTimelineEvents.Count();
 
@@ -236,8 +236,8 @@ public class KitServiceTest : TestBase {
                 EventDate = entry.eventDate,
                 DealerCode = dealerCode
             };
-            var payload = await service.CreateKitTimelineEvent(dto);
-            payloads.Add(payload);
+            var result = await service.CreateKitTimelineEvent(dto);
+            results.Add(result);
         }
 
         // assert
@@ -269,15 +269,15 @@ public class KitServiceTest : TestBase {
         };
 
         // test
-        var payload_1 = await service.CreateKitTimelineEvent(input_1);
-        var payload_2 = await service.CreateKitTimelineEvent(input_2);
+        var result_1 = await service.CreateKitTimelineEvent(input_1);
+        var result_2 = await service.CreateKitTimelineEvent(input_2);
 
         // assert
         var expectedError = "custom received date must be before current date";
-        var actualMessage = payload_1.Errors.Select(t => t.Message).FirstOrDefault();
+        var actualMessage = result_1.Errors.Select(t => t.Message).FirstOrDefault();
         Assert.Equal(expectedError, actualMessage);
 
-        var errorCount = payload_2.Errors.Count;
+        var errorCount = result_2.Errors.Count;
         Assert.Equal(0, errorCount);
     }
 
@@ -295,7 +295,7 @@ public class KitServiceTest : TestBase {
 
         // test
         KitService service = null;
-        var payloads = new List<MutationPayload<KitTimelineEvent>>();
+        var results = new List<MutationResult<KitTimelineEvent>>();
 
         foreach (var (eventType, eventDate, trxDate) in timelineEvents) {
             var input = new KitTimelineEventInput {
@@ -304,11 +304,11 @@ public class KitServiceTest : TestBase {
                 EventDate = eventDate,
             };
             service = new KitService(context, trxDate, planBuildLeadTimeDays);
-            var payload = await service.CreateKitTimelineEvent(input);
-            payloads.Add(payload);
+            var result = await service.CreateKitTimelineEvent(input);
+            results.Add(result);
         }
 
-        var lastPayload = payloads[1];
+        var lastPayload = results[1];
 
         // assert
         var expectedMessage = "prior timeline event(s) missing";
@@ -336,7 +336,7 @@ public class KitServiceTest : TestBase {
         // test
         KitService service = null;
 
-        var payloads = new List<MutationPayload<KitTimelineEvent>>();
+        var results = new List<MutationResult<KitTimelineEvent>>();
 
         foreach (var entry in timelineEventItems) {
             var input = new KitTimelineEventInput {
@@ -347,8 +347,8 @@ public class KitServiceTest : TestBase {
                 DealerCode = entry.dealerCode
             };
             service = new KitService(context, entry.trxDate, planBuildLeadTimeDays);
-            var payload = await service.CreateKitTimelineEvent(input);
-            payloads.Add(payload);
+            var result = await service.CreateKitTimelineEvent(input);
+            results.Add(result);
         }
 
         // assert
@@ -428,12 +428,12 @@ public class KitServiceTest : TestBase {
         var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
         await service.CreateKitTimelineEvent(dto);
         await service.CreateKitTimelineEvent(dto2);
-        var payload = await service.CreateKitTimelineEvent(dto2);
+        var result = await service.CreateKitTimelineEvent(dto2);
 
         // assert
         var after_count = context.KitTimelineEvents.Count();
         Assert.Equal(2, after_count);
-        var errorsMessage = payload.Errors.Select(t => t.Message).First();
+        var errorsMessage = result.Errors.Select(t => t.Message).First();
         var expectedMessage = "duplicate kit timeline event";
 
         Assert.Equal(expectedMessage, errorsMessage.Substring(0, expectedMessage.Length));
@@ -461,9 +461,9 @@ public class KitServiceTest : TestBase {
 
         // test
         var service = new KitService(context, baseDate, planBuildLeadTimeDays);
-        var payload = await service.CreateLotTimelineEvent(input);
+        var result = await service.CreateLotTimelineEvent(input);
 
-        var errorCount = payload.Errors.Count;
+        var errorCount = result.Errors.Count;
         Assert.Equal(0, errorCount);
 
         var timelineEvents = context.KitTimelineEvents.Where(t => t.Kit.Lot.LotNo == input.LotNo)
@@ -498,16 +498,16 @@ public class KitServiceTest : TestBase {
 
         // test
         var service = new KitService(context, event_date_trx, planBuildLeadTimeDays);
-        var payload = await service.CreateLotTimelineEvent(input);
+        var result = await service.CreateLotTimelineEvent(input);
 
-        var errorCount = payload.Errors.Count;
+        var errorCount = result.Errors.Count;
         Assert.Equal(0, errorCount);
 
-        var payload_2 = await service.CreateLotTimelineEvent(input);
-        var errorCount_2 = payload_2.Errors.Count;
+        var result_2 = await service.CreateLotTimelineEvent(input);
+        var errorCount_2 = result_2.Errors.Count;
         Assert.Equal(1, errorCount_2);
 
-        var errorMessage = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
+        var errorMessage = result_2.Errors.Select(t => t.Message).FirstOrDefault();
         var expectedMessage = "duplicate kit timeline event";
         var actualMessage = errorMessage.Substring(0, expectedMessage.Length);
         Assert.Equal(expectedMessage, actualMessage);
@@ -531,10 +531,10 @@ public class KitServiceTest : TestBase {
 
         // test
         var service = new KitService(context, baseDate, planBuildLeadTimeDays);
-        var payload = await service.CreateLotTimelineEvent(input);
+        var result = await service.CreateLotTimelineEvent(input);
 
         var expectedError = "custom received cannot be more than 6 months ago";
-        var actualErrorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
+        var actualErrorMessage = result.Errors.Select(t => t.Message).FirstOrDefault();
         Assert.Equal(expectedError, actualErrorMessage);
     }
 

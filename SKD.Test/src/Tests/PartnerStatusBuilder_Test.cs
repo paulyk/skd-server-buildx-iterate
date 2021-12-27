@@ -17,20 +17,20 @@ public class PartnerStatusBuilder_Test : TestBase {
 
     [Fact]
     public async Task Can_generate_partner_status_file_payload() {
-        var result = await GenerateKitSnapshotRun_TestData();
+        var testData = await GenerateKitSnapshotRun_TestData();
         var snapshotRun = await context.KitSnapshotRuns
             .Include(t => t.Plant)
-            .FirstOrDefaultAsync(t => t.Id == result.Id);
+            .FirstOrDefaultAsync(t => t.Id == testData.Id);
 
 
         var service = new PartnerStatusBuilder(context);
-        var payload = await service.GeneratePartnerStatusFilePaylaod(
+        var result = await service.GeneratePartnerStatusFilePaylaod(
             plantCode: snapshotRun.Plant.Code,
             sequence: snapshotRun.Sequence
         );
 
         var exptectedLines = 8;  // header + trailer + 6 kits
-        var lines = payload.PayloadText.Split('\n');
+        var lines = result.PayloadText.Split('\n');
         var actuaLineCount = lines.Length;
         var headerLineText = lines[0];
         var trailerLineText = lines[^1];
@@ -39,7 +39,7 @@ public class PartnerStatusBuilder_Test : TestBase {
 
         // filename prefix
         var expecedPrefix = PartnerStatusLayout.FILENAME_PREFIX;
-        var actualPrefix = payload.Filename.Substring(0, PartnerStatusLayout.FILENAME_PREFIX.Length);
+        var actualPrefix = result.Filename.Substring(0, PartnerStatusLayout.FILENAME_PREFIX.Length);
         Assert.Equal(expecedPrefix, actualPrefix);
 
         AssertHeader();

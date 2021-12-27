@@ -16,8 +16,7 @@ public class VehicleModelServiceTest : TestBase {
         var model_before_count = await context.VehicleModels.CountAsync();
         var component_before_count = await context.VehicleModelComponents.CountAsync();
 
-        var payload = await service.Save(input);
-
+        var result = await service.Save(input);
 
         // assert
         var model_after_count = await context.VehicleModels.CountAsync();
@@ -44,8 +43,8 @@ public class VehicleModelServiceTest : TestBase {
         var model_count_1 = await context.VehicleModels.CountAsync();
         var model_component_count_1 = await context.VehicleModelComponents.CountAsync();
 
-        var payload_2 = await service.Save(input);
-        var errors = payload_2.Errors.Select(t => t.Message).ToList();
+        var result_1 = await service.Save(input);
+        var errors = result_1.Errors.Select(t => t.Message).ToList();
 
         var ducplicateCode = errors.Any(error => error.StartsWith("duplicate code"));
         Assert.True(ducplicateCode);
@@ -93,13 +92,13 @@ public class VehicleModelServiceTest : TestBase {
             Code = Util.RandomString(EntityFieldLen.VehicleModel_Code),
             Description = Util.RandomString(EntityFieldLen.VehicleModel_Description)
         };
-        var payload = await service.Save(model_1);
+        var result = await service.Save(model_1);
 
         //test
         var after_count = await context.VehicleModels.CountAsync();
         Assert.Equal(before_count, after_count);
 
-        var errorCount = payload.Errors.Count;
+        var errorCount = result.Errors.Count;
         Assert.Equal(1, errorCount);
     }
 
@@ -129,13 +128,13 @@ public class VehicleModelServiceTest : TestBase {
 
         // test
         var service = new VehicleModelService(context);
-        var payload = await service.Save(vehilceModel);
+        var result = await service.Save(vehilceModel);
 
         // assert
-        var errorCount = payload.Errors.Count;
+        var errorCount = result.Errors.Count;
         Assert.Equal(1, errorCount);
         var expectedErrorMessage = "duplicate component + production station entries";
-        var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
+        var errorMessage = result.Errors.Select(t => t.Message).FirstOrDefault();
         Assert.Equal(expectedErrorMessage, errorMessage.Substring(0, expectedErrorMessage.Length));
     }
 

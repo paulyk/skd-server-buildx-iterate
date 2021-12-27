@@ -2,8 +2,8 @@
 
 namespace SKD.Service;
 
-public class MutationPayload<T> where T : class {
-    public MutationPayload(T? payload = null) {
+public class MutationResult<T> where T : class {
+    public MutationResult(T? payload = null) {
         Payload = payload;
     }
     public T? Payload { get; set; }

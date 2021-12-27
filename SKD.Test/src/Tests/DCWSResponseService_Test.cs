@@ -20,15 +20,15 @@ public class DCWSResponseService_Test : TestBase {
             ResponseCode = "NONE",
             ErrorMessage = ""
         };
-        var payload = await service.SaveDcwsComponentResponse(input);
+        var result = await service.SaveDcwsComponentResponse(input);
         // assert
-        Assert.True(payload.Errors.Count == 0, "error count should be 0");
+        Assert.True(result.Errors.Count == 0, "error count should be 0");
         var responseCoount = context.DCWSResponses.Count();
         Assert.True(responseCoount == 1, "should have 1 DCWSResponse entry");
 
         var response = context.DCWSResponses
             .Include(t => t.ComponentSerial).ThenInclude(t => t.KitComponent)
-            .FirstOrDefault(t => t.Id == payload.Payload.Id);
+            .FirstOrDefault(t => t.Id == result.Payload.Id);
 
         Assert.True(response.ComponentSerial.VerifiedAt != null, "component scan AcceptedAt should be set");
         Assert.True(response.ComponentSerial.KitComponent.VerifiedAt != null, "vehicle component ScanVerifiedAt should be set");

@@ -13,11 +13,11 @@ public class DCWSResponseService {
         this.context = ctx;
     }
 
-    public async Task<MutationPayload<DcwsResponse>> SaveDcwsComponentResponse(DcwsComponentResponseInput input) {
-        MutationPayload<DcwsResponse> payload = new();
-        payload.Errors = await ValidateDcwsComponentResponse<DcwsComponentResponseInput>(input);
-        if (payload.Errors.Any()) {
-            return payload;
+    public async Task<MutationResult<DcwsResponse>> SaveDcwsComponentResponse(DcwsComponentResponseInput input) {
+        MutationResult<DcwsResponse> result = new();
+        result.Errors = await ValidateDcwsComponentResponse<DcwsComponentResponseInput>(input);
+        if (result.Errors.Any()) {
+            return result;
         }
 
         var kitComponent = await context.KitComponents
@@ -34,8 +34,8 @@ public class DCWSResponseService {
             .Where(t => t.ProcessExcptionCode == input.ResponseCode)
             .FirstOrDefault();
         if (duplicate != null) {
-            payload.Payload = duplicate;
-            return payload;
+            result.Payload = duplicate;
+            return result;
         }
 
 
@@ -58,8 +58,8 @@ public class DCWSResponseService {
         context.DCWSResponses.Add(response);
 
         await context.SaveChangesAsync();
-        payload.Payload = response;
-        return payload;
+        result.Payload = response;
+        return result;
     }
 
     public async Task<List<Error>> ValidateDcwsComponentResponse<T>(DcwsComponentResponseInput input) where T : DcwsComponentResponseInput {

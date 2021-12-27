@@ -118,11 +118,11 @@ public class LotPartService_Test : TestBase {
 
         // test
         var service = new LotPartService(context);
-        var payload_1 = await service.CreateLotPartQuantityReceived(lotPartInput);
-        var payload_2 = await service.CreateLotPartQuantityReceived(lotPartInput);
+        var result_1 = await service.CreateLotPartQuantityReceived(lotPartInput);
+        var result_2 = await service.CreateLotPartQuantityReceived(lotPartInput);
 
         var expected_error_message = "duplicate received lot + part + quantity";
-        var error_message = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
+        var error_message = result_2.Errors.Select(t => t.Message).FirstOrDefault();
 
         Assert.Equal(expected_error_message, error_message);
     }

@@ -17,9 +17,9 @@ public class KitService {
 
     #region import vin
 
-    public async Task<MutationPayload<KitVinImport>> ImportVIN(VinFile input) {
+    public async Task<MutationResult<KitVinImport>> ImportVIN(VinFile input) {
         try {
-            MutationPayload<KitVinImport> result = new();
+            MutationResult<KitVinImport> result = new();
             result.Errors = await ValidateImportVINInput(input);
             if (result.Errors.Any()) {
                 return result;
@@ -157,11 +157,11 @@ public class KitService {
     #endregion
 
     #region create kit timeline event
-    public async Task<MutationPayload<KitTimelineEvent>> CreateKitTimelineEvent(KitTimelineEventInput input) {
-        MutationPayload<KitTimelineEvent> payload = new();
-        payload.Errors = await ValidateCreateKitTimelineEvent(input);
-        if (payload.Errors.Count > 0) {
-            return payload;
+    public async Task<MutationResult<KitTimelineEvent>> CreateKitTimelineEvent(KitTimelineEventInput input) {
+        MutationResult<KitTimelineEvent> result = new();
+        result.Errors = await ValidateCreateKitTimelineEvent(input);
+        if (result.Errors.Count > 0) {
+            return result;
         }
 
         var kit = await context.Kits
@@ -193,9 +193,9 @@ public class KitService {
         kit.TimelineEvents.Add(newTimelineEvent);
 
         // save
-        payload.Payload = newTimelineEvent;
+        result.Payload = newTimelineEvent;
         await context.SaveChangesAsync();
-        return payload;
+        return result;
     }
 
     public async Task<List<Error>> ValidateCreateKitTimelineEvent(KitTimelineEventInput input) {
@@ -306,11 +306,11 @@ public class KitService {
     #endregion
 
     #region create lot timeline event
-    public async Task<MutationPayload<Lot>> CreateLotTimelineEvent(LotTimelineEventInput input) {
-        MutationPayload<Lot> payload = new();
-        payload.Errors = await ValidateCreateLotTimelineEvent(input);
-        if (payload.Errors.Count > 0) {
-            return payload;
+    public async Task<MutationResult<Lot>> CreateLotTimelineEvent(LotTimelineEventInput input) {
+        MutationResult<Lot> result = new();
+        result.Errors = await ValidateCreateLotTimelineEvent(input);
+        if (result.Errors.Count > 0) {
+            return result;
         }
 
         var kitLot = await context.Lots
@@ -342,9 +342,9 @@ public class KitService {
         }
 
         // // save
-        payload.Payload = kitLot;
+        result.Payload = kitLot;
         await context.SaveChangesAsync();
-        return payload;
+        return result;
     }
 
     public async Task<List<Error>> ValidateCreateLotTimelineEvent(LotTimelineEventInput input) {
@@ -405,11 +405,11 @@ public class KitService {
     #endregion
 
 
-    public async Task<MutationPayload<KitComponent>> ChangeKitComponentProductionStation(KitComponentProductionStationInput input) {
-        MutationPayload<KitComponent> payload = new();
-        payload.Errors = await ValidateChangeKitComponentStationImput(input);
-        if (payload.Errors.Count > 0) {
-            return payload;
+    public async Task<MutationResult<KitComponent>> ChangeKitComponentProductionStation(KitComponentProductionStationInput input) {
+        MutationResult<KitComponent> result = new();
+        result.Errors = await ValidateChangeKitComponentStationImput(input);
+        if (result.Errors.Count > 0) {
+            return result;
         }
 
         var kitComponent = await context.KitComponents.FirstAsync(t => t.Id == input.KitComponentId);
@@ -418,8 +418,8 @@ public class KitService {
         kitComponent.ProductionStation = productionStation;
         // // save
         await context.SaveChangesAsync();
-        payload.Payload = kitComponent;
-        return payload;
+        result.Payload = kitComponent;
+        return result;
     }
 
     public async Task<List<Error>> ValidateChangeKitComponentStationImput(KitComponentProductionStationInput input) {

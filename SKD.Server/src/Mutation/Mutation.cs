@@ -14,22 +14,22 @@ namespace SKD.Server {
 
     public class Mutation {
 
-        public async Task<MutationPayload<VehicleModel>> SaveVehicleModel(
+        public async Task<MutationResult<VehicleModel>> SaveVehicleModel(
             [Service] VehicleModelService service,
             VehicleModelInput input
         ) => await service.Save(input);
 
-        public async Task<MutationPayload<VehicleModel>> CreateVehicleModelFromExisting(
+        public async Task<MutationResult<VehicleModel>> CreateVehicleModelFromExisting(
             [Service] VehicleModelService service,
             VehicleModelFromExistingInput input
         ) => await service.CreateFromExisting(input);
 
-        public async Task<MutationPayload<KitTimelineEvent>> CreateKitTimelineEvent(
+        public async Task<MutationResult<KitTimelineEvent>> CreateKitTimelineEvent(
             [Service] KitService service,
             KitTimelineEventInput input
         ) => await service.CreateKitTimelineEvent(input);
 
-        public async Task<MutationPayload<Lot>> CreateLotTimelineEvent(
+        public async Task<MutationResult<Lot>> CreateLotTimelineEvent(
             [Service] KitService service,
             LotTimelineEventInput input
         ) => await service.CreateLotTimelineEvent(input);
@@ -38,7 +38,7 @@ namespace SKD.Server {
         /// <summary>
         /// Create or update a component
         /// </summary>
-        public async Task<MutationPayload<Component>> SaveComponent(
+        public async Task<MutationResult<Component>> SaveComponent(
                 [Service] ComponentService service1,
                 ComponentInput input
             ) {
@@ -48,21 +48,21 @@ namespace SKD.Server {
         /// <summary>
         /// Create or update a production station
         /// </summary>
-        public async Task<MutationPayload<ProductionStation>> SaveProductionStation(
+        public async Task<MutationResult<ProductionStation>> SaveProductionStation(
                 [Service] ProductionStationService service,
                 ProductionStationInput input
             ) {
             return await service.SaveProductionStation(input);
         }
 
-        public async Task<MutationPayload<ComponentSerialDTO>> CaptureComponentSerial(
+        public async Task<MutationResult<ComponentSerialDTO>> CaptureComponentSerial(
               [Service] ComponentSerialService service,
               ComponentSerialInput input
             ) {
             return await service.SaveComponentSerial(input);
         }
 
-        public async Task<MutationPayload<DcwsResponse>> CreateDcwsResponse(
+        public async Task<MutationResult<DcwsResponse>> CreateDcwsResponse(
           [Service] DCWSResponseService service,
           DcwsComponentResponseInput input
         ) {
@@ -74,42 +74,42 @@ namespace SKD.Server {
             return await service.SaveDcwsComponentResponse(dto);
         }
 
-        public async Task<MutationPayload<ShipmentOverviewDTO>> ImportShipment(
+        public async Task<MutationResult<ShipmentOverviewDTO>> ImportShipment(
             [Service] ShipmentService service,
             ShipFile input
         ) => await service.ImportShipment(input);
 
-        public async Task<MutationPayload<KitVinImport>> ImportVIN(
+        public async Task<MutationResult<KitVinImport>> ImportVIN(
             [Service] KitService service,
             VinFile input
         ) => await service.ImportVIN(input);
 
-        public async Task<MutationPayload<BomOverviewDTO>> ImportBom(
+        public async Task<MutationResult<BomOverviewDTO>> ImportBom(
             [Service] BomService service,
             BomFile input
        ) => await service.ImportBom(input);
 
-        public async Task<MutationPayload<SnapshotDTO>> GenerateKitSnapshotRun(
+        public async Task<MutationResult<SnapshotDTO>> GenerateKitSnapshotRun(
             [Service] KitSnapshotService service,
             KitSnapshotInput input
         ) => await service.GenerateSnapshot(input);
 
-        public async Task<MutationPayload<PlantOverviewDTO>> CreatePlant(
+        public async Task<MutationResult<PlantOverviewDTO>> CreatePlant(
             [Service] PlantService service,
             PlantInput input
          ) => await service.CreatePlant(input);
 
-        public async Task<MutationPayload<LotPartDTO>> CreateLotPartQuantityReceived(
+        public async Task<MutationResult<LotPartDTO>> CreateLotPartQuantityReceived(
             [Service] LotPartService service,
             ReceiveLotPartInput input
         ) => await service.CreateLotPartQuantityReceived(input);
 
-        public async Task<MutationPayload<DcwsResponse>> VerifyComponentSerial(
+        public async Task<MutationResult<DcwsResponse>> VerifyComponentSerial(
             [Service] VerifySerialService verifySerialService,
             Guid kitComponentId
         ) => await verifySerialService.VerifyComponentSerial(kitComponentId);
             
-        public async Task<MutationPayload<ReceiveHandlingUnitPayload>> SetHandlingUnitReceived(
+        public async Task<MutationResult<ReceiveHandlingUnitPayload>> SetHandlingUnitReceived(
             [Service] HandlingUnitService service,
             ReceiveHandlingUnitInput input
         ) => await service.SetHandlingUnitReceived(input);
@@ -123,12 +123,12 @@ namespace SKD.Server {
             ApplyComponentSerialFormatInput input
         ) => await service.ApplyComponentSerialFormat(input.Id);
 
-        public async Task<MutationPayload<Lot>> SetLotNote(
+        public async Task<MutationResult<Lot>> SetLotNote(
             [Service] BomService service,
             LotNoteInput input
         ) => await service.SetLotNote(input);
 
-        public async Task<MutationPayload<Kit>> SyncKfitModelComponents(
+        public async Task<MutationResult<Kit>> SyncKfitModelComponents(
           [Service] VehicleModelService service,
           string kitNo
         ) => await service.SyncKfitModelComponents(kitNo);

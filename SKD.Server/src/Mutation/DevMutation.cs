@@ -12,7 +12,7 @@ public class DevMutation {
         IsDevelopment = isDevelopment;
     }
 
-    public async Task<MutationPayload<string>> RemoveShipment(
+    public async Task<MutationResult<string>> RemoveShipment(
                 [Service] SkdContext context,
                 string plantCode,
                 int sequence
@@ -22,7 +22,7 @@ public class DevMutation {
             throw new Exception("Dev mode only");
         }
 
-        var payload = new MutationPayload<string>();
+        var result = new MutationResult<string>();
 
         var shipment = await context.Shipments
             .Include(t => t.ShipmentLots)
@@ -38,8 +38,8 @@ public class DevMutation {
             .FirstOrDefaultAsync();
 
         if (shipment == null) {
-            payload.Payload = "Shipment Not found";
-            return payload;
+            result.Payload = "Shipment Not found";
+            return result;
         }
 
 
@@ -63,11 +63,11 @@ public class DevMutation {
 
         await context.SaveChangesAsync();
 
-        payload.Payload = $"removed shipment {plantCode}-{shipment.Sequence}";
-        return payload;
+        result.Payload = $"removed shipment {plantCode}-{shipment.Sequence}";
+        return result;
     }
 
-    public async Task<MutationPayload<string>> RemoveBom(
+    public async Task<MutationResult<string>> RemoveBom(
         [Service] SkdContext context,
         string plantCode,
         int sequence
@@ -77,7 +77,7 @@ public class DevMutation {
             throw new Exception("Dev mode only");
         }
 
-        var payload = new MutationPayload<string>();
+        var result = new MutationResult<string>();
 
         var bom = await context.Boms
             .Include(x => x.Lots).ThenInclude(t => t.LotParts)
@@ -85,8 +85,8 @@ public class DevMutation {
             .FirstOrDefaultAsync();
 
         if (bom == null) {
-            payload.Payload = $"BOM {plantCode}-{sequence} not found";
-            return payload;
+            result.Payload = $"BOM {plantCode}-{sequence} not found";
+            return result;
         }
 
         bom.Lots.ToList().ForEach(lot => {
@@ -99,7 +99,7 @@ public class DevMutation {
 
         await context.SaveChangesAsync();
 
-        payload.Payload = $"removed BOM {plantCode}-{bom.Sequence}";
-        return payload;
+        result.Payload = $"removed BOM {plantCode}-{bom.Sequence}";
+        return result;
     }
 }

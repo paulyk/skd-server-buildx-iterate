@@ -14,9 +14,9 @@ public class ProductionStationServiceTest : TestBase {
         };
 
         var before_count = await context.Components.CountAsync();
-        var payload = await service.SaveProductionStation(productionStationDTO);
+        var result = await service.SaveProductionStation(productionStationDTO);
 
-        Assert.NotNull(payload.Payload);
+        Assert.NotNull(result.Payload);
         var expectedCount = before_count + 1;
         var actualCount = context.ProductionStations.Count();
         Assert.Equal(expectedCount, actualCount);
@@ -31,7 +31,7 @@ public class ProductionStationServiceTest : TestBase {
         };
 
         var before_count = await context.Components.CountAsync();
-        var payload = await service.SaveProductionStation(productionStationDTO);
+        var result = await service.SaveProductionStation(productionStationDTO);
 
         var expectedCount = before_count + 1;
         var firstCount = context.ProductionStations.Count();
@@ -42,7 +42,7 @@ public class ProductionStationServiceTest : TestBase {
         var newName = Util.RandomString(EntityFieldLen.ProductionStation_Name);
 
         var updatedPayload = await service.SaveProductionStation(new ProductionStationInput {
-            Id = payload.Payload.Id,
+            Id = result.Payload.Id,
             Code = newCode,
             Name = newName
         });
@@ -63,7 +63,7 @@ public class ProductionStationServiceTest : TestBase {
         var name = Util.RandomString(EntityFieldLen.ProductionStation_Name).ToString();
 
         var count_1 = context.ProductionStations.Count();
-        var payload = await service.SaveProductionStation(new ProductionStationInput {
+        var result = await service.SaveProductionStation(new ProductionStationInput {
             Code = code,
             Name = name
         });
@@ -72,7 +72,7 @@ public class ProductionStationServiceTest : TestBase {
         Assert.Equal(count_1 + 1, count_2);
 
         // insert again
-        var payload2 = await service.SaveProductionStation(new ProductionStationInput {
+        var result2 = await service.SaveProductionStation(new ProductionStationInput {
             Code = code,
             Name = name
         });
@@ -81,13 +81,13 @@ public class ProductionStationServiceTest : TestBase {
         var count_3 = context.ProductionStations.Count();
         Assert.Equal(count_2, count_3);
 
-        var errorCount = payload2.Errors.Count;
+        var errorCount = result2.Errors.Count;
         Assert.Equal(2, errorCount);
 
-        var duplicateCode = payload2.Errors.Any(e => e.Message == "duplicate code");
+        var duplicateCode = result2.Errors.Any(e => e.Message == "duplicate code");
         Assert.True(duplicateCode, "expected: 'duplicateion code`");
 
-        var duplicateName = payload2.Errors.Any(e => e.Message == "duplicate name");
+        var duplicateName = result2.Errors.Any(e => e.Message == "duplicate name");
         Assert.True(duplicateCode, "expected: 'duplicateion name`");
     }
 }

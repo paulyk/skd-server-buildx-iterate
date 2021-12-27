@@ -9,8 +9,8 @@ public class LotPartService {
         this.context = ctx;
     }
 
-    public async Task<MutationPayload<LotPartDTO>> CreateLotPartQuantityReceived(ReceiveLotPartInput input) {
-        MutationPayload<LotPartDTO> paylaod = new();
+    public async Task<MutationResult<LotPartDTO>> CreateLotPartQuantityReceived(ReceiveLotPartInput input) {
+        MutationResult<LotPartDTO> paylaod = new();
         paylaod.Errors = await ValidateCreateLotPartReceipt(input);
         if (paylaod.Errors.Any()) {
             return paylaod;

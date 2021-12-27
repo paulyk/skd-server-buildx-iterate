@@ -12,11 +12,11 @@ public class BomService {
     ///<summary>
     /// Import BOM lot, kits, lot parts from bom file
     ///</summary>
-    public async Task<MutationPayload<BomOverviewDTO>> ImportBom(BomFile input) {
-        MutationPayload<BomOverviewDTO> payload = new();
-        payload.Errors = await ValidateBomFileInput<BomFile>(input);
-        if (payload.Errors.Count > 0) {
-            return payload;
+    public async Task<MutationResult<BomOverviewDTO>> ImportBom(BomFile input) {
+        MutationResult<BomOverviewDTO> result = new();
+        result.Errors = await ValidateBomFileInput<BomFile>(input);
+        if (result.Errors.Count > 0) {
+            return result;
         }
 
         // add BOM
@@ -35,8 +35,8 @@ public class BomService {
         Add_LotParts(input, bom, parts);
 
         await context.SaveChangesAsync();
-        payload.Payload = await GetBomOverview(bom.Sequence);
-        return payload;
+        result.Payload = await GetBomOverview(bom.Sequence);
+        return result;
     }
 
     #region import bom lot helpers
@@ -324,8 +324,8 @@ public class BomService {
     }
 
     #region lot note
-    public async Task<MutationPayload<Lot>> SetLotNote(LotNoteInput input) {
-        MutationPayload<Lot> paylaod = new();
+    public async Task<MutationResult<Lot>> SetLotNote(LotNoteInput input) {
+        MutationResult<Lot> paylaod = new();
         paylaod.Errors = await ValidateSetLotNote(input);
         if (paylaod.Errors.Any()) {
             return paylaod;

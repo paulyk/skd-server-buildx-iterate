@@ -19,14 +19,14 @@ public class ShipmentService_Test : TestBase {
         // test
         var before_count = context.ShipmentParts.Count();
         var shipmentService = new ShipmentService(context);
-        var payload = await shipmentService.ImportShipment(input);
+        var result = await shipmentService.ImportShipment(input);
 
         // payload check:  plant code , sequence, count
-        Assert.Equal(plant.Code, payload.Payload.PlantCode);
-        Assert.Equal(sequence, payload.Payload.Sequence);
-        Assert.Equal(inputMetrics.LotCount, payload.Payload.LotCount);
-        Assert.Equal(inputMetrics.InvoiceCount, payload.Payload.InvoiceCount);
-        Assert.Equal(inputMetrics.HandlingUnitCount, payload.Payload.HandlingUnitCount);
+        Assert.Equal(plant.Code, result.Payload.PlantCode);
+        Assert.Equal(sequence, result.Payload.Sequence);
+        Assert.Equal(inputMetrics.LotCount, result.Payload.LotCount);
+        Assert.Equal(inputMetrics.InvoiceCount, result.Payload.InvoiceCount);
+        Assert.Equal(inputMetrics.HandlingUnitCount, result.Payload.HandlingUnitCount);
 
         // shipment parts count
         var expected_shipment_parts_count = input.Lots
@@ -76,7 +76,7 @@ public class ShipmentService_Test : TestBase {
         // test
         var before_count = context.ShipmentParts.Count();
         var shipmentService = new ShipmentService(context);
-        var payload = await shipmentService.ImportShipment(input);
+        var result = await shipmentService.ImportShipment(input);
 
         // assert
         var shipment_handling_unit_parts = await context.ShipmentParts
@@ -112,17 +112,17 @@ public class ShipmentService_Test : TestBase {
         var input_2 = Gen_ShipmentInput(plant.Code, lot.LotNo, sequence + 1, startInvoiceNo: 200);
         var inputMetrics = GetShipmentInputMetrics(input_1);
 
-        var payload_1 = await shipmentService.ImportShipment(input_1);
+        var result_1 = await shipmentService.ImportShipment(input_1);
 
-        var actual_error_count = payload_1.Errors.Count;
+        var actual_error_count = result_1.Errors.Count;
         Assert.Equal(0, actual_error_count);
         var actual_handling_unit_count = await context.HandlingUnits.CountAsync();
         Assert.Equal(actual_handling_unit_count, inputMetrics.HandlingUnitCount);
 
         // test
-        var payload_2 = await shipmentService.ImportShipment(input_2);
+        var result_2 = await shipmentService.ImportShipment(input_2);
         var expected_error_message = "handling units already imported";
-        string actual_error_message = payload_2.Errors.Select(t => t.Message).FirstOrDefault();
+        string actual_error_message = result_2.Errors.Select(t => t.Message).FirstOrDefault();
         Assert.Equal(expected_error_message, (actual_error_message ??= "").Substring(0, expected_error_message.Length));
     }
 
@@ -135,16 +135,16 @@ public class ShipmentService_Test : TestBase {
         var shipmentService = new ShipmentService(context);
 
         // test
-        var payload = await shipmentService.ImportShipment(input);
+        var result = await shipmentService.ImportShipment(input);
         var shipmentsCount = await context.Shipments.CountAsync();
         Assert.Equal(1, shipmentsCount);
 
-        var payload_1 = await shipmentService.ImportShipment(input);
-        var errorCOunt = payload_1.Errors.Count;
+        var result_1 = await shipmentService.ImportShipment(input);
+        var errorCOunt = result_1.Errors.Count;
         Assert.Equal(1, errorCOunt);
 
         var expectedMessage = "duplicate shipment plant & sequence found";
-        var actualMessage = payload_1.Errors.Select(t => t.Message).FirstOrDefault();
+        var actualMessage = result_1.Errors.Select(t => t.Message).FirstOrDefault();
 
         Assert.Equal(expectedMessage, expectedMessage.Substring(0, expectedMessage.Length));
     }
@@ -158,9 +158,9 @@ public class ShipmentService_Test : TestBase {
         var shipmentService = new ShipmentService(context);
 
         // test
-        var payload = await shipmentService.ImportShipment(input);
+        var result = await shipmentService.ImportShipment(input);
 
-        var actual_error_message = payload.Errors.Select(t => t.Message).FirstOrDefault();
+        var actual_error_message = result.Errors.Select(t => t.Message).FirstOrDefault();
         var expected_message = "lot number(s) not found";
         Assert.Equal(expected_message, actual_error_message.Substring(0, expected_message.Length));
     }
@@ -191,10 +191,10 @@ public class ShipmentService_Test : TestBase {
         var before_count = context.ShipmentParts.Count();
         // test
         var shipmentService = new ShipmentService(context);
-        var payload = await shipmentService.ImportShipment(input);
+        var result = await shipmentService.ImportShipment(input);
 
         // assert
-        var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
+        var errorMessage = result.Errors.Select(t => t.Message).FirstOrDefault();
         var expectedError = "shipment invoices must have parts";
         Assert.Equal(expectedError, errorMessage);
     }
@@ -223,10 +223,10 @@ public class ShipmentService_Test : TestBase {
         var before_count = context.ShipmentParts.Count();
         // test
         var shipmentService = new ShipmentService(context);
-        var payload = await shipmentService.ImportShipment(input);
+        var result = await shipmentService.ImportShipment(input);
 
         // assert
-        var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
+        var errorMessage = result.Errors.Select(t => t.Message).FirstOrDefault();
         var expectedError = "shipment invoices must have parts";
         Assert.Equal(expectedError, errorMessage);
     }
@@ -250,10 +250,10 @@ public class ShipmentService_Test : TestBase {
         var before_count = context.ShipmentParts.Count();
         // test
         var shipmentService = new ShipmentService(context);
-        var payload = await shipmentService.ImportShipment(input);
+        var result = await shipmentService.ImportShipment(input);
 
         // assert
-        var errorMessage = payload.Errors.Select(t => t.Message).FirstOrDefault();
+        var errorMessage = result.Errors.Select(t => t.Message).FirstOrDefault();
         var expectedError = "shipment lots must have invoices";
         Assert.Equal(expectedError, errorMessage);
     }
@@ -287,7 +287,7 @@ public class ShipmentService_Test : TestBase {
         // test
         var before_count = context.ShipmentParts.Count();
         var shipmentService = new ShipmentService(context);
-        var payload = await shipmentService.ImportShipment(shipmentInput);
+        var result = await shipmentService.ImportShipment(shipmentInput);
 
         var handlingUnitCode = shipmentInput.Lots
             .SelectMany(t => t.Invoices)
@@ -316,7 +316,7 @@ public class ShipmentService_Test : TestBase {
         // test
         var before_count = context.ShipmentParts.Count();
         var shipmentService = new ShipmentService(context);
-        var payload = await shipmentService.ImportShipment(shipmentInput);
+        var result = await shipmentService.ImportShipment(shipmentInput);
 
         var handlingUnitCode = shipmentInput.Lots
             .SelectMany(t => t.Invoices)
@@ -346,7 +346,7 @@ public class ShipmentService_Test : TestBase {
         // test
         var before_count = context.ShipmentParts.Count();
         var shipmentService = new ShipmentService(context);
-        var payload = await shipmentService.ImportShipment(shipmentInput);
+        var result = await shipmentService.ImportShipment(shipmentInput);
 
         var handlingUnitCode = shipmentInput.Lots
             .SelectMany(t => t.Invoices)

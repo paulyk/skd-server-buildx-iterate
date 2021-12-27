@@ -16,11 +16,11 @@ namespace SKD.Service {
             this.context = ctx;
         }
 
-        public async Task<MutationPayload<ShipmentOverviewDTO>> ImportShipment(ShipFile input) {
-            MutationPayload<ShipmentOverviewDTO> payload = new ();
-            payload.Errors = await ValidateShipmentInput<ShipFile>(input);
-            if (payload.Errors.Count > 0) {
-                return payload;
+        public async Task<MutationResult<ShipmentOverviewDTO>> ImportShipment(ShipFile input) {
+            MutationResult<ShipmentOverviewDTO> result = new ();
+            result.Errors = await ValidateShipmentInput<ShipFile>(input);
+            if (result.Errors.Count > 0) {
+                return result;
             }
 
             // ensure parts
@@ -38,8 +38,8 @@ namespace SKD.Service {
             // save
             await context.SaveChangesAsync();
 
-            payload.Payload = await GetShipmentOverview(shipment.Id);
-            return payload;
+            result.Payload = await GetShipmentOverview(shipment.Id);
+            return result;
         }
 
         private async Task<List<Part>> GetEnsureParts(ShipFile input) {

@@ -9,18 +9,18 @@ public class HandlingUnitService {
         this.context = ctx;
     }
 
-    public async Task<MutationPayload<ReceiveHandlingUnitPayload>> SetHandlingUnitReceived(ReceiveHandlingUnitInput input) {
+    public async Task<MutationResult<ReceiveHandlingUnitPayload>> SetHandlingUnitReceived(ReceiveHandlingUnitInput input) {
         // HandlingUNit codes in db are all left '0' padded.. 
         // barcode handling units are not zero padding, so we pad them.
         input = input with {
             HandlingUnitCode = input.HandlingUnitCode.PadLeft(EntityFieldLen.HandlingUnit_Code, '0')
         };
 
-        MutationPayload<ReceiveHandlingUnitPayload> payload = new();
-        payload.Errors = await ValidateSetHandlingUnitReceived(input);
+        MutationResult<ReceiveHandlingUnitPayload> result = new();
+        result.Errors = await ValidateSetHandlingUnitReceived(input);
 
-        if (payload.Errors.Any()) {
-            return payload;
+        if (result.Errors.Any()) {
+            return result;
         }
 
         var handlingUnit = await context.HandlingUnits
@@ -41,7 +41,7 @@ public class HandlingUnitService {
 
         await context.SaveChangesAsync();
 
-        payload.Payload = new ReceiveHandlingUnitPayload {
+        result.Payload = new ReceiveHandlingUnitPayload {
             Code = handlingUnit.Code,
             LotNo = handlingUnit.ShipmentInvoice.ShipmentLot.Lot.LotNo,
             InvoiceNo = handlingUnit.ShipmentInvoice.InvoiceNo,
@@ -49,7 +49,7 @@ public class HandlingUnitService {
             RemovedAt = handlingUnitReceived.RemovedAt
         };
 
-        return payload;
+        return result;
     }
 
     public async Task<List<Error>> ValidateSetHandlingUnitReceived(ReceiveHandlingUnitInput input) {

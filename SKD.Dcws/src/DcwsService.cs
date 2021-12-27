@@ -23,7 +23,7 @@ namespace SKD.Dcws {
         public async Task<SubmitDcwsComponentRespnse> SubmitDcwsComponent(SubmitDcwsComponentInput input) {
 
 
-            var payload = await client.SaveCDCComponentAsync(
+            var result = await client.SaveCDCComponentAsync(
                 vin: input.VIN,
                 componentTypeCode: input.ComponentTypeCode,
                 scan1: input.Serial1,
@@ -38,7 +38,7 @@ namespace SKD.Dcws {
                 acceptIfWrongComponent: false
             );
 
-            var processExecption = payload.Body.SaveCDCComponentResult.ProcessException;
+            var processExecption = result.Body.SaveCDCComponentResult.ProcessException;
             return new SubmitDcwsComponentRespnse {
                 VIN = input.VIN,
                 ComponentTypeCode = input.ComponentTypeCode,

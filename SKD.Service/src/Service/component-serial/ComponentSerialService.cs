@@ -10,14 +10,14 @@ public class ComponentSerialService {
         this.context = ctx;
     }
 
-    public async Task<MutationPayload<ComponentSerialDTO>> SaveComponentSerial(ComponentSerialInput input) {
+    public async Task<MutationResult<ComponentSerialDTO>> SaveComponentSerial(ComponentSerialInput input) {
         input = SwapSerial(input);
 
-        MutationPayload<ComponentSerialDTO> payload = new();
+        MutationResult<ComponentSerialDTO> result = new();
 
-        payload.Errors = await ValidateSaveComponentSerial<ComponentSerialInput>(input with { });
-        if (payload.Errors.Any()) {
-            return payload;
+        result.Errors = await ValidateSaveComponentSerial<ComponentSerialInput>(input with { });
+        if (result.Errors.Any()) {
+            return result;
         }
 
         var kitComponent = await context.KitComponents
@@ -57,7 +57,7 @@ public class ComponentSerialService {
         // save
         await context.SaveChangesAsync();
 
-        payload.Payload = await context.ComponentSerials
+        result.Payload = await context.ComponentSerials
             .Where(t => t.Id == componentSerial.Id)
             .Select(t => new ComponentSerialDTO {
                 ComponentSerialId = t.Id,
@@ -72,7 +72,7 @@ public class ComponentSerialService {
                 VerifiedAt = t.VerifiedAt,
                 CreatedAt = t.CreatedAt
             }).FirstOrDefaultAsync();
-        return payload;
+        return result;
     }
 
     public async Task<List<Error>> ValidateSaveComponentSerial<T>(ComponentSerialInput input) where T : ComponentSerialInput {

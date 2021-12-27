@@ -9,7 +9,7 @@ public class ProductionStationService {
         this.context = ctx;
     }
 
-    public async Task<MutationPayload<ProductionStation>> SaveProductionStation(ProductionStationInput input) {
+    public async Task<MutationResult<ProductionStation>> SaveProductionStation(ProductionStationInput input) {
         var productionStation = await context.ProductionStations.FirstOrDefaultAsync(t => t.Id == input.Id);
 
         if (productionStation != null) {
@@ -21,19 +21,19 @@ public class ProductionStationService {
         }
         Trim.TrimStringProperties<ProductionStation>(productionStation);
 
-        MutationPayload<ProductionStation> payload = new(productionStation);
+        MutationResult<ProductionStation> result = new(productionStation);
 
         // validate
-        payload.Errors = await ValidateCreateProductionStation<ProductionStation>(productionStation);
-        if (payload.Errors.Any()) {
-            return payload;
+        result.Errors = await ValidateCreateProductionStation<ProductionStation>(productionStation);
+        if (result.Errors.Any()) {
+            return result;
         }
 
         // save
         await context.SaveChangesAsync();
 
-        payload.Payload = productionStation;
-        return payload;
+        result.Payload = productionStation;
+        return result;
     }
 
     public async Task<List<Error>> ValidateCreateProductionStation<T>(ProductionStation productionStation) where T : ProductionStation {

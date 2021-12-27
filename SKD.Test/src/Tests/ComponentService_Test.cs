@@ -15,9 +15,9 @@ public class ComponentServiceTest : TestBase {
         };
 
         var before_count = await context.Components.CountAsync();
-        var payload = await service.SaveComponent(input);
+        var result = await service.SaveComponent(input);
 
-        Assert.NotNull(payload.Payload);
+        Assert.NotNull(result.Payload);
         var expectedCount = before_count + 1;
         var actualCount = await context.Components.CountAsync();
         Assert.Equal(expectedCount, actualCount);
@@ -33,13 +33,13 @@ public class ComponentServiceTest : TestBase {
         };
 
         var before_count = await context.Components.CountAsync();
-        var payload = await service.SaveComponent(input);
+        var result = await service.SaveComponent(input);
 
         var component = await context.Components.FirstOrDefaultAsync(t => t.Code == input.Code);
         Assert.Equal(input.DcwsSerialCaptureRule, component.ComponentSerialRule);
 
         // modify
-        input.Id = payload.Payload.Id;
+        input.Id = result.Payload.Id;
         input.DcwsSerialCaptureRule = ComponentSerialRule.ONE_OR_BOTH_SERIALS;
         await service.SaveComponent(input);
         component = await context.Components.FirstOrDefaultAsync(t => t.Code == input.Code);
@@ -60,7 +60,7 @@ public class ComponentServiceTest : TestBase {
         var newName = Gen_ComponentCode() + "name";
         // test
         var service = new ComponentService(context);
-        var payload = await service.SaveComponent(new ComponentInput {
+        var result = await service.SaveComponent(new ComponentInput {
             Id = component.Id,
             Code = newCode,
             Name = newName
@@ -70,7 +70,7 @@ public class ComponentServiceTest : TestBase {
         var after_ComponentCount = await context.Components.CountAsync();
 
         Assert.Equal(before_ComponentCount, after_ComponentCount);
-        Assert.True(before_CreatedAt == payload.Payload.CreatedAt, "CreatedAt should not change when on saving existing component");
+        Assert.True(before_CreatedAt == result.Payload.CreatedAt, "CreatedAt should not change when on saving existing component");
 
         var modifiedComponent = await context.Components.FirstOrDefaultAsync(t => t.Id == component.Id);
         Assert.Equal(newCode, component.Code);
@@ -106,15 +106,15 @@ public class ComponentServiceTest : TestBase {
         var newCode = Util.RandomString(EntityFieldLen.Component_Code).ToString();
         // test
         var service = new ComponentService(context);
-        var payload = await service.SaveComponent(new ComponentInput {
+        var result = await service.SaveComponent(new ComponentInput {
             Id = component.Id,
             Code = newCode,
             Name = component.Name
         });
 
-        var errorCount = payload.Errors.Count;
+        var errorCount = result.Errors.Count;
         Assert.Equal(0, errorCount);
-        Assert.Equal(newCode, payload.Payload.Code);
+        Assert.Equal(newCode, result.Payload.Code);
     }
 
     [Fact]
@@ -127,14 +127,14 @@ public class ComponentServiceTest : TestBase {
             Name = Util.RandomString(EntityFieldLen.Component_Name),
         };
 
-        var payload = await service.SaveComponent(dto);
+        var result = await service.SaveComponent(dto);
 
         var after_count = context.Components.Count();
         Assert.Equal(before_count + 1, after_count);
-        Assert.Null(payload.Payload.RemovedAt);
+        Assert.Null(result.Payload.RemovedAt);
 
-        await service.RemoveComponent(payload.Payload.Id);
-        Assert.NotNull(payload.Payload.RemovedAt);
+        await service.RemoveComponent(result.Payload.Id);
+        Assert.NotNull(result.Payload.RemovedAt);
     }
 
     [Fact]
@@ -148,15 +148,15 @@ public class ComponentServiceTest : TestBase {
             Name = Util.RandomString(EntityFieldLen.Component_Name),
         };
 
-        var payload = await service.SaveComponent(dto);
-        Assert.Null(payload.Payload.RemovedAt);
+        var result = await service.SaveComponent(dto);
+        Assert.Null(result.Payload.RemovedAt);
 
-        var payload2 = await service.RemoveComponent(payload.Payload.Id);
-        Assert.NotNull(payload.Payload.RemovedAt);
+        var result_2 = await service.RemoveComponent(result.Payload.Id);
+        Assert.NotNull(result.Payload.RemovedAt);
 
         // test
-        await service.RestoreComponent(payload2.Payload.Id);
-        Assert.Null(payload.Payload.RemovedAt);
+        await service.RestoreComponent(result_2.Payload.Id);
+        Assert.Null(result.Payload.RemovedAt);
     }
 
     [Fact]

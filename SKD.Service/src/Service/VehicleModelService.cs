@@ -8,11 +8,11 @@ public class VehicleModelService {
         this.context = ctx;
     }
 
-    public async Task<MutationPayload<VehicleModel>> Save(VehicleModelInput input) {
-        MutationPayload<VehicleModel> payload = new();
-        payload.Errors = await ValidateSaveVehicleModel(input);
-        if (payload.Errors.Any()) {
-            return payload;
+    public async Task<MutationResult<VehicleModel>> Save(VehicleModelInput input) {
+        MutationResult<VehicleModel> result = new();
+        result.Errors = await ValidateSaveVehicleModel(input);
+        if (result.Errors.Any()) {
+            return result;
         }
 
         var vehicleModel = await context.VehicleModels
@@ -37,8 +37,8 @@ public class VehicleModelService {
 
         // save
         await context.SaveChangesAsync();
-        payload.Payload = vehicleModel;
-        return payload;
+        result.Payload = vehicleModel;
+        return result;
 
 
         //
@@ -182,11 +182,11 @@ public class VehicleModelService {
     }
 
 
-    public async Task<MutationPayload<VehicleModel>> CreateFromExisting(VehicleModelFromExistingInput input) {
-        MutationPayload<VehicleModel> payload = new();
-        payload.Errors = await ValidateCreateFromExisting(input);
-        if (payload.Errors.Any()) {
-            return payload;
+    public async Task<MutationResult<VehicleModel>> CreateFromExisting(VehicleModelFromExistingInput input) {
+        MutationResult<VehicleModel> result = new();
+        result.Errors = await ValidateCreateFromExisting(input);
+        if (result.Errors.Any()) {
+            return result;
         }
 
         var existingModel = await context.VehicleModels
@@ -208,9 +208,9 @@ public class VehicleModelService {
 
         context.VehicleModels.Add(newModel);
         await context.SaveChangesAsync();
-        payload.Payload = newModel;
+        result.Payload = newModel;
 
-        return payload;
+        return result;
 
     }
 
@@ -237,18 +237,18 @@ public class VehicleModelService {
         return errors;
     }
 
-    public async Task<MutationPayload<Kit>> SyncKfitModelComponents(string kitNo) {
-        MutationPayload<Kit> payload = new(null);
-        payload.Errors = await ValidateSyncKitModelComponents(kitNo);
-        if (payload.Errors.Any()) {
-            return payload;
+    public async Task<MutationResult<Kit>> SyncKfitModelComponents(string kitNo) {
+        MutationResult<Kit> result = new(null);
+        result.Errors = await ValidateSyncKitModelComponents(kitNo);
+        if (result.Errors.Any()) {
+            return result;
         }
 
         var kit = await context.Kits
             .Include(t => t.KitComponents).ThenInclude(t => t.Component)
             .Include(t => t.KitComponents).ThenInclude(t => t.ProductionStation)
             .FirstAsync(t => t.KitNo == kitNo);
-        payload.Payload = kit;
+        result.Payload = kit;
 
         var diff = await GetKitModelComponentDiff(kitNo);
 
@@ -283,7 +283,7 @@ public class VehicleModelService {
 
         await context.SaveChangesAsync();
 
-        return payload;
+        return result;
     }
 
     public async Task<List<Error>> ValidateSyncKitModelComponents(string kitNo) {

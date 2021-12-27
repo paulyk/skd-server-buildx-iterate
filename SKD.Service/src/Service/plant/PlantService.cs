@@ -9,8 +9,8 @@ public class PlantService {
         this.context = ctx;
     }
 
-    public async Task<MutationPayload<PlantOverviewDTO>> CreatePlant(PlantInput input) {
-        MutationPayload<PlantOverviewDTO> paylaod = new();
+    public async Task<MutationResult<PlantOverviewDTO>> CreatePlant(PlantInput input) {
+        MutationResult<PlantOverviewDTO> paylaod = new();
         paylaod.Errors = await ValidateCreatePlant(input);
         if (paylaod.Errors.Any()) {
             return paylaod;

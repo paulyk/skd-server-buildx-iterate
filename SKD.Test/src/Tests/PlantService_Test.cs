@@ -20,7 +20,7 @@ public class PlantService_Test : TestBase {
 
         // test
         var before_count = await context.Plants.CountAsync();
-        var payload = await service.CreatePlant(input);
+        var result = await service.CreatePlant(input);
 
 
         var after_count = await context.Plants.CountAsync();
