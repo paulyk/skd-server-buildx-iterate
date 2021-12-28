@@ -159,7 +159,6 @@ public class KitSnapshotServiceTest : TestBase {
         Assert.Equal(TimeLineEventCode.GATE_RELEASED, kitSnapshot.CurrentTimeLineCode);
         Assert.Equal(PartnerStatus_ChangeStatus.Changed, kitSnapshot.TxType);
 
-
         // 6.  wholesale
         eventDate = dates.Where(t => t.eventType == TimelineTestEvent.WHOLE_SALE_TRX).First().date;
         snapshotInput.RunDate = eventDate;
@@ -191,7 +190,7 @@ public class KitSnapshotServiceTest : TestBase {
     }
 
     [Fact]
-    public async Task Creates_original_plan_build_date_only_once() {
+    public async Task Kit_snapshot_dates_set_only_once() {
         // setup
         var service = new KitSnapshotService(context);
         var snapshotInput = new KitSnapshotInput {
@@ -214,8 +213,8 @@ public class KitSnapshotServiceTest : TestBase {
         // 1.  custom received
         await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "note", "", custom_receive_date_trx, custom_receive_date);
         snapshotInput.RunDate = custom_receive_date_trx;
-        var reult = await service.GenerateSnapshot(snapshotInput);
-        var snapshotRun = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, reult.Payload.Sequence);
+        var result = await service.GenerateSnapshot(snapshotInput);
+        var snapshotRun = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, result.Payload.Sequence);
         var kitSnapshot = snapshotRun.Entries.First(t => t.KitNo == kit.KitNo);
         Assert.Equal(1, snapshotRun.Entries.Count);
         Assert.Equal(TimeLineEventCode.CUSTOM_RECEIVED, kitSnapshot.CurrentTimeLineCode);
@@ -224,8 +223,8 @@ public class KitSnapshotServiceTest : TestBase {
         // 1.  plan build 
         await AddKitTimelineEntry(TimeLineEventCode.PLAN_BUILD, kit.KitNo, "note", "", plan_build_date_trx, plan_build_date);
         snapshotInput.RunDate = plan_build_date_trx;
-        reult = await service.GenerateSnapshot(snapshotInput);
-        snapshotRun = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, reult.Payload.Sequence);
+        result = await service.GenerateSnapshot(snapshotInput);
+        snapshotRun = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, result.Payload.Sequence);
         kitSnapshot = snapshotRun.Entries.First(t => t.KitNo == kit.KitNo);
         Assert.Equal(1, snapshotRun.Entries.Count);
         Assert.Equal(TimeLineEventCode.PLAN_BUILD, kitSnapshot.CurrentTimeLineCode);
@@ -233,25 +232,14 @@ public class KitSnapshotServiceTest : TestBase {
         Assert.Equal(plan_build_date, kitSnapshot.OriginalPlanBuild);
         Assert.Equal(PartnerStatus_ChangeStatus.Changed, kitSnapshot.TxType);
 
-
-        // 1. edit plan build date does not change original
-        var result_2 = await AddKitTimelineEntry(TimeLineEventCode.PLAN_BUILD, kit.KitNo, "note", "", new_plan_build_date_trx, new_plan_build_date);
-        var expectedErrorMessage = "cannot change date after snapshot taken";
-        var actualErrorMessage = result_2.Errors.Select(t => t.Message).FirstOrDefault();
-        Assert.Equal(expectedErrorMessage, actualErrorMessage);
-
-        // disable the following until we allow users to modify timeline events after snapwhot taken
-        /*
-        snapshotInput.RunDate = new_plan_build_date_trx;
-        payload = await service.GenerateSnapshot(snapshotInput);
-        snapshotRun = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, payload.Entity.Sequence.Value);
-        kitSnapshot = snapshotRun.Entries.First(t => t.KitNo == kit.KitNo);
-        Assert.Equal(1, snapshotRun.Entries.Count);
-        Assert.Equal(TimeLineEventType.PLAN_BUILD, kitSnapshot.CurrentTimelineEvent);
-        Assert.Equal(new_plan_build_date, kitSnapshot.PlanBuild);
-        Assert.Equal(plan_build_date, kitSnapshot.OriginalPlanBuild);
-        Assert.Equal(PartnerStatus_ChangeStatus.NoChange, kitSnapshot.TxType);
-        */
+        // 1. edit plan build date does not change kitSnapshot planBuild or OriginalPlanbuild
+        var orignalPlanBuild = kitSnapshot.OriginalPlanBuild;
+        var planBuild =  kitSnapshot.PlanBuild;
+        await AddKitTimelineEntry(TimeLineEventCode.PLAN_BUILD, kit.KitNo, "note", "", new_plan_build_date_trx, new_plan_build_date);
+        snapshotRun = await service.GetSnapshotRunBySequence(snapshotInput.PlantCode, result.Payload.Sequence);
+        var kitSnapshot_2 = snapshotRun.Entries.First(t => t.KitNo == kit.KitNo);
+        Assert.Equal(orignalPlanBuild, kitSnapshot_2.OriginalPlanBuild);
+        Assert.Equal(planBuild, kitSnapshot_2.PlanBuild);
     }
 
     ///<remarks>
@@ -289,7 +277,6 @@ public class KitSnapshotServiceTest : TestBase {
         int snapshotCount = 0;
         KitSnapshotRunDTO.Entry kitSnapshot = null;
 
-        // day 1 only custom receive set
         await AssertDay_1();
         await AssertDay_2();
         await AssertDay_3();
@@ -482,40 +469,6 @@ public class KitSnapshotServiceTest : TestBase {
     }
 
     [Fact]
-    public async Task Cannot_add_timline_event_if_snapshot_already_generated_with_that_event() {
-
-        // setup
-        var service = new KitSnapshotService(context);
-        var kit = context.Kits.OrderBy(t => t.KitNo).First();
-        var plantCode = context.Plants.Select(t => t.Code).First();
-        var customReiveDate = DateTime.Now.Date;
-        var buildDays = 7;
-
-        var eventList = new List<(TimeLineEventCode eventType, DateTime trxDate, DateTime eventDate)>() {
-                (TimeLineEventCode.CUSTOM_RECEIVED, customReiveDate.AddDays(1), customReiveDate),
-                (TimeLineEventCode.PLAN_BUILD,      customReiveDate.AddDays(2), customReiveDate.AddDays(planBuildLeadTimeDays)),
-                (TimeLineEventCode.BUILD_COMPLETED,  customReiveDate.AddDays(planBuildLeadTimeDays + buildDays), customReiveDate.AddDays(planBuildLeadTimeDays + buildDays)),
-            };
-
-        var expecedErrorMessage = "cannot change date after snapshot taken";
-        foreach (var (eventType, trxDate, eventDate) in eventList) {
-
-            var result = await AddKitTimelineEntry(eventType, kit.KitNo, "", "", trxDate, eventDate);
-            var actualErrorCount = result.Errors.Count;
-            Assert.Equal(0, actualErrorCount);
-            await service.GenerateSnapshot(new KitSnapshotInput {
-                PlantCode = plantCode,
-                RunDate = trxDate,
-                EngineComponentCode = engineCode
-            });
-            // edit date
-            var result_2 = await AddKitTimelineEntry(eventType, kit.KitNo, "", "", trxDate.AddDays(1), eventDate.AddDays(1));
-            var actualErrorMessage = result_2.Errors.Select(t => t.Message).FirstOrDefault();
-            Assert.Equal(expecedErrorMessage, actualErrorMessage);
-        }
-    }
-
-    [Fact]
     public async Task Can_get_vehicle_snapshot_dates() {
         // setup
         var plantCode = context.Plants.Select(t => t.Code).First();
@@ -590,28 +543,26 @@ public class KitSnapshotServiceTest : TestBase {
         await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit_1.KitNo, "", "", custom_receive_date_trx, custom_receive_date);
         await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit_2.KitNo, "", "", custom_receive_date_trx, custom_receive_date);
 
-        MutationResult<SnapshotDTO> payload = await service.GenerateSnapshot(snapshotInput);
-        Assert.Equal(2, payload.Payload.SnapshotCount);
-        Assert.Equal(2, payload.Payload.ChangedCount);
+        MutationResult<SnapshotDTO> result = await service.GenerateSnapshot(snapshotInput);
+        Assert.Equal(2, result.Payload.SnapshotCount);
+        Assert.Equal(2, result.Payload.ChangedCount);
 
         // no changes should reject
         snapshotInput.RunDate = baseDate.AddDays(4);
-        payload = await service.GenerateSnapshot(snapshotInput);
+        var result_2 = await service.GenerateSnapshot(snapshotInput);
         var expectedError = "No changes since last snapshot";
-        var actualError = payload.Errors.Select(t => t.Message).FirstOrDefault();
+        var actualError = result_2.Errors.Select(t => t.Message).FirstOrDefault();
         Assert.Equal(expectedError, actualError);
-        Assert.Null(payload.Payload);
 
         // add one change should not reject
         await AddKitTimelineEntry(TimeLineEventCode.PLAN_BUILD, kit_1.KitNo, "", "", plan_build_date_trx, plan_build_date);
         snapshotInput.RunDate = baseDate.AddDays(5);
-        payload = await service.GenerateSnapshot(snapshotInput);
+        var result_3 = await service.GenerateSnapshot(snapshotInput);
 
         expectedError = null;
-        actualError = payload.Errors.Select(t => t.Message).FirstOrDefault();
+        actualError = result_3.Errors.Select(t => t.Message).FirstOrDefault();
         Assert.Equal(expectedError, actualError);
-        Assert.Equal(1, payload.Payload.ChangedCount);
-
+        Assert.Equal(1, result_3.Payload.ChangedCount);
     }
 
 

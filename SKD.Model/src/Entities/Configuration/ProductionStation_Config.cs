@@ -2,8 +2,6 @@ namespace SKD.Model;
 
 public class ProductionStation_Config : IEntityTypeConfiguration<ProductionStation> {
     public void Configure(EntityTypeBuilder<ProductionStation> builder) {
-        builder.ToTable("user");
-
         builder.ToTable("production_station");
         builder.HasKey(t => t.Id);
         builder.Property(t => t.Id).HasMaxLength(EntityFieldLen.Id).ValueGeneratedOnAdd();

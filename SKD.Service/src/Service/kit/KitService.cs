@@ -234,7 +234,11 @@ public class KitService {
             return errors;
         }
 
-        // kit timeline event snapshot aready taken
+        /* REMOVED: 
+        Can change timeline event date.
+        Cannot change after WHOLESALE needs to be added.
+
+        // kit timeline event snapshot aready taken        
         var exitingKitSnapnshot = await context.KitSnapshots
             .Where(t => t.Kit.KitNo == input.KitNo)
             .Where(t => t.KitTimeLineEventType.Code == input.EventType)
@@ -244,6 +248,7 @@ public class KitService {
             errors.Add(new Error("", $"cannot change date after snapshot taken"));
             return errors;
         }
+        */
 
         // missing prerequisite timeline events
         var currentTimelineEventType = await context.KitTimelineEventTypes
