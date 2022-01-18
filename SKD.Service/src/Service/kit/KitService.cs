@@ -81,7 +81,7 @@ public class KitService {
         );
 
         if (kitVinAlreadyImported) {
-            errors.Add(new Error("", $"Already imported plant - sequence {input.PlantCode} - {input.Sequence}"));
+            errors.Add(new Error("", $"Already imported VIN file  {input.PlantCode}-{input.Sequence}"));
             return errors;
         }
 

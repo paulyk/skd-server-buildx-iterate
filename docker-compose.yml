@@ -17,21 +17,6 @@ services:
       - ConnectionStrings__Default=server=mssql;database=skd;uid=sa;pwd=DevOnlyPassword119
     volumes:
       - ~/.vsdbg:/remote_debugger:rw
-    depends_on:
-      - mssql
 
-  mssql:
-    image: mcr.microsoft.com/azure-sql-edge
-    container_name: skd-mssql
-    volumes: 
-      - mssql_volume:/var/opt/mssql
-    cap_add: 
-      - SYS_PTRACE
-    environment: 
-      ACCEPT_EULA: 1
-      MSSQL_SA_PASSWORD: "DevDevDude119#"
-    ports:
-      - '9301:1433'
 
-volumes:
-  mssql_volume:
+

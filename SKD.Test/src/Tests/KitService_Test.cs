@@ -76,7 +76,7 @@ public class KitServiceTest : TestBase {
         var result = await service.ImportVIN(input);
 
         // assert
-        var expectedErrorMessage = "Already imported plant - sequence";
+        var expectedErrorMessage = "Already imported VIN file";
         var actualErrorMessage = result.Errors.Select(t => t.Message).FirstOrDefault();
         Assert.Equal(expectedErrorMessage, actualErrorMessage.Substring(0, expectedErrorMessage.Length));
     }
