@@ -104,10 +104,10 @@ public class KitSnapshotServiceTest : TestBase {
                 Day = 9,
                 EventInput = new TimelineEventInput {
                     EventOnDay = 11,
-                    EventCode = TimeLineEventCode.VIN_CHECK
+                    EventCode = TimeLineEventCode.VERIFY_VIN
                 },
                 Expected = new ExpectedSnapshotValue {
-                    TimeLineEventCode = TimeLineEventCode.VIN_CHECK,
+                    TimeLineEventCode = TimeLineEventCode.VERIFY_VIN,
                     ChangeStatus = SnapshotChangeStatus.Changed,
                     SnapshotCount = 1,
                     DealerCode = ""
@@ -302,12 +302,12 @@ public class KitSnapshotServiceTest : TestBase {
         // 4. vin check
         eventDate = dates.Where(t => t.eventType == TimelineTestEvent.VIN_CHECK).First().date;
         snapshotInput.RunDate = eventDate;
-        await AddKitTimelineEntry(TimeLineEventCode.VIN_CHECK, kit.KitNo, "", "", eventDate, eventDate);
+        await AddKitTimelineEntry(TimeLineEventCode.VERIFY_VIN, kit.KitNo, "", "", eventDate, eventDate);
         await service.GenerateSnapshot(snapshotInput);
 
         snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
         kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
-        Assert.Equal(TimeLineEventCode.VIN_CHECK, kitSnapshot.CurrentTimeLineCode);
+        Assert.Equal(TimeLineEventCode.VERIFY_VIN, kitSnapshot.CurrentTimeLineCode);
         Assert.Equal(SnapshotChangeStatus.Changed, kitSnapshot.TxType);
 
         // 5. build completed
@@ -738,7 +738,6 @@ public class KitSnapshotServiceTest : TestBase {
         Assert.Equal(expectedError, actualError);
         Assert.Equal(1, result_3.Payload.ChangedCount);
     }
-
 
     #region test helper methods
     public async Task<List<KitSnapshotRunDTO.Entry>> GetVehiclePartnerStatusReport(

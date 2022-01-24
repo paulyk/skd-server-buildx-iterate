@@ -63,7 +63,7 @@ public class KitSnapshotService {
 
             ks.CustomReceived = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.CUSTOM_RECEIVED);
             ks.PlanBuild = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.PLAN_BUILD);
-            ks.VINcheck = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.VIN_CHECK);
+            ks.VerifyVIN = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.VERIFY_VIN);
             ks.BuildCompleted = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.BUILD_COMPLETED);
             ks.GateRelease = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.GATE_RELEASED);
             ks.Wholesale = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.WHOLE_SALE);
@@ -359,7 +359,7 @@ public class KitSnapshotService {
             IEnumerable<TimeLineEventCode> timeLineEventCodes = new TimeLineEventCode[] {
                 TimeLineEventCode.CUSTOM_RECEIVED,
                 TimeLineEventCode.PLAN_BUILD,
-                TimeLineEventCode.VIN_CHECK,
+                TimeLineEventCode.VERIFY_VIN,
                 TimeLineEventCode.BUILD_COMPLETED,
                 TimeLineEventCode.GATE_RELEASED,
                 TimeLineEventCode.WHOLE_SALE
@@ -403,7 +403,7 @@ public class KitSnapshotService {
         switch (timelineEventCode) {
             case TimeLineEventCode.CUSTOM_RECEIVED: return snapshot.CustomReceived != null;
             case TimeLineEventCode.PLAN_BUILD: return snapshot.PlanBuild != null;
-            case TimeLineEventCode.VIN_CHECK: return snapshot.VINcheck != null;
+            case TimeLineEventCode.VERIFY_VIN: return snapshot.VerifyVIN != null;
             case TimeLineEventCode.BUILD_COMPLETED: return snapshot.BuildCompleted != null;
             case TimeLineEventCode.GATE_RELEASED: return snapshot.GateRelease != null;
             case TimeLineEventCode.WHOLE_SALE: return snapshot.Wholesale != null;
@@ -456,7 +456,7 @@ public class KitSnapshotService {
         switch (eventCode) {
             case TimeLineEventCode.CUSTOM_RECEIVED: return snapshot.CustomReceived != null;
             case TimeLineEventCode.PLAN_BUILD: return snapshot.PlanBuild != null;
-            case TimeLineEventCode.VIN_CHECK: return snapshot.VINcheck != null;
+            case TimeLineEventCode.VERIFY_VIN: return snapshot.VerifyVIN != null;
             case TimeLineEventCode.BUILD_COMPLETED: return snapshot.BuildCompleted != null;
             case TimeLineEventCode.GATE_RELEASED: return snapshot.GateRelease != null;
             case TimeLineEventCode.WHOLE_SALE: return snapshot.Wholesale != null;
@@ -468,7 +468,7 @@ public class KitSnapshotService {
         switch (eventCode) {
             case TimeLineEventCode.CUSTOM_RECEIVED: return snapshot.CustomReceived;
             case TimeLineEventCode.PLAN_BUILD: return snapshot.PlanBuild;
-            case TimeLineEventCode.VIN_CHECK: return snapshot.VINcheck;
+            case TimeLineEventCode.VERIFY_VIN: return snapshot.VerifyVIN;
             case TimeLineEventCode.BUILD_COMPLETED: return snapshot.BuildCompleted;
             case TimeLineEventCode.GATE_RELEASED: return snapshot.GateRelease;
             case TimeLineEventCode.WHOLE_SALE: return snapshot.Wholesale;

@@ -215,7 +215,7 @@ public class KitServiceTest : TestBase {
         var timelineEvents = new List<(TimeLineEventCode eventType, DateTime eventDate)>() {
                 (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(-5)),
                 (TimeLineEventCode.PLAN_BUILD, baseDate.AddDays(2)),
-                (TimeLineEventCode.VIN_CHECK, baseDate.AddDays(3)),
+                (TimeLineEventCode.VERIFY_VIN, baseDate.AddDays(3)),
                 (TimeLineEventCode.BUILD_COMPLETED, baseDate.AddDays(5)),
                 (TimeLineEventCode.GATE_RELEASED, baseDate.AddDays(10)),
                 (TimeLineEventCode.WHOLE_SALE, baseDate.AddDays(12)),
@@ -329,7 +329,7 @@ public class KitServiceTest : TestBase {
         var timelineEventItems = new List<(TimeLineEventCode eventType, DateTime trxDate, DateTime eventDate, string eventNode)>() {
                 (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(2), baseDate.AddDays(1) , eventNote),
                 (TimeLineEventCode.PLAN_BUILD, baseDate.AddDays(3), baseDate.AddDays(5), eventNote),
-                (TimeLineEventCode.VIN_CHECK, baseDate.AddDays(4), baseDate.AddDays(6), eventNote),
+                (TimeLineEventCode.VERIFY_VIN, baseDate.AddDays(4), baseDate.AddDays(6), eventNote),
                 (TimeLineEventCode.BUILD_COMPLETED, baseDate.AddDays(8), baseDate.AddDays(8), eventNote),
                 (TimeLineEventCode.GATE_RELEASED, baseDate.AddDays(10), baseDate.AddDays(10), eventNote),
                 (TimeLineEventCode.WHOLE_SALE, baseDate.AddDays(11), baseDate.AddDays(11), eventNote),

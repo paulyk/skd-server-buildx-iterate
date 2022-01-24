@@ -1,8 +1,10 @@
+using System.Linq.Expressions;
 namespace SKD.Test;
 
 public class PartnerStatusBuilder_Test : TestBase {
 
     private readonly string DEALEAR_CODE = "DLR13";
+
     private readonly DateTime CUSTOM_RECEIVED_DATE = DateTime.UtcNow.AddDays(0).Date;
     private readonly DateTime VIN_CHECK_DATE = DateTime.UtcNow.AddDays(5).Date;
     private readonly DateTime PLAN_BUILD_DATE = DateTime.UtcNow.AddDays(6).Date;
@@ -18,11 +20,13 @@ public class PartnerStatusBuilder_Test : TestBase {
 
     [Fact]
     public async Task Can_generate_partner_status_file_payload() {
+        // setup
         var testData = await GenerateKitSnapshotRun_TestData();
         var snapshotRun = await context.KitSnapshotRuns
             .Include(t => t.Plant)
             .FirstOrDefaultAsync(t => t.Id == testData.Id);
 
+        var layout = new PartnerStatusLayout.Detail();
 
         var service = new PartnerStatusBuilder(context);
         var result = await service.GeneratePartnerStatusFilePaylaod(
@@ -123,12 +127,19 @@ public class PartnerStatusBuilder_Test : TestBase {
             var actual_EngineSerial = detailLineParser.GetFieldValue(lines[1], t => t.PST_ENGINE_SERIAL_NUMBER);
             Assert.Equal(expected_EngineSerial, actual_EngineSerial);
 
-            // PST_FPRE_STATUS_DATE // custom receive
-            var actual_PST_FPRE_STATUS_DATE = detailLineParser.GetFieldValue(firstDetailLine, t => t.PST_FPRE_STATUS_DATE).Trim();
-            var expected_PST_FPRE_STATUS_DATE = firstKitSnapshot.CustomReceived.HasValue
-                ? firstKitSnapshot.CustomReceived.Value.ToString(PartnerStatusLayout.PST_STATUS_DATE_FORMAT).Trim()
-                : "";
-            Assert.Equal(expected_PST_FPRE_STATUS_DATE, actual_PST_FPRE_STATUS_DATE);
+            // timeline
+            AssertDateEqual(t => t.PST_FPRE_STATUS_DATE, firstKitSnapshot.CustomReceived.Value);
+            AssertDateEqual(t => t.PST_FPBP_STATUS_DATE, firstKitSnapshot.PlanBuild.Value);
+            AssertDateEqual(t => t.PST_FPVC_STATUS_DATE, firstKitSnapshot.VerifyVIN.Value);
+            AssertDateEqual(t => t.PST_FPBC_STATUS_DATE, firstKitSnapshot.BuildCompleted.Value);
+            AssertDateEqual(t => t.PST_FPGR_STATUS_DATE, firstKitSnapshot.GateRelease.Value);
+            AssertDateEqual(t => t.PST_FPWS_STATUS_DATE, firstKitSnapshot.Wholesale.Value);
+
+            void AssertDateEqual(Expression<Func<PartnerStatusLayout.Detail, object>> expr, DateTime detailDateExpected) {
+                var actualValue = detailLineParser.GetFieldValue(firstDetailLine, expr).Trim();
+                var expectedValue = detailDateExpected.ToString(PartnerStatusLayout.PST_STATUS_DATE_FORMAT);
+                Assert.Equal(expectedValue, actualValue);
+            }
         }
 
         void AssertTrailer() {
@@ -151,7 +162,6 @@ public class PartnerStatusBuilder_Test : TestBase {
 
             var actual_TLR_TOTAL_RECORDS = int.Parse(trailerLineParser.GetFieldValue(trailerLineText, t => t.TLR_TOTAL_RECORDS));
             Assert.Equal(lines.Length, actual_TLR_TOTAL_RECORDS);
-
         }
     }
 
@@ -172,8 +182,8 @@ public class PartnerStatusBuilder_Test : TestBase {
                 EngineSerialNumber = ENGINE_SERIAL,
                 CustomReceived = CUSTOM_RECEIVED_DATE,
                 PlanBuild = PLAN_BUILD_DATE,
-                VINcheck = VIN_CHECK_DATE,
-                OrginalPlanBuild = (DateTime?)null,
+                VerifyVIN = VIN_CHECK_DATE,
+                OrginalPlanBuild = PLAN_BUILD_DATE,
                 BuildCompleted = BUILD_COMPLETE_DATE,
                 GateRelease = GATE_RELEASE_DATE,
                 Wholesale = WHOLESALED_DATE,

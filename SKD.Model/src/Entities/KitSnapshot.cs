@@ -34,7 +34,7 @@ public class KitSnapshot : EntityBase {
     
     public DateTime? CustomReceived { get; set; }
     public DateTime? PlanBuild { get; set; }
-    public DateTime? VINcheck { get; set; }
+    public DateTime? VerifyVIN { get; set; }
     public DateTime? BuildCompleted { get; set; }
     public DateTime? GateRelease { get; set; }
     public DateTime? Wholesale { get; set; }

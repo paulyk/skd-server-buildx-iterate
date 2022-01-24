@@ -125,24 +125,30 @@ public class PartnerStatusBuilder {
                 detailLineParser.CreateFieldValue(t => t.PST_IP2R_STATUS_DATE, ""),
                 detailLineParser.CreateFieldValue(t => t.PST_IP2S_STATUS_DATE,""),
 
+                // custom receive
                 detailLineParser.CreateFieldValue(
                     t => t.PST_FPRE_STATUS_DATE,
                     FormattedDate(snapshot.CustomReceived, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
+                // plan build
                 detailLineParser.CreateFieldValue(
                     t => t.PST_FPBP_STATUS_DATE,
-                    FormattedDate(snapshot.VINcheck, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
-                detailLineParser.CreateFieldValue(
-                    t => t.PST_FPBS_STATUS_DATE,
                     FormattedDate(snapshot.PlanBuild, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
+                // vin check
+                detailLineParser.CreateFieldValue(
+                    t => t.PST_FPVC_STATUS_DATE,
+                    FormattedDate(snapshot.VerifyVIN, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
+                // build complete
                 detailLineParser.CreateFieldValue(
                     t => t.PST_FPBC_STATUS_DATE,
                     FormattedDate(snapshot.BuildCompleted, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
+                // gate release
                 detailLineParser.CreateFieldValue(
                     t => t.PST_FPGR_STATUS_DATE,
-                        FormattedDate(snapshot.GateRelease, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
+                    FormattedDate(snapshot.GateRelease, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
+                // whole salse
                 detailLineParser.CreateFieldValue(
                     t => t.PST_FPWS_STATUS_DATE,
-                        FormattedDate(snapshot.Wholesale, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
+                    FormattedDate(snapshot.Wholesale, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
                 detailLineParser.CreateFieldValue(t => t.PST_FILLER, "")
             };
 
