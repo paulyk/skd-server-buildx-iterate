@@ -6,8 +6,9 @@ public class KitSnapshotService {
 
     private readonly SkdContext context;
     public static readonly int WholeSateCutOffDays = 7;
+    public static readonly int PlanBuildLeadTimeDays = 7;
 
-    public KitSnapshotService(SkdContext ctx) {
+    public  KitSnapshotService(SkdContext ctx) {
         this.context = ctx;
     }
 
@@ -62,6 +63,7 @@ public class KitSnapshotService {
 
             ks.CustomReceived = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.CUSTOM_RECEIVED);
             ks.PlanBuild = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.PLAN_BUILD);
+            ks.VINcheck = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.VIN_CHECK);
             ks.BuildCompleted = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.BUILD_COMPLETED);
             ks.GateRelease = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.GATE_RELEASED);
             ks.Wholesale = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.WHOLE_SALE);
@@ -357,13 +359,14 @@ public class KitSnapshotService {
             IEnumerable<TimeLineEventCode> timeLineEventCodes = new TimeLineEventCode[] {
                 TimeLineEventCode.CUSTOM_RECEIVED,
                 TimeLineEventCode.PLAN_BUILD,
+                TimeLineEventCode.VIN_CHECK,
                 TimeLineEventCode.BUILD_COMPLETED,
                 TimeLineEventCode.GATE_RELEASED,
                 TimeLineEventCode.WHOLE_SALE
             };
 
             foreach (var eventCode in timeLineEventCodes) {
-                if (KitHasTimelineEvent(kit, eventCode) && !GetSnapshotTimelineEventDate(priorSnapshot, eventCode)) {
+                if (KitHasTimelineEvent(kit, eventCode) && !SnapshotTimelineEventDateSet(priorSnapshot, eventCode)) {
                     return true; // changed
                 }
             }
@@ -396,10 +399,11 @@ public class KitSnapshotService {
             .Where(t => t.RemovedAt == null)
             .FirstOrDefaultAsync(t => t.KitId == kitId);
 
-    private bool GetSnapshotTimelineEventDate(KitSnapshot snapshot, TimeLineEventCode timelineEventCode) {
+    private bool SnapshotTimelineEventDateSet(KitSnapshot snapshot, TimeLineEventCode timelineEventCode) {
         switch (timelineEventCode) {
             case TimeLineEventCode.CUSTOM_RECEIVED: return snapshot.CustomReceived != null;
             case TimeLineEventCode.PLAN_BUILD: return snapshot.PlanBuild != null;
+            case TimeLineEventCode.VIN_CHECK: return snapshot.VINcheck != null;
             case TimeLineEventCode.BUILD_COMPLETED: return snapshot.BuildCompleted != null;
             case TimeLineEventCode.GATE_RELEASED: return snapshot.GateRelease != null;
             case TimeLineEventCode.WHOLE_SALE: return snapshot.Wholesale != null;
@@ -452,6 +456,7 @@ public class KitSnapshotService {
         switch (eventCode) {
             case TimeLineEventCode.CUSTOM_RECEIVED: return snapshot.CustomReceived != null;
             case TimeLineEventCode.PLAN_BUILD: return snapshot.PlanBuild != null;
+            case TimeLineEventCode.VIN_CHECK: return snapshot.VINcheck != null;
             case TimeLineEventCode.BUILD_COMPLETED: return snapshot.BuildCompleted != null;
             case TimeLineEventCode.GATE_RELEASED: return snapshot.GateRelease != null;
             case TimeLineEventCode.WHOLE_SALE: return snapshot.Wholesale != null;
@@ -463,6 +468,7 @@ public class KitSnapshotService {
         switch (eventCode) {
             case TimeLineEventCode.CUSTOM_RECEIVED: return snapshot.CustomReceived;
             case TimeLineEventCode.PLAN_BUILD: return snapshot.PlanBuild;
+            case TimeLineEventCode.VIN_CHECK: return snapshot.VINcheck;
             case TimeLineEventCode.BUILD_COMPLETED: return snapshot.BuildCompleted;
             case TimeLineEventCode.GATE_RELEASED: return snapshot.GateRelease;
             case TimeLineEventCode.WHOLE_SALE: return snapshot.Wholesale;

@@ -4,7 +4,7 @@ namespace SKD.Test;
 public class KitSnapshotServiceTest : TestBase {
 
     readonly string engineCode = "EN";
-    readonly int wholeSateCutOffDays = 7;
+    public readonly int WholeSateCutOffDays = 7;
     readonly int planBuildLeadTimeDays = 2;
 
     public KitSnapshotServiceTest() {
@@ -17,6 +17,7 @@ public class KitSnapshotServiceTest : TestBase {
         CUSTOM_RECEIVED_TRX,
         POST_CUSTOM_RECEIVED_NO_CHANGE,
         PLAN_BUILD_TRX,
+        VIN_CHECK,
         POST_PLAN_BUILD_NO_CHANGE,
         BUILD_COMPLETE_TRX,
         GATE_RELEASE_TRX,
@@ -74,7 +75,7 @@ public class KitSnapshotServiceTest : TestBase {
                     TimeLineEventCode = TimeLineEventCode.CUSTOM_RECEIVED,
                     ChangeStatus = SnapshotChangeStatus.Added,
                     SnapshotCount = 1,
-                    DealerCode = ""                    
+                    DealerCode = ""
                 }
             },
             new TestTimelineInput {
@@ -87,7 +88,7 @@ public class KitSnapshotServiceTest : TestBase {
                     TimeLineEventCode = TimeLineEventCode.PLAN_BUILD,
                     ChangeStatus = SnapshotChangeStatus.Changed,
                     SnapshotCount = 1,
-                    DealerCode = ""                    
+                    DealerCode = ""
                 }
             },
             new TestTimelineInput {
@@ -96,7 +97,7 @@ public class KitSnapshotServiceTest : TestBase {
                     TimeLineEventCode = TimeLineEventCode.PLAN_BUILD,
                     ChangeStatus = SnapshotChangeStatus.NoChange,
                     SnapshotCount = 1,
-                    DealerCode = ""                    
+                    DealerCode = ""
                 }
             },
             // build start
@@ -125,7 +126,7 @@ public class KitSnapshotServiceTest : TestBase {
                         DealerCode = ""
                     });
                 }
-                var rundDate = baseDate.AddDays(day); 
+                var rundDate = baseDate.AddDays(day);
                 var snapshotResult = await snapShotService.GenerateSnapshot(new KitSnapshotInput {
                     PlantCode = plantCode,
                     RunDate = rundDate,
@@ -142,7 +143,7 @@ public class KitSnapshotServiceTest : TestBase {
                     .Include(t => t.KitSnapshotRun)
                     .Where(t => t.KitSnapshotRun.RunDate == rundDate)
                     .FirstOrDefaultAsync();
-                
+
                 Assert.Equal(input.Expected.ChangeStatus, kitSnapshot?.ChangeStatusCode);
                 Assert.Equal(input.Expected.TimeLineEventCode, kitSnapshot?.KitTimeLineEventType.Code);
                 Assert.Equal(input.Expected.DealerCode, kitSnapshot?.DealerCode);
@@ -184,12 +185,13 @@ public class KitSnapshotServiceTest : TestBase {
                 (TimelineTestEvent.CUSTOM_RECEIVED_TRX, baseDate.AddDays(1) ),
                 (TimelineTestEvent.POST_CUSTOM_RECEIVED_NO_CHANGE, baseDate.AddDays(2) ),
                 (TimelineTestEvent.PLAN_BUILD_TRX, baseDate.AddDays(3) ),
-                (TimelineTestEvent.POST_PLAN_BUILD_NO_CHANGE, baseDate.AddDays(4) ),
-                (TimelineTestEvent.BUILD_COMPLETE_TRX, baseDate.AddDays(6) ),
-                (TimelineTestEvent.GATE_RELEASE_TRX, baseDate.AddDays(8) ),
-                (TimelineTestEvent.WHOLE_SALE_TRX, baseDate.AddDays(10) ),
-                (TimelineTestEvent.FINAL_2_DAYS_TRX, baseDate.AddDays(12) ),
-                (TimelineTestEvent.FINAL_PLUS_WHOLESALE_CUTOFF, baseDate.AddDays(10 + KitSnapshotService.WholeSateCutOffDays) ),
+                (TimelineTestEvent.VIN_CHECK, baseDate.AddDays(4) ),
+                (TimelineTestEvent.POST_PLAN_BUILD_NO_CHANGE, baseDate.AddDays(5)),
+                (TimelineTestEvent.BUILD_COMPLETE_TRX, baseDate.AddDays(7) ),
+                (TimelineTestEvent.GATE_RELEASE_TRX, baseDate.AddDays(9) ),
+                (TimelineTestEvent.WHOLE_SALE_TRX, baseDate.AddDays(11) ),
+                (TimelineTestEvent.FINAL_2_DAYS_TRX, baseDate.AddDays(13) ),
+                (TimelineTestEvent.FINAL_PLUS_WHOLESALE_CUTOFF, baseDate.AddDays(13 + KitSnapshotService.WholeSateCutOffDays) ),
             };
 
         // setup
@@ -252,6 +254,17 @@ public class KitSnapshotServiceTest : TestBase {
         kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
         Assert.Equal(TimeLineEventCode.PLAN_BUILD, kitSnapshot.CurrentTimeLineCode);
         Assert.Equal(SnapshotChangeStatus.NoChange, kitSnapshot.TxType);
+
+        // 4. vin check
+        eventDate = dates.Where(t => t.eventType == TimelineTestEvent.VIN_CHECK).First().date;
+        snapshotInput.RunDate = eventDate;
+        await AddKitTimelineEntry(TimeLineEventCode.VIN_CHECK, kit.KitNo, "", "", eventDate, eventDate);
+        await service.GenerateSnapshot(snapshotInput);
+
+        snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
+        kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
+        Assert.Equal(TimeLineEventCode.VIN_CHECK, kitSnapshot.CurrentTimeLineCode);
+        Assert.Equal(SnapshotChangeStatus.Changed, kitSnapshot.TxType);
 
         // 5. build completed
         eventDate = dates.Where(t => t.eventType == TimelineTestEvent.BUILD_COMPLETE_TRX).First().date;
@@ -356,142 +369,144 @@ public class KitSnapshotServiceTest : TestBase {
         Assert.Equal(orignalPlanBuild, kitSnapshot_2.OriginalPlanBuild);
         Assert.Equal(planBuild, kitSnapshot_2.PlanBuild);
     }
+    /*
+        ///<remarks>
+        /// Allow multiple timeline events to be entered between snapshots.
+        /// THe next snapshot generated selects the timline event status based on KitTimelineEventType sequence
+        ///</remarks>
+        [Fact]
+        public async Task Kit_can_have_multiple_timeline_events_before_first_snapshot() {
+            // setup
+            var plantCode = context.Plants.Select(t => t.Code).First();
+            var baseDate = DateTime.Now.Date;
+            var snapshotInput = new KitSnapshotInput {
+                RunDate = baseDate,
+                PlantCode = plantCode,
+                EngineComponentCode = engineCode,
+                RejectIfNoChanges = false
+            };
+            var base_date = baseDate.AddDays(1);
 
-    ///<remarks>
-    /// Allow multiple timeline events to be entered between snapshots.
-    /// THe next snapshot generated selects the timline event status based on KitTimelineEventType sequence
-    ///</remarks>
-    [Fact]
-    public async Task Kit_can_have_multiple_timeline_events_before_first_snapshot() {
-        // setup
-        var plantCode = context.Plants.Select(t => t.Code).First();
-        var baseDate = DateTime.Now.Date;
-        var snapshotInput = new KitSnapshotInput {
-            RunDate = baseDate,
-            PlantCode = plantCode,
-            EngineComponentCode = engineCode,
-            RejectIfNoChanges = false
-        };
-        var base_date = baseDate.AddDays(1);
+            var first_trx_date = baseDate.AddDays(4);
+            var plan_build_date = baseDate.AddDays(10);
+            var vin_check_date = baseDate.AddDays(10);
+            var build_completed_date = baseDate.AddDays(14);
 
-        var first_trx_date = baseDate.AddDays(4);
-        var plan_build_date = baseDate.AddDays(10);
-        var build_completed_date = baseDate.AddDays(12);
+            var kit = context.Kits.OrderBy(t => t.KitNo).First();
+            await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", "", first_trx_date, base_date);
+            await AddKitTimelineEntry(TimeLineEventCode.PLAN_BUILD, kit.KitNo, "", "", first_trx_date, plan_build_date);
+            await AddKitTimelineEntry(TimeLineEventCode.VIN_CHECK, kit.KitNo, "", "", first_trx_date, vin_check_date);
+            await AddKitTimelineEntry(TimeLineEventCode.BUILD_COMPLETED, kit.KitNo, "", "", first_trx_date, build_completed_date);
 
-        var kit = context.Kits.OrderBy(t => t.KitNo).First();
-        await AddKitTimelineEntry(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", "", first_trx_date, base_date);
-        await AddKitTimelineEntry(TimeLineEventCode.PLAN_BUILD, kit.KitNo, "", "", first_trx_date, plan_build_date);
-        await AddKitTimelineEntry(TimeLineEventCode.BUILD_COMPLETED, kit.KitNo, "", "", first_trx_date, build_completed_date);
+            var snapShotService = new KitSnapshotService(context);
+            var partnerStatusBuilder = new PartnerStatusBuilder(context);
+            var detailLineParser = new FlatFileLine<PartnerStatusLayout.Detail>();
 
-        var snapShotService = new KitSnapshotService(context);
-        var partnerStatusBuilder = new PartnerStatusBuilder(context);
-        var detailLineParser = new FlatFileLine<PartnerStatusLayout.Detail>();
+            MutationResult<SnapshotDTO> snapShotPayload = null;
+            KitSnapshotRunDTO snapshotRun = null;
+            int snapshotCount = 0;
+            KitSnapshotRunDTO.Entry kitSnapshot = null;
 
-        MutationResult<SnapshotDTO> snapShotPayload = null;
-        KitSnapshotRunDTO snapshotRun = null;
-        int snapshotCount = 0;
-        KitSnapshotRunDTO.Entry kitSnapshot = null;
+            await AssertDay_1();
+            await AssertDay_2();
+            await AssertDay_3();
+            await AssertDay_4();
 
-        await AssertDay_1();
-        await AssertDay_2();
-        await AssertDay_3();
-        await AssertDay_4();
+            async Task AssertDay_1() {
+                snapShotPayload = await snapShotService.GenerateSnapshot(snapshotInput);
 
-        async Task AssertDay_1() {
-            snapShotPayload = await snapShotService.GenerateSnapshot(snapshotInput);
+                snapshotRun = await snapShotService.GetSnapshotRunBySequence(snapshotInput.PlantCode, snapShotPayload.Payload.Sequence);
+                snapshotCount = await context.KitSnapshots.CountAsync();
+                kitSnapshot = snapshotRun.Entries.First(t => t.KitNo == kit.KitNo);
 
-            snapshotRun = await snapShotService.GetSnapshotRunBySequence(snapshotInput.PlantCode, snapShotPayload.Payload.Sequence);
-            snapshotCount = await context.KitSnapshots.CountAsync();
-            kitSnapshot = snapshotRun.Entries.First(t => t.KitNo == kit.KitNo);
+                Assert.Equal(1, snapshotCount);
+                Assert.Equal(TimeLineEventCode.CUSTOM_RECEIVED, kitSnapshot.CurrentTimeLineCode);
+                Assert.Equal(SnapshotChangeStatus.Added, kitSnapshot.TxType);
+                Assert.Null(kitSnapshot.PlanBuild);
+                Assert.Null(kitSnapshot.OriginalPlanBuild);
 
-            Assert.Equal(1, snapshotCount);
-            Assert.Equal(TimeLineEventCode.CUSTOM_RECEIVED, kitSnapshot.CurrentTimeLineCode);
-            Assert.Equal(SnapshotChangeStatus.Added, kitSnapshot.TxType);
-            Assert.Null(kitSnapshot.PlanBuild);
-            Assert.Null(kitSnapshot.OriginalPlanBuild);
+                var partnerStatusDTO = await partnerStatusBuilder.GeneratePartnerStatusFilePaylaod(snapshotRun.PlantCode, snapshotRun.Sequence);
+                var detailLine = partnerStatusDTO.PayloadText.Split('\n')[1];
+                var customReceiveDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPRE_STATUS_DATE);
 
-            var partnerStatusDTO = await partnerStatusBuilder.GeneratePartnerStatusFilePaylaod(snapshotRun.PlantCode, snapshotRun.Sequence);
-            var detailLine = partnerStatusDTO.PayloadText.Split('\n')[1];
-            var customReceiveDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPRE_STATUS_DATE);
+                var originalPlanBuild = detailLineParser.GetFieldValue(detailLine, t => t.PST_BUILD_DATE);
+                var planBuildDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBP_STATUS_DATE);
+                var buildCompleteDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBC_STATUS_DATE);
+                Assert.True(!String.IsNullOrWhiteSpace(customReceiveDate));
+                Assert.True(String.IsNullOrWhiteSpace(planBuildDate));
+                Assert.True(String.IsNullOrWhiteSpace(buildCompleteDate));
+                Assert.True(String.IsNullOrWhiteSpace(originalPlanBuild));
+            }
 
-            var originalPlanBuild = detailLineParser.GetFieldValue(detailLine, t => t.PST_BUILD_DATE);
-            var planBuildDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBP_STATUS_DATE);
-            var buildCompleteDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBC_STATUS_DATE);
-            Assert.True(!String.IsNullOrWhiteSpace(customReceiveDate));
-            Assert.True(String.IsNullOrWhiteSpace(planBuildDate));
-            Assert.True(String.IsNullOrWhiteSpace(buildCompleteDate));
-            Assert.True(String.IsNullOrWhiteSpace(originalPlanBuild));
+            async Task AssertDay_2() {
+                snapshotInput.RunDate = snapshotInput.RunDate.Value.AddDays(1);
+                snapShotPayload = await snapShotService.GenerateSnapshot(snapshotInput);
+                snapshotRun = await snapShotService.GetSnapshotRunBySequence(snapshotInput.PlantCode, snapShotPayload.Payload.Sequence);
+                kitSnapshot = snapshotRun.Entries.First(t => t.KitNo == kit.KitNo);
+                snapshotCount = await context.KitSnapshots.CountAsync();
+                Assert.Equal(2, snapshotCount);
+                Assert.Equal(TimeLineEventCode.PLAN_BUILD, kitSnapshot.CurrentTimeLineCode);
+                Assert.Equal(SnapshotChangeStatus.Changed, kitSnapshot.TxType);
+
+                var partnerStatusDTO = await partnerStatusBuilder.GeneratePartnerStatusFilePaylaod(snapshotRun.PlantCode, snapshotRun.Sequence);
+                var detailLine = partnerStatusDTO.PayloadText.Split('\n')[1];
+                var customReceiveDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPRE_STATUS_DATE);
+                var planBuildDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBP_STATUS_DATE);
+                var buildCompleteDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBC_STATUS_DATE);
+                var originalPlanBuild = detailLineParser.GetFieldValue(detailLine, t => t.PST_BUILD_DATE);
+                Assert.True(!String.IsNullOrWhiteSpace(customReceiveDate));
+                Assert.True(!String.IsNullOrWhiteSpace(planBuildDate));
+                Assert.True(String.IsNullOrWhiteSpace(buildCompleteDate));
+                Assert.True(!String.IsNullOrWhiteSpace(originalPlanBuild));
+            }
+
+            async Task AssertDay_3() {
+                snapshotInput.RunDate = snapshotInput.RunDate.Value.AddDays(1);
+                snapShotPayload = await snapShotService.GenerateSnapshot(snapshotInput);
+                snapshotRun = await snapShotService.GetSnapshotRunBySequence(snapshotInput.PlantCode, snapShotPayload.Payload.Sequence);
+                kitSnapshot = snapshotRun.Entries.First(t => t.KitNo == kit.KitNo);
+                snapshotCount = await context.KitSnapshots.CountAsync();
+                Assert.Equal(3, snapshotCount);
+                Assert.Equal(TimeLineEventCode.BUILD_COMPLETED, kitSnapshot.CurrentTimeLineCode);
+                Assert.Equal(SnapshotChangeStatus.Changed, kitSnapshot.TxType);
+
+                var partnerStatusDTO = await partnerStatusBuilder.GeneratePartnerStatusFilePaylaod(snapshotRun.PlantCode, snapshotRun.Sequence);
+                var detailLine = partnerStatusDTO.PayloadText.Split('\n')[1];
+                var customReceiveDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPRE_STATUS_DATE);
+                var planBuildDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBP_STATUS_DATE);
+                var buildCompleteDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBC_STATUS_DATE);
+                var originalPlanBuild = detailLineParser.GetFieldValue(detailLine, t => t.PST_BUILD_DATE);
+
+                Assert.True(!String.IsNullOrWhiteSpace(customReceiveDate));
+                Assert.True(!String.IsNullOrWhiteSpace(planBuildDate));
+                Assert.True(!String.IsNullOrWhiteSpace(buildCompleteDate));
+                Assert.True(!String.IsNullOrWhiteSpace(originalPlanBuild));
+
+            }
+
+            async Task AssertDay_4() {
+                snapshotInput.RunDate = snapshotInput.RunDate.Value.AddDays(1);
+                snapShotPayload = await snapShotService.GenerateSnapshot(snapshotInput);
+                snapshotRun = await snapShotService.GetSnapshotRunBySequence(snapshotInput.PlantCode, snapShotPayload.Payload.Sequence);
+                kitSnapshot = snapshotRun.Entries.First(t => t.KitNo == kit.KitNo);
+                snapshotCount = await context.KitSnapshots.CountAsync();
+                Assert.Equal(4, snapshotCount);
+                Assert.Equal(TimeLineEventCode.BUILD_COMPLETED, kitSnapshot.CurrentTimeLineCode);
+                Assert.Equal(SnapshotChangeStatus.NoChange, kitSnapshot.TxType);
+
+                var partnerStatusDTO = await partnerStatusBuilder.GeneratePartnerStatusFilePaylaod(snapshotRun.PlantCode, snapshotRun.Sequence);
+                var detailLine = partnerStatusDTO.PayloadText.Split('\n')[1];
+                var customReceiveDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPRE_STATUS_DATE);
+                var planBuildDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBP_STATUS_DATE);
+                var buildCompleteDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBC_STATUS_DATE);
+                Assert.True(!String.IsNullOrWhiteSpace(customReceiveDate));
+                Assert.True(!String.IsNullOrWhiteSpace(planBuildDate));
+                Assert.True(!String.IsNullOrWhiteSpace(buildCompleteDate));
+
+            }
+
         }
-
-        async Task AssertDay_2() {
-            snapshotInput.RunDate = snapshotInput.RunDate.Value.AddDays(1);
-            snapShotPayload = await snapShotService.GenerateSnapshot(snapshotInput);
-            snapshotRun = await snapShotService.GetSnapshotRunBySequence(snapshotInput.PlantCode, snapShotPayload.Payload.Sequence);
-            kitSnapshot = snapshotRun.Entries.First(t => t.KitNo == kit.KitNo);
-            snapshotCount = await context.KitSnapshots.CountAsync();
-            Assert.Equal(2, snapshotCount);
-            Assert.Equal(TimeLineEventCode.PLAN_BUILD, kitSnapshot.CurrentTimeLineCode);
-            Assert.Equal(SnapshotChangeStatus.Changed, kitSnapshot.TxType);
-
-            var partnerStatusDTO = await partnerStatusBuilder.GeneratePartnerStatusFilePaylaod(snapshotRun.PlantCode, snapshotRun.Sequence);
-            var detailLine = partnerStatusDTO.PayloadText.Split('\n')[1];
-            var customReceiveDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPRE_STATUS_DATE);
-            var planBuildDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBP_STATUS_DATE);
-            var buildCompleteDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBC_STATUS_DATE);
-            var originalPlanBuild = detailLineParser.GetFieldValue(detailLine, t => t.PST_BUILD_DATE);
-            Assert.True(!String.IsNullOrWhiteSpace(customReceiveDate));
-            Assert.True(!String.IsNullOrWhiteSpace(planBuildDate));
-            Assert.True(String.IsNullOrWhiteSpace(buildCompleteDate));
-            Assert.True(!String.IsNullOrWhiteSpace(originalPlanBuild));
-        }
-
-        async Task AssertDay_3() {
-            snapshotInput.RunDate = snapshotInput.RunDate.Value.AddDays(1);
-            snapShotPayload = await snapShotService.GenerateSnapshot(snapshotInput);
-            snapshotRun = await snapShotService.GetSnapshotRunBySequence(snapshotInput.PlantCode, snapShotPayload.Payload.Sequence);
-            kitSnapshot = snapshotRun.Entries.First(t => t.KitNo == kit.KitNo);
-            snapshotCount = await context.KitSnapshots.CountAsync();
-            Assert.Equal(3, snapshotCount);
-            Assert.Equal(TimeLineEventCode.BUILD_COMPLETED, kitSnapshot.CurrentTimeLineCode);
-            Assert.Equal(SnapshotChangeStatus.Changed, kitSnapshot.TxType);
-
-            var partnerStatusDTO = await partnerStatusBuilder.GeneratePartnerStatusFilePaylaod(snapshotRun.PlantCode, snapshotRun.Sequence);
-            var detailLine = partnerStatusDTO.PayloadText.Split('\n')[1];
-            var customReceiveDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPRE_STATUS_DATE);
-            var planBuildDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBP_STATUS_DATE);
-            var buildCompleteDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBC_STATUS_DATE);
-            var originalPlanBuild = detailLineParser.GetFieldValue(detailLine, t => t.PST_BUILD_DATE);
-
-            Assert.True(!String.IsNullOrWhiteSpace(customReceiveDate));
-            Assert.True(!String.IsNullOrWhiteSpace(planBuildDate));
-            Assert.True(!String.IsNullOrWhiteSpace(buildCompleteDate));
-            Assert.True(!String.IsNullOrWhiteSpace(originalPlanBuild));
-
-        }
-
-        async Task AssertDay_4() {
-            snapshotInput.RunDate = snapshotInput.RunDate.Value.AddDays(1);
-            snapShotPayload = await snapShotService.GenerateSnapshot(snapshotInput);
-            snapshotRun = await snapShotService.GetSnapshotRunBySequence(snapshotInput.PlantCode, snapShotPayload.Payload.Sequence);
-            kitSnapshot = snapshotRun.Entries.First(t => t.KitNo == kit.KitNo);
-            snapshotCount = await context.KitSnapshots.CountAsync();
-            Assert.Equal(4, snapshotCount);
-            Assert.Equal(TimeLineEventCode.BUILD_COMPLETED, kitSnapshot.CurrentTimeLineCode);
-            Assert.Equal(SnapshotChangeStatus.NoChange, kitSnapshot.TxType);
-
-            var partnerStatusDTO = await partnerStatusBuilder.GeneratePartnerStatusFilePaylaod(snapshotRun.PlantCode, snapshotRun.Sequence);
-            var detailLine = partnerStatusDTO.PayloadText.Split('\n')[1];
-            var customReceiveDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPRE_STATUS_DATE);
-            var planBuildDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBP_STATUS_DATE);
-            var buildCompleteDate = detailLineParser.GetFieldValue(detailLine, t => t.PST_FPBC_STATUS_DATE);
-            Assert.True(!String.IsNullOrWhiteSpace(customReceiveDate));
-            Assert.True(!String.IsNullOrWhiteSpace(planBuildDate));
-            Assert.True(!String.IsNullOrWhiteSpace(buildCompleteDate));
-
-        }
-
-    }
-
+    */
 
     [Fact]
     public async Task Cannot_generate_snapshot_with_same_run_date() {

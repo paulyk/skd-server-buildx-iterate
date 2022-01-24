@@ -31,6 +31,7 @@ public class KitSnapshot : EntityBase {
     public string EngineSerialNumber { get; set; }
     public DateTime? CustomReceived { get; set; }
     public DateTime? PlanBuild { get; set; }
+    public DateTime? VINcheck { get; set; }
     public DateTime? OrginalPlanBuild { get; set; }
     public DateTime? BuildCompleted { get; set; }
     public DateTime? GateRelease { get; set; }
