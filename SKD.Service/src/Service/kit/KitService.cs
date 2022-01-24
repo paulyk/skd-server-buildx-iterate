@@ -280,13 +280,8 @@ public class KitService {
         // WHOLESALE kit must be associated with dealer to proceed
         if (input.EventType == TimeLineEventCode.WHOLE_SALE) {
             if (String.IsNullOrWhiteSpace(input.DealerCode)) {
-                if (kit.Dealer == null) {
-                    errors.Add(new Error("", $"Kit must be associated with dealer ${kit.KitNo}"));
-                    return errors;
-                }
-            } else {
-                var dealer = await context.Dealers.FirstOrDefaultAsync(t => t.Code == input.DealerCode);
-                if (dealer == null) {
+                var dealerExits = await context.Dealers.AnyAsync(t => t.Code == input.DealerCode);
+                if (dealerExits) {
                     errors.Add(new Error("", $"Dealer not found for code ${input.DealerCode}"));
                     return errors;
                 }
