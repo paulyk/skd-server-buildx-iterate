@@ -130,6 +130,9 @@ public class PartnerStatusBuilder {
                     FormattedDate(snapshot.CustomReceived, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
                 detailLineParser.CreateFieldValue(
                     t => t.PST_FPBP_STATUS_DATE,
+                    FormattedDate(snapshot.VINcheck, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
+                detailLineParser.CreateFieldValue(
+                    t => t.PST_FPBS_STATUS_DATE,
                     FormattedDate(snapshot.PlanBuild, PartnerStatusLayout.PST_STATUS_DATE_FORMAT)),
                 detailLineParser.CreateFieldValue(
                     t => t.PST_FPBC_STATUS_DATE,

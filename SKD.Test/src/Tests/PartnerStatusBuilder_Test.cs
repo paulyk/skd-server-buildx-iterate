@@ -3,11 +3,12 @@ namespace SKD.Test;
 public class PartnerStatusBuilder_Test : TestBase {
 
     private readonly string DEALEAR_CODE = "DLR13";
-    private readonly DateTime CUSTOM_RECEIVED_DATE = DateTime.UtcNow.AddDays(-15).Date;
-    private readonly DateTime PLAN_BUILD_DATE = DateTime.UtcNow.AddDays(-7).Date;
-    private readonly DateTime BUILD_COMPLETE_DATE = DateTime.UtcNow.AddDays(-6).Date;
-    private readonly DateTime GATE_RELEASE_DATE = DateTime.UtcNow.AddDays(-3).Date;
-    private readonly DateTime WHOLESALED_DATE = DateTime.UtcNow.AddDays(-2).Date;
+    private readonly DateTime CUSTOM_RECEIVED_DATE = DateTime.UtcNow.AddDays(0).Date;
+    private readonly DateTime VIN_CHECK_DATE = DateTime.UtcNow.AddDays(5).Date;
+    private readonly DateTime PLAN_BUILD_DATE = DateTime.UtcNow.AddDays(6).Date;
+    private readonly DateTime BUILD_COMPLETE_DATE = DateTime.UtcNow.AddDays(8).Date;
+    private readonly DateTime GATE_RELEASE_DATE = DateTime.UtcNow.AddDays(10).Date;
+    private readonly DateTime WHOLESALED_DATE = DateTime.UtcNow.AddDays(12).Date;
     private readonly string ENGINE_SERIAL = "GRBPA20346000023FB3Q 6007 AE3E MORE THAN";
 
     public PartnerStatusBuilder_Test() {
@@ -171,6 +172,7 @@ public class PartnerStatusBuilder_Test : TestBase {
                 EngineSerialNumber = ENGINE_SERIAL,
                 CustomReceived = CUSTOM_RECEIVED_DATE,
                 PlanBuild = PLAN_BUILD_DATE,
+                VINcheck = VIN_CHECK_DATE,
                 OrginalPlanBuild = (DateTime?)null,
                 BuildCompleted = BUILD_COMPLETE_DATE,
                 GateRelease = GATE_RELEASE_DATE,
