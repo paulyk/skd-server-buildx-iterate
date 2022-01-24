@@ -5,7 +5,7 @@ namespace SKD.Service;
 public class KitSnapshotService {
 
     private readonly SkdContext context;
-    private readonly int wholeSateCutOffDays = 7;
+    public static readonly int WholeSateCutOffDays = 7;
 
     public KitSnapshotService(SkdContext ctx) {
         this.context = ctx;
@@ -57,7 +57,7 @@ public class KitSnapshotService {
             KitSnapshot ks = new() { Kit = kit };
             ks.ChangeStatusCode = GetKit_PartnerStatus_ChangeStatus(kit, priorSnapshot);
             ks.VIN = Get_VIN_If_BuildCompleted(kit);
-            ks.DealerCode = kit.Dealer?.Code;
+            ks.DealerCode = kit.Dealer?.Code != null ?  kit.Dealer.Code : "";
             ks.EngineSerialNumber = await GetEngineSerialNumber(kit, input.EngineComponentCode);
 
             ks.CustomReceived = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.CUSTOM_RECEIVED);
@@ -74,7 +74,7 @@ public class KitSnapshotService {
 
         // reject if no changes
         if (input.RejectIfNoChanges) {
-            bool hasChanges = kitSnapshotRun.KitSnapshots.Any(x => x.ChangeStatusCode != PartnerStatus_ChangeStatus.NoChange);
+            bool hasChanges = kitSnapshotRun.KitSnapshots.Any(x => x.ChangeStatusCode != SnapshotChangeStatus.NoChange);
             if (!hasChanges) {
                 result.Errors.Add(new Error("", "No changes since last snapshot"));
                 return result;
@@ -90,7 +90,7 @@ public class KitSnapshotService {
             RunDate = input.RunDate.Value.Date,
             PlantCode = input.PlantCode,
             SnapshotCount = kitSnapshotRun.KitSnapshots.Count,
-            ChangedCount = kitSnapshotRun.KitSnapshots.Count(x => x.ChangeStatusCode != PartnerStatus_ChangeStatus.NoChange),
+            ChangedCount = kitSnapshotRun.KitSnapshots.Count(x => x.ChangeStatusCode != SnapshotChangeStatus.NoChange),
             Sequence = kitSnapshotRun.Sequence
         };
 
@@ -136,7 +136,7 @@ public class KitSnapshotService {
                 t.TimelineEvents.Any(ev =>
                     ev.RemovedAt == null &&
                     ev.EventType.Code == TimeLineEventCode.WHOLE_SALE &&
-                    ev.EventDate.AddDays(wholeSateCutOffDays) > input.RunDate
+                    ev.EventDate.AddDays(WholeSateCutOffDays) > input.RunDate
                 )
             ).AsQueryable();
 
@@ -332,25 +332,25 @@ public class KitSnapshotService {
     /// Change = if prior snapshot and any current timeline event not in prior snapshot.
     /// No-change = otherwise no change
     ///</remarks>
-    private PartnerStatus_ChangeStatus GetKit_PartnerStatus_ChangeStatus(Kit kit, KitSnapshot? priorSnapshot) {
+    private SnapshotChangeStatus GetKit_PartnerStatus_ChangeStatus(Kit kit, KitSnapshot? priorSnapshot) {
 
         // ADDED if no prior snapshot 
         if (priorSnapshot == null) {
-            return PartnerStatus_ChangeStatus.Added;
+            return SnapshotChangeStatus.Added;
         }
 
         // FINAL if has wholesate then FINaL
         if (KitHasTimelineEvent(kit, TimeLineEventCode.WHOLE_SALE)) {
-            return PartnerStatus_ChangeStatus.Final;
+            return SnapshotChangeStatus.Final;
         }
 
         // CHANGE
         if (ChangedFromPriorSnapshot(priorSnapshot, kit)) {
-            return PartnerStatus_ChangeStatus.Changed;
+            return SnapshotChangeStatus.Changed;
         }
 
         // NO-CHANGE otherwise
-        return PartnerStatus_ChangeStatus.NoChange;
+        return SnapshotChangeStatus.NoChange;
 
 
         bool ChangedFromPriorSnapshot(KitSnapshot priorsnapshot, Kit kit) {

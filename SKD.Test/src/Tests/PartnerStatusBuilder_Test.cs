@@ -164,7 +164,7 @@ public class PartnerStatusBuilder_Test : TestBase {
             Sequence = 1,
             KitSnapshots = lot.Kits.Select(kit => new KitSnapshot {
                 Kit = kit,
-                ChangeStatusCode = PartnerStatus_ChangeStatus.Added,
+                ChangeStatusCode = SnapshotChangeStatus.Added,
                 KitTimeLineEventType = timelineEventType,
                 VIN = kit.VIN,
                 DealerCode = DEALEAR_CODE,

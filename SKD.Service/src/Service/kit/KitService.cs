@@ -184,10 +184,9 @@ public class KitService {
             EventNote = input.EventNote
         };
 
-        // if wholesale event set the kit dealer code
-        if (input.EventType == TimeLineEventCode.WHOLE_SALE) {
-            // As of this moment: There should only be on dealer code.
-            kit.Dealer = await context.Dealers.FirstOrDefaultAsync();
+        // Set kit dealer code if provided
+        if (!String.IsNullOrWhiteSpace(input.DealerCode)) {
+            kit.Dealer = await context.Dealers.FirstOrDefaultAsync(t => t.Code == input.DealerCode);
         }
 
         kit.TimelineEvents.Add(newTimelineEvent);
@@ -205,6 +204,7 @@ public class KitService {
         var kit = await context.Kits.AsNoTracking()
             .Include(t => t.Lot)
             .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
+            .Include(t => t.Dealer)
             .FirstOrDefaultAsync(t => t.KitNo == input.KitNo);
 
         if (kit == null) {
@@ -233,22 +233,6 @@ public class KitService {
             errors.Add(new Error("", $"duplicate kit timeline event: {input.EventType} {dateStr} "));
             return errors;
         }
-
-        /* REMOVED: 
-        Can change timeline event date.
-        Cannot change after WHOLESALE needs to be added.
-
-        // kit timeline event snapshot aready taken        
-        var exitingKitSnapnshot = await context.KitSnapshots
-            .Where(t => t.Kit.KitNo == input.KitNo)
-            .Where(t => t.KitTimeLineEventType.Code == input.EventType)
-            .FirstOrDefaultAsync();
-
-        if (exitingKitSnapnshot != null) {
-            errors.Add(new Error("", $"cannot change date after snapshot taken"));
-            return errors;
-        }
-        */
 
         // missing prerequisite timeline events
         var currentTimelineEventType = await context.KitTimelineEventTypes
@@ -293,15 +277,19 @@ public class KitService {
             }
         }
 
+        // WHOLESALE kit must be associated with dealer to proceed
         if (input.EventType == TimeLineEventCode.WHOLE_SALE) {
             if (String.IsNullOrWhiteSpace(input.DealerCode)) {
-                errors.Add(new Error("", "Dealer code required"));
-                return errors;
-            }
-            var dealer = await context.Dealers.FirstOrDefaultAsync(t => t.Code == input.DealerCode);
-            if (dealer == null) {
-                errors.Add(new Error("", $"Dealer not found for: {input.DealerCode}"));
-                return errors;
+                if (kit.Dealer == null) {
+                    errors.Add(new Error("", $"Kit must be associated with dealer ${kit.KitNo}"));
+                    return errors;
+                }
+            } else {
+                var dealer = await context.Dealers.FirstOrDefaultAsync(t => t.Code == input.DealerCode);
+                if (dealer == null) {
+                    errors.Add(new Error("", $"Dealer not found for code ${input.DealerCode}"));
+                    return errors;
+                }
             }
         }
 

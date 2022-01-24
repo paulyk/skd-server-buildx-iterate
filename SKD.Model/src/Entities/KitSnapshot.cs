@@ -1,6 +1,6 @@
 namespace SKD.Model;
 
-public enum PartnerStatus_ChangeStatus {
+public enum SnapshotChangeStatus {
     Added,
     Changed,
     NoChange,
@@ -10,6 +10,7 @@ public enum PartnerStatus_ChangeStatus {
 public enum FordTimeLineCode {
     FPCR,       // Custom Received               
     FPBP,       // Planed Build Date Set / Change
+    FPBS,       // Build Start (Check if VIN should be changed)
     FPBC,       // Build Completed At     
     FPGR,       // Gate Release         
     FPWS        // Wholesale Date         
@@ -20,7 +21,7 @@ public class KitSnapshot : EntityBase {
     public KitSnapshotRun KitSnapshotRun { get; set; }
     public Guid KitId { get; set; }
     public Kit Kit { get; set; }
-    public PartnerStatus_ChangeStatus ChangeStatusCode { get; set; }
+    public SnapshotChangeStatus ChangeStatusCode { get; set; }
 
     public Guid KitTimeLineEventTypeId { get; set; }
     public KitTimelineEventType KitTimeLineEventType { get; set; }

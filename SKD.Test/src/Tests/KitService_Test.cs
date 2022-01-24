@@ -320,17 +320,17 @@ public class KitServiceTest : TestBase {
     public async Task Create_kit_timeline_event_with_note() {
         // setup
         var kit = context.Kits.First();
+        var dealerCode = context.Dealers.First().Code;
         await Gen_ShipmentLot_ForKit(kit.KitNo);
 
-        var dealer = await context.Dealers.FirstOrDefaultAsync();
         var eventNote = Util.RandomString(15);
         var baseDate = DateTime.Now.Date;
-        var timelineEventItems = new List<(TimeLineEventCode eventType, DateTime trxDate, DateTime eventDate, string eventNode, string dealerCode)>() {
-                (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(2), baseDate.AddDays(1) , eventNote, null),
-                (TimeLineEventCode.PLAN_BUILD, baseDate.AddDays(3), baseDate.AddDays(5), eventNote, null),
-                (TimeLineEventCode.BUILD_COMPLETED, baseDate.AddDays(8), baseDate.AddDays(8), eventNote, null),
-                (TimeLineEventCode.GATE_RELEASED, baseDate.AddDays(10), baseDate.AddDays(10), eventNote, null),
-                (TimeLineEventCode.WHOLE_SALE, baseDate.AddDays(11), baseDate.AddDays(11), eventNote, dealer.Code),
+        var timelineEventItems = new List<(TimeLineEventCode eventType, DateTime trxDate, DateTime eventDate, string eventNode)>() {
+                (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(2), baseDate.AddDays(1) , eventNote),
+                (TimeLineEventCode.PLAN_BUILD, baseDate.AddDays(3), baseDate.AddDays(5), eventNote),
+                (TimeLineEventCode.BUILD_COMPLETED, baseDate.AddDays(8), baseDate.AddDays(8), eventNote),
+                (TimeLineEventCode.GATE_RELEASED, baseDate.AddDays(10), baseDate.AddDays(10), eventNote),
+                (TimeLineEventCode.WHOLE_SALE, baseDate.AddDays(11), baseDate.AddDays(11), eventNote),
             };
 
         // test
@@ -344,7 +344,7 @@ public class KitServiceTest : TestBase {
                 EventType = entry.eventType,
                 EventDate = entry.eventDate,
                 EventNote = entry.eventNode,
-                DealerCode = entry.dealerCode
+                DealerCode = dealerCode
             };
             service = new KitService(context, entry.trxDate, planBuildLeadTimeDays);
             var result = await service.CreateKitTimelineEvent(input);

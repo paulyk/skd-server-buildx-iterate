@@ -9,7 +9,7 @@ public class KitSnapshotRunDTO {
     public string PartnerPlantType { get; set; }
     public ICollection<Entry> Entries { get; set; } = new List<Entry>();
     public class Entry {
-        public PartnerStatus_ChangeStatus TxType { get; set; }
+        public SnapshotChangeStatus TxType { get; set; }
         public TimeLineEventCode CurrentTimeLineCode { get; set; }
         public string LotNo { get; set; }
         public string KitNo { get; set; }
