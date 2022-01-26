@@ -17,7 +17,7 @@ namespace SKD.Service {
         }
 
         public async Task<MutationResult<ShipmentOverviewDTO>> ImportShipment(ShipFile input) {
-            MutationResult<ShipmentOverviewDTO> result = new ();
+            MutationResult<ShipmentOverviewDTO> result = new();
             result.Errors = await ValidateShipmentInput<ShipFile>(input);
             if (result.Errors.Count > 0) {
                 return result;
@@ -54,10 +54,10 @@ namespace SKD.Service {
             return await partService.GetEnsureParts(inputParts);
         }
 
-        private async  Task<Shipment> AddShipment(ShipFile input, Plant plant, List<Part> parts) {
+        private async Task<Shipment> AddShipment(ShipFile input, Plant plant, List<Part> parts) {
             // lots
             var lotNos = input.Lots.Select(t => t.LotNo).ToList();
-            var lots = await context.Lots.Where(t => lotNos.Any(lotNos=> lotNos == t.LotNo)).ToListAsync();
+            var lots = await context.Lots.Where(t => lotNos.Any(lotNos => lotNos == t.LotNo)).ToListAsync();
 
             // create shipment
             var shipment = new Shipment() {
@@ -224,7 +224,7 @@ namespace SKD.Service {
 
                 HandlingUnitCount = t.ShipmentLots.SelectMany(t => t.Invoices).SelectMany(t => t.HandlingUnits).Count(),
                 HandlingUnitReceivedCount = t.ShipmentLots.SelectMany(t => t.Invoices).SelectMany(t => t.HandlingUnits)
-                    .Where(t => t.Received.Any(t => t.RemovedAt== null)).Count(),                
+                    .Where(t => t.Received.Any(t => t.RemovedAt == null)).Count(),
 
                 LotPartCount = t.ShipmentLots.SelectMany(u => u.Lot.LotParts).Count(),
                 LotPartReceivedCount = t.ShipmentLots.SelectMany(u => u.Lot.LotParts)

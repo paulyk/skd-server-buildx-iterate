@@ -203,6 +203,7 @@ public class KitSnapshotService {
                 CustomReceived = entry.CustomReceived,
                 OriginalPlanBuild = entry.OrginalPlanBuild,
                 PlanBuild = entry.PlanBuild,
+                VerifyVIN = entry.VerifyVIN,
                 BuildCompleted = entry.BuildCompleted,
                 GateRelease = entry.GateRelease,
                 Wholesale = entry.Wholesale

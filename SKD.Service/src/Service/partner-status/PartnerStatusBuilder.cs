@@ -178,6 +178,7 @@ public class PartnerStatusBuilder {
         timeLineEventType switch {
             TimeLineEventCode.CUSTOM_RECEIVED => FordTimeLineCode.FPCR.ToString(),
             TimeLineEventCode.PLAN_BUILD => FordTimeLineCode.FPBP.ToString(),
+            TimeLineEventCode.VERIFY_VIN => FordTimeLineCode.FPBS.ToString(),
             TimeLineEventCode.BUILD_COMPLETED => FordTimeLineCode.FPBC.ToString(),
             TimeLineEventCode.GATE_RELEASED => FordTimeLineCode.FPGR.ToString(),
             TimeLineEventCode.WHOLE_SALE => FordTimeLineCode.FPWS.ToString(),

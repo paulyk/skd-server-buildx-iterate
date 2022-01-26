@@ -149,6 +149,34 @@ public class TestBase {
         return plant;
     }
 
+    public async Task Gen_KitVinImport(string kitNo, string vin) {
+
+        var kit = await context.Kits
+            .Include(t => t.Lot).ThenInclude(t => t.Plant)
+            .Include(t => t.KitVins)
+            .FirstAsync(t => t.KitNo == kitNo);
+
+        context.KitVinImports.Add(new KitVinImport {
+            Plant = kit.Lot.Plant,
+            PartnerPlantCode = kit.Lot.Plant.PartnerPlantCode,
+            Sequence = 1,
+            KitVins = new List<KitVin> {
+                new KitVin {
+                    Kit = kit,
+                    VIN = vin
+                }
+            }
+        });
+
+        kit.VIN = vin;
+
+        await context.SaveChangesAsync();
+
+        kit = await context.Kits
+            .Include(t => t.KitVins)
+            .FirstAsync(t => t.KitNo == kitNo);
+    }
+
     public List<ProductionStation> Gen_ProductionStations(params string[] codes) {
         var stationCodes = codes.Where(code => !context.ProductionStations.Any(t => t.Code == code)).ToList();
 

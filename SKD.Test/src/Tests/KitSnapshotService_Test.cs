@@ -163,9 +163,15 @@ public class KitSnapshotServiceTest : TestBase {
             if (input != null) {
                 if (input.EventInput != null) {                    
                     var kitService = new KitService(context, baseDate.AddDays(day), planBuildLeadTimeDays);
+
+                    // VIN required if VERIFY_VIN
+                    if (input.EventInput.Value.EventCode == TimeLineEventCode.VERIFY_VIN) {
+                        await Gen_KitVinImport(kit.KitNo, Gen_VIN());
+                    }
+
                     await kitService.CreateKitTimelineEvent(new() {
                         KitNo = kit.KitNo,
-                        EventType = input.EventInput.Value.EventCode,
+                        EventCode = input.EventInput.Value.EventCode,
                         EventDate = baseDate.AddDays(input.EventInput.Value.EventOnDay),
                         DealerCode = input.EventInput.Value.DealerCode
                     });
@@ -194,31 +200,6 @@ public class KitSnapshotServiceTest : TestBase {
             }
             day++;
         }
-
-        // await kitService.CreateKitTimelineEvent(new() {
-        //     KitNo = kit.KitNo,
-        //     EventType = entry.kitEvent.eventCode,
-        //     EventDate = entry.kitEvent.eventDate,
-        //     DealerCode = entry.kitEvent.dealerCode
-        // });
-
-        // var result = await snapShotService.GenerateSnapshot(new KitSnapshotInput {
-        //     PlantCode = plantCode,
-        //     RunDate = entry.runDate,
-        //     EngineComponentCode = engineCode
-        // });
-
-        // var kitSnapshot = await context.KitSnapshots
-        //     .Include(t => t.Kit).ThenInclude(t => t.Dealer)
-        //     .Include(t => t.KitTimeLineEventType)
-        //     .Include(t => t.KitSnapshotRun)
-        //     .Where(t => t.KitSnapshotRun.RunDate == entry.runDate)
-        //     .FirstOrDefaultAsync();
-
-        // Assert.Equal(entry.expectedChangeStatus, kitSnapshot.ChangeStatusCode);
-        // Assert.Equal(entry.expectedEventCode, kitSnapshot.KitTimeLineEventType.Code);
-        // Assert.Equal(entry.expectedDealerCode, kitSnapshot.Kit.Dealer?.Code);
-
     }
 
     [Fact]
@@ -299,9 +280,11 @@ public class KitSnapshotServiceTest : TestBase {
         Assert.Equal(TimeLineEventCode.PLAN_BUILD, kitSnapshot.CurrentTimeLineCode);
         Assert.Equal(SnapshotChangeStatus.NoChange, kitSnapshot.TxType);
 
-        // 4. vin check
+        // 5. verify vin (VIN required on kit)
         eventDate = dates.Where(t => t.eventType == TimelineTestEvent.VIN_CHECK).First().date;
         snapshotInput.RunDate = eventDate;
+
+        await Gen_KitVinImport(kit.KitNo, Gen_VIN());
         await AddKitTimelineEntry(TimeLineEventCode.VERIFY_VIN, kit.KitNo, "", "", eventDate, eventDate);
         await service.GenerateSnapshot(snapshotInput);
 
@@ -771,7 +754,7 @@ public class KitSnapshotServiceTest : TestBase {
         var service = new KitService(context, trxDate, planBuildLeadTimeDays);
         var result = await service.CreateKitTimelineEvent(new KitTimelineEventInput {
             KitNo = kitNo,
-            EventType = eventType,
+            EventCode = eventType,
             EventNote = eventNote,
             EventDate = eventDate,
             DealerCode = dealerCode
