@@ -120,7 +120,7 @@ public class PartnerStatusBuilder_Test : TestBase {
 
             // PST_CURRENT_STATUS
             var actual_PST_CURRENT_STATUS = detailLineParser.GetFieldValue(firstDetailLine, t => t.PST_CURRENT_STATUS);
-            Assert.Equal(service.ToFordTimelineCode(firstKitSnapshot.KitTimeLineEventType.Code), actual_PST_CURRENT_STATUS);
+            Assert.Equal(PartnerStatusBuilder.ToFordTimelineCode(firstKitSnapshot.KitTimeLineEventType.Code).ToString(), actual_PST_CURRENT_STATUS);
 
             // PST_ENGINE_SERIAL_NUMBER
             var expected_EngineSerial = ENGINE_SERIAL.Substring(0, detailLayout.PST_ENGINE_SERIAL_NUMBER);
@@ -163,6 +163,31 @@ public class PartnerStatusBuilder_Test : TestBase {
             var actual_TLR_TOTAL_RECORDS = int.Parse(trailerLineParser.GetFieldValue(trailerLineText, t => t.TLR_TOTAL_RECORDS));
             Assert.Equal(lines.Length, actual_TLR_TOTAL_RECORDS);
         }
+    }
+
+    [Fact]
+    public void PartnerStatusBuilder_ToFordTimelineCode_works() {
+        Assert.Equal(FordTimeLineCode.FPCR, PartnerStatusBuilder.ToFordTimelineCode(TimeLineEventCode.CUSTOM_RECEIVED));
+        Assert.Equal(FordTimeLineCode.FPBP, PartnerStatusBuilder.ToFordTimelineCode(TimeLineEventCode.PLAN_BUILD));
+        Assert.Equal(FordTimeLineCode.FPBS, PartnerStatusBuilder.ToFordTimelineCode(TimeLineEventCode.VERIFY_VIN));
+        Assert.Equal(FordTimeLineCode.FPBC, PartnerStatusBuilder.ToFordTimelineCode(TimeLineEventCode.BUILD_COMPLETED));
+        Assert.Equal(FordTimeLineCode.FPGR, PartnerStatusBuilder.ToFordTimelineCode(TimeLineEventCode.GATE_RELEASED));
+        Assert.Equal(FordTimeLineCode.FPWS, PartnerStatusBuilder.ToFordTimelineCode(TimeLineEventCode.WHOLE_SALE));
+    }
+
+    [Fact]
+    private void ToFordTimelineCode_works() {
+        Exception exception = null;
+        try {
+            var values = Enum.GetValues<TimeLineEventCode>();
+            foreach (var eventCode in values) {
+                var result = PartnerStatusBuilder.ToFordTimelineCode(eventCode);
+            }
+        } catch (Exception ex) {
+            exception = ex;
+        }
+
+        Assert.Null(exception);
     }
 
     private async Task<KitSnapshotRun> GenerateKitSnapshotRun_TestData() {

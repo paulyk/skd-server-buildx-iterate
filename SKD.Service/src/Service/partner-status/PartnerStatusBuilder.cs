@@ -117,7 +117,7 @@ public class PartnerStatusBuilder {
                 ),
                 detailLineParser.CreateFieldValue(
                     t => t.PST_CURRENT_STATUS,
-                    ToFordTimelineCode(snapshot.KitTimeLineEventType.Code)
+                    ToFordTimelineCode(snapshot.KitTimeLineEventType.Code).ToString()
                 ),
 
                 detailLineParser.CreateFieldValue(t => t.PST_IP1R_STATUS_DATE, ""),
@@ -174,14 +174,14 @@ public class PartnerStatusBuilder {
         return lineBuilder.Build(fields);
     }
 
-    public string ToFordTimelineCode(TimeLineEventCode timeLineEventType) =>
+    public static FordTimeLineCode ToFordTimelineCode(TimeLineEventCode timeLineEventType) =>
         timeLineEventType switch {
-            TimeLineEventCode.CUSTOM_RECEIVED => FordTimeLineCode.FPCR.ToString(),
-            TimeLineEventCode.PLAN_BUILD => FordTimeLineCode.FPBP.ToString(),
-            TimeLineEventCode.VERIFY_VIN => FordTimeLineCode.FPBS.ToString(),
-            TimeLineEventCode.BUILD_COMPLETED => FordTimeLineCode.FPBC.ToString(),
-            TimeLineEventCode.GATE_RELEASED => FordTimeLineCode.FPGR.ToString(),
-            TimeLineEventCode.WHOLE_SALE => FordTimeLineCode.FPWS.ToString(),
+            TimeLineEventCode.CUSTOM_RECEIVED => FordTimeLineCode.FPCR,
+            TimeLineEventCode.PLAN_BUILD => FordTimeLineCode.FPBP,
+            TimeLineEventCode.VERIFY_VIN => FordTimeLineCode.FPBS,
+            TimeLineEventCode.BUILD_COMPLETED => FordTimeLineCode.FPBC,
+            TimeLineEventCode.GATE_RELEASED => FordTimeLineCode.FPGR,
+            TimeLineEventCode.WHOLE_SALE => FordTimeLineCode.FPWS,
             _ => throw new Exception("Unexpected timeline event")
         };
 
@@ -189,6 +189,6 @@ public class PartnerStatusBuilder {
     private string FormattedDate(DateTime? date, string dateFormat) {
         return date.HasValue
             ? date.Value.ToString(dateFormat)
-            : "";
+            : "";            
     }
 }
