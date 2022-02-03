@@ -103,7 +103,7 @@ public class KitServiceTest : TestBase {
         var newVin = Gen_VIN();
         var change_vin_kitNo = firstInput.Kits.Select(t => t.KitNo).First();
 
-        var secontInput = new VinFile {
+        var secondInput = new VinFile {
             PlantCode = firstInput.PlantCode,
             PartnerPlantCode = firstInput.PartnerPlantCode,
             Sequence = firstInput.Sequence + 1,
@@ -120,24 +120,29 @@ public class KitServiceTest : TestBase {
         var kitVinCount_before = await context.KitVins.CountAsync();
 
         // now import with one VIN change
-        var paylaod = service.ImportVIN(secontInput);
+        var paylaod = service.ImportVIN(secondInput);
 
         var kitVinCount_after = await context.KitVins.CountAsync();
         Assert.Equal(kitVinCount_before + 1, kitVinCount_after);
 
         // assert vin match for each kit
-        foreach (var inputKit in secontInput.Kits.ToList()) {
+        foreach (var inputKit in secondInput.Kits.ToList()) {
             var kit = await context.Kits
                 .Include(t => t.KitVins)
                 .FirstOrDefaultAsync(t => t.KitNo == inputKit.KitNo);
             Assert.Equal(inputKit.VIN, kit.VIN);
 
             var kitVins_count = kit.KitVins.Count();
+
             if (inputKit.VIN == newVin) {
                 Assert.Equal(2, kitVins_count);
+                // assert previous kit-vin entry flagged: RemovedAt
+                var old_kit_vin = kit.KitVins.First(t => t.VIN != newVin);
+                Assert.NotNull(old_kit_vin.RemovedAt);
             } else {
                 Assert.Equal(1, kitVins_count);
             }
+
         }
     }
 

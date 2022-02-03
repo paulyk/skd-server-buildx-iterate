@@ -389,7 +389,7 @@ public class Query {
     public VinFile ParseVinFile(string text) =>
         new VinFileParser().ParseVinFile(text);
 
-    public Task<KitVinAckDTO> GenerateKitVinAcknowledgment([Service] KitVinAckBuilder kitVinAckBuilder, string plantCode, int sequence) =>
+    public Task<KitVinAckDTO> GenVinImportAcknowledgment([Service] KitVinAckBuilder kitVinAckBuilder, string plantCode, int sequence) =>
         kitVinAckBuilder.GenerateKitVinAcknowledgment(plantCode, sequence);
 
     public FordInterfaceFileType GetFordInterfaceFileType(string filename) =>

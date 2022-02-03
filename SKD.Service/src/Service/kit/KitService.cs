@@ -39,13 +39,22 @@ public class KitService {
                 bool kitVinAlreadyExists = await context.KitVins.AnyAsync(t => t.Kit.KitNo == inputKitVin.KitNo && t.VIN == inputKitVin.VIN);
 
                 if (!kitVinAlreadyExists) {
-                    var kit = await context.Kits.FirstAsync(t => t.KitNo == inputKitVin.KitNo);
-                    kit.VIN = inputKitVin.VIN;
-                    var kitVin = new KitVin {
+                    var kit = await context.Kits
+                        .Include(t => t.KitVins)
+                        .FirstAsync(t => t.KitNo == inputKitVin.KitNo);
+                    
+                    // set kit.VIN to new VIN & add new kit.KinVin entry
+                    kit.VIN = inputKitVin.VIN;                    
+                    kitVinImport.KitVins.Add(new KitVin {
                         Kit = kit,
                         VIN = inputKitVin.VIN
-                    };
-                    kitVinImport.KitVins.Add(kitVin);
+                    });
+                    // Flag prior KitVin: RemovedAt
+                    kit.KitVins
+                        .Where(t => t.VIN != inputKitVin.VIN && t.RemovedAt == null)
+                        .ToList().ForEach(kv => { 
+                            kv.RemovedAt = DateTime.UtcNow;
+                        });                    
                 }
             }
 
