@@ -56,6 +56,7 @@ public class Query {
 
     public async Task<Kit?> GetKitByKitNo([Service] SkdContext context, string kitNo) {
         var result = await context.Kits.AsNoTracking()
+                .Include(t => t.Dealer)
                 .Include(t => t.Lot).ThenInclude(t => t.Model).ThenInclude(t => t.ModelComponents).ThenInclude(t => t.Component)
                 .Include(t => t.KitComponents).ThenInclude(t => t.Component)
                 .Include(t => t.KitComponents).ThenInclude(t => t.ProductionStation)
