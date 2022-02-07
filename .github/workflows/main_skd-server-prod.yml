@@ -10,31 +10,48 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@master
+      - uses: actions/checkout@v2
 
-    - name: Set up .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: '6.0.x'
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '6.0.x'
+          include-prerelease: true
 
-    - name: tests
-      run: dotnet test
+      - name: Build with dotnet
+        run: dotnet build --configuration Release
 
-    - name: Build with dotnet
-      run: dotnet build --configuration Release
+      - name: dotnet publish
+        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
-    - name: dotnet publish
-      run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v2
+        with:
+          name: .net-app
+          path: ${{env.DOTNET_ROOT}}/myapp
 
-    - name: Deploy to Azure Web App
-      uses: azure/webapps-deploy@v2      
-      with:
-        app-name: 'skd-server-prod'
-        slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_d16ff087028f4c26835a1cfe7ded4030 }}
-        package: ${{env.DOTNET_ROOT}}/myapp 
-  
+  deploy:
+    runs-on: windows-latest
+    needs: build
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v2
+        with:
+          name: .net-app
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'skd-server-prod'
+          slot-name: 'Production'
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_3E4DCFEE683A4BE2BF0DE5A95CFA9A69 }}
+          package: .
