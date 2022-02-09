@@ -22,7 +22,7 @@ public class KitSnapshotService {
                 SnapshotCount = 0
             }
         };
-        
+
         // validate
         result.Errors = await ValidateGenerateKitSnapshot(input);
         if (result.Errors.Any()) {
@@ -30,7 +30,7 @@ public class KitSnapshotService {
         }
 
         // get qualifying kit list
-        var qualifyingKits = await GetQualifyingKits(input);
+        var qualifyingKits = await GetQualifyingKits(input.PlantCode, input.RunDate.Value);
 
         // if no kits
         if (qualifyingKits.Count == 0) {
@@ -69,7 +69,7 @@ public class KitSnapshotService {
             ks.OrginalPlanBuild = ks.PlanBuild;
 
             ks.KitTimeLineEventType = GetLatestSnapshotEventType(kit, ks);
-            kitSnapshotRun.KitSnapshots.Add(ks);            
+            kitSnapshotRun.KitSnapshots.Add(ks);
         }
 
         // reject if no changes
@@ -100,8 +100,8 @@ public class KitSnapshotService {
     ///<summary>
     /// Return kits to be included in this snapshot
     ///</summay>
-    private async Task<List<Kit>> GetQualifyingKits(KitSnapshotInput input) {
-        var query = GetPartnerStatusQualifyingKitsQuery(input);
+    public async Task<List<Kit>> GetQualifyingKits(string plantCode, DateTime runDate) {
+        var query = GetKitSnapshotQualifyingKitsQuery(plantCode, runDate);
         return await query
             .Include(t => t.Lot).ThenInclude(t => t.ShipmentLots)
             .Include(t => t.Snapshots.Where(t => t.RemovedAt == null).OrderBy(t => t.KitTimeLineEventType.Sequence))
@@ -113,16 +113,16 @@ public class KitSnapshotService {
     /// Only kits that have at least one TimelineEvent 
     /// and whose final TimelineEvent is date is within wholeSateCutOffDays days of the currente date
     ///<summary>
-    private IQueryable<Kit> GetPartnerStatusQualifyingKitsQuery(KitSnapshotInput input) {
+    private IQueryable<Kit> GetKitSnapshotQualifyingKitsQuery(string plantCode, DateTime runDate) {
         // filter by plant code
-        var query = context.Kits.Where(t => t.Lot.Plant.Code == input.PlantCode).AsQueryable();
+        var query = context.Kits.Where(t => t.Lot.Plant.Code == plantCode).AsQueryable();
 
         // filter by custome recived
         query = query
             .Where(t => t.TimelineEvents.Any(ev => ev.RemovedAt == null && ev.EventType.Code == TimeLineEventCode.CUSTOM_RECEIVED))
             .AsQueryable();
 
-        // filter by wholesale null or whilesalte < runDate + 7
+        // filter by wholesale null or whilesalte < runDate + 7 or whole sale date not found in any kit snapshot
         query = query
             .Where(t =>
                 // no wholesale time line event
@@ -132,12 +132,21 @@ public class KitSnapshotService {
 
                 ||
 
-                // wholesale timeline event before cut-off date
+                // wholesale kit timeline event created date 
+                // is within wholeSateCutOffDays of the runDate
                 t.TimelineEvents.Any(ev =>
                     ev.RemovedAt == null &&
                     ev.EventType.Code == TimeLineEventCode.WHOLE_SALE &&
-                    ev.EventDate.AddDays(wholeSateCutOffDays) > input.RunDate
+                    ev.CreatedAt.AddDays(wholeSateCutOffDays) > runDate
                 )
+
+                ||
+
+                // wholesale of most recent snapshot for this kit is null
+                t.Snapshots
+                    .OrderByDescending(t => t.CreatedAt)
+                    .Select(t => t.Wholesale)
+                    .First() == null
             ).AsQueryable();
 
         return query;
@@ -429,7 +438,7 @@ public class KitSnapshotService {
         return kit.TimelineEvents
             .Where(t => t.RemovedAt == null)
             .Where(t => t.EventType.Code == eventCode)
-            .Select(t => t.EventType).First();            
+            .Select(t => t.EventType).First();
     }
 
     public static TimeLineEventCode? GetNextPendingSnapshotTimeLineEventCode(KitSnapshot? snapshot) {
@@ -472,7 +481,7 @@ public class KitSnapshotService {
 
     public static TimeLineEventCode? LatestSnapshotEventCode(KitSnapshot snapshot) {
         var eventCodes = Enum.GetValues<TimeLineEventCode>().Reverse();
-        foreach(var eventCode in eventCodes) {
+        foreach (var eventCode in eventCodes) {
             if (SnapshotHasTimelineEvent(snapshot, eventCode)) {
                 return eventCode;
             }

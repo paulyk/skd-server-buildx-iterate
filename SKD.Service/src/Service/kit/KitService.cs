@@ -354,11 +354,13 @@ public class KitService {
         }
 
         // shipment missing
+        
         var hasAssociatedShipment = await context.ShipmentLots.AnyAsync(t => t.Lot.LotNo == lot.LotNo);
         if (!hasAssociatedShipment) {
             errors.Add(new Error("", $"shipment missing for lot: {lot.LotNo}"));
             return errors;
         }
+        
 
         // duplicate 
         var duplicateTimelineEventsFound = lot.Kits.SelectMany(t => t.TimelineEvents)

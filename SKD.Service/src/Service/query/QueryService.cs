@@ -22,8 +22,11 @@ public class QueryService {
 
                 ReceivedDate = t.Received.OrderByDescending(t => t.CreatedAt)
                     .Where(t => t.RemovedAt == null)
-                    .Select(t => t.CreatedAt)
-                    .FirstOrDefault(),
+                    .Select(t => t.CreatedAt).Any()
+                    ? t.Received.OrderByDescending(t => t.CreatedAt)
+                        .Where(t => t.RemovedAt == null)
+                        .Select(t => t.CreatedAt).First()
+                    : null,
 
                 ReceivedQuantity = t.Received.OrderByDescending(t => t.CreatedAt)
                     .Where(t => t.RemovedAt == null)

@@ -359,6 +359,7 @@ public class TestBase {
         var lot = await context.Lots
             .Include(t => t.Bom).ThenInclude(t => t.Plant)
             .FirstOrDefaultAsync(t => t.LotNo == lotNo);
+            
         if (await context.ShipmentLots.AnyAsync(t => t.Lot.LotNo == lot.LotNo)) {
             return;
         }
