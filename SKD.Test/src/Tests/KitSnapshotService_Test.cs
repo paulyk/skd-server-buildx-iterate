@@ -11,35 +11,7 @@ public class KitSnapshotServiceTest : TestBase {
         Gen_Baseline_Test_Seed_Data(generateLot: true, componentCodes: new List<string> { "DA", "PA", engineCode });
     }
 
-    public async Task Can_generate_snapshot() {
-        // setup
-        var baseDate = DateTime.Now.Date;
-        var custom_receive_date = baseDate.AddDays(1);
-        var custom_receive_date_trx = baseDate.AddDays(2);
-
-        var plantCode = context.Plants.Select(t => t.Code).First();
-        var kit = context.Kits
-            .Include(t => t.Lot)
-            .OrderBy(t => t.KitNo).Include(t => t.Lot).First();
-        await Gen_ShipmentLot(kit.Lot.LotNo);
-
-        var snapshotInput = new KitSnapshotInput {
-            PlantCode = plantCode,
-            EngineComponentCode = engineCode
-        };
-
-        var service = new KitSnapshotService(context);
-        var result = await service.GenerateSnapshot(snapshotInput);
-        Assert.Equal(0, result.Payload.SnapshotCount);
-
-        // custom received
-        await CreateKitTimelineEvent(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", "", custom_receive_date_trx, custom_receive_date);
-        snapshotInput.RunDate = custom_receive_date_trx;
-        result = await service.GenerateSnapshot(snapshotInput);
-        var snapshots_count = context.KitSnapshots.Count();
-        Assert.Equal(1, snapshots_count);
-    }
-
+    
     enum TimelineTestEvent {
         BEFORE,
         CUSTOM_RECEIVED_TRX,
@@ -217,6 +189,7 @@ public class KitSnapshotServiceTest : TestBase {
         Assert.Equal(SnapshotChangeStatus.Changed, kitSnapshot.TxType);
 
         // 6.  wholesale
+        var kit_count = context.Kits.Count();
         eventDate = dates.Where(t => t.eventType == TimelineTestEvent.WHOLE_SALE_TRX).First().date;
         snapshotInput.RunDate = eventDate;
         await CreateKitTimelineEvent(TimeLineEventCode.WHOLE_SALE, kit.KitNo, "", dealerCode, eventDate, eventDate);

@@ -22,7 +22,6 @@ public class PartnerStatusBuilder_Test : TestBase {
             .Include(t => t.Plant)
             .FirstOrDefaultAsync(t => t.Id == testData.Id);
 
-
         var service = new PartnerStatusBuilder(context);
         var result = await service.GeneratePartnerStatusFilePaylaod(
             plantCode: snapshotRun.Plant.Code,
@@ -127,7 +126,11 @@ public class PartnerStatusBuilder_Test : TestBase {
             var expected_PST_FPRE_STATUS_DATE = firstKitSnapshot.CustomReceived.HasValue
                 ? firstKitSnapshot.CustomReceived.Value.ToString(PartnerStatusLayout.PST_STATUS_DATE_FORMAT).Trim()
                 : "";
-            Assert.Equal(expected_PST_FPRE_STATUS_DATE, actual_PST_FPRE_STATUS_DATE);
+
+            // DEALER 
+            var actual_PST_ACTUAL_DEALER_CODE = detailLineParser.GetFieldValue(firstDetailLine, t => t.PST_ACTUAL_DEALER_CODE).Trim();
+            Assert.Equal(actual_PST_ACTUAL_DEALER_CODE, firstKitSnapshot.DealerCode);
+
         }
 
         void AssertTrailer() {

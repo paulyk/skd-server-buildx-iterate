@@ -72,6 +72,9 @@ public class KitSnapshotService {
             kitSnapshotRun.KitSnapshots.Add(ks);
         }
 
+
+        // ks.KitTimeLineEventType.EventType.Code == TimeLineEventCode.WHOLE_SALE
+
         // reject if no changes
         if (input.RejectIfNoChanges) {
             bool hasChanges = kitSnapshotRun.KitSnapshots.Any(x => x.ChangeStatusCode != SnapshotChangeStatus.NoChange);
@@ -106,6 +109,7 @@ public class KitSnapshotService {
             .Include(t => t.Lot).ThenInclude(t => t.ShipmentLots)
             .Include(t => t.Snapshots.Where(t => t.RemovedAt == null).OrderBy(t => t.KitTimeLineEventType.Sequence))
             .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
+            .Include(t => t.Dealer)
             .ToListAsync();
     }
 
