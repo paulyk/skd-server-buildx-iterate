@@ -212,12 +212,15 @@ public class KitService {
             return errors;
         }
 
+
+        /* Remove feature: 2022-02-11, problem with ship file imports from Ford
         // shipment missing
         var hasAssociatedShipment = await context.ShipmentLots.AnyAsync(t => t.Lot.LotNo == kit.Lot.LotNo);
         if (!hasAssociatedShipment) {
             errors.Add(new Error("", $"shipment missing for lot: {kit.Lot.LotNo}"));
             return errors;
         }
+        */
 
         // duplicate kit timeline event
         var duplicate = kit.TimelineEvents
@@ -352,15 +355,14 @@ public class KitService {
             errors.Add(new Error("VIN", $"lot not found for lotNo: {input.LotNo}"));
             return errors;
         }
-
-        // shipment missing
-        
+        /* Remove feature: 2022-02-11, problem with ship file imports from Ford
+        // shipment missing        
         var hasAssociatedShipment = await context.ShipmentLots.AnyAsync(t => t.Lot.LotNo == lot.LotNo);
         if (!hasAssociatedShipment) {
             errors.Add(new Error("", $"shipment missing for lot: {lot.LotNo}"));
             return errors;
         }
-        
+        */
 
         // duplicate 
         var duplicateTimelineEventsFound = lot.Kits.SelectMany(t => t.TimelineEvents)
