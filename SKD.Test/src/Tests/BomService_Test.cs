@@ -54,6 +54,8 @@ public class BomService_Test : TestBase {
     }
 
 
+
+
     [Fact]
     public async Task Import_bom_reformats_part_no() {
 
@@ -198,9 +200,44 @@ public class BomService_Test : TestBase {
 
         // assert
         var errorMessage = result_2.Errors.Select(t => t.Message).FirstOrDefault();
-        var expectedMessage = "kit numbers already imported";
+        var expectedMessage = "Lots already imported";
         Assert.Equal(expectedMessage, errorMessage);
     }
+
+    [Fact]
+    public async Task Can_import_bom_with_previously_imported_lots() {
+        // setup
+        var plant = Gen_Plant();
+        Gen_Model_From_Existing_Component_And_Stations();
+        var model_1 = await context.VehicleModels.FirstOrDefaultAsync();
+        var model_2 = await context.VehicleModels.Skip(1).FirstOrDefaultAsync();
+        var lotNo_1 = Gen_LotNo(model_1.Code, 1);
+        var lotNo_2 = Gen_LotNo(model_2.Code, 1);
+        var kitCount = 6;
+
+        PartQuantities partQuantities = new List<(string partNo, int quantity)>{
+                ("part-1", 6),
+                ("part-2", 12)
+            };
+        var input_1 = Gen_BomFileInput(plant.Code, new string[] { lotNo_1 }, kitCount, partQuantities);
+        var input_2 = Gen_BomFileInput(plant.Code, new string[] { lotNo_1, lotNo_2 }, kitCount, partQuantities);
+
+        // test
+        var service = new BomService(context);
+        
+        var result_1 = await service.ImportBom(input_1);    
+        var lot_1_lot_parts_count = await context.LotParts.CountAsync(t => t.Lot.LotNo == lotNo_1);
+        
+        var result_2 = await service.ImportBom(input_2);
+        
+        var errorCount = result_2.Errors.Count();
+        Assert.Equal(0, errorCount);
+
+        // lot parts not added twice
+        var lot_1_lot_parts_count_2 = await context.LotParts.CountAsync(t => t.Lot.LotNo == lotNo_1);
+        Assert.Equal(lot_1_lot_parts_count, lot_1_lot_parts_count_2);
+    }
+
 
     [Fact]
     public async Task Can_set_lot_note() {

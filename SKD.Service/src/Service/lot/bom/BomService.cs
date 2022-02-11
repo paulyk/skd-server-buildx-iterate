@@ -19,6 +19,9 @@ public class BomService {
             return result;
         }
 
+        // possible re-import of the same BOM file, ignore existing     
+        input = await RemoveEntriesForAlreadyImportedLots(input); 
+
         // add BOM
         var bom = await GetEnsureBom(plantCode: input.PlantCode, sequence: input.Sequence);
 
@@ -29,10 +32,10 @@ public class BomService {
         await EnsureLots(input, bom);
 
         // add Kits
-        await AddKits(input, bom);
+        await EnsureKits(input, bom);
 
         // add Lot Part
-        Add_LotParts(input, bom, parts);
+        Ensure_LotParts(input, bom, parts);
 
         await context.SaveChangesAsync();
         result.Payload = await GetBomOverview(bom.Sequence);
@@ -86,7 +89,7 @@ public class BomService {
         return await partService.GetEnsureParts(inputParts);
     }
 
-    private void Add_LotParts(
+    private void Ensure_LotParts(
         BomFile input,
         Bom bom,
         IEnumerable<Part> parts
@@ -94,8 +97,8 @@ public class BomService {
 
         foreach (var lotGroup in input.LotParts.GroupBy(t => t.LotNo)) {
             var lot = bom.Lots.First(t => t.LotNo == lotGroup.Key);
+            
             foreach (var inputLotPart in lotGroup) {
-
                 var newLotPart = new LotPart {
                     Part = parts.First(t => t.PartNo == inputLotPart.PartNo),
                     BomQuantity = inputLotPart.Quantity
@@ -153,13 +156,16 @@ public class BomService {
         return errors;
     }
 
-    private async Task AddKits(BomFile input, Bom bom) {
+    private async Task EnsureKits(BomFile input, Bom bom) {
         foreach (var inputLot in input.LotEntries) {
             var modelCode = inputLot.Kits.Select(t => t.ModelCode).First();
             var lot = bom.Lots.First(t => t.LotNo == inputLot.LotNo);
-            foreach (var inputKit in inputLot.Kits) {
-                var kit = await CreateKit(inputKit);
-                lot.Kits.Add(kit);
+            // kits could have been previously imported.
+            if (!lot.Kits.Any()) {
+                foreach (var inputKit in inputLot.Kits) {
+                    var kit = await CreateKit(inputKit);
+                    lot.Kits.Add(kit);
+                }
             }
         }
     }
@@ -207,12 +213,14 @@ public class BomService {
         }
 
         // kits alread imported
-        var newKitNumbers = input.LotEntries.SelectMany(t => t.Kits).Select(t => t.KitNo).ToList();
-        var alreadyImportedKitNumbers = await context.Kits
-            .AnyAsync(t => newKitNumbers.Any(newKitNo => newKitNo == t.KitNo));
+        var newLotNumbers = input.LotEntries.Select(t => t.LotNo).ToList();
+        var previouslyImportedLotNumbers = await context.Lots
+            .Where(t => newLotNumbers.Any(newLotNo => newLotNo == t.LotNo))
+            .Select(t => t.LotNo)
+            .ToListAsync();
 
-        if (alreadyImportedKitNumbers) {
-            errors.Add(new Error("", "kit numbers already imported"));
+        if (previouslyImportedLotNumbers.Count() == input.LotEntries.Count()) {
+            errors.Add(new Error("", "Lots already imported"));
         }
 
         // duplicate lot number in lot enties
@@ -293,7 +301,7 @@ public class BomService {
             .Where(t => t.Sequence == bomSequenceNo)
             .Select(t => new BomOverviewDTO {
                 Id = t.Id,
-                PlantCode = t.Plant.Code,                
+                PlantCode = t.Plant.Code,
                 Sequence = t.Sequence,
                 // ShipmentSequences = t.Lots.SelectMany(t => t.ShipmentLots).Select(u => u.Shipment).Select(u => u.Sequence).ToList(),
                 LotCount = t.Lots.Count,
@@ -321,6 +329,18 @@ public class BomService {
             .FirstAsync();
 
         return bom;
+    }
+
+    private async Task<BomFile> RemoveEntriesForAlreadyImportedLots(BomFile input) {
+        var bomLotNumbers = input.LotEntries.Select(t => t.LotNo).ToList();
+        var existingLotNumbers = await context.Lots
+            .Where(t => bomLotNumbers.Any(ln => ln == t.LotNo))
+            .Select(t => t.LotNo).ToListAsync();
+
+        input.LotEntries = input.LotEntries.Where(t => !existingLotNumbers.Any(existingLotNo => existingLotNo == t.LotNo)).ToList();
+        input.LotParts = input.LotParts.Where(t => !existingLotNumbers.Any(existingLotNo => existingLotNo == t.LotNo)).ToList();
+
+        return input;
     }
 
     #region lot note
