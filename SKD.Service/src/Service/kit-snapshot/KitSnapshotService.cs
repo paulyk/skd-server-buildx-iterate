@@ -54,22 +54,23 @@ public class KitSnapshotService {
             var priorSnapshot = await GetPriorKitSnapshot(kit.Id);
 
             // Set snapshot properties
-            KitSnapshot ks = new() { Kit = kit };
-            ks.ChangeStatusCode = GetKit_PartnerStatus_ChangeStatus(kit, priorSnapshot);
-            ks.VIN = Get_VIN_If_BuildCompleted(kit);
-            ks.DealerCode = kit.Dealer?.Code;
-            ks.EngineSerialNumber = await GetEngineSerialNumber(kit, input.EngineComponentCode);
+            KitSnapshot snapshot = new() { Kit = kit };
+            snapshot.VIN = Get_VIN_If_BuildCompleted(kit);
+            snapshot.DealerCode = kit.Dealer?.Code;
+            snapshot.EngineSerialNumber = await GetEngineSerialNumber(kit, input.EngineComponentCode);
 
-            ks.CustomReceived = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.CUSTOM_RECEIVED);
-            ks.PlanBuild = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.PLAN_BUILD);
-            ks.BuildCompleted = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.BUILD_COMPLETED);
-            ks.GateRelease = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.GATE_RELEASED);
-            ks.Wholesale = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.WHOLE_SALE);
+            snapshot.CustomReceived = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.CUSTOM_RECEIVED);
+            snapshot.PlanBuild = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.PLAN_BUILD);
+            snapshot.BuildCompleted = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.BUILD_COMPLETED);
+            snapshot.GateRelease = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.GATE_RELEASED);
+            snapshot.Wholesale = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.WHOLE_SALE);
 
-            ks.OrginalPlanBuild = ks.PlanBuild;
+            snapshot.OrginalPlanBuild = snapshot.PlanBuild;
 
-            ks.KitTimeLineEventType = GetLatestSnapshotEventType(kit, ks);
-            kitSnapshotRun.KitSnapshots.Add(ks);
+            snapshot.KitTimeLineEventType = GetLatestSnapshotEventType(kit, snapshot);
+            snapshot.ChangeStatusCode = GetKit_PartnerStatus_ChangeStatus(snapshot, priorSnapshot);            
+            
+            kitSnapshotRun.KitSnapshots.Add(snapshot);
         }
 
 
@@ -341,49 +342,30 @@ public class KitSnapshotService {
     }
 
     ///<remarks>
-    /// Add = if no prior snapshot
-    /// Change = if prior snapshot and any current timeline event not in prior snapshot.
-    /// No-change = otherwise no change
+    /// Compare prior to current snapshot to determin change statusL: Added, Changed, NoChange, or Final
+    /// Oonce status set ot Final it stays there.
     ///</remarks>
-    private SnapshotChangeStatus GetKit_PartnerStatus_ChangeStatus(Kit kit, KitSnapshot? priorSnapshot) {
+    private SnapshotChangeStatus GetKit_PartnerStatus_ChangeStatus(KitSnapshot currentSnapshot, KitSnapshot? priorSnapshot) {
 
         // ADDED if no prior snapshot 
         if (priorSnapshot == null) {
             return SnapshotChangeStatus.Added;
         }
 
-        // FINAL if has wholesate then FINaL
-        if (KitHasTimelineEvent(kit, TimeLineEventCode.WHOLE_SALE)) {
+        // FINAL if has wholesate then Final
+        if (currentSnapshot.KitTimeLineEventType.Code == TimeLineEventCode.WHOLE_SALE)  {
             return SnapshotChangeStatus.Final;
         }
 
-        // CHANGE
-        if (ChangedFromPriorSnapshot(priorSnapshot, kit)) {
+        // CHANGE: if current different from prior
+        if (currentSnapshot.KitTimeLineEventType.Code != priorSnapshot.KitTimeLineEventType.Code) {
             return SnapshotChangeStatus.Changed;
         }
 
-        // NO-CHANGE otherwise
+        // NO-CHANGE otherwise no change
         return SnapshotChangeStatus.NoChange;
 
-
-        bool ChangedFromPriorSnapshot(KitSnapshot priorsnapshot, Kit kit) {
-            IEnumerable<TimeLineEventCode> timeLineEventCodes = new TimeLineEventCode[] {
-                TimeLineEventCode.CUSTOM_RECEIVED,
-                TimeLineEventCode.PLAN_BUILD,
-                TimeLineEventCode.BUILD_COMPLETED,
-                TimeLineEventCode.GATE_RELEASED,
-                TimeLineEventCode.WHOLE_SALE
-            };
-
-            foreach (var eventCode in timeLineEventCodes) {
-                if (KitHasTimelineEvent(kit, eventCode) && !GetSnapshotTimelineEventDate(priorSnapshot, eventCode)) {
-                    return true; // changed
-                }
-            }
-            return false; // no change
-        }
     }
-
     private DateTime? GetKitTimelineEventDate(Kit kit, TimeLineEventCode eventCode) {
         var result = kit.TimelineEvents
             .OrderByDescending(t => t.CreatedAt)

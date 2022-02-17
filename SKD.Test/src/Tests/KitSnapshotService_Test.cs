@@ -20,6 +20,7 @@ public class KitSnapshotServiceTest : TestBase {
         POST_PLAN_BUILD_NO_CHANGE,
         BUILD_COMPLETE_TRX,
         GATE_RELEASE_TRX,
+        POST_GATE_RELEASE_TRX_NO_CHANGE,
         WHOLE_SALE_TRX,
         FINAL_2_DAYS_TRX,
         FINAL_PLUS_WHOLESALE_CUTOFF
@@ -40,9 +41,7 @@ public class KitSnapshotServiceTest : TestBase {
     [Fact]
     public async Task Can_create_full_snapshot_timeline_v2() {
         var snapShotService = new KitSnapshotService(context);
-        var kit = context.Kits
-            .Include(t => t.Lot)
-            .OrderBy(t => t.KitNo).First();
+        var kit = context.Kits.Include(t => t.Lot).OrderBy(t => t.KitNo).First();
         var plantCode = context.Plants.Select(t => t.Code).First();
         var dealerCode = await context.Dealers.Select(t => t.Code).FirstOrDefaultAsync();
         await Gen_ShipmentLot(kit.Lot.LotNo);
@@ -100,6 +99,7 @@ public class KitSnapshotServiceTest : TestBase {
                 (TimelineTestEvent.POST_PLAN_BUILD_NO_CHANGE, baseDate.AddDays(4) ),
                 (TimelineTestEvent.BUILD_COMPLETE_TRX, baseDate.AddDays(6) ),
                 (TimelineTestEvent.GATE_RELEASE_TRX, baseDate.AddDays(8) ),
+                (TimelineTestEvent.POST_GATE_RELEASE_TRX_NO_CHANGE, baseDate.AddDays(9) ),
                 (TimelineTestEvent.WHOLE_SALE_TRX, baseDate.AddDays(10) ),
                 (TimelineTestEvent.FINAL_2_DAYS_TRX, baseDate.AddDays(12) ),
                 (TimelineTestEvent.FINAL_PLUS_WHOLESALE_CUTOFF, baseDate.AddDays(10 + wholeSateCutOffDays) ),
@@ -187,6 +187,16 @@ public class KitSnapshotServiceTest : TestBase {
         kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
         Assert.Equal(TimeLineEventCode.GATE_RELEASED, kitSnapshot.CurrentTimeLineCode);
         Assert.Equal(SnapshotChangeStatus.Changed, kitSnapshot.TxType);
+
+        // 5.  post gate release
+        eventDate = dates.Where(t => t.eventType == TimelineTestEvent.POST_GATE_RELEASE_TRX_NO_CHANGE).First().date;
+        snapshotInput.RunDate = eventDate;
+        await service.GenerateSnapshot(snapshotInput);
+
+        snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
+        kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
+        Assert.Equal(TimeLineEventCode.GATE_RELEASED, kitSnapshot.CurrentTimeLineCode);
+        Assert.Equal(SnapshotChangeStatus.NoChange, kitSnapshot.TxType);
 
         // 6.  wholesale
         var kit_count = context.Kits.Count();
