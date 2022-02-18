@@ -50,10 +50,10 @@ public class KitSnapshotServiceTest : TestBase {
         DateTime eventDate = runDate;
 
         var testEntries = new List<TimelineEventSet> {
-            new TimelineEventSet("Custom receive", TimeLineEventCode.CUSTOM_RECEIVED,runDate, runDate.AddDays(-6), "", TimeLineEventCode.CUSTOM_RECEIVED, SnapshotChangeStatus.Added, null ),
-            new TimelineEventSet("Plan build", TimeLineEventCode.PLAN_BUILD,runDate.AddDays(1), runDate.AddDays(3), "", TimeLineEventCode.PLAN_BUILD, SnapshotChangeStatus.Changed, null ),
-            new TimelineEventSet("Build complete", TimeLineEventCode.BUILD_COMPLETED,runDate.AddDays(4), runDate.AddDays(4), "", TimeLineEventCode.BUILD_COMPLETED, SnapshotChangeStatus.Changed, null ),
-            new TimelineEventSet("Gate Release ", TimeLineEventCode.GATE_RELEASED,runDate.AddDays(8), runDate.AddDays(8), "", TimeLineEventCode.GATE_RELEASED, SnapshotChangeStatus.Changed, null ),
+            new TimelineEventSet("Custom receive", TimeLineEventCode.CUSTOM_RECEIVED,runDate, runDate.AddDays(-6), dealerCode, TimeLineEventCode.CUSTOM_RECEIVED, SnapshotChangeStatus.Added, null ),
+            new TimelineEventSet("Plan build", TimeLineEventCode.PLAN_BUILD,runDate.AddDays(1), runDate.AddDays(3), dealerCode, TimeLineEventCode.PLAN_BUILD, SnapshotChangeStatus.Changed, null ),
+            new TimelineEventSet("Build complete", TimeLineEventCode.BUILD_COMPLETED,runDate.AddDays(4), runDate.AddDays(4), dealerCode, TimeLineEventCode.BUILD_COMPLETED, SnapshotChangeStatus.Changed, null ),
+            new TimelineEventSet("Gate Release ", TimeLineEventCode.GATE_RELEASED,runDate.AddDays(8), runDate.AddDays(8), dealerCode, TimeLineEventCode.GATE_RELEASED, SnapshotChangeStatus.Changed, null ),
             new TimelineEventSet("Wholesalte ", TimeLineEventCode.WHOLE_SALE,runDate.AddDays(9), runDate.AddDays(9), dealerCode, TimeLineEventCode.WHOLE_SALE, SnapshotChangeStatus.Final, dealerCode ),
         };
 
@@ -84,7 +84,7 @@ public class KitSnapshotServiceTest : TestBase {
 
             Assert.Equal(entry.expectedChangeStatus, kitSnapshot.ChangeStatusCode);
             Assert.Equal(entry.eventCode, kitSnapshot.KitTimeLineEventType.Code);
-            Assert.Equal(entry.expectedDealerCode, kitSnapshot.Kit.Dealer?.Code);
+            Assert.Equal(entry.expectedDealerCode, kitSnapshot.DealerCode);
         }
     }
 

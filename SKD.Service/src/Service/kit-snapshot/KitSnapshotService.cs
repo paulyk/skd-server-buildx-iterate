@@ -56,7 +56,6 @@ public class KitSnapshotService {
             // Set snapshot properties
             KitSnapshot snapshot = new() { Kit = kit };
             snapshot.VIN = Get_VIN_If_BuildCompleted(kit);
-            snapshot.DealerCode = kit.Dealer?.Code;
             snapshot.EngineSerialNumber = await GetEngineSerialNumber(kit, input.EngineComponentCode);
 
             snapshot.CustomReceived = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.CUSTOM_RECEIVED);
@@ -68,8 +67,10 @@ public class KitSnapshotService {
             snapshot.OrginalPlanBuild = snapshot.PlanBuild;
 
             snapshot.KitTimeLineEventType = GetLatestSnapshotEventType(kit, snapshot);
-            snapshot.ChangeStatusCode = GetKit_PartnerStatus_ChangeStatus(snapshot, priorSnapshot);            
-            
+            snapshot.DealerCode = GetDealerCode(kit, snapshot);
+
+            snapshot.ChangeStatusCode = GetKit_PartnerStatus_ChangeStatus(snapshot, priorSnapshot);
+
             kitSnapshotRun.KitSnapshots.Add(snapshot);
         }
 
@@ -304,6 +305,16 @@ public class KitSnapshotService {
         return (verifiedComponentSerial?.Serial1 + " " + verifiedComponentSerial?.Serial2).Trim();
     }
 
+    public string? GetDealerCode(Kit kit, KitSnapshot snapshot) {
+        if (LatestSnapshotEventCode(snapshot) == TimeLineEventCode.WHOLE_SALE) {
+            if (kit.Dealer == null) {
+                throw new Exception($"Kit status is WHOLESALE, but  dealer not set ${kit.KitNo}");
+            }
+            return kit.Dealer.Code;
+        }
+        return null;
+    }
+
     ///<remarks>
     /// Get timeline event date from prior snapshot if exists Otherwise gets from kit, 
     /// but only for the latest pending event
@@ -353,7 +364,7 @@ public class KitSnapshotService {
         }
 
         // FINAL if has wholesate then Final
-        if (currentSnapshot.KitTimeLineEventType.Code == TimeLineEventCode.WHOLE_SALE)  {
+        if (currentSnapshot.KitTimeLineEventType.Code == TimeLineEventCode.WHOLE_SALE) {
             return SnapshotChangeStatus.Final;
         }
 
