@@ -148,7 +148,15 @@ public class ProjectionQueries {
     [UseProjection]
     [UseFiltering]
     [UseSorting]
+
     public IQueryable<Dealer> GetDealers([Service] SkdContext context)
         => context.Dealers.AsQueryable();
+
+    [UsePaging(MaxPageSize = 10000)]
+    [UseProjection]
+    [UseFiltering]
+    [UseSorting]
+    public IQueryable<KitTimelineEvent> GetKitTimelineEvents([Service] SkdContext context)
+        => context.KitTimelineEvents.AsQueryable();
 
 }
