@@ -42,9 +42,9 @@ public class KitService {
                     var kit = await context.Kits
                         .Include(t => t.KitVins)
                         .FirstAsync(t => t.KitNo == inputKitVin.KitNo);
-                    
+
                     // set kit.VIN to new VIN & add new kit.KinVin entry
-                    kit.VIN = inputKitVin.VIN;                    
+                    kit.VIN = inputKitVin.VIN;
                     kitVinImport.KitVins.Add(new KitVin {
                         Kit = kit,
                         VIN = inputKitVin.VIN
@@ -52,9 +52,9 @@ public class KitService {
                     // Flag prior KitVin: RemovedAt
                     kit.KitVins
                         .Where(t => t.VIN != inputKitVin.VIN && t.RemovedAt == null)
-                        .ToList().ForEach(kv => { 
+                        .ToList().ForEach(kv => {
                             kv.RemovedAt = DateTime.UtcNow;
-                        });                    
+                        });
                 }
             }
 
@@ -217,6 +217,7 @@ public class KitService {
             .FirstOrDefaultAsync(t => t.KitNo == input.KitNo);
 
         var planBuildType = await context.KitTimelineEventTypes.FirstAsync(t => t.Code == TimeLineEventCode.PLAN_BUILD);
+        var verifyVinType = await context.KitTimelineEventTypes.FirstAsync(t => t.Code == TimeLineEventCode.VERIFY_VIN);
         var inputEventType = await context.KitTimelineEventTypes.FirstAsync(t => t.Code == input.EventCode);
 
         if (kit == null) {
@@ -291,7 +292,7 @@ public class KitService {
                 return errors;
             }
         }
-
+        
         // WHOLESALE kit must be associated with dealer to proceed
         if (input.EventCode == TimeLineEventCode.WHOLE_SALE) {
             if (String.IsNullOrWhiteSpace(input.DealerCode)) {
@@ -312,6 +313,14 @@ public class KitService {
         if (inputEventType.Sequence > planBuildType.Sequence && String.IsNullOrWhiteSpace(kit.VIN)) {
             errors.Add(new Error("", $"Kit does not have VIN, cannot save {input.EventCode} event"));
             return errors;
+        }
+
+        // Event date cannot be in the future for events after VERIFY VIN
+        if (inputEventType.Sequence > verifyVinType.Sequence) {
+            if (input.EventDate.Date > currentDate.Date) {
+                errors.Add(new Error("", $"Date cannot be in the future"));
+                return errors;
+            }
         }
 
         return errors;

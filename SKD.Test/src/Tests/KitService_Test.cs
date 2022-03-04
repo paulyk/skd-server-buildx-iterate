@@ -217,25 +217,25 @@ public class KitServiceTest : TestBase {
         var baseDate = DateTime.Now.Date;
         // setup        
         var dealerCode = await context.Dealers.Select(t => t.Code).FirstOrDefaultAsync();
-        var timelineEvents = new List<(TimeLineEventCode eventType, DateTime eventDate)>() {
-                (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(-5)),
-                (TimeLineEventCode.PLAN_BUILD, baseDate.AddDays(2)),
-                (TimeLineEventCode.VERIFY_VIN, baseDate.AddDays(3)),
-                (TimeLineEventCode.BUILD_COMPLETED, baseDate.AddDays(5)),
-                (TimeLineEventCode.GATE_RELEASED, baseDate.AddDays(10)),
-                (TimeLineEventCode.WHOLE_SALE, baseDate.AddDays(12)),
+        var timelineEvents = new List<(TimeLineEventCode eventType, DateTime trxDate, DateTime eventDate)>() {
+                (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(0), baseDate.AddDays(-6)),
+                (TimeLineEventCode.PLAN_BUILD,  baseDate.AddDays(0),baseDate.AddDays(2)),
+                (TimeLineEventCode.VERIFY_VIN, baseDate.AddDays(1), baseDate.AddDays(3)),
+                (TimeLineEventCode.BUILD_COMPLETED,  baseDate.AddDays(5),baseDate.AddDays(5)),
+                (TimeLineEventCode.GATE_RELEASED, baseDate.AddDays(10), baseDate.AddDays(10)),
+                (TimeLineEventCode.WHOLE_SALE, baseDate.AddDays(12), baseDate.AddDays(12)),
             };
 
         // test
         var kit = context.Kits.First();
         await Gen_ShipmentLot_ForKit(kit.KitNo);
 
-        var service = new KitService(context, baseDate, planBuildLeadTimeDays);
         var results = new List<MutationResult<KitTimelineEvent>>();
 
         var before_count = context.KitTimelineEvents.Count();
 
         foreach (var entry in timelineEvents) {
+        var service = new KitService(context, entry.trxDate, planBuildLeadTimeDays);
             var dto = new KitTimelineEventInput {
                 KitNo = kit.KitNo,
                 EventCode = entry.eventType,
@@ -375,6 +375,53 @@ public class KitServiceTest : TestBase {
         timelineEvents.ForEach(entry => {
             Assert.Equal(eventNote, entry.EventNote);
         });
+    }
+
+     [Fact]
+    public async Task Cannot_set_timline_event_dates_in_future_after_verify_vin() {
+        // setup
+        var kit = context.Kits.First();
+        var dealerCode = context.Dealers.First().Code;
+        await Gen_ShipmentLot_ForKit(kit.KitNo);
+
+        var eventNote = Util.RandomString(15);
+        var baseDate = DateTime.Now.Date;
+        var timelineEventItems = new List<(TimeLineEventCode eventType, DateTime trxDate, DateTime eventDate, string expectedError)>() {
+                (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(2), baseDate.AddDays(1) , ""),
+                (TimeLineEventCode.PLAN_BUILD, baseDate.AddDays(3), baseDate.AddDays(5), ""),
+                (TimeLineEventCode.VERIFY_VIN, baseDate.AddDays(4), baseDate.AddDays(6), ""),
+                (TimeLineEventCode.BUILD_COMPLETED, baseDate.AddDays(8), baseDate.AddDays(9), "Date cannot be in the future"),
+            };
+
+        // test
+        KitService service = null;
+
+        var results = new List<MutationResult<KitTimelineEvent>>();
+
+        foreach (var entry in timelineEventItems) {
+            var input = new KitTimelineEventInput {
+                KitNo = kit.KitNo,
+                EventCode = entry.eventType,
+                EventDate = entry.eventDate,
+                EventNote = "",
+                DealerCode = dealerCode
+            };
+            service = new KitService(context, entry.trxDate, planBuildLeadTimeDays);
+
+            if (entry.eventType == TimeLineEventCode.VERIFY_VIN) {
+                await Gen_KitVinImport(input.KitNo, Gen_VIN());
+            }
+
+            var result = await service.CreateKitTimelineEvent(input);
+            if (entry.expectedError == "") {
+                Assert.Equal(0, result.Errors.Count);
+            } else {
+                Assert.True(result.Errors.Count > 0);
+                var actualError = result.Errors.Select(t => t.Message).FirstOrDefault();
+                Assert.True(actualError.StartsWith(entry.expectedError));
+            }
+            results.Add(result);
+        }
     }
 
     [Fact]
