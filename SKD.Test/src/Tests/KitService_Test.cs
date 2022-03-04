@@ -103,7 +103,7 @@ public class KitServiceTest : TestBase {
         var newVin = Gen_VIN();
         var change_vin_kitNo = firstInput.Kits.Select(t => t.KitNo).First();
 
-        var secontInput = new VinFile {
+        var secondInput = new VinFile {
             PlantCode = firstInput.PlantCode,
             PartnerPlantCode = firstInput.PartnerPlantCode,
             Sequence = firstInput.Sequence + 1,
@@ -120,24 +120,29 @@ public class KitServiceTest : TestBase {
         var kitVinCount_before = await context.KitVins.CountAsync();
 
         // now import with one VIN change
-        var paylaod = service.ImportVIN(secontInput);
+        var paylaod = service.ImportVIN(secondInput);
 
         var kitVinCount_after = await context.KitVins.CountAsync();
         Assert.Equal(kitVinCount_before + 1, kitVinCount_after);
 
         // assert vin match for each kit
-        foreach (var inputKit in secontInput.Kits.ToList()) {
+        foreach (var inputKit in secondInput.Kits.ToList()) {
             var kit = await context.Kits
                 .Include(t => t.KitVins)
                 .FirstOrDefaultAsync(t => t.KitNo == inputKit.KitNo);
             Assert.Equal(inputKit.VIN, kit.VIN);
 
             var kitVins_count = kit.KitVins.Count();
+
             if (inputKit.VIN == newVin) {
                 Assert.Equal(2, kitVins_count);
+                // assert previous kit-vin entry flagged: RemovedAt
+                var old_kit_vin = kit.KitVins.First(t => t.VIN != newVin);
+                Assert.NotNull(old_kit_vin.RemovedAt);
             } else {
                 Assert.Equal(1, kitVins_count);
             }
+
         }
     }
 
@@ -215,6 +220,7 @@ public class KitServiceTest : TestBase {
         var timelineEvents = new List<(TimeLineEventCode eventType, DateTime eventDate)>() {
                 (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(-5)),
                 (TimeLineEventCode.PLAN_BUILD, baseDate.AddDays(2)),
+                (TimeLineEventCode.VERIFY_VIN, baseDate.AddDays(3)),
                 (TimeLineEventCode.BUILD_COMPLETED, baseDate.AddDays(5)),
                 (TimeLineEventCode.GATE_RELEASED, baseDate.AddDays(10)),
                 (TimeLineEventCode.WHOLE_SALE, baseDate.AddDays(12)),
@@ -232,10 +238,14 @@ public class KitServiceTest : TestBase {
         foreach (var entry in timelineEvents) {
             var dto = new KitTimelineEventInput {
                 KitNo = kit.KitNo,
-                EventType = entry.eventType,
+                EventCode = entry.eventType,
                 EventDate = entry.eventDate,
                 DealerCode = dealerCode
             };
+
+            if (entry.eventType == TimeLineEventCode.VERIFY_VIN) {
+                await Gen_KitVinImport(kit.KitNo, Gen_VIN());
+            }
             var result = await service.CreateKitTimelineEvent(dto);
             results.Add(result);
         }
@@ -258,13 +268,13 @@ public class KitServiceTest : TestBase {
 
         var input_1 = new KitTimelineEventInput {
             KitNo = kit.KitNo,
-            EventType = TimeLineEventCode.CUSTOM_RECEIVED,
+            EventCode = TimeLineEventCode.CUSTOM_RECEIVED,
             EventDate = currentDate
         };
 
         var input_2 = new KitTimelineEventInput {
             KitNo = kit.KitNo,
-            EventType = TimeLineEventCode.CUSTOM_RECEIVED,
+            EventCode = TimeLineEventCode.CUSTOM_RECEIVED,
             EventDate = currentDate.AddDays(-1)
         };
 
@@ -300,7 +310,7 @@ public class KitServiceTest : TestBase {
         foreach (var (eventType, eventDate, trxDate) in timelineEvents) {
             var input = new KitTimelineEventInput {
                 KitNo = kit.KitNo,
-                EventType = eventType,
+                EventCode = eventType,
                 EventDate = eventDate,
             };
             service = new KitService(context, trxDate, planBuildLeadTimeDays);
@@ -328,6 +338,7 @@ public class KitServiceTest : TestBase {
         var timelineEventItems = new List<(TimeLineEventCode eventType, DateTime trxDate, DateTime eventDate, string eventNode)>() {
                 (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(2), baseDate.AddDays(1) , eventNote),
                 (TimeLineEventCode.PLAN_BUILD, baseDate.AddDays(3), baseDate.AddDays(5), eventNote),
+                (TimeLineEventCode.VERIFY_VIN, baseDate.AddDays(4), baseDate.AddDays(6), eventNote),
                 (TimeLineEventCode.BUILD_COMPLETED, baseDate.AddDays(8), baseDate.AddDays(8), eventNote),
                 (TimeLineEventCode.GATE_RELEASED, baseDate.AddDays(10), baseDate.AddDays(10), eventNote),
                 (TimeLineEventCode.WHOLE_SALE, baseDate.AddDays(11), baseDate.AddDays(11), eventNote),
@@ -341,12 +352,17 @@ public class KitServiceTest : TestBase {
         foreach (var entry in timelineEventItems) {
             var input = new KitTimelineEventInput {
                 KitNo = kit.KitNo,
-                EventType = entry.eventType,
+                EventCode = entry.eventType,
                 EventDate = entry.eventDate,
                 EventNote = entry.eventNode,
                 DealerCode = dealerCode
             };
             service = new KitService(context, entry.trxDate, planBuildLeadTimeDays);
+
+            if (entry.eventType == TimeLineEventCode.VERIFY_VIN) {
+                await Gen_KitVinImport(input.KitNo, Gen_VIN());
+            }
+
             var result = await service.CreateKitTimelineEvent(input);
             results.Add(result);
         }
@@ -374,12 +390,12 @@ public class KitServiceTest : TestBase {
 
         var dto = new KitTimelineEventInput {
             KitNo = kit.KitNo,
-            EventType = TimeLineEventCode.CUSTOM_RECEIVED,
+            EventCode = TimeLineEventCode.CUSTOM_RECEIVED,
             EventDate = originalDate
         };
         var dto2 = new KitTimelineEventInput {
             KitNo = kit.KitNo,
-            EventType = TimeLineEventCode.CUSTOM_RECEIVED,
+            EventCode = TimeLineEventCode.CUSTOM_RECEIVED,
             EventDate = newDate
         };
 
@@ -413,13 +429,13 @@ public class KitServiceTest : TestBase {
 
         var dto = new KitTimelineEventInput {
             KitNo = kit.KitNo,
-            EventType = TimeLineEventCode.CUSTOM_RECEIVED,
+            EventCode = TimeLineEventCode.CUSTOM_RECEIVED,
             EventDate = originalDate,
             EventNote = eventNote
         };
         var dto2 = new KitTimelineEventInput {
             KitNo = kit.KitNo,
-            EventType = TimeLineEventCode.CUSTOM_RECEIVED,
+            EventCode = TimeLineEventCode.CUSTOM_RECEIVED,
             EventDate = newDate,
             EventNote = eventNote
         };
@@ -454,7 +470,7 @@ public class KitServiceTest : TestBase {
         var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
         var input = new LotTimelineEventInput {
             LotNo = lot.LotNo,
-            EventType = TimeLineEventCode.CUSTOM_RECEIVED,
+            EventCode = TimeLineEventCode.CUSTOM_RECEIVED,
             EventDate = eventDate,
             EventNote = eventNote
         };
@@ -491,7 +507,7 @@ public class KitServiceTest : TestBase {
         var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
         var input = new LotTimelineEventInput {
             LotNo = lot.LotNo,
-            EventType = TimeLineEventCode.CUSTOM_RECEIVED,
+            EventCode = TimeLineEventCode.CUSTOM_RECEIVED,
             EventDate = event_date,
             EventNote = eventNote
         };
@@ -524,7 +540,7 @@ public class KitServiceTest : TestBase {
         var eventNote = Util.RandomString(EntityFieldLen.Event_Note);
         var input = new LotTimelineEventInput {
             LotNo = lot.LotNo,
-            EventType = TimeLineEventCode.CUSTOM_RECEIVED,
+            EventCode = TimeLineEventCode.CUSTOM_RECEIVED,
             EventDate = event_date,
             EventNote = eventNote
         };

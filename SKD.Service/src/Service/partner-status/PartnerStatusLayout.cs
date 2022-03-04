@@ -59,6 +59,7 @@ public class PartnerStatusLayout {
         public readonly int PST_IP2S_STATUS_DATE = 20;    // blank
         public readonly int PST_FPRE_STATUS_DATE = 20;    // custom receive
         public readonly int PST_FPBP_STATUS_DATE = 20;    // plan build
+        public readonly int PST_FPVC_STATUS_DATE = 20;    // vin check a.k.a build start
         public readonly int PST_FPBC_STATUS_DATE = 20;    // build completed
         public readonly int PST_FPGR_STATUS_DATE = 20;    // gate release 
         public readonly int PST_FPWS_STATUS_DATE = 20;    // whole sale

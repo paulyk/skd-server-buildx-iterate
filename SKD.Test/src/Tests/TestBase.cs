@@ -149,6 +149,34 @@ public class TestBase {
         return plant;
     }
 
+    public async Task Gen_KitVinImport(string kitNo, string vin) {
+
+        var kit = await context.Kits
+            .Include(t => t.Lot).ThenInclude(t => t.Plant)
+            .Include(t => t.KitVins)
+            .FirstAsync(t => t.KitNo == kitNo);
+
+        context.KitVinImports.Add(new KitVinImport {
+            Plant = kit.Lot.Plant,
+            PartnerPlantCode = kit.Lot.Plant.PartnerPlantCode,
+            Sequence = 1,
+            KitVins = new List<KitVin> {
+                new KitVin {
+                    Kit = kit,
+                    VIN = vin
+                }
+            }
+        });
+
+        kit.VIN = vin;
+
+        await context.SaveChangesAsync();
+
+        kit = await context.Kits
+            .Include(t => t.KitVins)
+            .FirstAsync(t => t.KitNo == kitNo);
+    }
+
     public List<ProductionStation> Gen_ProductionStations(params string[] codes) {
         var stationCodes = codes.Where(code => !context.ProductionStations.Any(t => t.Code == code)).ToList();
 
@@ -314,29 +342,19 @@ public class TestBase {
     }
 
     public void Gen_KitTimelineEventTypes() {
-        var eventTypes = new List<KitTimelineEventType> {
-                new KitTimelineEventType {
-                    Code = TimeLineEventCode.CUSTOM_RECEIVED,
-                },
-                new KitTimelineEventType {
-                    Code = TimeLineEventCode.PLAN_BUILD,
-                },
-                new KitTimelineEventType {
-                    Code = TimeLineEventCode.BUILD_COMPLETED,
-                },
-                new KitTimelineEventType {
-                    Code = TimeLineEventCode.GATE_RELEASED,
-                },
-                new KitTimelineEventType {
-                    Code = TimeLineEventCode.WHOLE_SALE,
-                },
-            };
 
-        var sequence = 1;
-        eventTypes.ForEach(eventType => {
-            eventType.Description = eventType.Code.ToString();
-            eventType.Sequence = sequence++;
-        });
+        var eventTypes = Enum.GetValues<TimeLineEventCode>()
+            .Select((code, i) => new KitTimelineEventType() {
+                Code = code,
+                Description = code.ToString(),
+                Sequence = i + 1
+            }).ToList();
+
+        // var sequence = 1;
+        // eventTypes.ForEach(eventType => {
+        //     eventType.Description = eventType.Code.ToString();
+        //     eventType.Sequence = sequence++;
+        // });
 
         foreach (var eventType in eventTypes) {
             if (!context.KitTimelineEventTypes.Any(t => t.Code == eventType.Code)) {

@@ -5,9 +5,10 @@ namespace SKD.Service;
 public class KitSnapshotService {
 
     private readonly SkdContext context;
-    private readonly int wholeSateCutOffDays = 7;
+    public static readonly int WholeSateCutOffDays = 7;
+    public static readonly int PlanBuildLeadTimeDays = 7;
 
-    public KitSnapshotService(SkdContext ctx) {
+    public  KitSnapshotService(SkdContext ctx) {
         this.context = ctx;
     }
 
@@ -60,6 +61,7 @@ public class KitSnapshotService {
 
             snapshot.CustomReceived = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.CUSTOM_RECEIVED);
             snapshot.PlanBuild = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.PLAN_BUILD);
+            snapshot.VerifyVIN = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.VERIFY_VIN);
             snapshot.BuildCompleted = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.BUILD_COMPLETED);
             snapshot.GateRelease = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.GATE_RELEASED);
             snapshot.Wholesale = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.WHOLE_SALE);
@@ -143,7 +145,7 @@ public class KitSnapshotService {
                 t.TimelineEvents.Any(ev =>
                     ev.RemovedAt == null &&
                     ev.EventType.Code == TimeLineEventCode.WHOLE_SALE &&
-                    ev.CreatedAt.AddDays(wholeSateCutOffDays) > runDate
+                    ev.CreatedAt.AddDays(WholeSateCutOffDays) > runDate
                 )
 
                 ||
@@ -216,6 +218,7 @@ public class KitSnapshotService {
                 CustomReceived = entry.CustomReceived,
                 OriginalPlanBuild = entry.OrginalPlanBuild,
                 PlanBuild = entry.PlanBuild,
+                VerifyVIN = entry.VerifyVIN,
                 BuildCompleted = entry.BuildCompleted,
                 GateRelease = entry.GateRelease,
                 Wholesale = entry.Wholesale
@@ -402,10 +405,11 @@ public class KitSnapshotService {
             .Where(t => t.RemovedAt == null)
             .FirstOrDefaultAsync(t => t.KitId == kitId);
 
-    private bool GetSnapshotTimelineEventDate(KitSnapshot snapshot, TimeLineEventCode timelineEventCode) {
+    private bool SnapshotTimelineEventDateSet(KitSnapshot snapshot, TimeLineEventCode timelineEventCode) {
         switch (timelineEventCode) {
             case TimeLineEventCode.CUSTOM_RECEIVED: return snapshot.CustomReceived != null;
             case TimeLineEventCode.PLAN_BUILD: return snapshot.PlanBuild != null;
+            case TimeLineEventCode.VERIFY_VIN: return snapshot.VerifyVIN != null;
             case TimeLineEventCode.BUILD_COMPLETED: return snapshot.BuildCompleted != null;
             case TimeLineEventCode.GATE_RELEASED: return snapshot.GateRelease != null;
             case TimeLineEventCode.WHOLE_SALE: return snapshot.Wholesale != null;
@@ -458,6 +462,7 @@ public class KitSnapshotService {
         switch (eventCode) {
             case TimeLineEventCode.CUSTOM_RECEIVED: return snapshot.CustomReceived != null;
             case TimeLineEventCode.PLAN_BUILD: return snapshot.PlanBuild != null;
+            case TimeLineEventCode.VERIFY_VIN: return snapshot.VerifyVIN != null;
             case TimeLineEventCode.BUILD_COMPLETED: return snapshot.BuildCompleted != null;
             case TimeLineEventCode.GATE_RELEASED: return snapshot.GateRelease != null;
             case TimeLineEventCode.WHOLE_SALE: return snapshot.Wholesale != null;
@@ -469,6 +474,7 @@ public class KitSnapshotService {
         switch (eventCode) {
             case TimeLineEventCode.CUSTOM_RECEIVED: return snapshot.CustomReceived;
             case TimeLineEventCode.PLAN_BUILD: return snapshot.PlanBuild;
+            case TimeLineEventCode.VERIFY_VIN: return snapshot.VerifyVIN;
             case TimeLineEventCode.BUILD_COMPLETED: return snapshot.BuildCompleted;
             case TimeLineEventCode.GATE_RELEASED: return snapshot.GateRelease;
             case TimeLineEventCode.WHOLE_SALE: return snapshot.Wholesale;

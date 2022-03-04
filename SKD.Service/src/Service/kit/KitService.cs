@@ -39,13 +39,22 @@ public class KitService {
                 bool kitVinAlreadyExists = await context.KitVins.AnyAsync(t => t.Kit.KitNo == inputKitVin.KitNo && t.VIN == inputKitVin.VIN);
 
                 if (!kitVinAlreadyExists) {
-                    var kit = await context.Kits.FirstAsync(t => t.KitNo == inputKitVin.KitNo);
-                    kit.VIN = inputKitVin.VIN;
-                    var kitVin = new KitVin {
+                    var kit = await context.Kits
+                        .Include(t => t.KitVins)
+                        .FirstAsync(t => t.KitNo == inputKitVin.KitNo);
+                    
+                    // set kit.VIN to new VIN & add new kit.KinVin entry
+                    kit.VIN = inputKitVin.VIN;                    
+                    kitVinImport.KitVins.Add(new KitVin {
                         Kit = kit,
                         VIN = inputKitVin.VIN
-                    };
-                    kitVinImport.KitVins.Add(kitVin);
+                    });
+                    // Flag prior KitVin: RemovedAt
+                    kit.KitVins
+                        .Where(t => t.VIN != inputKitVin.VIN && t.RemovedAt == null)
+                        .ToList().ForEach(kv => { 
+                            kv.RemovedAt = DateTime.UtcNow;
+                        });                    
                 }
             }
 
@@ -170,7 +179,7 @@ public class KitService {
 
         // mark other timeline events of the same type as removed for this kit
         kit.TimelineEvents
-            .Where(t => t.EventType.Code == input.EventType)
+            .Where(t => t.EventType.Code == input.EventCode)
             .ToList().ForEach(timelieEvent => {
                 if (timelieEvent.RemovedAt == null) {
                     timelieEvent.RemovedAt = DateTime.UtcNow;
@@ -179,7 +188,7 @@ public class KitService {
 
         // create timeline event and add to kit
         var newTimelineEvent = new KitTimelineEvent {
-            EventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == input.EventType),
+            EventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == input.EventCode),
             EventDate = input.EventDate,
             EventNote = input.EventNote
         };
@@ -207,6 +216,9 @@ public class KitService {
             .Include(t => t.Dealer)
             .FirstOrDefaultAsync(t => t.KitNo == input.KitNo);
 
+        var planBuildType = await context.KitTimelineEventTypes.FirstAsync(t => t.Code == TimeLineEventCode.PLAN_BUILD);
+        var inputEventType = await context.KitTimelineEventTypes.FirstAsync(t => t.Code == input.EventCode);
+
         if (kit == null) {
             errors.Add(new Error("KitNo", $"kit not found for kitNo: {input.KitNo}"));
             return errors;
@@ -226,20 +238,20 @@ public class KitService {
         var duplicate = kit.TimelineEvents
             .OrderByDescending(t => t.CreatedAt)
             .Where(t => t.RemovedAt == null)
-            .Where(t => t.EventType.Code == input.EventType)
+            .Where(t => t.EventType.Code == input.EventCode)
             .Where(t => t.EventDate == input.EventDate)
             .Where(t => t.EventNote == input.EventNote)
             .FirstOrDefault();
 
         if (duplicate != null) {
             var dateStr = input.EventDate.ToShortDateString();
-            errors.Add(new Error("", $"duplicate kit timeline event: {input.EventType} {dateStr} "));
+            errors.Add(new Error("", $"duplicate kit timeline event: {input.EventCode} {dateStr} "));
             return errors;
         }
 
         // missing prerequisite timeline events
         var currentTimelineEventType = await context.KitTimelineEventTypes
-            .FirstAsync(t => t.Code == input.EventType);
+            .FirstAsync(t => t.Code == input.EventCode);
 
         var missingTimlineSequences = Enumerable.Range(1, currentTimelineEventType.Sequence - 1)
             .Where(seq => !kit.TimelineEvents
@@ -257,7 +269,7 @@ public class KitService {
         }
 
         // CUSTOM_RECEIVED 
-        if (input.EventType == TimeLineEventCode.CUSTOM_RECEIVED) {
+        if (input.EventCode == TimeLineEventCode.CUSTOM_RECEIVED) {
             if (currentDate <= input.EventDate) {
                 errors.Add(new Error("", $"custom received date must be before current date"));
                 return errors;
@@ -265,7 +277,7 @@ public class KitService {
         }
 
         // PLAN_BUILD 
-        if (input.EventType == TimeLineEventCode.PLAN_BUILD) {
+        if (input.EventCode == TimeLineEventCode.PLAN_BUILD) {
             var custom_receive_date = kit.TimelineEvents
                 .Where(t => t.RemovedAt == null)
                 .Where(t => t.EventType.Code == TimeLineEventCode.CUSTOM_RECEIVED)
@@ -281,7 +293,7 @@ public class KitService {
         }
 
         // WHOLESALE kit must be associated with dealer to proceed
-        if (input.EventType == TimeLineEventCode.WHOLE_SALE) {
+        if (input.EventCode == TimeLineEventCode.WHOLE_SALE) {
             if (String.IsNullOrWhiteSpace(input.DealerCode)) {
                 if (kit.Dealer == null) {
                     errors.Add(new Error("", $"Kit must be associated with dealer ${kit.KitNo}"));
@@ -294,6 +306,12 @@ public class KitService {
                     return errors;
                 }
             }
+        }
+
+        // VIN Required for events sequence after PLAN BUILD
+        if (inputEventType.Sequence > planBuildType.Sequence && String.IsNullOrWhiteSpace(kit.VIN)) {
+            errors.Add(new Error("", $"Kit does not have VIN, cannot save {input.EventCode} event"));
+            return errors;
         }
 
         return errors;
@@ -319,7 +337,7 @@ public class KitService {
 
             // mark other timeline events of the same type as removed for this kit
             kit.TimelineEvents
-                .Where(t => t.EventType.Code == input.EventType)
+                .Where(t => t.EventType.Code == input.EventCode)
                 .ToList().ForEach(timelieEvent => {
                     if (timelieEvent.RemovedAt == null) {
                         timelieEvent.RemovedAt = DateTime.UtcNow;
@@ -328,7 +346,7 @@ public class KitService {
 
             // create timeline event and add to kit
             var newTimelineEvent = new KitTimelineEvent {
-                EventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == input.EventType),
+                EventType = await context.KitTimelineEventTypes.FirstOrDefaultAsync(t => t.Code == input.EventCode),
                 EventDate = input.EventDate,
                 EventNote = input.EventNote
             };
@@ -368,24 +386,24 @@ public class KitService {
         var duplicateTimelineEventsFound = lot.Kits.SelectMany(t => t.TimelineEvents)
             .OrderByDescending(t => t.CreatedAt)
             .Where(t => t.RemovedAt == null)
-            .Where(t => t.EventType.Code == input.EventType)
+            .Where(t => t.EventType.Code == input.EventCode)
             .Where(t => t.EventDate == input.EventDate)
             .ToList();
 
         if (duplicateTimelineEventsFound.Count > 0) {
             var dateStr = input.EventDate.ToShortDateString();
-            errors.Add(new Error("", $"duplicate kit timeline event: {input.LotNo}, Type: {input.EventType} Date: {dateStr} "));
+            errors.Add(new Error("", $"duplicate kit timeline event: {input.LotNo}, Type: {input.EventCode} Date: {dateStr} "));
             return errors;
         }
 
         // snapshot already taken
         if (await SnapshotAlreadyTaken(input)) {
-            errors.Add(new Error("", $"cannot update {input.EventType} after snapshot taken"));
+            errors.Add(new Error("", $"cannot update {input.EventCode} after snapshot taken"));
             return errors;
         }
 
         // CUSTOM_RECEIVED 
-        if (input.EventType == TimeLineEventCode.CUSTOM_RECEIVED) {
+        if (input.EventCode == TimeLineEventCode.CUSTOM_RECEIVED) {
             if (input.EventDate.Date >= currentDate) {
                 errors.Add(new Error("", $"custom received date must be before current date"));
                 return errors;
@@ -452,7 +470,7 @@ public class KitService {
             return false;
         }
 
-        return input.EventType switch {
+        return input.EventCode switch {
             TimeLineEventCode.CUSTOM_RECEIVED => kitSnapshot.CustomReceived != null,
             TimeLineEventCode.PLAN_BUILD => kitSnapshot.PlanBuild != null,
             TimeLineEventCode.BUILD_COMPLETED => kitSnapshot.BuildCompleted != null,

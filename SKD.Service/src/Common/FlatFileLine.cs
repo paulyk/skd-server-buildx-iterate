@@ -80,6 +80,7 @@ public class FlatFileLine<T> where T : new() {
         }
         throw new Exception($"field '{prop.Name}' not found in layout");
     }
+    
     public string SetFieldValue(string lineText, Expression<Func<T, object>> prop, string newValue) {
         var member = prop.GetAccessedMemberInfo();
 
