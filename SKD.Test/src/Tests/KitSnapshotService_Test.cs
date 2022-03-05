@@ -7,6 +7,10 @@ public class KitSnapshotServiceTest : TestBase {
     readonly int planBuildLeadTimeDays = 2;
 
     public KitSnapshotServiceTest() {
+        CreateContextAndSetBaselineDatabaseData();
+    }
+
+    private void CreateContextAndSetBaselineDatabaseData() {
         context = GetAppDbContext();
         Gen_Baseline_Test_Seed_Data(generateLot: true, componentCodes: new List<string> { "DA", "PA", engineCode });
     }
@@ -401,34 +405,61 @@ public class KitSnapshotServiceTest : TestBase {
         Assert.Equal(planBuild, kitSnapshot_2.PlanBuild);
     }
 
+
+
+    record TestEntry(TimeLineEventCode eventType, int eventDateOffsetDays, int expectedSnapshotRuns, int expectedErrors);
+
     [Fact]
-    public async Task Cannot_generate_snapshot_with_same_run_date() {
-        // setup
-        var kit = context.Kits.OrderBy(t => t.KitNo).First();
+    public async Task Can_allow_or_disallow_multiple_snaphot_runs_per_day() {
+        // setup        
 
-        var baseDate = DateTime.Now.Date;
-
-        var custom_receive_date = baseDate.AddDays(1);
-        var custom_receive_date_trx = baseDate.AddDays(2);
-
-        await CreateKitTimelineEvent(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", "", custom_receive_date_trx, custom_receive_date);
-        var service = new KitSnapshotService(context);
-
-        var snapshotInput = new KitSnapshotInput {
-            RunDate = custom_receive_date_trx,
-            PlantCode = context.Plants.Select(t => t.Code).First(),
-            EngineComponentCode = engineCode
+        var testSets = new List<(DateTime baseDate, bool allowMultiple, List<TestEntry> testEntries)>{
+            (
+                baseDate: DateTime.Now.Date.AddDays(1), 
+                allowMultiple: true, 
+                testEntries: new List<TestEntry> {
+                    new TestEntry(eventType: TimeLineEventCode.CUSTOM_RECEIVED, eventDateOffsetDays: -6, expectedSnapshotRuns: 1, expectedErrors: 0),
+                    new TestEntry(eventType: TimeLineEventCode.PLAN_BUILD, eventDateOffsetDays: 2, expectedSnapshotRuns: 2, expectedErrors: 0),
+                }
+            ),
+            (
+                baseDate: DateTime.Now.Date.AddDays(2), 
+                allowMultiple: false, 
+                testEntries: new List<TestEntry> {
+                    new TestEntry(eventType: TimeLineEventCode.CUSTOM_RECEIVED, eventDateOffsetDays: -6, expectedSnapshotRuns: 3, expectedErrors: 0),
+                    new TestEntry(eventType: TimeLineEventCode.PLAN_BUILD, eventDateOffsetDays: 2, expectedSnapshotRuns: 3, expectedErrors: 1),
+                }
+            ),
         };
-        var result = await service.GenerateSnapshot(snapshotInput);
-        var snapshots_count = context.KitSnapshots.Count();
-        Assert.Equal(1, snapshots_count);
 
-        // test with same runDate
-        result = await service.GenerateSnapshot(snapshotInput);
+        var service = new KitSnapshotService(context);
+        var kits = context.Kits.OrderBy(t => t.KitNo).Take(2).ToList();
 
-        var errorCount = result.Errors.Count;
-        Assert.Equal(1, errorCount);
+        var kitIndex = 0;
+        foreach (var testSet in testSets) {
+            var kit = kits[kitIndex++];
 
+            var minutes = 0;
+            foreach (var entry in testSet.testEntries) {
+
+                var input = new KitSnapshotInput {
+                    RunDate = testSet.baseDate.AddMinutes(++minutes),
+                    PlantCode = context.Plants.Select(t => t.Code).First(),
+                    EngineComponentCode = engineCode,
+                    RejectIfNoChanges = true,
+                    AllowMultipleSnapshotsPerDay = testSet.allowMultiple
+                };
+
+                await CreateKitTimelineEvent(entry.eventType, kit.KitNo, "", "", input.RunDate.Value, testSet.baseDate.AddDays(entry.eventDateOffsetDays));
+                var result = await service.GenerateSnapshot(input);
+
+                var actualErrorCount = result.Errors.Count;
+                Assert.Equal(entry.expectedErrors, actualErrorCount);
+
+                var actualSnapshotCount = context.KitSnapshotRuns.Count();
+                Assert.Equal(entry.expectedSnapshotRuns, actualSnapshotCount);
+            }
+        }
     }
 
     [Fact]
@@ -633,10 +664,10 @@ public class KitSnapshotServiceTest : TestBase {
             .Where(t => t.RemovedAt == null)
             .Where(t => t.Kit.KitNo == kitNo && t.EventType.Code == eventType)
             .FirstAsync();
-        
+
         kte.CreatedAt = eventDate;
         await context.SaveChangesAsync();
-        
+
         return result;
     }
 

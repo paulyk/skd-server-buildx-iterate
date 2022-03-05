@@ -8,13 +8,13 @@ public class KitSnapshotService {
     public static readonly int WholeSateCutOffDays = 7;
     public static readonly int PlanBuildLeadTimeDays = 7;
 
-    public  KitSnapshotService(SkdContext ctx) {
+    public KitSnapshotService(SkdContext ctx) {
         this.context = ctx;
     }
 
     public async Task<MutationResult<SnapshotDTO>> GenerateSnapshot(KitSnapshotInput input) {
         // set to current date if null
-        input.RunDate = input.RunDate ?? DateTime.UtcNow.Date;
+        input.RunDate = input.RunDate ?? DateTime.UtcNow;
 
         MutationResult<SnapshotDTO> result = new() {
             Payload = new SnapshotDTO {
@@ -41,7 +41,7 @@ public class KitSnapshotService {
         // create entity, set sequence number
         var kitSnapshotRun = new KitSnapshotRun {
             Plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode),
-            RunDate = input.RunDate.Value.Date,
+            RunDate = input.RunDate.Value,
             Sequence = await context.KitSnapshotRuns
                 .Where(t => t.Plant.Code == input.PlantCode)
                 .OrderByDescending(t => t.Sequence)
@@ -266,12 +266,14 @@ public class KitSnapshotService {
             return errors;
         }
 
-        // already generated
-        var alreadyGenerated = await context.KitSnapshotRuns
-            .AnyAsync(t => t.Plant.Code == input.PlantCode && t.RunDate.Date == input.RunDate.Value.Date);
+        // already generated for snapshot for this runDate
+        if (!input.AllowMultipleSnapshotsPerDay) {
+            var snapshotForRunDateExists = await context.KitSnapshotRuns
+                .AnyAsync(t => t.Plant.Code == input.PlantCode && t.RunDate.Date == input.RunDate.Value.Date);
 
-        if (alreadyGenerated) {
-            errors.Add(new Error("", $"Already generated kit snapshot for plant {input.PlantCode}, UTC date {DateTime.UtcNow.Date.ToString("yyyy-MM-dd")}"));
+            if (snapshotForRunDateExists) {
+                errors.Add(new Error("", $"Snapshot already take for this date:  {input.PlantCode} - {DateTime.UtcNow.Date.ToString("yyyy-MM-dd")}"));
+            }
         }
 
         return errors;

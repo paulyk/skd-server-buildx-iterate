@@ -196,7 +196,7 @@ public class PartnerStatusBuilder_Test : TestBase {
 
         var kitSnapshotRun = new KitSnapshotRun {
             PlantId = lot.PlantId,
-            RunDate = DateTime.UtcNow.Date,
+            RunDate = DateTime.UtcNow,
             Sequence = 1,
             KitSnapshots = lot.Kits.Select(kit => new KitSnapshot {
                 Kit = kit,

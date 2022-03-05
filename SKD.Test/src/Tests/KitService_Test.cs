@@ -414,11 +414,11 @@ public class KitServiceTest : TestBase {
 
             var result = await service.CreateKitTimelineEvent(input);
             if (entry.expectedError == "") {
-                Assert.Equal(0, result.Errors.Count);
+                Assert.True(result.Errors.Count == 0);
             } else {
                 Assert.True(result.Errors.Count > 0);
                 var actualError = result.Errors.Select(t => t.Message).FirstOrDefault();
-                Assert.True(actualError.StartsWith(entry.expectedError));
+                Assert.StartsWith(entry.expectedError, actualError);
             }
             results.Add(result);
         }
