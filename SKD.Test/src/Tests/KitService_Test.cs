@@ -220,7 +220,7 @@ public class KitServiceTest : TestBase {
         var timelineEvents = new List<(TimeLineEventCode eventType, DateTime trxDate, DateTime eventDate)>() {
                 (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(0), baseDate.AddDays(-6)),
                 (TimeLineEventCode.PLAN_BUILD,  baseDate.AddDays(0),baseDate.AddDays(2)),
-                (TimeLineEventCode.VERIFY_VIN, baseDate.AddDays(1), baseDate.AddDays(3)),
+                (TimeLineEventCode.VERIFY_VIN, baseDate.AddDays(1), baseDate.AddDays(2)),
                 (TimeLineEventCode.BUILD_COMPLETED,  baseDate.AddDays(5),baseDate.AddDays(5)),
                 (TimeLineEventCode.GATE_RELEASED, baseDate.AddDays(10), baseDate.AddDays(10)),
                 (TimeLineEventCode.WHOLE_SALE, baseDate.AddDays(12), baseDate.AddDays(12)),
@@ -283,7 +283,7 @@ public class KitServiceTest : TestBase {
         var result_2 = await service.CreateKitTimelineEvent(input_2);
 
         // assert
-        var expectedError = "custom received date must be before current date";
+        var expectedError = $"Custom received date must preceed current date by {planBuildLeadTimeDays} days";
         var actualMessage = result_1.Errors.Select(t => t.Message).FirstOrDefault();
         Assert.Equal(expectedError, actualMessage);
 
@@ -321,7 +321,7 @@ public class KitServiceTest : TestBase {
         var lastPayload = results[1];
 
         // assert
-        var expectedMessage = "prior timeline event(s) missing";
+        var expectedMessage = "Missing timeline event";
         var actualMessage = lastPayload.Errors.Select(t => t.Message).FirstOrDefault();
         Assert.Equal(expectedMessage, actualMessage.Substring(0, expectedMessage.Length));
     }
@@ -338,7 +338,7 @@ public class KitServiceTest : TestBase {
         var timelineEventItems = new List<(TimeLineEventCode eventType, DateTime trxDate, DateTime eventDate, string eventNode)>() {
                 (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(2), baseDate.AddDays(1) , eventNote),
                 (TimeLineEventCode.PLAN_BUILD, baseDate.AddDays(3), baseDate.AddDays(5), eventNote),
-                (TimeLineEventCode.VERIFY_VIN, baseDate.AddDays(4), baseDate.AddDays(6), eventNote),
+                (TimeLineEventCode.VERIFY_VIN, baseDate.AddDays(4), baseDate.AddDays(5), eventNote),
                 (TimeLineEventCode.BUILD_COMPLETED, baseDate.AddDays(8), baseDate.AddDays(8), eventNote),
                 (TimeLineEventCode.GATE_RELEASED, baseDate.AddDays(10), baseDate.AddDays(10), eventNote),
                 (TimeLineEventCode.WHOLE_SALE, baseDate.AddDays(11), baseDate.AddDays(11), eventNote),
@@ -378,7 +378,7 @@ public class KitServiceTest : TestBase {
     }
 
      [Fact]
-    public async Task Cannot_set_timline_event_dates_in_future_after_verify_vin() {
+    public async Task Cannot_set_timline_event_date_to_future_date_for_build_complete_onwards() {
         // setup
         var kit = context.Kits.First();
         var dealerCode = context.Dealers.First().Code;
@@ -389,7 +389,7 @@ public class KitServiceTest : TestBase {
         var timelineEventItems = new List<(TimeLineEventCode eventType, DateTime trxDate, DateTime eventDate, string expectedError)>() {
                 (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(2), baseDate.AddDays(1) , ""),
                 (TimeLineEventCode.PLAN_BUILD, baseDate.AddDays(3), baseDate.AddDays(5), ""),
-                (TimeLineEventCode.VERIFY_VIN, baseDate.AddDays(4), baseDate.AddDays(6), ""),
+                (TimeLineEventCode.VERIFY_VIN, baseDate.AddDays(4), baseDate.AddDays(5), ""),
                 (TimeLineEventCode.BUILD_COMPLETED, baseDate.AddDays(8), baseDate.AddDays(9), "Date cannot be in the future"),
             };
 

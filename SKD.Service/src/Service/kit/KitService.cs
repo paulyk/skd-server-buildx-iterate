@@ -212,30 +212,17 @@ public class KitService {
         // kitNo
         var kit = await context.Kits.AsNoTracking()
             .Include(t => t.Lot)
-            .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
+            .Include(t => t.TimelineEvents.Where(t => t.RemovedAt == null)).ThenInclude(t => t.EventType)
             .Include(t => t.Dealer)
             .FirstOrDefaultAsync(t => t.KitNo == input.KitNo);
 
-        var planBuildType = await context.KitTimelineEventTypes.FirstAsync(t => t.Code == TimeLineEventCode.PLAN_BUILD);
-        var verifyVinType = await context.KitTimelineEventTypes.FirstAsync(t => t.Code == TimeLineEventCode.VERIFY_VIN);
-        var inputEventType = await context.KitTimelineEventTypes.FirstAsync(t => t.Code == input.EventCode);
-
+        // kit not found
         if (kit == null) {
             errors.Add(new Error("KitNo", $"kit not found for kitNo: {input.KitNo}"));
             return errors;
         }
 
-
-        /* Remove feature: 2022-02-11, problem with ship file imports from Ford
-        // shipment missing
-        var hasAssociatedShipment = await context.ShipmentLots.AnyAsync(t => t.Lot.LotNo == kit.Lot.LotNo);
-        if (!hasAssociatedShipment) {
-            errors.Add(new Error("", $"shipment missing for lot: {kit.Lot.LotNo}"));
-            return errors;
-        }
-        */
-
-        // duplicate kit timeline event
+        // duplicate timeline event
         var duplicate = kit.TimelineEvents
             .OrderByDescending(t => t.CreatedAt)
             .Where(t => t.RemovedAt == null)
@@ -250,29 +237,46 @@ public class KitService {
             return errors;
         }
 
-        // missing prerequisite timeline events
-        var currentTimelineEventType = await context.KitTimelineEventTypes
-            .FirstAsync(t => t.Code == input.EventCode);
+        // setup
+        var kitTimelineEventTypes = await context.KitTimelineEventTypes.Where(t => t.RemovedAt == null).ToListAsync();
+        var inputEventType = kitTimelineEventTypes.First(t => t.Code == input.EventCode);
 
-        var missingTimlineSequences = Enumerable.Range(1, currentTimelineEventType.Sequence - 1)
-            .Where(seq => !kit.TimelineEvents
-            .Any(t => t.EventType.Sequence == seq)).ToList();
+        // Missing prior timeline event
+        var priorEventType = kitTimelineEventTypes.FirstOrDefault(t => t.Sequence == inputEventType.Sequence - 1);
+        if (priorEventType != null) {
+            var priorTimelineEvent = kit.TimelineEvents.FirstOrDefault(t => t.EventType.Code == priorEventType.Code);
+            if (priorTimelineEvent == null) {
+                errors.Add(new Error("", $"Missing timeline event {priorEventType.Description}"));
+                return errors;
+            }
+        }
 
-
-        if (missingTimlineSequences.Count > 0) {
-            var mssingTimelineEventCodes = await context.KitTimelineEventTypes
-                .Where(t => missingTimlineSequences.Any(missingSeq => t.Sequence == missingSeq))
-                .Select(t => t.Code).ToListAsync();
-
-            var text = mssingTimelineEventCodes.Select(t => t.ToString()).Aggregate((a, b) => a + ", " + b);
-            errors.Add(new Error("", $"prior timeline event(s) missing {text}"));
-            return errors;
+        // Cannot set if the next timeline event in sequence already set
+        var nextEventType = kitTimelineEventTypes.FirstOrDefault(t => t.Sequence == inputEventType.Sequence + 1);
+        if (nextEventType != null) {
+            var nextTimelineEvent = kit.TimelineEvents.FirstOrDefault(t => t.EventType.Code == nextEventType.Code);
+            if (nextTimelineEvent != null) {
+                errors.Add(new Error("", $"{nextEventType.Description} already set, cannot set {inputEventType.Description}"));
+                return errors;
+            }
         }
 
         // CUSTOM_RECEIVED 
         if (input.EventCode == TimeLineEventCode.CUSTOM_RECEIVED) {
             if (currentDate <= input.EventDate) {
-                errors.Add(new Error("", $"custom received date must be before current date"));
+                errors.Add(new Error("", $"Custom received date must preceed current date by {planBuildLeadTimeDays} days"));
+                return errors;
+            }
+        }
+
+        // VERIFY_VIN event date must match plan build
+        if (input.EventCode == TimeLineEventCode.VERIFY_VIN) {
+            var planBuildTimelineEvent = kit.TimelineEvents
+                .Where(t => t.EventType.Code == TimeLineEventCode.PLAN_BUILD)
+                .First();
+
+            if (input.EventDate.Date != planBuildTimelineEvent.EventDate.Date) {
+                errors.Add(new Error("", $"Verify VIN date must be the same as plan build {planBuildTimelineEvent.EventDate.ToString("yyyy-MM-dd")}"));
                 return errors;
             }
         }
@@ -292,36 +296,48 @@ public class KitService {
                 return errors;
             }
         }
-        
+
         // WHOLESALE kit must be associated with dealer to proceed
         if (input.EventCode == TimeLineEventCode.WHOLE_SALE) {
             if (String.IsNullOrWhiteSpace(input.DealerCode)) {
                 if (kit.Dealer == null) {
-                    errors.Add(new Error("", $"Kit must be associated with dealer ${kit.KitNo}"));
+                    errors.Add(new Error("", $"Kit must be associated with dealer {kit.KitNo}"));
                     return errors;
                 }
             } else {
                 var dealer = await context.Dealers.FirstOrDefaultAsync(t => t.Code == input.DealerCode);
                 if (dealer == null) {
-                    errors.Add(new Error("", $"Dealer not found for code ${input.DealerCode}"));
+                    errors.Add(new Error("", $"Dealer not found for code {input.DealerCode}"));
                     return errors;
                 }
             }
         }
 
         // VIN Required for events sequence after PLAN BUILD
+        var planBuildType = kitTimelineEventTypes.First(t => t.Code == TimeLineEventCode.PLAN_BUILD);
         if (inputEventType.Sequence > planBuildType.Sequence && String.IsNullOrWhiteSpace(kit.VIN)) {
             errors.Add(new Error("", $"Kit does not have VIN, cannot save {input.EventCode} event"));
             return errors;
         }
 
-        // Event date cannot be in the future for events after VERIFY VIN
+        // Event date cannot be in the future for events for VERIFY_VIN onwwards
+        var verifyVinType = kitTimelineEventTypes.First(t => t.Code == TimeLineEventCode.VERIFY_VIN);
         if (inputEventType.Sequence > verifyVinType.Sequence) {
             if (input.EventDate.Date > currentDate.Date) {
                 errors.Add(new Error("", $"Date cannot be in the future"));
                 return errors;
             }
         }
+
+        /* Remove feature: 2022-02-11, problem with ship file imports from Ford
+        // shipment missing
+        var hasAssociatedShipment = await context.ShipmentLots.AnyAsync(t => t.Lot.LotNo == kit.Lot.LotNo);
+        if (!hasAssociatedShipment) {
+            errors.Add(new Error("", $"shipment missing for lot: {kit.Lot.LotNo}"));
+            return errors;
+        }
+        */
+
 
         return errors;
     }
@@ -382,14 +398,6 @@ public class KitService {
             errors.Add(new Error("VIN", $"lot not found for lotNo: {input.LotNo}"));
             return errors;
         }
-        /* Remove feature: 2022-02-11, problem with ship file imports from Ford
-        // shipment missing        
-        var hasAssociatedShipment = await context.ShipmentLots.AnyAsync(t => t.Lot.LotNo == lot.LotNo);
-        if (!hasAssociatedShipment) {
-            errors.Add(new Error("", $"shipment missing for lot: {lot.LotNo}"));
-            return errors;
-        }
-        */
 
         // duplicate 
         var duplicateTimelineEventsFound = lot.Kits.SelectMany(t => t.TimelineEvents)
@@ -423,6 +431,15 @@ public class KitService {
             }
         }
 
+        /* Remove feature: 2022-02-11, problem with ship file imports from Ford
+        // shipment missing        
+        var hasAssociatedShipment = await context.ShipmentLots.AnyAsync(t => t.Lot.LotNo == lot.LotNo);
+        if (!hasAssociatedShipment) {
+            errors.Add(new Error("", $"shipment missing for lot: {lot.LotNo}"));
+            return errors;
+        }
+        */
+
         return errors;
     }
 
@@ -451,13 +468,13 @@ public class KitService {
 
         var kitComponent = await context.KitComponents.FirstOrDefaultAsync(t => t.Id == input.KitComponentId);
         if (kitComponent == null) {
-            errors.Add(new Error("", $"kit component not found for ${input.KitComponentId}"));
+            errors.Add(new Error("", $"kit component not found for {input.KitComponentId}"));
             return errors;
         }
 
         var productionStation = await context.ProductionStations.FirstOrDefaultAsync(t => t.Code == input.ProductionStationCode);
         if (productionStation == null) {
-            errors.Add(new Error("", $"production station not found ${input.ProductionStationCode}"));
+            errors.Add(new Error("", $"production station not found {input.ProductionStationCode}"));
             return errors;
         }
 

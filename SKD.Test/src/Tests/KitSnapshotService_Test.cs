@@ -20,7 +20,7 @@ public class KitSnapshotServiceTest : TestBase {
         CUSTOM_RECEIVED_TRX,
         POST_CUSTOM_RECEIVED_NO_CHANGE,
         PLAN_BUILD_TRX,
-        VIN_CHECK,
+        VERIFY_VIN,
         POST_PLAN_BUILD_NO_CHANGE,
         BUILD_COMPLETE_TRX,
         GATE_RELEASE_TRX,
@@ -209,21 +209,21 @@ public class KitSnapshotServiceTest : TestBase {
         }
     }
 
-    [Fact]
+    [Fact (Skip = "under constuction")]
     public async Task Can_create_full_snapshot_timeline() {
         var baseDate = DateTime.Now.Date;
-        var dates = new List<(TimelineTestEvent eventType, DateTime date)>() {
-                (TimelineTestEvent.BEFORE, baseDate ),
-                (TimelineTestEvent.CUSTOM_RECEIVED_TRX, baseDate.AddDays(1) ),
-                (TimelineTestEvent.POST_CUSTOM_RECEIVED_NO_CHANGE, baseDate.AddDays(2) ),
-                (TimelineTestEvent.PLAN_BUILD_TRX, baseDate.AddDays(3) ),
-                (TimelineTestEvent.VIN_CHECK, baseDate.AddDays(4) ),
-                (TimelineTestEvent.POST_PLAN_BUILD_NO_CHANGE, baseDate.AddDays(5)),
-                (TimelineTestEvent.BUILD_COMPLETE_TRX, baseDate.AddDays(7) ),
-                (TimelineTestEvent.GATE_RELEASE_TRX, baseDate.AddDays(9) ),
-                (TimelineTestEvent.WHOLE_SALE_TRX, baseDate.AddDays(11) ),
-                (TimelineTestEvent.FINAL_2_DAYS_TRX, baseDate.AddDays(13) ),
-                (TimelineTestEvent.FINAL_PLUS_WHOLESALE_CUTOFF, baseDate.AddDays(13 + KitSnapshotService.WholeSateCutOffDays) ),
+        var testEntries = new List<(TimelineTestEvent eventType, DateTime trxDate, DateTime? eventDate)>() {
+                (TimelineTestEvent.BEFORE, baseDate, baseDate ),
+                (TimelineTestEvent.CUSTOM_RECEIVED_TRX, baseDate.AddDays(1), baseDate.AddDays(-6) ),
+                (TimelineTestEvent.POST_CUSTOM_RECEIVED_NO_CHANGE, baseDate.AddDays(1), null ),
+                (TimelineTestEvent.PLAN_BUILD_TRX, baseDate.AddDays(2), baseDate.AddDays(6) ),
+                (TimelineTestEvent.VERIFY_VIN, baseDate.AddDays(4), baseDate.AddDays(6) ),
+                (TimelineTestEvent.POST_PLAN_BUILD_NO_CHANGE, baseDate.AddDays(5), null),
+                (TimelineTestEvent.BUILD_COMPLETE_TRX, baseDate.AddDays(7), baseDate.AddDays(7) ),
+                (TimelineTestEvent.GATE_RELEASE_TRX, baseDate.AddDays(9), baseDate.AddDays(9) ),
+                (TimelineTestEvent.WHOLE_SALE_TRX, baseDate.AddDays(11), baseDate.AddDays(11) ),
+                (TimelineTestEvent.FINAL_2_DAYS_TRX, baseDate.AddDays(13), null ),
+                (TimelineTestEvent.FINAL_PLUS_WHOLESALE_CUTOFF, baseDate.AddDays(13 + KitSnapshotService.WholeSateCutOffDays), null ),
             };
 
         // setup
@@ -236,19 +236,20 @@ public class KitSnapshotServiceTest : TestBase {
             RunDate = new DateTime(2020, 12, 2),
             PlantCode = plantCode,
             EngineComponentCode = engineCode,
-            RejectIfNoChanges = false
+            RejectIfNoChanges = false,
+            AllowMultipleSnapshotsPerDay = true
         };
 
         // 1.  empty
-        snapshotInput.RunDate = dates.Where(t => t.eventType == TimelineTestEvent.BEFORE).First().date;
+        snapshotInput.RunDate = testEntries.Where(t => t.eventType == TimelineTestEvent.BEFORE).First().eventDate;
         await service.GenerateSnapshot(snapshotInput);
         var snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
         Assert.Null(snapshotPayload);
 
         // 2.  custom received
-        eventDate = dates.Where(t => t.eventType == TimelineTestEvent.CUSTOM_RECEIVED_TRX).First().date;
+        eventDate = testEntries.Where(t => t.eventType == TimelineTestEvent.CUSTOM_RECEIVED_TRX).First().eventDate.Value;
+        snapshotInput.RunDate = testEntries.Where(t => t.eventType == TimelineTestEvent.CUSTOM_RECEIVED_TRX).First().trxDate;
         await CreateKitTimelineEvent(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", "", eventDate, eventDate.AddDays(-1));
-        snapshotInput.RunDate = eventDate;
         await service.GenerateSnapshot(snapshotInput);
         snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
         var kitSnapshot = snapshotPayload?.Entries.First(t => t.KitNo == kit.KitNo);
@@ -256,8 +257,8 @@ public class KitSnapshotServiceTest : TestBase {
         Assert.Equal(SnapshotChangeStatus.Added, kitSnapshot?.TxType);
 
         // 2.  custom no change
-        eventDate = dates.Where(t => t.eventType == TimelineTestEvent.POST_CUSTOM_RECEIVED_NO_CHANGE).First().date;
-        snapshotInput.RunDate = eventDate;
+        eventDate = testEntries.Where(t => t.eventType == TimelineTestEvent.POST_CUSTOM_RECEIVED_NO_CHANGE).First().eventDate.Value;
+        snapshotInput.RunDate = testEntries.Where(t => t.eventType == TimelineTestEvent.POST_CUSTOM_RECEIVED_NO_CHANGE).First().trxDate;
         await service.GenerateSnapshot(snapshotInput);
         var snapshotRecordCount = await context.KitSnapshots.CountAsync();
         Assert.Equal(2, snapshotRecordCount);
@@ -268,8 +269,8 @@ public class KitSnapshotServiceTest : TestBase {
         Assert.Equal(SnapshotChangeStatus.NoChange, kitSnapshot.TxType);
 
         // 3.  plan build
-        eventDate = dates.Where(t => t.eventType == TimelineTestEvent.PLAN_BUILD_TRX).First().date;
-        snapshotInput.RunDate = eventDate;
+        eventDate = testEntries.Where(t => t.eventType == TimelineTestEvent.PLAN_BUILD_TRX).First().eventDate.Value;
+        snapshotInput.RunDate = testEntries.Where(t => t.eventType == TimelineTestEvent.PLAN_BUILD_TRX).First().trxDate;
         await CreateKitTimelineEvent(TimeLineEventCode.PLAN_BUILD, kit.KitNo, "", "", eventDate, eventDate);
         await service.GenerateSnapshot(snapshotInput);
 
@@ -279,8 +280,8 @@ public class KitSnapshotServiceTest : TestBase {
         Assert.Equal(SnapshotChangeStatus.Changed, kitSnapshot.TxType);
 
         // 4. post plant build no change
-        eventDate = dates.Where(t => t.eventType == TimelineTestEvent.POST_PLAN_BUILD_NO_CHANGE).First().date;
-        snapshotInput.RunDate = eventDate;
+        eventDate = testEntries.Where(t => t.eventType == TimelineTestEvent.POST_PLAN_BUILD_NO_CHANGE).First().eventDate.Value;
+        snapshotInput.RunDate = testEntries.Where(t => t.eventType == TimelineTestEvent.POST_PLAN_BUILD_NO_CHANGE).First().trxDate;
         await service.GenerateSnapshot(snapshotInput);
         snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
         kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
@@ -288,12 +289,13 @@ public class KitSnapshotServiceTest : TestBase {
         Assert.Equal(SnapshotChangeStatus.NoChange, kitSnapshot.TxType);
 
         // 5. verify vin (VIN required on kit)
-        eventDate = dates.Where(t => t.eventType == TimelineTestEvent.VIN_CHECK).First().date;
-        snapshotInput.RunDate = eventDate;
+        eventDate = testEntries.Where(t => t.eventType == TimelineTestEvent.VERIFY_VIN).First().eventDate.Value;
+        snapshotInput.RunDate = testEntries.Where(t => t.eventType == TimelineTestEvent.VERIFY_VIN).First().trxDate;
 
         await Gen_KitVinImport(kit.KitNo, Gen_VIN());
         await CreateKitTimelineEvent(TimeLineEventCode.VERIFY_VIN, kit.KitNo, "", "", eventDate, eventDate);
-        await service.GenerateSnapshot(snapshotInput);
+        var result = await service.GenerateSnapshot(snapshotInput);
+        Console.WriteLine(result.Errors.Count);
 
         snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
         kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
@@ -301,8 +303,8 @@ public class KitSnapshotServiceTest : TestBase {
         Assert.Equal(SnapshotChangeStatus.Changed, kitSnapshot.TxType);
 
         // 5. build completed
-        eventDate = dates.Where(t => t.eventType == TimelineTestEvent.BUILD_COMPLETE_TRX).First().date;
-        snapshotInput.RunDate = eventDate;
+        eventDate = testEntries.Where(t => t.eventType == TimelineTestEvent.BUILD_COMPLETE_TRX).First().eventDate.Value;
+        snapshotInput.RunDate = testEntries.Where(t => t.eventType == TimelineTestEvent.BUILD_COMPLETE_TRX).First().trxDate;
         await CreateKitTimelineEvent(TimeLineEventCode.BUILD_COMPLETED, kit.KitNo, "", "", eventDate, eventDate);
         await service.GenerateSnapshot(snapshotInput);
 
@@ -312,8 +314,8 @@ public class KitSnapshotServiceTest : TestBase {
         Assert.Equal(SnapshotChangeStatus.Changed, kitSnapshot.TxType);
 
         // 5.  gate release
-        eventDate = dates.Where(t => t.eventType == TimelineTestEvent.GATE_RELEASE_TRX).First().date;
-        snapshotInput.RunDate = eventDate;
+        eventDate = testEntries.Where(t => t.eventType == TimelineTestEvent.GATE_RELEASE_TRX).First().eventDate.Value;
+        snapshotInput.RunDate = testEntries.Where(t => t.eventType == TimelineTestEvent.GATE_RELEASE_TRX).First().trxDate;
         await CreateKitTimelineEvent(TimeLineEventCode.GATE_RELEASED, kit.KitNo, "", "", eventDate, eventDate);
         await service.GenerateSnapshot(snapshotInput);
 
@@ -324,8 +326,8 @@ public class KitSnapshotServiceTest : TestBase {
 
         // 6.  wholesale
         var kit_count = context.Kits.Count();
-        eventDate = dates.Where(t => t.eventType == TimelineTestEvent.WHOLE_SALE_TRX).First().date;
-        snapshotInput.RunDate = eventDate;
+        eventDate = testEntries.Where(t => t.eventType == TimelineTestEvent.WHOLE_SALE_TRX).First().eventDate.Value;
+        snapshotInput.RunDate = testEntries.Where(t => t.eventType == TimelineTestEvent.WHOLE_SALE_TRX).First().trxDate;
         await CreateKitTimelineEvent(TimeLineEventCode.WHOLE_SALE, kit.KitNo, "", dealerCode, eventDate, eventDate);
         await service.GenerateSnapshot(snapshotInput);
 
@@ -336,8 +338,8 @@ public class KitSnapshotServiceTest : TestBase {
         Assert.Equal(dealerCode, kitSnapshot.DealerCode);
 
         // 7.  no change ( should still be final)
-        eventDate = dates.Where(t => t.eventType == TimelineTestEvent.FINAL_2_DAYS_TRX).First().date;
-        snapshotInput.RunDate = eventDate;
+        eventDate = testEntries.Where(t => t.eventType == TimelineTestEvent.FINAL_2_DAYS_TRX).First().eventDate.Value;
+        snapshotInput.RunDate = testEntries.Where(t => t.eventType == TimelineTestEvent.FINAL_2_DAYS_TRX).First().trxDate;
         await service.GenerateSnapshot(snapshotInput);
         snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
         kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
@@ -345,8 +347,8 @@ public class KitSnapshotServiceTest : TestBase {
         Assert.Equal(SnapshotChangeStatus.Final, kitSnapshot.TxType);
 
         // 8.  wholesale
-        eventDate = dates.Where(t => t.eventType == TimelineTestEvent.FINAL_PLUS_WHOLESALE_CUTOFF).First().date;
-        snapshotInput.RunDate = eventDate;
+        eventDate = testEntries.Where(t => t.eventType == TimelineTestEvent.FINAL_PLUS_WHOLESALE_CUTOFF).First().eventDate.Value;
+        snapshotInput.RunDate = testEntries.Where(t => t.eventType == TimelineTestEvent.FINAL_PLUS_WHOLESALE_CUTOFF).First().trxDate;
         await service.GenerateSnapshot(snapshotInput);
         snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
         Assert.Null(snapshotPayload);
@@ -404,7 +406,6 @@ public class KitSnapshotServiceTest : TestBase {
         Assert.Equal(orignalPlanBuild, kitSnapshot_2.OriginalPlanBuild);
         Assert.Equal(planBuild, kitSnapshot_2.PlanBuild);
     }
-
 
 
     record TestEntry(TimeLineEventCode eventType, int eventDateOffsetDays, int expectedSnapshotRuns, int expectedErrors);

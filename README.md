@@ -109,4 +109,4 @@ dotnet ef database update --project skd.server --connection "target connection s
 
 ```bash
 dotnet ef migrations list --project skd.server
-``
+```
