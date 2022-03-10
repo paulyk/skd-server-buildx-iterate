@@ -54,6 +54,14 @@ public class KitSnapshotService {
             // get prior snapshot used to determine differences
             var priorSnapshot = await GetPriorKitSnapshot(kit.Id);
 
+            // check for gap in snapshot timeline
+            if (priorSnapshot != null) {
+                var (hasGap, eventCode) = SnapshotHasTimelineGap(priorSnapshot);
+                if (hasGap) {
+                    throw new Exception($"kit {kit.KitNo} snapshot has missing date for {eventCode}");
+                }
+            }
+
             // Set snapshot properties
             KitSnapshot snapshot = new() { Kit = kit };
             snapshot.VIN = Get_VIN_If_BuildCompleted(kit);
@@ -75,9 +83,6 @@ public class KitSnapshotService {
 
             kitSnapshotRun.KitSnapshots.Add(snapshot);
         }
-
-
-        // ks.KitTimeLineEventType.EventType.Code == TimeLineEventCode.WHOLE_SALE
 
         // reject if no changes
         if (input.RejectIfNoChanges) {
@@ -110,9 +115,9 @@ public class KitSnapshotService {
     public async Task<List<Kit>> GetQualifyingKits(string plantCode, DateTime runDate) {
         var query = GetKitSnapshotQualifyingKitsQuery(plantCode, runDate);
         return await query
-            .Include(t => t.Lot).ThenInclude(t => t.ShipmentLots)
+            .Include(t => t.Lot).ThenInclude(t => t.ShipmentLots.Where(t => t.RemovedAt == null))
             .Include(t => t.Snapshots.Where(t => t.RemovedAt == null).OrderBy(t => t.KitTimeLineEventType.Sequence))
-            .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
+            .Include(t => t.TimelineEvents.Where(t => t.RemovedAt == null)).ThenInclude(t => t.EventType)
             .Include(t => t.Dealer)
             .ToListAsync();
     }
@@ -313,7 +318,7 @@ public class KitSnapshotService {
     public string? GetDealerCode(Kit kit, KitSnapshot snapshot) {
         if (LatestSnapshotEventCode(snapshot) == TimeLineEventCode.WHOLE_SALE) {
             if (kit.Dealer == null) {
-                throw new Exception($"Kit status is WHOLESALE, but  dealer not set {kit.KitNo}");
+                throw new Exception($"Kit status is WHOLESALE, but  dealer not set ${kit.KitNo}");
             }
             return kit.Dealer.Code;
         }
@@ -321,9 +326,9 @@ public class KitSnapshotService {
     }
 
     ///<remarks>
-    /// Get timeline event date from prior snapshot if exists otherwise gets from kit, 
+    /// Get timeline event date from prior snapshot if exists Otherwise gets from kit, 
     /// but only for the latest pending event
-    /// Even if kit has timeline events after pending, they are not added to the snapshot
+    /// Even if kit has timeline events after pending, they are not added to the snapshot/
     ///</remarks>
     private DateTime? Get_EventDate_For_Timeline_EventCode(
         Kit kit,
@@ -431,59 +436,37 @@ public class KitSnapshotService {
 
 
     ///<remarks>
-    /// Get most rececnt KitTimelineEventType matching snapshot event
+    /// Get most rececnt KitTimelineEventType matchin snapshot event
     ///</remarks>
     public static KitTimelineEventType GetLatestSnapshotEventType(Kit kit, KitSnapshot snapshot) {
         var eventCode = LatestSnapshotEventCode(snapshot);
-
-        var result = kit.TimelineEvents
+        if (eventCode == null) {
+            throw new Exception("shold have timeline event code");
+        }
+        return kit.TimelineEvents
             .Where(t => t.RemovedAt == null)
             .Where(t => t.EventType.Code == eventCode)
             .Select(t => t.EventType).First();
-
-        return result;
     }
 
     public static TimeLineEventCode? GetNextPendingSnapshotTimeLineEventCode(KitSnapshot? snapshot) {
         if (snapshot == null) {
             return TimeLineEventCode.CUSTOM_RECEIVED;
         }
-        // track back from latest
-        // if SnapshotHasTimelineEvent then return the next one.
-        var eventCodes = Enum.GetValues<TimeLineEventCode>().ToArray();
-        for (var i = eventCodes.Length - 1; i >= 0; i--) {
 
-            var currentCode = eventCodes[i];
-            var currentCodeHasSnapshot = SnapshotHasTimelineEvent(snapshot, currentCode);
-            
-            var isFinalEventCode = i == (eventCodes.Length - 1);
-            if (isFinalEventCode && currentCodeHasSnapshot) {
-                break; // no more pending codes.
-            } else if (!currentCodeHasSnapshot) {
-                continue; // get previous event code in sequence
+        var eventCodes = Enum.GetValues<TimeLineEventCode>();
+        for (var i = 0; i < eventCodes.Length; i++) {
+            var code = eventCodes[i];
+            if (!SnapshotHasTimelineEvent(snapshot, code)) {
+                return code;
             }
-
-            var laterEventCode =  eventCodes[i + 1];
-            var laterEventCodeHasSnapshot = SnapshotHasTimelineEvent(snapshot, laterEventCode);
-
-            if (!laterEventCodeHasSnapshot) {
-                return laterEventCode;
-            }            
         }
 
         return (TimeLineEventCode?)null;
     }
 
     public static bool SnapshotHasTimelineEvent(KitSnapshot snapshot, TimeLineEventCode eventCode) {
-        switch (eventCode) {
-            case TimeLineEventCode.CUSTOM_RECEIVED: return snapshot.CustomReceived != null;
-            case TimeLineEventCode.PLAN_BUILD: return snapshot.PlanBuild != null;
-            case TimeLineEventCode.VERIFY_VIN: return snapshot.VerifyVIN != null;
-            case TimeLineEventCode.BUILD_COMPLETED: return snapshot.BuildCompleted != null;
-            case TimeLineEventCode.GATE_RELEASED: return snapshot.GateRelease != null;
-            case TimeLineEventCode.WHOLE_SALE: return snapshot.Wholesale != null;
-            default: throw new Exception("never");
-        }
+        return SnapshotTimelineEventDate(snapshot, eventCode) != null;
     }
 
     public static DateTime? SnapshotTimelineEventDate(KitSnapshot snapshot, TimeLineEventCode eventCode) {
@@ -498,9 +481,27 @@ public class KitSnapshotService {
         }
     }
 
+    public (bool hasGap, TimeLineEventCode? eventCode) SnapshotHasTimelineGap(KitSnapshot snapshot) {
+        var eventCodeDates = Enum.GetValues<TimeLineEventCode>()
+            .Select(t => new {
+                eventCode = t,
+                date = SnapshotTimelineEventDate(snapshot, t)
+            }).ToArray();
+
+        // find gap in array
+        for (var i = 0; i < eventCodeDates.Length; i++) {
+            if (i - 1 >= 0) {
+                if (eventCodeDates[i - 1].date == null && eventCodeDates[i].date != null) {
+                    return (hasGap: true, eventCode: eventCodeDates[i - 1].eventCode);
+                }
+            }
+        }
+        return (false, null);
+    }
+
     public static TimeLineEventCode? LatestSnapshotEventCode(KitSnapshot snapshot) {
-        var reverseEventCodes = Enum.GetValues<TimeLineEventCode>().Reverse();
-        foreach (var eventCode in reverseEventCodes) {
+        var eventCodes = Enum.GetValues<TimeLineEventCode>().Reverse();
+        foreach (var eventCode in eventCodes) {
             if (SnapshotHasTimelineEvent(snapshot, eventCode)) {
                 return eventCode;
             }
