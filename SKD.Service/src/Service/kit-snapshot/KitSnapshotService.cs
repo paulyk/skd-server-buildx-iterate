@@ -64,7 +64,7 @@ public class KitSnapshotService {
 
             // Set snapshot properties
             KitSnapshot snapshot = new() { Kit = kit };
-            snapshot.VIN = Get_VIN_If_BuildCompleted(kit);
+            snapshot.VIN = Get_VIN_If_BuildCompleted(kit, priorSnapshot);
             snapshot.EngineSerialNumber = await GetEngineSerialNumber(kit, input.EngineComponentCode);
 
             snapshot.CustomReceived = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.CUSTOM_RECEIVED);
@@ -286,14 +286,25 @@ public class KitSnapshotService {
 
 
     /// <remark>
-    /// returns VIN if kit has the build completed event.
+    /// returns VIN if pending status is BUILD_COMPLETED event otherwise return empty string
     /// <remark>
-    private string Get_VIN_If_BuildCompleted(Kit kit) {
-        if (!KitHasTimelineEvent(kit, TimeLineEventCode.BUILD_COMPLETED)) {
+    private string Get_VIN_If_BuildCompleted(Kit kit, KitSnapshot? priorSnapshot) {
+
+        if (priorSnapshot == null) {
             return "";
         }
 
-        return kit.VIN;
+        var pendingCode = GetNextPendingSnapshotTimeLineEventCode(priorSnapshot);
+        var vinRequired = 
+            pendingCode == TimeLineEventCode.BUILD_COMPLETED 
+            || pendingCode == TimeLineEventCode.GATE_RELEASED
+            || pendingCode == TimeLineEventCode.WHOLE_SALE;
+
+        if (vinRequired) {
+            return kit.VIN;
+        }
+
+        return "";
     }
 
     private async Task<string> GetEngineSerialNumber(Kit kit, string engineComponentCode) {
