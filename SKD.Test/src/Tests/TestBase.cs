@@ -177,6 +177,17 @@ public class TestBase {
             .FirstAsync(t => t.KitNo == kitNo);
     }
 
+    public async Task Gen_KitComponentSerial(string kitNo, string componentCode, string serial1, string serial2, bool verify) {
+        var kitComponent = await context.KitComponents.FirstOrDefaultAsync(t => t.Kit.KitNo == kitNo && t.Component.Code == componentCode);
+        var componentSerial = new ComponentSerial {
+            Serial1 = serial1,
+            Serial2 = serial2,
+            VerifiedAt = verify ? DateTime.Now : (DateTime?)null,
+        };
+        kitComponent.ComponentSerials.Add(componentSerial);
+        await context.SaveChangesAsync();
+    }
+
     public List<ProductionStation> Gen_ProductionStations(params string[] codes) {
         var stationCodes = codes.Where(code => !context.ProductionStations.Any(t => t.Code == code)).ToList();
 

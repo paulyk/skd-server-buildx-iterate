@@ -65,7 +65,7 @@ public class KitSnapshotService {
             // Set snapshot properties
             KitSnapshot snapshot = new() { Kit = kit };
             snapshot.VIN = Get_VIN_If_BuildCompleted(kit, priorSnapshot);
-            snapshot.EngineSerialNumber = await GetEngineSerialNumber(kit, input.EngineComponentCode);
+            snapshot.EngineSerialNumber = await GetEngineSerialNumber(kit, priorSnapshot, input.EngineComponentCode);
 
             snapshot.CustomReceived = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.CUSTOM_RECEIVED);
             snapshot.PlanBuild = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.PLAN_BUILD);
@@ -295,8 +295,8 @@ public class KitSnapshotService {
         }
 
         var pendingCode = GetNextPendingSnapshotTimeLineEventCode(priorSnapshot);
-        var vinRequired = 
-            pendingCode == TimeLineEventCode.BUILD_COMPLETED 
+        var vinRequired =
+            pendingCode == TimeLineEventCode.BUILD_COMPLETED
             || pendingCode == TimeLineEventCode.GATE_RELEASED
             || pendingCode == TimeLineEventCode.WHOLE_SALE;
 
@@ -307,23 +307,29 @@ public class KitSnapshotService {
         return "";
     }
 
-    private async Task<string> GetEngineSerialNumber(Kit kit, string engineComponentCode) {
-        if (engineComponentCode == null) {
-            throw new Exception("GetEngineSerialNumber: Engine component code required");
-        }
-
-        var buildCompletedEvent = GetKitTimelineEvent(kit, TimeLineEventCode.BUILD_COMPLETED);
-        if (buildCompletedEvent == null) {
+    private async Task<string> GetEngineSerialNumber(Kit kit, KitSnapshot? priorSnapshot, string engineComponentCode) {
+        if (priorSnapshot == null) {
             return "";
         }
 
-        var verifiedComponentSerial = await context.ComponentSerials
-            .Where(t => t.KitComponent.Kit.KitNo == kit.KitNo)
-            .Where(t => t.KitComponent.Component.Code == engineComponentCode)
-            .Where(t => t.VerifiedAt != null && t.RemovedAt == null)
-            .FirstOrDefaultAsync();
+        var pendingCode = GetNextPendingSnapshotTimeLineEventCode(priorSnapshot);
+        var engineComponentRequired =
+            pendingCode == TimeLineEventCode.BUILD_COMPLETED
+            || pendingCode == TimeLineEventCode.GATE_RELEASED
+            || pendingCode == TimeLineEventCode.WHOLE_SALE;
 
-        return (verifiedComponentSerial?.Serial1 + " " + verifiedComponentSerial?.Serial2).Trim();
+        if (engineComponentRequired) {
+
+            var verifiedComponentSerial = await context.ComponentSerials
+                .Where(t => t.KitComponent.Kit.KitNo == kit.KitNo)
+                .Where(t => t.KitComponent.Component.Code == engineComponentCode)
+                .Where(t => t.VerifiedAt != null && t.RemovedAt == null)
+                .FirstOrDefaultAsync();
+
+            return (verifiedComponentSerial?.Serial1 + " " + verifiedComponentSerial?.Serial2).Trim();
+        }
+
+        return "";
     }
 
     public string? GetDealerCode(Kit kit, KitSnapshot snapshot) {

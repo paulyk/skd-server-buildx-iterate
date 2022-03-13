@@ -35,6 +35,7 @@ public class KitSnapshotServiceTest : TestBase {
         public SnapshotChangeStatus? ChangeStatus = null;
         public string VIN = "";
         public string DealerCode = "";
+        public string EngineSerial = "";
         public int SnapshotCount = 999;
     }
 
@@ -42,6 +43,7 @@ public class KitSnapshotServiceTest : TestBase {
         public int EventOnDay = 0;
         public TimeLineEventCode EventCode;
         public string DealerCode = "";
+
     }
 
     private class TestTimelineInput {
@@ -59,6 +61,8 @@ public class KitSnapshotServiceTest : TestBase {
             .Include(t => t.Lot)
             .OrderBy(t => t.KitNo).First();
         var plantCode = context.Plants.Select(t => t.Code).First();
+        var vin = Gen_VIN();
+        var engineSerial = "GRBPA21162001726FB3Q 6007 AB3E";
         var dealerCode = await context.Dealers.Select(t => t.Code).FirstOrDefaultAsync();
         await Gen_ShipmentLot(kit.Lot.LotNo);
 
@@ -127,7 +131,9 @@ public class KitSnapshotServiceTest : TestBase {
                     TimeLineEventCode = TimeLineEventCode.BUILD_COMPLETED,
                     ChangeStatus = SnapshotChangeStatus.Changed,
                     SnapshotCount = 1,
-                    DealerCode = ""
+                    DealerCode = "",
+                    VIN = vin,
+                    EngineSerial = engineSerial
                 }
             },
             new TestTimelineInput {
@@ -140,7 +146,9 @@ public class KitSnapshotServiceTest : TestBase {
                     TimeLineEventCode = TimeLineEventCode.GATE_RELEASED,
                     ChangeStatus = SnapshotChangeStatus.Changed,
                     SnapshotCount = 1,
-                    DealerCode = ""
+                    DealerCode = "",
+                    VIN = vin,
+                    EngineSerial = engineSerial
                 }
             },
             new TestTimelineInput {
@@ -154,7 +162,9 @@ public class KitSnapshotServiceTest : TestBase {
                     TimeLineEventCode = TimeLineEventCode.WHOLE_SALE,
                     ChangeStatus = SnapshotChangeStatus.Final,
                     SnapshotCount = 1,
-                    DealerCode = dealerCode
+                    DealerCode = dealerCode,
+                    VIN = vin,
+                    EngineSerial = engineSerial
                 }
             },
         };
@@ -169,6 +179,15 @@ public class KitSnapshotServiceTest : TestBase {
                     var trxDate = baseDate.AddDays(day);
                     var kitService = new KitService(context, trxDate, planBuildLeadTimeDays);
 
+                    // import VIN before VERIFY_VIN
+                    if (input.EventInput.EventCode == TimeLineEventCode.VERIFY_VIN) {
+                        await Gen_KitVinImport(kit.KitNo, vin);
+                    }
+                    // add EN component serial right after VERIFY_VIN
+                    if (input.EventInput.EventCode == TimeLineEventCode.VERIFY_VIN) {
+                        await Gen_KitComponentSerial(kit.KitNo, engineCode, engineSerial, "", verify: true);
+                    }
+
                     await CreateKitTimelineEvent(
                        eventType: input.EventInput.EventCode,
                        kitNo: kit.KitNo,
@@ -178,10 +197,6 @@ public class KitSnapshotServiceTest : TestBase {
                        eventDate: baseDate.AddDays(input.EventInput.EventOnDay)
                     );
 
-                    // generate VIN once PLAN_BUILD status set
-                    if (input.EventInput.EventCode == TimeLineEventCode.PLAN_BUILD) {
-                        await Gen_KitVinImport(kit.KitNo, Gen_VIN());
-                    }
                 }
                 var rundDate = baseDate.AddDays(day);
                 var snapshotResult = await snapShotService.GenerateSnapshot(new KitSnapshotInput {
@@ -204,12 +219,14 @@ public class KitSnapshotServiceTest : TestBase {
                 Assert.Equal(input.Expected.ChangeStatus, kitSnapshot?.ChangeStatusCode);
                 Assert.Equal(input.Expected.TimeLineEventCode, kitSnapshot?.KitTimeLineEventType.Code);
                 Assert.Equal(input.Expected.DealerCode, kitSnapshot?.DealerCode ?? "");
+                Assert.Equal(input.Expected.VIN, kitSnapshot?.VIN ?? "");
+                Assert.Equal(input.Expected.EngineSerial, kitSnapshot?.EngineSerialNumber ?? "");
             }
             day++;
         }
     }
 
-    [Fact (Skip = "under constuction")]
+    [Fact(Skip = "under constuction")]
     public async Task Can_create_full_snapshot_timeline() {
         var baseDate = DateTime.Now.Date;
         var testEntries = new List<(TimelineTestEvent eventType, DateTime trxDate, DateTime? eventDate)>() {
@@ -416,16 +433,16 @@ public class KitSnapshotServiceTest : TestBase {
 
         var testSets = new List<(DateTime baseDate, bool allowMultiple, List<TestEntry> testEntries)>{
             (
-                baseDate: DateTime.Now.Date.AddDays(1), 
-                allowMultiple: true, 
+                baseDate: DateTime.Now.Date.AddDays(1),
+                allowMultiple: true,
                 testEntries: new List<TestEntry> {
                     new TestEntry(eventType: TimeLineEventCode.CUSTOM_RECEIVED, eventDateOffsetDays: -6, expectedSnapshotRuns: 1, expectedErrors: 0),
                     new TestEntry(eventType: TimeLineEventCode.PLAN_BUILD, eventDateOffsetDays: 2, expectedSnapshotRuns: 2, expectedErrors: 0),
                 }
             ),
             (
-                baseDate: DateTime.Now.Date.AddDays(2), 
-                allowMultiple: false, 
+                baseDate: DateTime.Now.Date.AddDays(2),
+                allowMultiple: false,
                 testEntries: new List<TestEntry> {
                     new TestEntry(eventType: TimeLineEventCode.CUSTOM_RECEIVED, eventDateOffsetDays: -6, expectedSnapshotRuns: 3, expectedErrors: 0),
                     new TestEntry(eventType: TimeLineEventCode.PLAN_BUILD, eventDateOffsetDays: 2, expectedSnapshotRuns: 3, expectedErrors: 1),
