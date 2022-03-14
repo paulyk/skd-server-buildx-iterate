@@ -62,24 +62,17 @@ public class KitSnapshotService {
                 }
             }
 
-            // Set snapshot properties
-            KitSnapshot snapshot = new() { Kit = kit };
-            snapshot.VIN = Get_VIN_If_BuildCompleted(kit, priorSnapshot);
-            snapshot.EngineSerialNumber = await GetEngineSerialNumber(kit, priorSnapshot, input.EngineComponentCode);
-
-            snapshot.CustomReceived = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.CUSTOM_RECEIVED);
-            snapshot.PlanBuild = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.PLAN_BUILD);
-            snapshot.VerifyVIN = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.VERIFY_VIN);
-            snapshot.BuildCompleted = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.BUILD_COMPLETED);
-            snapshot.GateRelease = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.GATE_RELEASED);
-            snapshot.Wholesale = Get_EventDate_For_Timeline_EventCode(kit, priorSnapshot, TimeLineEventCode.WHOLE_SALE);
-
-            snapshot.OrginalPlanBuild = snapshot.PlanBuild;
-
-            snapshot.KitTimeLineEventType = GetLatestSnapshotEventType(kit, snapshot);
-            snapshot.DealerCode = GetDealerCode(kit, snapshot);
-
-            snapshot.ChangeStatusCode = GetKit_PartnerStatus_ChangeStatus(snapshot, priorSnapshot);
+            var snapshotGenerator = new NextKitSnapshotGenerator(new NextKitSnapshotGenerator.GenNextSnapshotInput{
+                KitId = kit.Id,
+                PriorSnapshot = priorSnapshot,
+                VIN = kit.VIN,
+                DealerCode = kit.Dealer?.Code ?? "",
+                EngineSerialNumber = await GetEngineSerialNumber(kit, input.EngineComponentCode),
+                TimelineEventTypes = await context.KitTimelineEventTypes.ToListAsync(),
+                KitTimelineEvents = kit.TimelineEvents.Where(t => t.RemovedAt == null).ToList()
+            });
+            
+            var snapshot = snapshotGenerator.GenerateNextSnapshot();
 
             kitSnapshotRun.KitSnapshots.Add(snapshot);
         }
@@ -93,8 +86,8 @@ public class KitSnapshotService {
             }
         }
 
-        // save
         context.KitSnapshotRuns.Add(kitSnapshotRun);
+        // save
         await context.SaveChangesAsync();
 
         // result payload
@@ -288,203 +281,23 @@ public class KitSnapshotService {
     /// <remark>
     /// returns VIN if pending status is BUILD_COMPLETED event otherwise return empty string
     /// <remark>
-    private string Get_VIN_If_BuildCompleted(Kit kit, KitSnapshot? priorSnapshot) {
+    private async Task<string> GetEngineSerialNumber(Kit kit, string engineComponentCode) {
 
-        if (priorSnapshot == null) {
-            return "";
-        }
+        var verifiedComponentSerial = await context.ComponentSerials
+            .Where(t => t.KitComponent.Kit.KitNo == kit.KitNo)
+            .Where(t => t.KitComponent.Component.Code == engineComponentCode)
+            .Where(t => t.VerifiedAt != null && t.RemovedAt == null)
+            .FirstOrDefaultAsync();
 
-        var pendingCode = GetNextPendingSnapshotTimeLineEventCode(priorSnapshot);
-        var vinRequired =
-            pendingCode == TimeLineEventCode.BUILD_COMPLETED
-            || pendingCode == TimeLineEventCode.GATE_RELEASED
-            || pendingCode == TimeLineEventCode.WHOLE_SALE;
-
-        if (vinRequired) {
-            return kit.VIN;
-        }
-
-        return "";
+        return (verifiedComponentSerial?.Serial1 + " " + verifiedComponentSerial?.Serial2).Trim();
     }
-
-    private async Task<string> GetEngineSerialNumber(Kit kit, KitSnapshot? priorSnapshot, string engineComponentCode) {
-        if (priorSnapshot == null) {
-            return "";
-        }
-
-        var pendingCode = GetNextPendingSnapshotTimeLineEventCode(priorSnapshot);
-        var engineComponentRequired =
-            pendingCode == TimeLineEventCode.BUILD_COMPLETED
-            || pendingCode == TimeLineEventCode.GATE_RELEASED
-            || pendingCode == TimeLineEventCode.WHOLE_SALE;
-
-        if (engineComponentRequired) {
-
-            var verifiedComponentSerial = await context.ComponentSerials
-                .Where(t => t.KitComponent.Kit.KitNo == kit.KitNo)
-                .Where(t => t.KitComponent.Component.Code == engineComponentCode)
-                .Where(t => t.VerifiedAt != null && t.RemovedAt == null)
-                .FirstOrDefaultAsync();
-
-            return (verifiedComponentSerial?.Serial1 + " " + verifiedComponentSerial?.Serial2).Trim();
-        }
-
-        return "";
-    }
-
-    public string? GetDealerCode(Kit kit, KitSnapshot snapshot) {
-        if (LatestSnapshotEventCode(snapshot) == TimeLineEventCode.WHOLE_SALE) {
-            if (kit.Dealer == null) {
-                throw new Exception($"Kit status is WHOLESALE, but  dealer not set ${kit.KitNo}");
-            }
-            return kit.Dealer.Code;
-        }
-        return null;
-    }
-
-    ///<remarks>
-    /// Get timeline event date from prior snapshot if exists Otherwise gets from kit, 
-    /// but only for the latest pending event
-    /// Even if kit has timeline events after pending, they are not added to the snapshot/
-    ///</remarks>
-    private DateTime? Get_EventDate_For_Timeline_EventCode(
-        Kit kit,
-        KitSnapshot? priorSnapshot,
-        TimeLineEventCode eventCode) {
-
-        // if no prior snapshot then we start with custom receive if eventCode == CUSTOM_RECEIVED 
-        if (priorSnapshot == null) {
-            return eventCode == TimeLineEventCode.CUSTOM_RECEIVED
-                ? GetKitTimelineEventDate(kit, eventCode)
-                : (DateTime?)null;
-        }
-
-        var pendingCode = GetNextPendingSnapshotTimeLineEventCode(priorSnapshot);
-        if (pendingCode == null) {
-            // if nothing pending the return snapshot date
-            return SnapshotTimelineEventDate(priorSnapshot, eventCode);
-        }
-
-        var result = eventCode.CompareTo(pendingCode);
-
-        if (result < 0) {
-            // return snapshot date
-            return SnapshotTimelineEventDate(priorSnapshot, eventCode);
-        } else if (result == 0) {
-            // same and pending:  return kit event date 
-            return GetKitTimelineEventDate(kit, eventCode);
-        } else {
-            // return null for now even if kit has timeine event. 
-            return (DateTime?)null;
-        }
-    }
-
-    ///<remarks>
-    /// Compare prior to current snapshot to determin change statusL: Added, Changed, NoChange, or Final
-    /// Oonce status set ot Final it stays there.
-    ///</remarks>
-    private SnapshotChangeStatus GetKit_PartnerStatus_ChangeStatus(KitSnapshot currentSnapshot, KitSnapshot? priorSnapshot) {
-
-        // ADDED if no prior snapshot 
-        if (priorSnapshot == null) {
-            return SnapshotChangeStatus.Added;
-        }
-
-        // FINAL if has wholesate then Final
-        if (currentSnapshot.KitTimeLineEventType.Code == TimeLineEventCode.WHOLE_SALE) {
-            return SnapshotChangeStatus.Final;
-        }
-
-        // CHANGE: if current different from prior
-        if (currentSnapshot.KitTimeLineEventType.Code != priorSnapshot.KitTimeLineEventType.Code) {
-            return SnapshotChangeStatus.Changed;
-        }
-
-        // NO-CHANGE otherwise no change
-        return SnapshotChangeStatus.NoChange;
-
-    }
-    private DateTime? GetKitTimelineEventDate(Kit kit, TimeLineEventCode eventCode) {
-        var result = kit.TimelineEvents
-            .OrderByDescending(t => t.CreatedAt)
-            .Where(t => t.RemovedAt == null)
-            .Where(t => t.EventType.Code == eventCode)
-            .Select(t => t.EventDate)
-            .FirstOrDefault();
-
-        return result == DateTime.MinValue
-            ? (DateTime?)null
-            : result;
-    }
-
-    private bool KitHasTimelineEvent(Kit kit, TimeLineEventCode eventCode)
-        => kit.TimelineEvents
-            .Where(t => t.RemovedAt == null)
-            .Where(t => t.EventType.Code == eventCode)
-            .Any();
 
     private async Task<KitSnapshot?> GetPriorKitSnapshot(Guid kitId)
         => await context.KitSnapshots
             .OrderByDescending(t => t.KitSnapshotRun.Sequence)
             .Where(t => t.RemovedAt == null)
+            .Where(t => t.KitSnapshotRun.RemovedAt == null)
             .FirstOrDefaultAsync(t => t.KitId == kitId);
-
-    private bool SnapshotTimelineEventDateSet(KitSnapshot snapshot, TimeLineEventCode timelineEventCode) {
-        switch (timelineEventCode) {
-            case TimeLineEventCode.CUSTOM_RECEIVED: return snapshot.CustomReceived != null;
-            case TimeLineEventCode.PLAN_BUILD: return snapshot.PlanBuild != null;
-            case TimeLineEventCode.VERIFY_VIN: return snapshot.VerifyVIN != null;
-            case TimeLineEventCode.BUILD_COMPLETED: return snapshot.BuildCompleted != null;
-            case TimeLineEventCode.GATE_RELEASED: return snapshot.GateRelease != null;
-            case TimeLineEventCode.WHOLE_SALE: return snapshot.Wholesale != null;
-            default: return false;
-        }
-    }
-
-    ///<remarks>
-    /// Get most recenet kit timeline event for specified eventCode
-    ///</remarks>
-    private KitTimelineEvent? GetKitTimelineEvent(Kit kit, TimeLineEventCode eventCode) {
-        return kit.TimelineEvents
-            .OrderByDescending(t => t.CreatedAt)
-            .Where(t => t.RemovedAt == null)
-            .FirstOrDefault(t => t.EventType.Code == eventCode);
-    }
-
-
-    ///<remarks>
-    /// Get most rececnt KitTimelineEventType matchin snapshot event
-    ///</remarks>
-    public static KitTimelineEventType GetLatestSnapshotEventType(Kit kit, KitSnapshot snapshot) {
-        var eventCode = LatestSnapshotEventCode(snapshot);
-        if (eventCode == null) {
-            throw new Exception("shold have timeline event code");
-        }
-        return kit.TimelineEvents
-            .Where(t => t.RemovedAt == null)
-            .Where(t => t.EventType.Code == eventCode)
-            .Select(t => t.EventType).First();
-    }
-
-    public static TimeLineEventCode? GetNextPendingSnapshotTimeLineEventCode(KitSnapshot? snapshot) {
-        if (snapshot == null) {
-            return TimeLineEventCode.CUSTOM_RECEIVED;
-        }
-
-        var eventCodes = Enum.GetValues<TimeLineEventCode>();
-        for (var i = 0; i < eventCodes.Length; i++) {
-            var code = eventCodes[i];
-            if (!SnapshotHasTimelineEvent(snapshot, code)) {
-                return code;
-            }
-        }
-
-        return (TimeLineEventCode?)null;
-    }
-
-    public static bool SnapshotHasTimelineEvent(KitSnapshot snapshot, TimeLineEventCode eventCode) {
-        return SnapshotTimelineEventDate(snapshot, eventCode) != null;
-    }
 
     public static DateTime? SnapshotTimelineEventDate(KitSnapshot snapshot, TimeLineEventCode eventCode) {
         switch (eventCode) {
@@ -514,15 +327,5 @@ public class KitSnapshotService {
             }
         }
         return (false, null);
-    }
-
-    public static TimeLineEventCode? LatestSnapshotEventCode(KitSnapshot snapshot) {
-        var eventCodes = Enum.GetValues<TimeLineEventCode>().Reverse();
-        foreach (var eventCode in eventCodes) {
-            if (SnapshotHasTimelineEvent(snapshot, eventCode)) {
-                return eventCode;
-            }
-        }
-        return (TimeLineEventCode?)null;
     }
 }
