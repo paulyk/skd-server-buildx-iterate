@@ -35,7 +35,7 @@ public class FlatFileLine<T> where T : new() {
         var member = expr.GetAccessedMemberInfo();
         var fieldValue = new FieldValue {
             Name = member.Name,
-            Value = value
+            Value = value ?? ""
         };
         return fieldValue;
 

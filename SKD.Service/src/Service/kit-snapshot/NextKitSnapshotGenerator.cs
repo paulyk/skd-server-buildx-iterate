@@ -63,8 +63,8 @@ public class NextKitSnapshotGenerator {
             KitTimeLineEventType = nextKitTimelineEventType,
             ChangeStatusCode = nextChangeStatusCode,
 
-            VIN = input.PriorSnapshot?.VIN,
-            DealerCode = input.PriorSnapshot?.DealerCode,
+            VIN = input.PriorSnapshot?.VIN ?? "",
+            DealerCode = input.PriorSnapshot?.DealerCode ?? "",
             EngineSerialNumber = input.PriorSnapshot?.EngineSerialNumber,
 
             CustomReceived = input.PriorSnapshot?.CustomReceived,
