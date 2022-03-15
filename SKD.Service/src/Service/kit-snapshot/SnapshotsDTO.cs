@@ -6,4 +6,5 @@ public class SnapshotDTO {
     public string PlantCode { get; set; }
     public int SnapshotCount { get; set; }
     public int ChangedCount { get; set; }
+    public DateTime? RemovedAt { get; set; }
 }

@@ -1,6 +1,3 @@
-using System;
-using SKD.Model;
-
 namespace SKD.Server;
 public class TimelineEventDTO {
     public TimeLineEventCode EventType { get; set; }

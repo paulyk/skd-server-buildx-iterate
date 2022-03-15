@@ -1,7 +1,6 @@
-using System.Collections.Generic;
 namespace SKD.Server;
 
-public class VehicleTimelineDTO {
+public class KitTimelineDTO {
     public string VIN { get; set; } = "";
     public string LotNo { get; set; } = "";
     public string KitNo { get; set; } = "";

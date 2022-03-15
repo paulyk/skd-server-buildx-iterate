@@ -70,7 +70,7 @@ public class Query {
 
         return result;
     }
-    public async Task<VehicleTimelineDTO?> GetKitTimeline(
+    public async Task<KitTimelineDTO?> GetKitTimeline(
         [Service] SkdContext context,
         string kitNo
     ) {
@@ -80,14 +80,14 @@ public class Query {
                 .FirstOrDefaultAsync(t => t.KitNo == kitNo);
 
         if (vehicle == null) {
-            return (VehicleTimelineDTO?)null;
+            return (KitTimelineDTO?)null;
         }
 
         var timelineEventTypes = await context.KitTimelineEventTypes.AsNoTracking()
             .OrderBy(t => t.Sequence)
             .Where(t => t.RemovedAt == null).ToListAsync();
 
-        var dto = new VehicleTimelineDTO {
+        var dto = new KitTimelineDTO {
             VIN = vehicle.VIN,
             KitNo = vehicle.KitNo,
             LotNo = vehicle.Lot.LotNo,

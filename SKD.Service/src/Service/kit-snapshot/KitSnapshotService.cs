@@ -20,7 +20,8 @@ public class KitSnapshotService {
             Payload = new SnapshotDTO {
                 RunDate = input.RunDate.Value.Date,
                 PlantCode = input.PlantCode,
-                SnapshotCount = 0
+                SnapshotCount = 0,
+                RemovedAt = null
             }
         };
 
@@ -173,7 +174,7 @@ public class KitSnapshotService {
             return null;
         }
 
-        return BuildKitSnapshotRunDTO(snapshotRun);
+        return await BuildKitSnapshotRunDTO(snapshotRun);
     }
 
     public async Task<KitSnapshotRunDTO?> GetSnapshotRunByDate(string plantCode, DateTime runDate) {
@@ -191,14 +192,17 @@ public class KitSnapshotService {
             return null;
         }
 
-        return BuildKitSnapshotRunDTO(snapshotRun);
+        return await BuildKitSnapshotRunDTO(snapshotRun);
     }
 
-    private KitSnapshotRunDTO BuildKitSnapshotRunDTO(KitSnapshotRun snapshotRun) {
+    private async Task<KitSnapshotRunDTO> BuildKitSnapshotRunDTO(KitSnapshotRun snapshotRun) {
+        var partnerStatusBuilder = new PartnerStatusBuilder(context);
+
         var dto = new KitSnapshotRunDTO {
             PlantCode = snapshotRun.Plant.Code,
             PartnerPlantCode = snapshotRun.Plant.PartnerPlantCode,
             PartnerPlantType = snapshotRun.Plant.PartnerPlantType,
+            PartnerStatusFilename = await partnerStatusBuilder.GenPartnerStatusFilename(snapshotRun.Id),
             RunDate = snapshotRun.RunDate.Date,
             Sequence = snapshotRun.Sequence,
             Entries = new List<KitSnapshotRunDTO.Entry>()
@@ -236,7 +240,8 @@ public class KitSnapshotService {
                 PlantCode = t.Plant.Code,
                 Sequence = t.Sequence,
                 RunDate = t.RunDate,
-                SnapshotCount = t.KitSnapshots.Count
+                SnapshotCount = t.KitSnapshots.Count,
+                RemovedAt = t.RemovedAt
             })
             .Take(count)
             .ToListAsync();
