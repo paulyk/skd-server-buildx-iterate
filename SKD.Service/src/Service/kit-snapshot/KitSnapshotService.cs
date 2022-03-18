@@ -40,14 +40,11 @@ public class KitSnapshotService {
         }
 
         // create entity, set sequence number
-        var kitSnapshotRun = new KitSnapshotRun {
-            Plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode),
+        KitSnapshotRun kitSnapshotRun = new KitSnapshotRun {
+            Plant = await context.Plants.FirstAsync(t => t.Code == input.PlantCode),
             RunDate = input.RunDate.Value,
-            Sequence = await context.KitSnapshotRuns
-                .Where(t => t.Plant.Code == input.PlantCode)
-                .OrderByDescending(t => t.Sequence)
-                .Select(t => t.Sequence)
-                .FirstOrDefaultAsync() + 1
+            Sequence = await context.KitSnapshotRuns.OrderByDescending(t => t.Sequence)
+                .Where(t => t.Plant.Code == input.PlantCode).Select(t => t.Sequence).FirstOrDefaultAsync() + 1
         };
 
         // generate kitSnapshots
@@ -63,25 +60,25 @@ public class KitSnapshotService {
                 }
             }
 
-            var snapshotGenerator = new NextKitSnapshotGenerator(new NextKitSnapshotGenerator.GenNextSnapshotInput{
-                KitId = kit.Id,
+            var buildSnapshotInput = new NextKitSnapshotService.NextSnapshotInput {
                 PriorSnapshot = priorSnapshot,
+                Kit = kit,
                 VIN = kit.VIN,
                 DealerCode = kit.Dealer?.Code ?? "",
                 EngineSerialNumber = await GetEngineSerialNumber(kit, input.EngineComponentCode),
                 TimelineEventTypes = await context.KitTimelineEventTypes.ToListAsync(),
                 KitTimelineEvents = kit.TimelineEvents.Where(t => t.RemovedAt == null).ToList()
-            });
-            
-            var snapshot = snapshotGenerator.GenerateNextSnapshot();
+            };
+
+            var snapshot = NextKitSnapshotService.CreateNextSnapshot(buildSnapshotInput);
 
             kitSnapshotRun.KitSnapshots.Add(snapshot);
         }
 
         // reject if no changes
         if (input.RejectIfNoChanges) {
-            bool hasChanges = kitSnapshotRun.KitSnapshots.Any(x => x.ChangeStatusCode != SnapshotChangeStatus.NoChange);
-            if (!hasChanges) {
+            bool duplicate = await DuplicateOfPriorSnapshot(kitSnapshotRun);
+            if (duplicate) {
                 result.Errors.Add(new Error("", "No changes since last snapshot"));
                 return result;
             }
@@ -101,6 +98,40 @@ public class KitSnapshotService {
         };
 
         return result;
+    }
+
+    private async Task<bool> DuplicateOfPriorSnapshot(KitSnapshotRun nextRun) {
+        var priorRun =await context.KitSnapshotRuns
+            .OrderByDescending(t => t.Sequence)
+            .Include(t => t.KitSnapshots).ThenInclude(t => t.Kit)
+            .Where(t => t.Plant.Code == nextRun.Plant.Code)
+            .FirstOrDefaultAsync();
+        
+        if (priorRun == null) {
+            return false;
+        }
+
+
+        if (nextRun.KitSnapshots.Count() != priorRun.KitSnapshots.Count()) {
+            return false;
+        }
+
+        var priorKitSnapshot = priorRun.KitSnapshots.OrderBy(t => t.KitId).ToArray();
+        var nextKitSnapshots = nextRun.KitSnapshots.OrderBy(t => t.KitId).ToArray();
+
+        for (var i = 0; i < priorKitSnapshot.Count(); i++) {
+            var a = priorKitSnapshot[i];
+            var b = nextKitSnapshots[i];
+
+            if (a.KitId != b.KitId) {
+                return false;
+            }
+            if (!NextKitSnapshotService.DuplicateKitSnapshot(a, b)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     ///<summary>

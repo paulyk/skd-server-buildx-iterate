@@ -2,15 +2,10 @@
 
 namespace SKD.Service;
 
-public class NextKitSnapshotGenerator {
+public class NextKitSnapshotService {
 
-
-    private KitTimelineEventType CustomReceiveEventType;
-    private KitTimelineEventType BuildCompletedEventType;
-    private KitTimelineEventType WholeSaleEventType;
-
-    public class GenNextSnapshotInput {
-        public Guid KitId = Guid.NewGuid();
+    public class NextSnapshotInput {
+        public Kit Kit = new Kit();
         public KitSnapshot? PriorSnapshot = null;
         public string VIN = "";
         public string DealerCode = "";
@@ -19,29 +14,22 @@ public class NextKitSnapshotGenerator {
         public IEnumerable<KitTimelineEvent> KitTimelineEvents = new List<KitTimelineEvent>();
     }
 
-    private GenNextSnapshotInput input;
-    public NextKitSnapshotGenerator(GenNextSnapshotInput input) {
 
-        this.input = input;
+    public static KitSnapshot CreateNextSnapshot(NextSnapshotInput input) {
+        // setup
+        var customReceiveEventType = input.TimelineEventTypes.First(t => t.Code == TimeLineEventCode.CUSTOM_RECEIVED);
+        var buildCompletedEventType = input.TimelineEventTypes.First(t => t.Code == TimeLineEventCode.BUILD_COMPLETED);
+        var wholeSaleEventType = input.TimelineEventTypes.First(t => t.Code == TimeLineEventCode.WHOLE_SALE);
 
-        this.CustomReceiveEventType = input.TimelineEventTypes.First(t => t.Code == TimeLineEventCode.CUSTOM_RECEIVED);
-        this.BuildCompletedEventType = input.TimelineEventTypes.First(t => t.Code == TimeLineEventCode.BUILD_COMPLETED);
-        this.WholeSaleEventType = input.TimelineEventTypes.First(t => t.Code == TimeLineEventCode.WHOLE_SALE);
-
-        if (input.KitTimelineEvents.Count() == 0) {
-            throw new Exception("No KitTimelineEvents");
-        }
-    }
-
-    public KitSnapshot GenerateNextSnapshot() {
+        //
         var startSequence = input.TimelineEventTypes.OrderBy(t => t.Sequence).Select(t => t.Sequence).First();
 
         var priorEventType = input.PriorSnapshot?.KitTimeLineEventType;
         var priorEventSequence = priorEventType != null ? priorEventType.Sequence : startSequence - 1;
 
         // get next event sequence
-        var nextEventSequence = priorEventSequence > WholeSaleEventType.Sequence
-                ? WholeSaleEventType.Sequence
+        var nextEventSequence = priorEventSequence > wholeSaleEventType.Sequence
+                ? wholeSaleEventType.Sequence
                 : priorEventSequence + 1;
 
         var kitTimelineEventForSequence = input.KitTimelineEvents.FirstOrDefault(t => t.EventType.Sequence == nextEventSequence);
@@ -51,7 +39,7 @@ public class NextKitSnapshotGenerator {
 
         SnapshotChangeStatus nextChangeStatusCode = priorEventSequence < startSequence
             ? SnapshotChangeStatus.Added
-            : nextEventSequence == WholeSaleEventType.Sequence
+            : nextEventSequence == wholeSaleEventType.Sequence
                 ? SnapshotChangeStatus.Final
                 : nextEventSequence != priorEventSequence
                     ? SnapshotChangeStatus.Changed
@@ -59,7 +47,8 @@ public class NextKitSnapshotGenerator {
 
         // next snapshot from prior snapshot
         var nextSnapshot = new KitSnapshot {
-            KitId = input.KitId,
+            KitId = input.Kit.Id,
+            Kit = input.Kit,
             KitTimeLineEventType = nextKitTimelineEventType,
             ChangeStatusCode = nextChangeStatusCode,
 
@@ -115,5 +104,32 @@ public class NextKitSnapshotGenerator {
         }
 
         return nextSnapshot;
+    }
+
+    public static bool DuplicateKitSnapshot(KitSnapshot snapshot_1, KitSnapshot snapshot_2) {
+        if (snapshot_1.Kit.Id != snapshot_2.Kit.Id) {
+            throw new Exception($"Kit IDs different");
+        }
+
+        var duplicate = 
+            snapshot_1.KitId == snapshot_2.KitId
+            && snapshot_1.ChangeStatusCode == snapshot_2.ChangeStatusCode
+            && snapshot_1.KitTimeLineEventType.Code == snapshot_2.KitTimeLineEventType.Code
+            
+            && (snapshot_1.VIN ?? "") == (snapshot_2.VIN ?? "") 
+            && (snapshot_1.DealerCode ?? "") == (snapshot_2.DealerCode ?? "")
+            && (snapshot_1.EngineSerialNumber ?? "") == (snapshot_2.EngineSerialNumber ?? "")
+
+            && snapshot_1.OrginalPlanBuild == snapshot_2.OrginalPlanBuild
+
+            && snapshot_1.CustomReceived == snapshot_2.CustomReceived
+            && snapshot_1.PlanBuild == snapshot_2.PlanBuild
+            && snapshot_1.VerifyVIN == snapshot_2.VerifyVIN
+            && snapshot_1.BuildCompleted == snapshot_2.BuildCompleted
+            && snapshot_1.GateRelease == snapshot_2.GateRelease
+            && snapshot_1.Wholesale == snapshot_2.Wholesale
+            ;
+
+        return duplicate;
     }
 }

@@ -594,47 +594,42 @@ public class KitSnapshotServiceTest : TestBase {
     public async Task Reject_kit_snapshot_generation_if_no_changes() {
         // setup
         var plantCode = context.Plants.Select(t => t.Code).First();
-        var baseDate = DateTime.Now.Date;
-
-        var custom_receive_date = baseDate.AddDays(1);
-        var custom_receive_date_trx = baseDate.AddDays(2);
-        var plan_build_date = baseDate.AddDays(8);
-        var plan_build_date_trx = baseDate.AddDays(3);
-
+        var kit = context.Kits.First();
+        var trxDate = DateTime.Now.Date;
+        var eventDate = trxDate.AddDays(-6);
         var service = new KitSnapshotService(context);
-        var kit_1 = context.Kits.OrderBy(t => t.KitNo).First();
-        var kit_2 = context.Kits.OrderBy(t => t.KitNo).Skip(1).First();
 
-        var snapshotInput = new KitSnapshotInput {
+        await CreateKitTimelineEvent(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", "", trxDate, eventDate);
+        
+        var input = new KitSnapshotInput {
+            RunDate = trxDate,
             PlantCode = plantCode,
             EngineComponentCode = engineCode,
             RejectIfNoChanges = true,
-            RunDate = baseDate.AddDays(3)
+            AllowMultipleSnapshotsPerDay = true
         };
+        // cuustom receive, added
+        var result = await service.GenerateSnapshot(input);
+        var expectedErrorCount = 0;
+        var actualErrorCount = result.Errors.Count();
+        Assert.Equal(expectedErrorCount, actualErrorCount);
+        
+        // custom receive, no-change
+        input.RunDate = trxDate.AddMinutes(10);
+        result = await service.GenerateSnapshot(input);
+        expectedErrorCount = 0;
+        actualErrorCount = result.Errors.Count();
+        Assert.Equal(expectedErrorCount, actualErrorCount);
 
-        await CreateKitTimelineEvent(TimeLineEventCode.CUSTOM_RECEIVED, kit_1.KitNo, "", "", custom_receive_date_trx, custom_receive_date);
-        await CreateKitTimelineEvent(TimeLineEventCode.CUSTOM_RECEIVED, kit_2.KitNo, "", "", custom_receive_date_trx, custom_receive_date);
-
-        MutationResult<SnapshotDTO> result = await service.GenerateSnapshot(snapshotInput);
-        Assert.Equal(2, result.Payload.SnapshotCount);
-        Assert.Equal(2, result.Payload.ChangedCount);
-
-        // no changes should reject
-        snapshotInput.RunDate = baseDate.AddDays(4);
-        var result_2 = await service.GenerateSnapshot(snapshotInput);
-        var expectedError = "No changes since last snapshot";
-        var actualError = result_2.Errors.Select(t => t.Message).FirstOrDefault();
-        Assert.Equal(expectedError, actualError);
-
-        // add one change should not reject
-        await CreateKitTimelineEvent(TimeLineEventCode.PLAN_BUILD, kit_1.KitNo, "", "", plan_build_date_trx, plan_build_date);
-        snapshotInput.RunDate = baseDate.AddDays(5);
-        var result_3 = await service.GenerateSnapshot(snapshotInput);
-
-        expectedError = null;
-        actualError = result_3.Errors.Select(t => t.Message).FirstOrDefault();
-        Assert.Equal(expectedError, actualError);
-        Assert.Equal(1, result_3.Payload.ChangedCount);
+        // custom receive, no-change
+        input.RunDate = trxDate.AddMinutes(20);
+        result = await service.GenerateSnapshot(input);
+        expectedErrorCount = 1;
+        actualErrorCount = result.Errors.Count();
+        Assert.Equal(expectedErrorCount, actualErrorCount);
+        var expectedErrorMessage = "No changes since last snapshot";
+        var actualErrorMessage = result.Errors.Select(t => t.Message).FirstOrDefault();
+        Assert.StartsWith(expectedErrorMessage, actualErrorMessage);
     }
 
     #region test helper methods
