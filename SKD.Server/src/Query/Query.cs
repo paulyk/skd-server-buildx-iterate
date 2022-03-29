@@ -401,5 +401,8 @@ public class Query {
         Guid kitSnapshotRunId
     ) => await service.GenPartnerStatusFilename(kitSnapshotRunId);
 
+    public IQueryable<AppSetting> GetAppSettings([Service] SkdContext context)
+        => context.AppSettings.AsQueryable();
+
 }
 

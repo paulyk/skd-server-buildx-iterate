@@ -7,65 +7,59 @@ public class KitService {
 
     private readonly SkdContext context;
     private readonly DateTime currentDate;
-    public readonly int planBuildLeadTimeDays = 6;
+    // private readonly int PlanBuildLeadTimeDays;
 
-    public KitService(SkdContext ctx, DateTime currentDate, int planBuildLeadTimeDays) {
+    public KitService(SkdContext ctx, DateTime currentDate) {
         this.context = ctx;
         this.currentDate = currentDate;
-        this.planBuildLeadTimeDays = planBuildLeadTimeDays;
     }
 
     #region import vin
 
     public async Task<MutationResult<KitVinImport>> ImportVIN(VinFile input) {
-        try {
-            MutationResult<KitVinImport> result = new();
-            result.Errors = await ValidateImportVINInput(input);
-            if (result.Errors.Any()) {
-                return result;
-            }
-
-            // new KitVinImport / existing        
-            var kitVinImport = new KitVinImport {
-                Plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode),
-                Sequence = input.Sequence,
-                PartnerPlantCode = input.PartnerPlantCode,
-            };
-            context.KitVinImports.Add(kitVinImport);
-
-            foreach (var inputKitVin in input.Kits) {
-
-                // bool kitVinAlreadyExists =   kit.KitVins.Any(t => t.Kit.KitNo == inputKitVin.KitNo && t.VIN == inputKitVin.VIN);
-                bool kitVinAlreadyExists = await context.KitVins.AnyAsync(t => t.Kit.KitNo == inputKitVin.KitNo && t.VIN == inputKitVin.VIN);
-
-                if (!kitVinAlreadyExists) {
-                    var kit = await context.Kits
-                        .Include(t => t.KitVins)
-                        .FirstAsync(t => t.KitNo == inputKitVin.KitNo);
-
-                    // set kit.VIN to new VIN & add new kit.KinVin entry
-                    kit.VIN = inputKitVin.VIN;
-                    kitVinImport.KitVins.Add(new KitVin {
-                        Kit = kit,
-                        VIN = inputKitVin.VIN
-                    });
-                    // Flag prior KitVin: RemovedAt
-                    kit.KitVins
-                        .Where(t => t.VIN != inputKitVin.VIN && t.RemovedAt == null)
-                        .ToList().ForEach(kv => {
-                            kv.RemovedAt = DateTime.UtcNow;
-                        });
-                }
-            }
-
-            await context.SaveChangesAsync();
-
-            result.Payload = kitVinImport;
+        MutationResult<KitVinImport> result = new();
+        result.Errors = await ValidateImportVINInput(input);
+        if (result.Errors.Any()) {
             return result;
-        } catch (System.Exception ex) {
-            Console.WriteLine(ex.Message);
-            throw;
         }
+
+        // new KitVinImport / existing        
+        var kitVinImport = new KitVinImport {
+            Plant = await context.Plants.FirstOrDefaultAsync(t => t.Code == input.PlantCode),
+            Sequence = input.Sequence,
+            PartnerPlantCode = input.PartnerPlantCode,
+        };
+        context.KitVinImports.Add(kitVinImport);
+
+        foreach (var inputKitVin in input.Kits) {
+
+            // bool kitVinAlreadyExists =   kit.KitVins.Any(t => t.Kit.KitNo == inputKitVin.KitNo && t.VIN == inputKitVin.VIN);
+            bool kitVinAlreadyExists = await context.KitVins.AnyAsync(t => t.Kit.KitNo == inputKitVin.KitNo && t.VIN == inputKitVin.VIN);
+
+            if (!kitVinAlreadyExists) {
+                var kit = await context.Kits
+                    .Include(t => t.KitVins)
+                    .FirstAsync(t => t.KitNo == inputKitVin.KitNo);
+
+                // set kit.VIN to new VIN & add new kit.KinVin entry
+                kit.VIN = inputKitVin.VIN;
+                kitVinImport.KitVins.Add(new KitVin {
+                    Kit = kit,
+                    VIN = inputKitVin.VIN
+                });
+                // Flag prior KitVin: RemovedAt
+                kit.KitVins
+                    .Where(t => t.VIN != inputKitVin.VIN && t.RemovedAt == null)
+                    .ToList().ForEach(kv => {
+                        kv.RemovedAt = DateTime.UtcNow;
+                    });
+            }
+        }
+
+        await context.SaveChangesAsync();
+
+        result.Payload = kitVinImport;
+        return result;
     }
 
     public async Task<List<Error>> ValidateImportVINInput(VinFile input) {
@@ -238,8 +232,13 @@ public class KitService {
         }
 
         // setup
-        var kitTimelineEventTypes = await context.KitTimelineEventTypes.Where(t => t.RemovedAt == null).ToListAsync();
+        var kitTimelineEventTypes = await context.KitTimelineEventTypes
+            .Where(t => t.RemovedAt == null).ToListAsync();
         var inputEventType = kitTimelineEventTypes.First(t => t.Code == input.EventCode);
+        var planBuildLeadTimeDays = await context.AppSettings
+            .Where(t => t.Code == AppSettingCode.PlanBuildLeadTimeDays.ToString())
+            .Select(t => t.IntValue)
+            .FirstAsync();
 
         // Missing prior timeline event
         var priorEventType = kitTimelineEventTypes.FirstOrDefault(t => t.Sequence == inputEventType.Sequence - 1);

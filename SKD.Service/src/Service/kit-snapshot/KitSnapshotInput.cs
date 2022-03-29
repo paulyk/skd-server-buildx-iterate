@@ -8,7 +8,6 @@ public class KitSnapshotInput {
     /// </summary>
     public DateTime? RunDate { get; set; }
     public string PlantCode { get; set; } = "";
-    public string EngineComponentCode { get; set; } = "";
 
     /// <summary>
     /// Don't generate snapshot if all kits statuses == NoChange, 

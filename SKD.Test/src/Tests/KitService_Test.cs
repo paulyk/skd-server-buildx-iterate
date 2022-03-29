@@ -1,10 +1,12 @@
 namespace SKD.Test;
 public class KitServiceTest : TestBase {
 
-    readonly int planBuildLeadTimeDays = 2;
+    readonly int PlanBuildLeadTimeDays;
     public KitServiceTest() {
         context = GetAppDbContext();
         Gen_Baseline_Test_Seed_Data();
+
+        PlanBuildLeadTimeDays = Get_AppSetting(AppSettingCode.PlanBuildLeadTimeDays).IntValue;
     }
 
     [Fact]
@@ -32,7 +34,7 @@ public class KitServiceTest : TestBase {
         var with_vin_count = kits.Count(t => !String.IsNullOrWhiteSpace(t.VIN));
         Assert.True(0 == with_vin_count);
 
-        var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
+        var service = new KitService(context, DateTime.Now);
         var result = await service.ImportVIN(input);
 
         // assert
@@ -71,7 +73,7 @@ public class KitServiceTest : TestBase {
         };
 
         // test
-        var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
+        var service = new KitService(context, DateTime.Now);
         await service.ImportVIN(input);
         var result = await service.ImportVIN(input);
 
@@ -115,7 +117,7 @@ public class KitServiceTest : TestBase {
         };
 
         // first import kit vinds
-        var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
+        var service = new KitService(context, DateTime.Now);
         await service.ImportVIN(firstInput);
         var kitVinCount_before = await context.KitVins.CountAsync();
 
@@ -166,7 +168,7 @@ public class KitServiceTest : TestBase {
         };
 
         // test
-        var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
+        var service = new KitService(context, DateTime.Now);
         var result = await service.ImportVIN(kitVinDto);
 
         // assert
@@ -202,7 +204,7 @@ public class KitServiceTest : TestBase {
                 new VinFile.VinFileKit {LotNo = lot.LotNo, KitNo = lotVehicles[5].KitNo, VIN = Gen_VIN() },
             };
         // test
-        var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
+        var service = new KitService(context, DateTime.Now);
         var result_2 = await service.ImportVIN(input);
 
         // assert
@@ -235,7 +237,7 @@ public class KitServiceTest : TestBase {
         var before_count = context.KitTimelineEvents.Count();
 
         foreach (var entry in timelineEvents) {
-        var service = new KitService(context, entry.trxDate, planBuildLeadTimeDays);
+        var service = new KitService(context, entry.trxDate);
             var dto = new KitTimelineEventInput {
                 KitNo = kit.KitNo,
                 EventCode = entry.eventType,
@@ -264,7 +266,7 @@ public class KitServiceTest : TestBase {
         await Gen_ShipmentLot_ForKit(kit.KitNo);
 
         var currentDate = DateTime.Now.Date;
-        var service = new KitService(context, currentDate, planBuildLeadTimeDays);
+        var service = new KitService(context, currentDate);
 
         var input_1 = new KitTimelineEventInput {
             KitNo = kit.KitNo,
@@ -283,7 +285,7 @@ public class KitServiceTest : TestBase {
         var result_2 = await service.CreateKitTimelineEvent(input_2);
 
         // assert
-        var expectedError = $"Custom received date must preceed current date by {planBuildLeadTimeDays} days";
+        var expectedError = $"Custom received date must preceed current date by {PlanBuildLeadTimeDays} days";
         var actualMessage = result_1.Errors.Select(t => t.Message).FirstOrDefault();
         Assert.Equal(expectedError, actualMessage);
 
@@ -313,7 +315,7 @@ public class KitServiceTest : TestBase {
                 EventCode = eventType,
                 EventDate = eventDate,
             };
-            service = new KitService(context, trxDate, planBuildLeadTimeDays);
+            service = new KitService(context, trxDate);
             var result = await service.CreateKitTimelineEvent(input);
             results.Add(result);
         }
@@ -336,7 +338,7 @@ public class KitServiceTest : TestBase {
         var eventNote = Util.RandomString(15);
         var baseDate = DateTime.Now.Date;
         var timelineEventItems = new List<(TimeLineEventCode eventType, DateTime trxDate, DateTime eventDate, string eventNode)>() {
-                (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(2), baseDate.AddDays(1) , eventNote),
+                (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(2), baseDate.AddDays(-PlanBuildLeadTimeDays) , eventNote),
                 (TimeLineEventCode.PLAN_BUILD, baseDate.AddDays(3), baseDate.AddDays(5), eventNote),
                 (TimeLineEventCode.VERIFY_VIN, baseDate.AddDays(4), baseDate.AddDays(5), eventNote),
                 (TimeLineEventCode.BUILD_COMPLETED, baseDate.AddDays(8), baseDate.AddDays(8), eventNote),
@@ -357,7 +359,7 @@ public class KitServiceTest : TestBase {
                 EventNote = entry.eventNode,
                 DealerCode = dealerCode
             };
-            service = new KitService(context, entry.trxDate, planBuildLeadTimeDays);
+            service = new KitService(context, entry.trxDate);
 
             if (entry.eventType == TimeLineEventCode.VERIFY_VIN) {
                 await Gen_KitVinImport(input.KitNo, Gen_VIN());
@@ -387,7 +389,7 @@ public class KitServiceTest : TestBase {
         var eventNote = Util.RandomString(15);
         var baseDate = DateTime.Now.Date;
         var timelineEventItems = new List<(TimeLineEventCode eventType, DateTime trxDate, DateTime eventDate, string expectedError)>() {
-                (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(2), baseDate.AddDays(1) , ""),
+                (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(2), baseDate.AddDays(-PlanBuildLeadTimeDays) , ""),
                 (TimeLineEventCode.PLAN_BUILD, baseDate.AddDays(3), baseDate.AddDays(5), ""),
                 (TimeLineEventCode.VERIFY_VIN, baseDate.AddDays(4), baseDate.AddDays(5), ""),
                 (TimeLineEventCode.BUILD_COMPLETED, baseDate.AddDays(8), baseDate.AddDays(9), "Date cannot be in the future"),
@@ -406,7 +408,7 @@ public class KitServiceTest : TestBase {
                 EventNote = "",
                 DealerCode = dealerCode
             };
-            service = new KitService(context, entry.trxDate, planBuildLeadTimeDays);
+            service = new KitService(context, entry.trxDate);
 
             if (entry.eventType == TimeLineEventCode.VERIFY_VIN) {
                 await Gen_KitVinImport(input.KitNo, Gen_VIN());
@@ -446,7 +448,7 @@ public class KitServiceTest : TestBase {
             EventDate = newDate
         };
 
-        var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
+        var service = new KitService(context, DateTime.Now);
         // test
         await service.CreateKitTimelineEvent(dto);
         await service.CreateKitTimelineEvent(dto2);
@@ -488,7 +490,7 @@ public class KitServiceTest : TestBase {
         };
 
         // test
-        var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
+        var service = new KitService(context, DateTime.Now);
         await service.CreateKitTimelineEvent(dto);
         await service.CreateKitTimelineEvent(dto2);
         var result = await service.CreateKitTimelineEvent(dto2);
@@ -523,7 +525,7 @@ public class KitServiceTest : TestBase {
         };
 
         // test
-        var service = new KitService(context, baseDate, planBuildLeadTimeDays);
+        var service = new KitService(context, baseDate);
         var result = await service.CreateLotTimelineEvent(input);
 
         var errorCount = result.Errors.Count;
@@ -560,7 +562,7 @@ public class KitServiceTest : TestBase {
         };
 
         // test
-        var service = new KitService(context, event_date_trx, planBuildLeadTimeDays);
+        var service = new KitService(context, event_date_trx);
         var result = await service.CreateLotTimelineEvent(input);
 
         var errorCount = result.Errors.Count;
@@ -593,7 +595,7 @@ public class KitServiceTest : TestBase {
         };
 
         // test
-        var service = new KitService(context, baseDate, planBuildLeadTimeDays);
+        var service = new KitService(context, baseDate);
         var result = await service.CreateLotTimelineEvent(input);
 
         var expectedError = "custom received cannot be more than 6 months ago";
@@ -611,7 +613,7 @@ public class KitServiceTest : TestBase {
         var kitComponent = kit.KitComponents.FirstOrDefault();
         var newStationCode = productionStationCodes.First(code => code != kitComponent.ProductionStation.Code);
 
-        var service = new KitService(context, DateTime.Now.Date, 6);
+        var service = new KitService(context, DateTime.Now.Date);
 
         var paylaod = service.ChangeKitComponentProductionStation(new KitComponentProductionStationInput {
             KitComponentId = kitComponent.Id,

@@ -3,6 +3,7 @@
 namespace SKD.Model;
 
 public class SkdContext : DbContext {
+    public DbSet<AppSetting> AppSettings => Set<AppSetting>();
     public DbSet<Plant> Plants => Set<Plant>();
     public DbSet<Dealer> Dealers => Set<Dealer>();
     public DbSet<Kit> Kits => Set<Kit>();
@@ -34,9 +35,12 @@ public class SkdContext : DbContext {
     public DbSet<KitSnapshotRun> KitSnapshotRuns => Set<KitSnapshotRun>();
     public DbSet<KitSnapshot> KitSnapshots => Set<KitSnapshot>();
 
+
     public SkdContext(DbContextOptions options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder builder) {
+        builder.ApplyConfiguration(new AppSetting_Config());
+        
         builder.ApplyConfiguration(new Component_Config());
         builder.ApplyConfiguration(new User_Config());
         builder.ApplyConfiguration(new Plant_Config());

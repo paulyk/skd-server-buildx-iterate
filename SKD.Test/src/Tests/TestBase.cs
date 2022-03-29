@@ -4,6 +4,7 @@ using PartQuantities = IEnumerable<(string partNo, int quantity)>;
 
 public class TestBase {
 
+    public string EngineCode = "EN";
     protected SkdContext context;
     public SkdContext GetAppDbContext() {
 
@@ -27,12 +28,12 @@ public class TestBase {
     /// Vehicle Model
     /// Vehicle Lot + 6  Vehicles
     ///</summary>
-
     public void Gen_Baseline_Test_Seed_Data(
         bool generateLot = true,
         bool assignVin = false,
         List<string> componentCodes = null
     ) { // todo add component codes
+        Gen_AppSettings();
         Gen_KitTimelineEventTypes();
         Gen_ProductionStations("station_1", "station_2");
 
@@ -49,6 +50,19 @@ public class TestBase {
         }
         Gen_Dealers();
     }
+
+    public void Gen_AppSettings() {
+        var appSettings = new List<AppSetting> {
+            new AppSetting { Code = AppSettingCode.PlanBuildLeadTimeDays.ToString(), IntValue = 6 },
+            new AppSetting { Code = AppSettingCode.WholeSaleCutoffDays.ToString(), IntValue = 7 },
+            new AppSetting { Code = AppSettingCode.VerifyVinLeadTimeDays.ToString(), IntValue = 2 },
+            new AppSetting { Code = AppSettingCode.EngineCode.ToString(), Value = EngineCode },
+        };
+
+        context.AppSettings.AddRange(appSettings);
+        context.SaveChanges();
+    }
+    
     public Bom Gen_Plant_Bom(string plantCode = null) {
         var plant = Gen_Plant(plantCode);
         var bom = Gen_Bom(plant.Code);
@@ -388,7 +402,7 @@ public class TestBase {
         var lot = await context.Lots
             .Include(t => t.Bom).ThenInclude(t => t.Plant)
             .FirstOrDefaultAsync(t => t.LotNo == lotNo);
-            
+
         if (await context.ShipmentLots.AnyAsync(t => t.Lot.LotNo == lot.LotNo)) {
             return;
         }
@@ -436,6 +450,9 @@ public class TestBase {
         return lotNo;
     }
 
+    public AppSetting Get_AppSetting(AppSettingCode appSettingCode) {
+        return context.AppSettings.Where(t => t.Code == appSettingCode.ToString()).First();
+    }
 
     public string Gen_KitNo(string prefix = "", int kitSequence = 1) {
         var suffix = kitSequence.ToString().PadLeft(2, '0');

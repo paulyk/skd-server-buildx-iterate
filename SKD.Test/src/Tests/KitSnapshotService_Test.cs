@@ -2,17 +2,22 @@ namespace SKD.Test;
 
 public class KitSnapshotServiceTest : TestBase {
 
-    readonly string engineCode = "EN";
-    public readonly int WholeSateCutOffDays = 7;
-    readonly int planBuildLeadTimeDays = 2;
+    readonly int WholeSaleCutOffDays;
+    readonly int PlanBuildLeadTimeDays;
 
     public KitSnapshotServiceTest() {
         CreateContextAndSetBaselineDatabaseData();
+
+        EngineCode = Get_AppSetting(AppSettingCode.EngineCode).Value;
+        WholeSaleCutOffDays = Get_AppSetting(AppSettingCode.WholeSaleCutoffDays).IntValue;
+        PlanBuildLeadTimeDays = Get_AppSetting(AppSettingCode.PlanBuildLeadTimeDays).IntValue;
+        
+        
     }
 
     private void CreateContextAndSetBaselineDatabaseData() {
         context = GetAppDbContext();
-        Gen_Baseline_Test_Seed_Data(generateLot: true, componentCodes: new List<string> { "DA", "PA", engineCode });
+        Gen_Baseline_Test_Seed_Data(generateLot: true, componentCodes: new List<string> { "DA", "PA", EngineCode });
     }
 
     enum TimelineTestEvent {
@@ -177,7 +182,7 @@ public class KitSnapshotServiceTest : TestBase {
             if (input != null) {
                 if (input.EventInput != null) {
                     var trxDate = baseDate.AddDays(day);
-                    var kitService = new KitService(context, trxDate, planBuildLeadTimeDays);
+                    var kitService = new KitService(context, trxDate);
 
                     // import VIN before VERIFY_VIN
                     if (input.EventInput.EventCode == TimeLineEventCode.VERIFY_VIN) {
@@ -185,7 +190,7 @@ public class KitSnapshotServiceTest : TestBase {
                     }
                     // add EN component serial right after VERIFY_VIN
                     if (input.EventInput.EventCode == TimeLineEventCode.VERIFY_VIN) {
-                        await Gen_KitComponentSerial(kit.KitNo, engineCode, engineSerial, "", verify: true);
+                        await Gen_KitComponentSerial(kit.KitNo, EngineCode, engineSerial, "", verify: true);
                     }
 
                     await CreateKitTimelineEvent(
@@ -202,7 +207,6 @@ public class KitSnapshotServiceTest : TestBase {
                 var snapshotResult = await snapShotService.GenerateSnapshot(new KitSnapshotInput {
                     PlantCode = plantCode,
                     RunDate = rundDate,
-                    EngineComponentCode = "EN",
                     RejectIfNoChanges = false
                 });
 
@@ -229,9 +233,12 @@ public class KitSnapshotServiceTest : TestBase {
     [Fact(Skip = "under constuction")]
     public async Task Can_create_full_snapshot_timeline() {
         var baseDate = DateTime.Now.Date;
+
+        // var wholeSaleCutOffDays = context.AppSettings.First(t => t.Code == AppSettingCode.WholeSaleCutoffDays.ToString()).IntValue;
+
         var testEntries = new List<(TimelineTestEvent eventType, DateTime trxDate, DateTime? eventDate)>() {
                 (TimelineTestEvent.BEFORE, baseDate, baseDate ),
-                (TimelineTestEvent.CUSTOM_RECEIVED_TRX, baseDate.AddDays(1), baseDate.AddDays(-6) ),
+                (TimelineTestEvent.CUSTOM_RECEIVED_TRX, baseDate.AddDays(1), baseDate.AddDays(-PlanBuildLeadTimeDays) ),
                 (TimelineTestEvent.POST_CUSTOM_RECEIVED_NO_CHANGE, baseDate.AddDays(1), null ),
                 (TimelineTestEvent.PLAN_BUILD_TRX, baseDate.AddDays(2), baseDate.AddDays(6) ),
                 (TimelineTestEvent.VERIFY_VIN, baseDate.AddDays(4), baseDate.AddDays(6) ),
@@ -240,7 +247,7 @@ public class KitSnapshotServiceTest : TestBase {
                 (TimelineTestEvent.GATE_RELEASE_TRX, baseDate.AddDays(9), baseDate.AddDays(9) ),
                 (TimelineTestEvent.WHOLE_SALE_TRX, baseDate.AddDays(11), baseDate.AddDays(11) ),
                 (TimelineTestEvent.FINAL_2_DAYS_TRX, baseDate.AddDays(13), null ),
-                (TimelineTestEvent.FINAL_PLUS_WHOLESALE_CUTOFF, baseDate.AddDays(13 + KitSnapshotService.WholeSateCutOffDays), null ),
+                (TimelineTestEvent.FINAL_PLUS_WHOLESALE_CUTOFF, baseDate.AddDays(13 + WholeSaleCutOffDays), null ),
             };
 
         // setup
@@ -252,7 +259,6 @@ public class KitSnapshotServiceTest : TestBase {
         var snapshotInput = new KitSnapshotInput {
             RunDate = new DateTime(2020, 12, 2),
             PlantCode = plantCode,
-            EngineComponentCode = engineCode,
             RejectIfNoChanges = false,
             AllowMultipleSnapshotsPerDay = true
         };
@@ -312,7 +318,6 @@ public class KitSnapshotServiceTest : TestBase {
         await Gen_KitVinImport(kit.KitNo, Gen_VIN());
         await CreateKitTimelineEvent(TimeLineEventCode.VERIFY_VIN, kit.KitNo, "", "", eventDate, eventDate);
         var result = await service.GenerateSnapshot(snapshotInput);
-        Console.WriteLine(result.Errors.Count);
 
         snapshotPayload = await service.GetSnapshotRunByDate(snapshotInput.PlantCode, snapshotInput.RunDate.Value);
         kitSnapshot = snapshotPayload.Entries.First(t => t.KitNo == kit.KitNo);
@@ -377,7 +382,6 @@ public class KitSnapshotServiceTest : TestBase {
         var service = new KitSnapshotService(context);
         var snapshotInput = new KitSnapshotInput {
             PlantCode = context.Plants.Select(t => t.Code).First(),
-            EngineComponentCode = engineCode
         };
         var kit = context.Kits.OrderBy(t => t.KitNo).First();
 
@@ -387,10 +391,10 @@ public class KitSnapshotServiceTest : TestBase {
         var custom_receive_date_trx = baseDate;
 
         var plan_build_date_trx = baseDate.AddDays(1);
-        var plan_build_date = custom_receive_date.AddDays(planBuildLeadTimeDays);
+        var plan_build_date = custom_receive_date.AddDays(PlanBuildLeadTimeDays);
 
         var new_plan_build_date_trx = baseDate.AddDays(2);
-        var new_plan_build_date = custom_receive_date.AddDays(planBuildLeadTimeDays + 2);
+        var new_plan_build_date = custom_receive_date.AddDays(PlanBuildLeadTimeDays + 2);
 
         // 1.  custom received
         await CreateKitTimelineEvent(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "note", "", custom_receive_date_trx, custom_receive_date);
@@ -463,7 +467,6 @@ public class KitSnapshotServiceTest : TestBase {
                 var input = new KitSnapshotInput {
                     RunDate = testSet.baseDate.AddMinutes(++minutes),
                     PlantCode = context.Plants.Select(t => t.Code).First(),
-                    EngineComponentCode = engineCode,
                     RejectIfNoChanges = true,
                     AllowMultipleSnapshotsPerDay = testSet.allowMultiple
                 };
@@ -496,7 +499,6 @@ public class KitSnapshotServiceTest : TestBase {
 
         var snapshotInput = new KitSnapshotInput {
             PlantCode = plantCode,
-            EngineComponentCode = engineCode,
             RejectIfNoChanges = false
         };
 
@@ -519,7 +521,6 @@ public class KitSnapshotServiceTest : TestBase {
 
         snapshotInput = new KitSnapshotInput {
             PlantCode = plantCode,
-            EngineComponentCode = engineCode,
             RejectIfNoChanges = false
         };
 
@@ -556,7 +557,6 @@ public class KitSnapshotServiceTest : TestBase {
         // 1. kit snapshot run with no entries
         var snapshotInput = new KitSnapshotInput {
             PlantCode = plantCode,
-            EngineComponentCode = engineCode,
             RejectIfNoChanges = false
         };
         snapshotInput.RunDate = baseDate;
@@ -600,12 +600,10 @@ public class KitSnapshotServiceTest : TestBase {
         var service = new KitSnapshotService(context);
 
         await CreateKitTimelineEvent(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", "", trxDate, eventDate);
-        
+
         var input = new KitSnapshotInput {
             RunDate = trxDate,
             PlantCode = plantCode,
-            EngineComponentCode = engineCode,
-            RejectIfNoChanges = true,
             AllowMultipleSnapshotsPerDay = true
         };
         // cuustom receive, added
@@ -613,7 +611,7 @@ public class KitSnapshotServiceTest : TestBase {
         var expectedErrorCount = 0;
         var actualErrorCount = result.Errors.Count();
         Assert.Equal(expectedErrorCount, actualErrorCount);
-        
+
         // custom receive, no-change
         input.RunDate = trxDate.AddMinutes(10);
         result = await service.GenerateSnapshot(input);
@@ -640,7 +638,6 @@ public class KitSnapshotServiceTest : TestBase {
 
         var snapshotInput = new KitSnapshotInput {
             PlantCode = plantCode,
-            EngineComponentCode = engineComponentCode,
             RunDate = date
         };
 
@@ -661,7 +658,7 @@ public class KitSnapshotServiceTest : TestBase {
         // ensure shipment lot
         await Gen_ShipmentLot_ForKit(kitNo);
 
-        var service = new KitService(context, trxDate, planBuildLeadTimeDays);
+        var service = new KitService(context, trxDate);
         var result = await service.CreateKitTimelineEvent(new KitTimelineEventInput {
             KitNo = kitNo,
             EventCode = eventType,

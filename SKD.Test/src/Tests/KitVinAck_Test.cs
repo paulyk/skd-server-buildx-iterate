@@ -83,7 +83,6 @@ public class KitVinAck_Test : TestBase {
         var lot = context.Lots.First();
         var plant = context.Plants.FirstOrDefault(t => t.Code == plantCode);
         var partnerPlantCode = Gen_PartnerPLantCode();
-        var planBuildLeadTimeDays = 6;
 
         var input = new VinFile {
             PlantCode = plant.Code,
@@ -96,7 +95,7 @@ public class KitVinAck_Test : TestBase {
             }).ToList()
         };
 
-        var service = new KitService(context, DateTime.Now, planBuildLeadTimeDays);
+        var service = new KitService(context, DateTime.Now);
         var result = await service.ImportVIN(input);
         return result.Payload;
     }

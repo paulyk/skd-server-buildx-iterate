@@ -5,8 +5,6 @@ namespace SKD.Service;
 public class KitSnapshotService {
 
     private readonly SkdContext context;
-    public static readonly int WholeSateCutOffDays = 7;
-    public static readonly int PlanBuildLeadTimeDays = 7;
 
     public KitSnapshotService(SkdContext ctx) {
         this.context = ctx;
@@ -65,7 +63,7 @@ public class KitSnapshotService {
                 Kit = kit,
                 VIN = kit.VIN,
                 DealerCode = kit.Dealer?.Code ?? "",
-                EngineSerialNumber = await GetEngineSerialNumber(kit, input.EngineComponentCode),
+                EngineSerialNumber = await GetEngineSerialNumber(kit),
                 TimelineEventTypes = await context.KitTimelineEventTypes.ToListAsync(),
                 KitTimelineEvents = kit.TimelineEvents.Where(t => t.RemovedAt == null).ToList()
             };
@@ -101,12 +99,12 @@ public class KitSnapshotService {
     }
 
     private async Task<bool> DuplicateOfPriorSnapshot(KitSnapshotRun nextRun) {
-        var priorRun =await context.KitSnapshotRuns
+        var priorRun = await context.KitSnapshotRuns
             .OrderByDescending(t => t.Sequence)
             .Include(t => t.KitSnapshots).ThenInclude(t => t.Kit)
             .Where(t => t.Plant.Code == nextRun.Plant.Code)
             .FirstOrDefaultAsync();
-        
+
         if (priorRun == null) {
             return false;
         }
@@ -138,7 +136,11 @@ public class KitSnapshotService {
     /// Return kits to be included in this snapshot
     ///</summay>
     public async Task<List<Kit>> GetQualifyingKits(string plantCode, DateTime runDate) {
-        var query = GetKitSnapshotQualifyingKitsQuery(plantCode, runDate);
+        var wholeSaleCutOffDays = await context.AppSettings
+            .Where(t => t.Code == AppSettingCode.WholeSaleCutoffDays.ToString())
+            .Select(t => t.IntValue).FirstAsync();
+
+        var query = GetKitSnapshotQualifyingKitsQuery(plantCode, runDate, wholeSaleCutOffDays);
         return await query
             .Include(t => t.Lot).ThenInclude(t => t.ShipmentLots.Where(t => t.RemovedAt == null))
             .Include(t => t.Snapshots.Where(t => t.RemovedAt == null).OrderBy(t => t.KitTimeLineEventType.Sequence))
@@ -151,7 +153,7 @@ public class KitSnapshotService {
     /// Only kits that have at least one TimelineEvent 
     /// and whose final TimelineEvent is date is within wholeSateCutOffDays days of the currente date
     ///<summary>
-    private IQueryable<Kit> GetKitSnapshotQualifyingKitsQuery(string plantCode, DateTime runDate) {
+    private IQueryable<Kit> GetKitSnapshotQualifyingKitsQuery(string plantCode, DateTime runDate, int wholeSaleCutOffDays) {
         // filter by plant code
         var query = context.Kits.Where(t => t.Lot.Plant.Code == plantCode).AsQueryable();
 
@@ -175,7 +177,7 @@ public class KitSnapshotService {
                 t.TimelineEvents.Any(ev =>
                     ev.RemovedAt == null &&
                     ev.EventType.Code == TimeLineEventCode.WHOLE_SALE &&
-                    ev.CreatedAt.AddDays(WholeSateCutOffDays) > runDate
+                    ev.CreatedAt.AddDays(wholeSaleCutOffDays) > runDate
                 )
 
                 ||
@@ -291,9 +293,17 @@ public class KitSnapshotService {
             errors.Add(new Error("plantCode", "plant code not found"));
         }
 
-        var engineComponent = await context.Components.FirstOrDefaultAsync(t => t.Code == input.EngineComponentCode);
+        var engineComponentCode  = await context.AppSettings
+            .Where(t => t.Code == AppSettingCode.EngineCode.ToString())
+            .Select(t => t.Value).FirstOrDefaultAsync();
+
+        if (engineComponentCode == null) {
+            errors.Add(new Error("EngineComponentCode", $"engine component not found in appSettings {AppSettingCode.EngineCode.ToString()}"));
+        }
+        
+        var engineComponent = await context.Components.FirstOrDefaultAsync(t => t.Code == engineComponentCode);
         if (engineComponent == null) {
-            errors.Add(new Error("EngineComponentCode", $"engine component not found for {input.EngineComponentCode}"));
+            errors.Add(new Error("EngineComponentCode", $"engine component not found code: {engineComponent}"));
         }
 
         if (errors.Any()) {
@@ -317,7 +327,11 @@ public class KitSnapshotService {
     /// <remark>
     /// returns VIN if pending status is BUILD_COMPLETED event otherwise return empty string
     /// <remark>
-    private async Task<string> GetEngineSerialNumber(Kit kit, string engineComponentCode) {
+    private async Task<string> GetEngineSerialNumber(Kit kit) {
+        var engineComponentCode = await context.AppSettings
+            .Where(t => t.Code == AppSettingCode.EngineCode.ToString())
+            .Select(t => t.Value)
+            .FirstAsync();
 
         var verifiedComponentSerial = await context.ComponentSerials
             .Where(t => t.KitComponent.Kit.KitNo == kit.KitNo)

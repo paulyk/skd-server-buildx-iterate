@@ -158,5 +158,6 @@ public class ProjectionQueries {
     [UseSorting]
     public IQueryable<KitTimelineEvent> GetKitTimelineEvents([Service] SkdContext context)
         => context.KitTimelineEvents.AsQueryable();
-
+    
 }
+
