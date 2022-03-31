@@ -235,10 +235,7 @@ public class KitService {
         var kitTimelineEventTypes = await context.KitTimelineEventTypes
             .Where(t => t.RemovedAt == null).ToListAsync();
         var inputEventType = kitTimelineEventTypes.First(t => t.Code == input.EventCode);
-        var planBuildLeadTimeDays = await context.AppSettings
-            .Where(t => t.Code == AppSettingCode.PlanBuildLeadTimeDays.ToString())
-            .Select(t => t.IntValue)
-            .FirstAsync();
+        var appSettings = await ApplicationSetting.GetKnownAppSettings(context);
 
         // Missing prior timeline event
         var priorEventType = kitTimelineEventTypes.FirstOrDefault(t => t.Sequence == inputEventType.Sequence - 1);
@@ -263,7 +260,7 @@ public class KitService {
         // CUSTOM_RECEIVED 
         if (input.EventCode == TimeLineEventCode.CUSTOM_RECEIVED) {
             if (currentDate <= input.EventDate) {
-                errors.Add(new Error("", $"Custom received date must preceed current date by {planBuildLeadTimeDays} days"));
+                errors.Add(new Error("", $"Custom received date must preceed current date by {appSettings.PlanBuildLeadTimeDays} days"));
                 return errors;
             }
         }
@@ -287,11 +284,11 @@ public class KitService {
                 .Where(t => t.EventType.Code == TimeLineEventCode.CUSTOM_RECEIVED)
                 .Select(t => t.EventDate).First();
 
-            var custom_receive_plus_lead_time_date = custom_receive_date.AddDays(planBuildLeadTimeDays);
+            var custom_receive_plus_lead_time_date = custom_receive_date.AddDays(appSettings.PlanBuildLeadTimeDays);
 
             var plan_build_date = input.EventDate;
             if (custom_receive_plus_lead_time_date > plan_build_date) {
-                errors.Add(new Error("", $"plan build must greater custom receive by {planBuildLeadTimeDays} days"));
+                errors.Add(new Error("", $"plan build must greater custom receive by {appSettings.PlanBuildLeadTimeDays} days"));
                 return errors;
             }
         }

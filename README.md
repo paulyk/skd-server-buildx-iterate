@@ -8,7 +8,7 @@ Record and post component sseiral data to Fords "Data Collection Web Service"
 * skd.model
 * skd.dcws
 * skd.test
-* skd.seed  // generate ref data
+* skd.seed 
 * skd.test
 
 ## run

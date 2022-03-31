@@ -4,7 +4,7 @@ using PartQuantities = IEnumerable<(string partNo, int quantity)>;
 
 public class TestBase {
 
-    public string EngineCode = "EN";
+    public string EngineComponentCode = "EN";
     protected SkdContext context;
     public SkdContext GetAppDbContext() {
 
@@ -53,10 +53,10 @@ public class TestBase {
 
     public void Gen_AppSettings() {
         var appSettings = new List<AppSetting> {
-            new AppSetting { Code = AppSettingCode.PlanBuildLeadTimeDays.ToString(), IntValue = 6 },
-            new AppSetting { Code = AppSettingCode.WholeSaleCutoffDays.ToString(), IntValue = 7 },
-            new AppSetting { Code = AppSettingCode.VerifyVinLeadTimeDays.ToString(), IntValue = 2 },
-            new AppSetting { Code = AppSettingCode.EngineCode.ToString(), Value = EngineCode },
+            new AppSetting { Code = AppSettingCode.PlanBuildLeadTimeDays.ToString(), Value="6"  },
+            new AppSetting { Code = AppSettingCode.WholeSaleCutoffDays.ToString(), Value="7" },
+            new AppSetting { Code = AppSettingCode.VerifyVinLeadTimeDays.ToString(), Value="2"  },
+            new AppSetting { Code = AppSettingCode.EngineComponentCode.ToString(), Value = EngineComponentCode },
         };
 
         context.AppSettings.AddRange(appSettings);

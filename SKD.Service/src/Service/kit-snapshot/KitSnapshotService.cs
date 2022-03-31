@@ -136,9 +136,7 @@ public class KitSnapshotService {
     /// Return kits to be included in this snapshot
     ///</summay>
     public async Task<List<Kit>> GetQualifyingKits(string plantCode, DateTime runDate) {
-        var wholeSaleCutOffDays = await context.AppSettings
-            .Where(t => t.Code == AppSettingCode.WholeSaleCutoffDays.ToString())
-            .Select(t => t.IntValue).FirstAsync();
+        var wholeSaleCutOffDays = await  ApplicationSetting.GetAppSettingValueInt(context, AppSettingCode.WholeSaleCutoffDays);
 
         var query = GetKitSnapshotQualifyingKitsQuery(plantCode, runDate, wholeSaleCutOffDays);
         return await query
@@ -294,11 +292,11 @@ public class KitSnapshotService {
         }
 
         var engineComponentCode  = await context.AppSettings
-            .Where(t => t.Code == AppSettingCode.EngineCode.ToString())
+            .Where(t => t.Code == AppSettingCode.EngineComponentCode.ToString())
             .Select(t => t.Value).FirstOrDefaultAsync();
 
         if (engineComponentCode == null) {
-            errors.Add(new Error("EngineComponentCode", $"engine component not found in appSettings {AppSettingCode.EngineCode.ToString()}"));
+            errors.Add(new Error("EngineComponentCode", $"engine component not found in appSettings {AppSettingCode.EngineComponentCode.ToString()}"));
         }
         
         var engineComponent = await context.Components.FirstOrDefaultAsync(t => t.Code == engineComponentCode);
@@ -329,7 +327,7 @@ public class KitSnapshotService {
     /// <remark>
     private async Task<string> GetEngineSerialNumber(Kit kit) {
         var engineComponentCode = await context.AppSettings
-            .Where(t => t.Code == AppSettingCode.EngineCode.ToString())
+            .Where(t => t.Code == AppSettingCode.EngineComponentCode.ToString())
             .Select(t => t.Value)
             .FirstAsync();
 

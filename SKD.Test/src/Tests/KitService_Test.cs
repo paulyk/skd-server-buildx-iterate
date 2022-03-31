@@ -1,12 +1,11 @@
 namespace SKD.Test;
 public class KitServiceTest : TestBase {
 
-    readonly int PlanBuildLeadTimeDays;
     public KitServiceTest() {
         context = GetAppDbContext();
         Gen_Baseline_Test_Seed_Data();
 
-        PlanBuildLeadTimeDays = Get_AppSetting(AppSettingCode.PlanBuildLeadTimeDays).IntValue;
+
     }
 
     [Fact]
@@ -237,7 +236,7 @@ public class KitServiceTest : TestBase {
         var before_count = context.KitTimelineEvents.Count();
 
         foreach (var entry in timelineEvents) {
-        var service = new KitService(context, entry.trxDate);
+            var service = new KitService(context, entry.trxDate);
             var dto = new KitTimelineEventInput {
                 KitNo = kit.KitNo,
                 EventCode = entry.eventType,
@@ -261,7 +260,8 @@ public class KitServiceTest : TestBase {
     [Fact]
     public async Task Error_if_custom_receive_date_greater_than_current_date() {
 
-        // test
+        // setup
+        var appSettings = await ApplicationSetting.GetKnownAppSettings(context);
         var kit = context.Kits.First();
         await Gen_ShipmentLot_ForKit(kit.KitNo);
 
@@ -285,7 +285,7 @@ public class KitServiceTest : TestBase {
         var result_2 = await service.CreateKitTimelineEvent(input_2);
 
         // assert
-        var expectedError = $"Custom received date must preceed current date by {PlanBuildLeadTimeDays} days";
+        var expectedError = $"Custom received date must preceed current date by {appSettings.PlanBuildLeadTimeDays} days";
         var actualMessage = result_1.Errors.Select(t => t.Message).FirstOrDefault();
         Assert.Equal(expectedError, actualMessage);
 
@@ -331,6 +331,7 @@ public class KitServiceTest : TestBase {
     [Fact]
     public async Task Create_kit_timeline_event_with_note() {
         // setup
+        var appSettings = await ApplicationSetting.GetKnownAppSettings(context);
         var kit = context.Kits.First();
         var dealerCode = context.Dealers.First().Code;
         await Gen_ShipmentLot_ForKit(kit.KitNo);
@@ -338,7 +339,7 @@ public class KitServiceTest : TestBase {
         var eventNote = Util.RandomString(15);
         var baseDate = DateTime.Now.Date;
         var timelineEventItems = new List<(TimeLineEventCode eventType, DateTime trxDate, DateTime eventDate, string eventNode)>() {
-                (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(2), baseDate.AddDays(-PlanBuildLeadTimeDays) , eventNote),
+                (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(2), baseDate.AddDays(-appSettings.PlanBuildLeadTimeDays) , eventNote),
                 (TimeLineEventCode.PLAN_BUILD, baseDate.AddDays(3), baseDate.AddDays(5), eventNote),
                 (TimeLineEventCode.VERIFY_VIN, baseDate.AddDays(4), baseDate.AddDays(5), eventNote),
                 (TimeLineEventCode.BUILD_COMPLETED, baseDate.AddDays(8), baseDate.AddDays(8), eventNote),
@@ -379,9 +380,10 @@ public class KitServiceTest : TestBase {
         });
     }
 
-     [Fact]
+    [Fact]
     public async Task Cannot_set_timline_event_date_to_future_date_for_build_complete_onwards() {
         // setup
+        var appSettings = await ApplicationSetting.GetKnownAppSettings(context);
         var kit = context.Kits.First();
         var dealerCode = context.Dealers.First().Code;
         await Gen_ShipmentLot_ForKit(kit.KitNo);
@@ -389,7 +391,7 @@ public class KitServiceTest : TestBase {
         var eventNote = Util.RandomString(15);
         var baseDate = DateTime.Now.Date;
         var timelineEventItems = new List<(TimeLineEventCode eventType, DateTime trxDate, DateTime eventDate, string expectedError)>() {
-                (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(2), baseDate.AddDays(-PlanBuildLeadTimeDays) , ""),
+                (TimeLineEventCode.CUSTOM_RECEIVED, baseDate.AddDays(2), baseDate.AddDays(-appSettings.PlanBuildLeadTimeDays) , ""),
                 (TimeLineEventCode.PLAN_BUILD, baseDate.AddDays(3), baseDate.AddDays(5), ""),
                 (TimeLineEventCode.VERIFY_VIN, baseDate.AddDays(4), baseDate.AddDays(5), ""),
                 (TimeLineEventCode.BUILD_COMPLETED, baseDate.AddDays(8), baseDate.AddDays(9), "Date cannot be in the future"),

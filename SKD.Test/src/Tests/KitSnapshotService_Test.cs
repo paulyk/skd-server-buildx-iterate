@@ -2,22 +2,13 @@ namespace SKD.Test;
 
 public class KitSnapshotServiceTest : TestBase {
 
-    readonly int WholeSaleCutOffDays;
-    readonly int PlanBuildLeadTimeDays;
-
     public KitSnapshotServiceTest() {
         CreateContextAndSetBaselineDatabaseData();
-
-        EngineCode = Get_AppSetting(AppSettingCode.EngineCode).Value;
-        WholeSaleCutOffDays = Get_AppSetting(AppSettingCode.WholeSaleCutoffDays).IntValue;
-        PlanBuildLeadTimeDays = Get_AppSetting(AppSettingCode.PlanBuildLeadTimeDays).IntValue;
-        
-        
     }
 
     private void CreateContextAndSetBaselineDatabaseData() {
         context = GetAppDbContext();
-        Gen_Baseline_Test_Seed_Data(generateLot: true, componentCodes: new List<string> { "DA", "PA", EngineCode });
+        Gen_Baseline_Test_Seed_Data(generateLot: true, componentCodes: new List<string> { "DA", "PA", EngineComponentCode });
     }
 
     enum TimelineTestEvent {
@@ -190,7 +181,7 @@ public class KitSnapshotServiceTest : TestBase {
                     }
                     // add EN component serial right after VERIFY_VIN
                     if (input.EventInput.EventCode == TimeLineEventCode.VERIFY_VIN) {
-                        await Gen_KitComponentSerial(kit.KitNo, EngineCode, engineSerial, "", verify: true);
+                        await Gen_KitComponentSerial(kit.KitNo, EngineComponentCode, engineSerial, "", verify: true);
                     }
 
                     await CreateKitTimelineEvent(
@@ -232,13 +223,13 @@ public class KitSnapshotServiceTest : TestBase {
 
     [Fact(Skip = "under constuction")]
     public async Task Can_create_full_snapshot_timeline() {
-        var baseDate = DateTime.Now.Date;
 
-        // var wholeSaleCutOffDays = context.AppSettings.First(t => t.Code == AppSettingCode.WholeSaleCutoffDays.ToString()).IntValue;
+        var appSettings = await ApplicationSetting.GetKnownAppSettings(context);
+        var baseDate = DateTime.Now.Date;
 
         var testEntries = new List<(TimelineTestEvent eventType, DateTime trxDate, DateTime? eventDate)>() {
                 (TimelineTestEvent.BEFORE, baseDate, baseDate ),
-                (TimelineTestEvent.CUSTOM_RECEIVED_TRX, baseDate.AddDays(1), baseDate.AddDays(-PlanBuildLeadTimeDays) ),
+                (TimelineTestEvent.CUSTOM_RECEIVED_TRX, baseDate.AddDays(1), baseDate.AddDays(-appSettings.PlanBuildLeadTimeDays) ),
                 (TimelineTestEvent.POST_CUSTOM_RECEIVED_NO_CHANGE, baseDate.AddDays(1), null ),
                 (TimelineTestEvent.PLAN_BUILD_TRX, baseDate.AddDays(2), baseDate.AddDays(6) ),
                 (TimelineTestEvent.VERIFY_VIN, baseDate.AddDays(4), baseDate.AddDays(6) ),
@@ -247,7 +238,7 @@ public class KitSnapshotServiceTest : TestBase {
                 (TimelineTestEvent.GATE_RELEASE_TRX, baseDate.AddDays(9), baseDate.AddDays(9) ),
                 (TimelineTestEvent.WHOLE_SALE_TRX, baseDate.AddDays(11), baseDate.AddDays(11) ),
                 (TimelineTestEvent.FINAL_2_DAYS_TRX, baseDate.AddDays(13), null ),
-                (TimelineTestEvent.FINAL_PLUS_WHOLESALE_CUTOFF, baseDate.AddDays(13 + WholeSaleCutOffDays), null ),
+                (TimelineTestEvent.FINAL_PLUS_WHOLESALE_CUTOFF, baseDate.AddDays(13 + appSettings.WholeSaleCutoffDays), null ),
             };
 
         // setup
@@ -379,6 +370,7 @@ public class KitSnapshotServiceTest : TestBase {
     [Fact]
     public async Task Kit_snapshot_dates_set_only_once() {
         // setup
+        var appSetting = await ApplicationSetting.GetKnownAppSettings(context);
         var service = new KitSnapshotService(context);
         var snapshotInput = new KitSnapshotInput {
             PlantCode = context.Plants.Select(t => t.Code).First(),
@@ -391,10 +383,10 @@ public class KitSnapshotServiceTest : TestBase {
         var custom_receive_date_trx = baseDate;
 
         var plan_build_date_trx = baseDate.AddDays(1);
-        var plan_build_date = custom_receive_date.AddDays(PlanBuildLeadTimeDays);
+        var plan_build_date = custom_receive_date.AddDays(appSetting.PlanBuildLeadTimeDays);
 
         var new_plan_build_date_trx = baseDate.AddDays(2);
-        var new_plan_build_date = custom_receive_date.AddDays(PlanBuildLeadTimeDays + 2);
+        var new_plan_build_date = custom_receive_date.AddDays(appSetting.PlanBuildLeadTimeDays + 2);
 
         // 1.  custom received
         await CreateKitTimelineEvent(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "note", "", custom_receive_date_trx, custom_receive_date);
