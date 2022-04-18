@@ -117,10 +117,9 @@ public class BomService_Test : TestBase {
         var result = await service.ImportBom(input);
 
         // assert
-        var expectedError = "duplicate Lot + Part number(s) in payload";
-        var errorMessage = result.Errors.Select(t => t.Message).FirstOrDefault();
-        errorMessage = (errorMessage ?? "").Substring(0, expectedError.Length);
-        Assert.Equal(expectedError, errorMessage);
+        var expected_error_message = "duplicate Lot + Part number(s) in payload";
+        var actual_error_message = result.Errors.Select(t => t.Message).FirstOrDefault();
+        Assert.StartsWith(expected_error_message, actual_error_message);
     }
 
     [Fact]
@@ -146,8 +145,8 @@ public class BomService_Test : TestBase {
 
         // assert
         var errorMessage = result.Errors.Select(t => t.Message).FirstOrDefault();
-        var expectedError = "no lot parts found";
-        Assert.Equal(expectedError, errorMessage);
+        var expectedError = "No lot parts found";
+        Assert.StartsWith(expectedError, errorMessage);
     }
 
     [Fact]
@@ -175,7 +174,7 @@ public class BomService_Test : TestBase {
 
         var errorMessage = result.Errors.Select(t => t.Message).FirstOrDefault();
         var expectedErrorMessage = "model codes not in system";
-        Assert.Equal(expectedErrorMessage, errorMessage.Substring(0, expectedErrorMessage.Length));
+        Assert.StartsWith(expectedErrorMessage, errorMessage);
     }
 
     [Fact]

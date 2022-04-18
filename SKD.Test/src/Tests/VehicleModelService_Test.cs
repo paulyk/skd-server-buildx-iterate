@@ -134,8 +134,8 @@ public class VehicleModelServiceTest : TestBase {
         var errorCount = result.Errors.Count;
         Assert.Equal(1, errorCount);
         var expectedErrorMessage = "duplicate component + production station entries";
-        var errorMessage = result.Errors.Select(t => t.Message).FirstOrDefault();
-        Assert.Equal(expectedErrorMessage, errorMessage.Substring(0, expectedErrorMessage.Length));
+        var actualErrorMessage = result.Errors.Select(t => t.Message).FirstOrDefault();
+        Assert.StartsWith(expectedErrorMessage, actualErrorMessage);
     }
 
     [Fact]

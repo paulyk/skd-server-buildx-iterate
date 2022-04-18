@@ -124,7 +124,7 @@ public class LotPartService_Test : TestBase {
         var expected_error_message = "duplicate received lot + part + quantity";
         var error_message = result_2.Errors.Select(t => t.Message).FirstOrDefault();
 
-        Assert.Equal(expected_error_message, error_message);
+        Assert.StartsWith(expected_error_message, error_message);
     }
 
 

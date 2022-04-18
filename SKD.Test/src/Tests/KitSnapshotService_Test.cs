@@ -617,6 +617,7 @@ public class KitSnapshotServiceTest : TestBase {
         expectedErrorCount = 1;
         actualErrorCount = result.Errors.Count();
         Assert.Equal(expectedErrorCount, actualErrorCount);
+        
         var expectedErrorMessage = "No changes since last snapshot";
         var actualErrorMessage = result.Errors.Select(t => t.Message).FirstOrDefault();
         Assert.StartsWith(expectedErrorMessage, actualErrorMessage);

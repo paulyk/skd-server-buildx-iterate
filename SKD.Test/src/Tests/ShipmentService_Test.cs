@@ -123,7 +123,7 @@ public class ShipmentService_Test : TestBase {
         var result_2 = await shipmentService.ImportShipment(input_2);
         var expected_error_message = "handling units already imported";
         string actual_error_message = result_2.Errors.Select(t => t.Message).FirstOrDefault();
-        Assert.Equal(expected_error_message, (actual_error_message ??= "").Substring(0, expected_error_message.Length));
+        Assert.StartsWith(expected_error_message, actual_error_message);
     }
 
     [Fact]
@@ -146,7 +146,7 @@ public class ShipmentService_Test : TestBase {
         var expectedMessage = "duplicate shipment plant & sequence found";
         var actualMessage = result_1.Errors.Select(t => t.Message).FirstOrDefault();
 
-        Assert.Equal(expectedMessage, expectedMessage.Substring(0, expectedMessage.Length));
+        Assert.StartsWith(expectedMessage, expectedMessage);
     }
 
     [Fact]
@@ -162,7 +162,7 @@ public class ShipmentService_Test : TestBase {
 
         var actual_error_message = result.Errors.Select(t => t.Message).FirstOrDefault();
         var expected_message = "lot number(s) not found";
-        Assert.Equal(expected_message, actual_error_message.Substring(0, expected_message.Length));
+        Assert.StartsWith(expected_message, actual_error_message);
     }
 
     [Fact]

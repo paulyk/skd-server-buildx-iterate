@@ -120,7 +120,7 @@ public class BomService {
         }
 
         if (!input.LotParts.Any()) {
-            errors.Add(new Error("", "no lot parts found"));
+            errors.Add(new Error("", "No lot parts found"));
             return errors;
         }
 
@@ -128,13 +128,13 @@ public class BomService {
         var duplicateLotParts = input.LotParts.GroupBy(t => new { t.LotNo, t.PartNo })
             .Any(g => g.Count() > 1);
         if (duplicateLotParts) {
-            errors.Add(new Error("", "duplicate Lot + Part number(s) in payload"));
+            errors.Add(new Error("", "Duplicate Lot + Part number(s) in payload"));
             return errors;
         }
 
         // validate lotNo format
         if (input.LotParts.Any(t => !Validator.Valid_LotNo(t.LotNo))) {
-            errors.Add(new Error("", "lot numbers with invalid format found"));
+            errors.Add(new Error("", "Lot numbers with invalid format found"));
             return errors;
         }
 
@@ -208,7 +208,7 @@ public class BomService {
         }
 
         if (!input.LotParts.Any()) {
-            errors.Add(new Error("", "no lot parts found"));
+            errors.Add(new Error("", "No lot parts found"));
             return errors;
         }
 

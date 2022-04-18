@@ -151,6 +151,7 @@ public class ComponentSerialService {
         // serial no already in use by different kit component
         var componentSerials_with_same_serialNo = await context.ComponentSerials
             .Include(t => t.KitComponent).ThenInclude(t => t.Component)
+            .Include(t => t.KitComponent).ThenInclude(t => t.Kit)
             .Where(t => t.RemovedAt == null)
             // different component
             .Where(t => t.KitComponent.Id != kitComponent.Id)
@@ -174,7 +175,8 @@ public class ComponentSerialService {
 
 
         if (componentSerials_with_same_serialNo.Any()) {
-            errors.Add(new Error("", $"serial number already in use by aonther entry"));
+            var kit = componentSerials_with_same_serialNo.First().KitComponent.Kit;
+            errors.Add(new Error("", $"Serial number already used by {kit.VIN}"));
             return errors;
         }
 

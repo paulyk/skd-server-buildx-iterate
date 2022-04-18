@@ -79,7 +79,7 @@ public class KitServiceTest : TestBase {
         // assert
         var expectedErrorMessage = "Already imported VIN file";
         var actualErrorMessage = result.Errors.Select(t => t.Message).FirstOrDefault();
-        Assert.Equal(expectedErrorMessage, actualErrorMessage.Substring(0, expectedErrorMessage.Length));
+        Assert.StartsWith(expectedErrorMessage, actualErrorMessage);
     }
 
     [Fact]
@@ -171,10 +171,9 @@ public class KitServiceTest : TestBase {
         var result = await service.ImportVIN(kitVinDto);
 
         // assert
-        var expectedError = "kit numbers not found";
-        var errorMessage = result.Errors.Select(t => t.Message).FirstOrDefault();
-        errorMessage = errorMessage.Substring(0, expectedError.Length);
-        Assert.Equal(expectedError, errorMessage);
+        var expected_error = "kit numbers not found";
+        var actual_error = result.Errors.Select(t => t.Message).FirstOrDefault();
+        Assert.StartsWith(expected_error, actual_error);
     }
 
     [Fact]
@@ -210,7 +209,7 @@ public class KitServiceTest : TestBase {
         var expectedError = "duplicate kitNo(s) in payload";
         var errorMessage = result_2.Errors.Select(t => t.Message).FirstOrDefault();
         errorMessage = errorMessage.Substring(0, expectedError.Length);
-        Assert.Equal(expectedError, errorMessage);
+        Assert.StartsWith(expectedError, errorMessage);
     }
 
     [Fact]
@@ -287,7 +286,7 @@ public class KitServiceTest : TestBase {
         // assert
         var expectedError = $"Custom received date must preceed current date by {appSettings.PlanBuildLeadTimeDays} days";
         var actualMessage = result_1.Errors.Select(t => t.Message).FirstOrDefault();
-        Assert.Equal(expectedError, actualMessage);
+        Assert.StartsWith(expectedError, actualMessage);
 
         var errorCount = result_2.Errors.Count;
         Assert.Equal(0, errorCount);
@@ -325,7 +324,7 @@ public class KitServiceTest : TestBase {
         // assert
         var expectedMessage = "Missing timeline event";
         var actualMessage = lastPayload.Errors.Select(t => t.Message).FirstOrDefault();
-        Assert.Equal(expectedMessage, actualMessage.Substring(0, expectedMessage.Length));
+        Assert.StartsWith(expectedMessage, actualMessage);
     }
 
     [Fact]
@@ -503,7 +502,7 @@ public class KitServiceTest : TestBase {
         var errorsMessage = result.Errors.Select(t => t.Message).First();
         var expectedMessage = "duplicate kit timeline event";
 
-        Assert.Equal(expectedMessage, errorsMessage.Substring(0, expectedMessage.Length));
+        Assert.StartsWith(expectedMessage, errorsMessage);
     }
 
     [Fact]
