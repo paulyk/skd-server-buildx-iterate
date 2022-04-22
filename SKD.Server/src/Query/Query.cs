@@ -404,5 +404,32 @@ public class Query {
     public IQueryable<AppSetting> GetAppSettings([Service] SkdContext context)
         => context.AppSettings.AsQueryable();
 
+    public async Task<List<KitTimelineEvent>> GetKitTimelineEventsByDate(
+        [Service] SkdContext context,
+        string plantCode,
+        DateTime fromDate,
+        DateTime toDate,
+        TimeLineEventCode? timelineEventCode
+    ) {
+        var query = context.KitTimelineEvents
+            .Where(t => t.Kit.Lot.Plant.Code == plantCode)
+            .Where(t =>
+                t.EventDate.Date >= fromDate.Date
+                &&
+                t.EventDate.Date <= toDate.Date
+            )
+            .Where(t => t.RemovedAt == null).AsQueryable();
+
+        if (timelineEventCode != null) {
+            query = query.Where(t => t.EventType.Code == timelineEventCode.Value);
+        }
+        
+        return await query
+            .Include(t => t.Kit).ThenInclude(t => t.Lot).ThenInclude(t => t.Plant)
+            .Include(t => t.Kit).ThenInclude(t => t.Lot).ThenInclude(t => t.Model)
+            .Include(t => t.Kit).ThenInclude(t => t.Dealer)
+            .Include(t => t.EventType)
+            .ToListAsync();
+    }
 }
 
