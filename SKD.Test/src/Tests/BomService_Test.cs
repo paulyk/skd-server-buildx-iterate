@@ -53,9 +53,6 @@ public class BomService_Test : TestBase {
         Assert.Equal(expectedLotPartCount, actualLotPartCount);
     }
 
-
-
-
     [Fact]
     public async Task Import_bom_reformats_part_no() {
 

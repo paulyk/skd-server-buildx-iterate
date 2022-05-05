@@ -225,8 +225,7 @@ public class Query {
     public IQueryable<KitListItemDTO> GetKitList(
         [Service] SkdContext context,
         string plantCode
-    ) =>
-        context.Kits.AsNoTracking()
+    ) => context.Kits.AsNoTracking()                        
             .Where(t => t.Lot.Plant.Code == plantCode)
             .Select(t => new KitListItemDTO {
                 Id = t.Id,

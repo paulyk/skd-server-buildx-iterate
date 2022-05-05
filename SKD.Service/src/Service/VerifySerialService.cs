@@ -67,6 +67,11 @@ public class VerifySerialService {
             return errors;
         }
 
+        if (String.IsNullOrWhiteSpace(kc.Kit.VIN)) {
+            errors.Add(new Error("", $"kit does not have VIN {kc.Kit.KitNo}"));
+            return errors;
+        }
+
         if (!kc.Component.DcwsRequired) {
             errors.Add(new Error("", $"Component {kc.Component.Code} not required by DCWS"));
             return errors;
