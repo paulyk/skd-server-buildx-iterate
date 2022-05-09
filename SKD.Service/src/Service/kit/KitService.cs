@@ -410,10 +410,10 @@ public class KitService {
         }
 
         // snapshot already taken
-        if (await SnapshotAlreadyTaken(input)) {
-            errors.Add(new Error("", $"cannot update {input.EventCode} after snapshot taken"));
-            return errors;
-        }
+        // if (await SnapshotAlreadyTaken(input)) {
+        //     errors.Add(new Error("", $"cannot update {input.EventCode} after snapshot taken"));
+        //     return errors;
+        // }
 
         // CUSTOM_RECEIVED 
         if (input.EventCode == TimeLineEventCode.CUSTOM_RECEIVED) {
