@@ -10,16 +10,9 @@ public class Query {
     }
 
     public ConfigettingDTO GetServerConfigSettings() {
-        if (Int32.TryParse(Configuration[ConfigSettingKey.PlanBuildLeadTimeDays], out int planBuildLeadTimeDays)) {
 
-            return new ConfigettingDTO {
-                DcwsServiceAddress = Configuration[ConfigSettingKey.DcwsServiceAddress],
-                PlanBuildLeadTimeDays = planBuildLeadTimeDays
-            };
-        }
         return new ConfigettingDTO {
             DcwsServiceAddress = Configuration[ConfigSettingKey.DcwsServiceAddress],
-            PlanBuildLeadTimeDays = 0
         };
     }
 
@@ -225,7 +218,7 @@ public class Query {
     public IQueryable<KitListItemDTO> GetKitList(
         [Service] SkdContext context,
         string plantCode
-    ) => context.Kits.AsNoTracking()                        
+    ) => context.Kits.AsNoTracking()
             .Where(t => t.Lot.Plant.Code == plantCode)
             .Select(t => new KitListItemDTO {
                 Id = t.Id,
@@ -422,7 +415,7 @@ public class Query {
         if (timelineEventCode != null) {
             query = query.Where(t => t.EventType.Code == timelineEventCode.Value);
         }
-        
+
         return await query
             .Include(t => t.Kit).ThenInclude(t => t.Lot).ThenInclude(t => t.Plant)
             .Include(t => t.Kit).ThenInclude(t => t.Lot).ThenInclude(t => t.Model)

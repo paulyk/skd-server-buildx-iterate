@@ -19,18 +19,6 @@ dotnet run --project SKD.Server
 
 Suggest using Docker for sql server.
 
-## dev database and connections string
-
-Create your own `touch src/skd-server/developer.json`
-
-```json
-{
-    "ConnectionStrings": {
-        "Default": "server=localhost,9301;database=skd;uid=sa;pwd=DevDevDude119#"
-    }
-}
-```
-
 ## generate test data
 
 1. create the db `dotnet ef...`

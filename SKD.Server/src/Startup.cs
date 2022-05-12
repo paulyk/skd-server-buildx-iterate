@@ -13,7 +13,7 @@ public class Startup {
 
     public void ConfigureServices(IServiceCollection services) {
 
-        Int32.TryParse(Configuration[ConfigSettingKey.PlanBuildLeadTimeDays], out int planBuildLeadTimeDays);
+        Int32.TryParse(Configuration[ConfigSettingKey.ExecutionTimeoutSeconds], out int executionTimeoutSeconds);
 
         services.AddCors(options => {
             options.AddDefaultPolicy(
@@ -78,8 +78,12 @@ public class Startup {
             .AddFiltering()
             .AddSorting()
             .AddInMemorySubscriptions()
-            .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = _env.IsDevelopment());
-
+            .ModifyRequestOptions(opt => {
+                opt.IncludeExceptionDetails = _env.IsDevelopment();
+                if (executionTimeoutSeconds > 0) {
+                    opt.ExecutionTimeout = TimeSpan.FromSeconds(executionTimeoutSeconds);
+                }
+            });
 
     }
 
