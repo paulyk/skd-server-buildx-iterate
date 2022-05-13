@@ -1,5 +1,3 @@
-using System;
-
 namespace SKD.Service;
 
 public record ComponentSerialInput(

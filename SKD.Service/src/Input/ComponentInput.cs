@@ -1,6 +1,3 @@
-using SKD.Model;
-using System;
-
 namespace SKD.Service;
 
 public class ComponentInput {

@@ -105,32 +105,26 @@ public class Startup {
 
         app.UseCors();
 
-        if (env.IsDevelopment()) {
-            // app.Use(next => context => {
-            //     var connectionString = Configuration.GetConnectionString("Default");
-            //     Console.WriteLine(connectionString);
-            //     Console.WriteLine("Request log: " + context.Request.HttpContext.Request.Path);
-            //     return next(context);
-            // });
-        }
+        app.UseEndpoints(builder => {
 
-        app.UseEndpoints(ep => {
+            builder.MapGraphQL();
 
-            ep.MapGraphQL();
+            builder.MapGet("/", async (context) => {
+                await context.Response.WriteAsync("");
+            });
 
             if (_env.IsDevelopment()) {
-                ep.MapPost("/gen_ref_data", async (context) => {
+                builder.MapPost("/gen_ref_data", async (context) => {
                     var ctx = context.RequestServices.GetService<SkdContext>();
                     var service = new SeedDataService(ctx);
                     await service.GenerateReferenceData();
                     context.Response.StatusCode = 200;
                 });
-                ep.MapGet("/ping", async context => {
+                builder.MapGet("/ping", async context => {
                     await context.Response.WriteAsync("Ping!");
                 });
             }
         });
-
     }
 }
 

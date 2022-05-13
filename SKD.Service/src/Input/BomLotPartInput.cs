@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace SKD.Service;
 public class BomLotPartDTO {
     public string PlantCode { get; set; }

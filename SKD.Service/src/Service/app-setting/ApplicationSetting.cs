@@ -1,15 +1,16 @@
+#nullable enable
 namespace SKD.Service;
 
 public static class ApplicationSetting {
 
     public static async Task<AppSetting> GetAppSetting(SkdContext context, AppSettingCode appSettingCode)
-        => await context.AppSettings.Where(t => t.Code == appSettingCode.ToString()).FirstOrDefaultAsync();
+        => await context.AppSettings.Where(t => t.Code == appSettingCode.ToString()).FirstAsync();
 
     public static async Task<string> GetAppSettingValue(SkdContext context, AppSettingCode appSettingCode)
         => await context.AppSettings
             .Where(t => t.Code == appSettingCode.ToString())
             .Select(t => t.Value)
-            .FirstOrDefaultAsync();
+            .FirstAsync();
 
     public static async Task<int> GetAppSettingValueInt(SkdContext context, AppSettingCode appSettingCode) {
         var value = await GetAppSettingValue(context, appSettingCode);
@@ -20,15 +21,15 @@ public static class ApplicationSetting {
         var result = await context.AppSettings.ToListAsync();
         return new AppSettingsDTO {
             PlanBuildLeadTimeDays = GetValueInt(result, AppSettingCode.PlanBuildLeadTimeDays),
-            WholeSaleCutoffDays =  GetValueInt(result, AppSettingCode.WholeSaleCutoffDays),
-            VerifyVinLeadTimeDays =  GetValueInt(result, AppSettingCode.VerifyVinLeadTimeDays),
+            WholeSaleCutoffDays = GetValueInt(result, AppSettingCode.WholeSaleCutoffDays),
+            VerifyVinLeadTimeDays = GetValueInt(result, AppSettingCode.VerifyVinLeadTimeDays),
             EngineComponentCode = result
                 .Where(t => t.Code == AppSettingCode.EngineComponentCode.ToString())
                 .Select(t => t.Value)
-                .FirstOrDefault()
+                .First()
         };
 
-         static int GetValueInt(IEnumerable<AppSetting> appSettings, AppSettingCode appSettingCode) {
+        static int GetValueInt(IEnumerable<AppSetting> appSettings, AppSettingCode appSettingCode) {
             var result = appSettings
                 .Where(t => t.Code == appSettingCode.ToString())
                 .Select(t => t.Value)
@@ -43,6 +44,6 @@ public class AppSettingsDTO {
     public int PlanBuildLeadTimeDays;
     public int WholeSaleCutoffDays;
     public int VerifyVinLeadTimeDays;
-    public string EngineComponentCode;
+    public string EngineComponentCode = "";
 
 }
