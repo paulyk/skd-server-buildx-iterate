@@ -11,9 +11,16 @@ public class Startup {
     public IConfiguration Configuration { get; }
     public IWebHostEnvironment _env { get; }
 
-    public void ConfigureServices(IServiceCollection services) {
+    private int ExecutionTimeoutSeconds {
+        get {
+            Int32.TryParse(Configuration[ConfigSettingKey.ExecutionTimeoutSeconds], out int executionTimeoutSeconds);
+            return executionTimeoutSeconds;
+        }
+    }
 
-        Int32.TryParse(Configuration[ConfigSettingKey.ExecutionTimeoutSeconds], out int executionTimeoutSeconds);
+    public void ConfigureServices(IServiceCollection services) {        
+
+        services.AddApplicationInsightsTelemetry();
 
         services.AddCors(options => {
             options.AddDefaultPolicy(
@@ -80,8 +87,8 @@ public class Startup {
             .AddInMemorySubscriptions()
             .ModifyRequestOptions(opt => {
                 opt.IncludeExceptionDetails = _env.IsDevelopment();
-                if (executionTimeoutSeconds > 0) {
-                    opt.ExecutionTimeout = TimeSpan.FromSeconds(executionTimeoutSeconds);
+                if (ExecutionTimeoutSeconds > 0) {
+                    opt.ExecutionTimeout = TimeSpan.FromSeconds(ExecutionTimeoutSeconds);
                 }
             });
 
