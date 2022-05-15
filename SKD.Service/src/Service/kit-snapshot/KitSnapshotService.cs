@@ -263,21 +263,6 @@ public class KitSnapshotService {
         return dto;
     }
 
-    public async Task<List<SnapshotDTO>> GetSnapshotRuns(string plantCode, int count = 50) {
-        return await context.KitSnapshotRuns
-            .OrderByDescending(t => t.RunDate)
-            .Where(t => t.Plant.Code == plantCode)
-            .Select(t => new SnapshotDTO {
-                PlantCode = t.Plant.Code,
-                Sequence = t.Sequence,
-                RunDate = t.RunDate,
-                SnapshotCount = t.KitSnapshots.Count,
-                RemovedAt = t.RemovedAt
-            })
-            .Take(count)
-            .ToListAsync();
-    }
-
     public async Task<List<Error>> ValidateGenerateKitSnapshot(KitSnapshotInput input) {
         var errors = new List<Error>();
 

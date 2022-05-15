@@ -321,13 +321,6 @@ public class Query {
               int sequence
     ) => await service.GetSnapshotRunBySequence(plantCode, sequence);
 
-
-    public async Task<List<SnapshotDTO>> GetRecentKitSnapshotRuns(
-              [Service] KitSnapshotService service,
-              string plantCode,
-              int count
-    ) => await service.GetSnapshotRuns(plantCode, count);
-
     public async Task<LotDTO?> GetLotInfo(
            [Service] LotPartService service,
            string lotNo

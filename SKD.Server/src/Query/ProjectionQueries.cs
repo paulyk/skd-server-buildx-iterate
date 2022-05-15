@@ -140,7 +140,7 @@ public class ProjectionQueries {
     [UseProjection]
     [UseFiltering]
     [UseSorting]
-    public IQueryable<KitSnapshot> GetKitSnapshos(
+    public IQueryable<KitSnapshot> GetKitSnapshots(
         [Service] SkdContext context
     ) => context.KitSnapshots;
 
