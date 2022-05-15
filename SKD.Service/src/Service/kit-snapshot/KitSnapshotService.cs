@@ -136,7 +136,7 @@ public class KitSnapshotService {
     /// Return kits to be included in this snapshot
     ///</summay>
     public async Task<List<Kit>> GetQualifyingKits(string plantCode, DateTime runDate) {
-        var wholeSaleCutOffDays = await  ApplicationSetting.GetAppSettingValueInt(context, AppSettingCode.WholeSaleCutoffDays);
+        var wholeSaleCutOffDays = await ApplicationSetting.GetAppSettingValueInt(context, AppSettingCode.WholeSaleCutoffDays);
 
         var query = GetKitSnapshotQualifyingKitsQuery(plantCode, runDate, wholeSaleCutOffDays);
         return await query
@@ -276,14 +276,14 @@ public class KitSnapshotService {
             errors.Add(new Error("plantCode", "plant code not found"));
         }
 
-        var engineComponentCode  = await context.AppSettings
+        var engineComponentCode = await context.AppSettings
             .Where(t => t.Code == AppSettingCode.EngineComponentCode.ToString())
             .Select(t => t.Value).FirstOrDefaultAsync();
 
         if (engineComponentCode == null) {
             errors.Add(new Error("EngineComponentCode", $"engine component not found in appSettings {AppSettingCode.EngineComponentCode.ToString()}"));
         }
-        
+
         var engineComponent = await context.Components.FirstOrDefaultAsync(t => t.Code == engineComponentCode);
         if (engineComponent == null) {
             errors.Add(new Error("EngineComponentCode", $"engine component not found code: {engineComponent}"));
@@ -361,4 +361,77 @@ public class KitSnapshotService {
         }
         return (false, null);
     }
+
+    #region rollback snapshot
+
+    ///<summary>
+    /// Rollback KitSnapshot entries (removes) starting after the "toTimleineEventCode"
+    ///<summary>
+    public async Task<MutationResult<List<KitSnapshot>>> RollbackKitSnapshots(string kitNo, TimeLineEventCode toTimelineEventCode) {
+
+        MutationResult<List<KitSnapshot>> result = new() {
+            Payload = new List<KitSnapshot>()
+        };
+
+        result.Errors = await ValidateRollbackKitSnapshots(kitNo, toTimelineEventCode);
+        if (result.Errors.Any()) {
+            return result;
+        }
+
+        var targetSequence = await context.KitTimelineEventTypes
+            .Where(t => t.Code == toTimelineEventCode)
+            .Select(t => t.Sequence).FirstAsync();
+
+        var snapshots = await context.KitSnapshots
+            .Include(t => t.Kit).ThenInclude(t => t.Lot)
+            .Include(t => t.KitTimeLineEventType)
+            .Include(t => t.KitSnapshotRun)
+            .OrderByDescending(t => t.KitSnapshotRun.Sequence)
+            .Where(t => t.Kit.KitNo == kitNo)
+            .Where(t => t.RemovedAt == null)
+            .Where(t => t.KitTimeLineEventType.Sequence > targetSequence)
+            .ToListAsync();
+
+        
+
+        // mark snasphots removed
+        snapshots.ForEach(t => {
+            t.RemovedAt = DateTime.UtcNow;
+        });
+
+        // save
+        result.Payload = snapshots;
+        await context.SaveChangesAsync();
+
+        return result;
+    }
+
+    public async Task<List<Error>> ValidateRollbackKitSnapshots(string kitNo,  TimeLineEventCode toTimelineEventCode) {
+        var errors = new List<Error>();
+
+        var kit = await context.Kits.FirstOrDefaultAsync(t => t.KitNo == kitNo);
+        if (kit == null) {
+            errors.Add(new Error("", $"Kit not found {kitNo}"));
+            return errors;
+        }
+
+        var targetSequence = await context.KitTimelineEventTypes
+            .Where(t => t.Code == toTimelineEventCode)
+            .Select(t => t.Sequence)
+            .FirstAsync();
+
+        var snapshotsToRollaback = await context.KitSnapshots
+            .Where(t => t.Kit.KitNo == kitNo)
+            .Where(t => t.RemovedAt == null)
+            .Where(t => t.KitTimeLineEventType.Sequence > targetSequence)
+            .CountAsync();
+
+        if (snapshotsToRollaback == 0) {
+            errors.Add(new Error("", $"No snapshots found to rollback for {kitNo} rollback to {toTimelineEventCode}"));
+            return errors;
+        }
+
+        return errors;
+    }
+    #endregion
 }

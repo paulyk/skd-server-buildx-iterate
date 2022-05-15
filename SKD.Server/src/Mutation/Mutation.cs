@@ -108,7 +108,7 @@ namespace SKD.Server {
             [Service] VerifySerialService verifySerialService,
             Guid kitComponentId
         ) => await verifySerialService.VerifyComponentSerial(kitComponentId);
-            
+
         public async Task<MutationResult<ReceiveHandlingUnitPayload>> SetHandlingUnitReceived(
             [Service] HandlingUnitService service,
             ReceiveHandlingUnitInput input
@@ -132,6 +132,12 @@ namespace SKD.Server {
           [Service] VehicleModelService service,
           string kitNo
         ) => await service.SyncKfitModelComponents(kitNo);
+
+        public async Task<MutationResult<List<KitSnapshot>>> RollbackKitsnapshots(
+          [Service] KitSnapshotService service,
+          string kitNo,
+          TimeLineEventCode toTimelineEventCode
+        ) => await service.RollbackKitSnapshots(kitNo, toTimelineEventCode);
 
     }
 }
