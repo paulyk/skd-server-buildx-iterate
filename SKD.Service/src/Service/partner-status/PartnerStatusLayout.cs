@@ -1,4 +1,3 @@
-
 namespace SKD.Service;
 public class PartnerStatusLayout {
 
