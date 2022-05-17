@@ -375,6 +375,9 @@ public class Query {
     public VinFile ParseVinFile(string text) =>
         new VinFileParser().ParseVinFile(text);
 
+    public PartnerStatusAckFile ParsePartnerStatusAckFile(string text) =>
+        new PartnerStatusAckParser().Parse(text);
+
     public Task<KitVinAckDTO> GenVinImportAcknowledgment([Service] KitVinAckBuilder kitVinAckBuilder, string plantCode, int sequence) =>
         kitVinAckBuilder.GenerateKitVinAcknowledgment(plantCode, sequence);
 
