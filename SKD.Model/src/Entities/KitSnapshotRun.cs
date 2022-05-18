@@ -6,5 +6,5 @@ public class KitSnapshotRun : EntityBase {
     public DateTime RunDate { get; set; }
     public int Sequence { get; set; }
     public ICollection<KitSnapshot> KitSnapshots { get; set; } = new List<KitSnapshot>();
-
+    public PartnerStatusAck PartnerStatusAck { get; set; }
 }

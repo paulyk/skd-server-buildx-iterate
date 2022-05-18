@@ -11,7 +11,7 @@ TLRPARTNER_STATUS_ACK  HPUDAGQQLA0000000003
     [Fact]
     public void Can_parse_partner_status_ack_file() {
         // setup
-        var serivce = new PartnerStatusAckParser();
+        var serivce = new PartnerStatusAckService();
 
         // act 
         var result = serivce.Parse(fileText);
@@ -26,19 +26,20 @@ TLRPARTNER_STATUS_ACK  HPUDAGQQLA0000000003
         var sequence = 207;
         Assert.Equal(sequence, result.Sequence);
 
-        var status =  "ACCEPTED  ";
-        Assert.Equal(status, result.Status);
+        Assert.True(result.Accepted);
 
-        var total =  319;
-        Assert.Equal(total, result.Total);
+        var totalProcessed =  319;
+        Assert.Equal(totalProcessed, result.TotalProcessed);
 
-        var accepted =  317;
-        Assert.Equal(accepted, result.Accepted);
+        var totalAccepted =  317;
+        Assert.Equal(totalAccepted, result.TotalAccepted);
 
-        var rejected =  2;
-        Assert.Equal(rejected, result.Rejected);
+        var totalRejected =  2;
+        Assert.Equal(totalRejected, result.TotalRejected);
 
+        var expectedProcessedDate = new DateTime(2022,4,1);
+        var actualDate = DateTime.Parse(result.FileDate);
+        Assert.Equal(expectedProcessedDate, actualDate);
     }
-
 }
 

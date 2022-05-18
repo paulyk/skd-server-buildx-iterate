@@ -34,6 +34,7 @@ public class SkdContext : DbContext {
 
     public DbSet<KitSnapshotRun> KitSnapshotRuns => Set<KitSnapshotRun>();
     public DbSet<KitSnapshot> KitSnapshots => Set<KitSnapshot>();
+    public DbSet<PartnerStatusAck> PartnerStatusAcks => Set<PartnerStatusAck>();
 
 
     public SkdContext(DbContextOptions options) : base(options) { }
@@ -53,6 +54,7 @@ public class SkdContext : DbContext {
         builder.ApplyConfiguration(new KitVin_Config());
         builder.ApplyConfiguration(new KitSnapshot_Config());
         builder.ApplyConfiguration(new KitSnapshotRun_Config());
+        builder.ApplyConfiguration(new KitSnapshotRunAck_Config());
         builder.ApplyConfiguration(new KitTimelineEventType_Config());
         builder.ApplyConfiguration(new KitTimelineEvent_Config());
 

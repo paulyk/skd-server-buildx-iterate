@@ -1,5 +1,4 @@
 #nullable enable
-
 namespace SKD.Service;
 
 public class KitSnapshotService {
@@ -197,7 +196,8 @@ public class KitSnapshotService {
             .Include(t => t.KitSnapshots.Where(u => u.RemovedAt == null))
                 .ThenInclude(t => t.Kit).ThenInclude(t => t.Lot)
             .Include(t => t.KitSnapshots.Where(u => u.RemovedAt == null))
-                .ThenInclude(t => t.KitTimeLineEventType)
+                .ThenInclude(t => t.KitTimeLineEventType)                
+            .Include(t => t.PartnerStatusAck)
             .Where(t => t.Plant.Code == plantCode)
             .Where(t => t.Sequence == sequence).FirstOrDefaultAsync();
 
@@ -216,6 +216,7 @@ public class KitSnapshotService {
                 .ThenInclude(t => t.Kit).ThenInclude(t => t.Lot)
             .Include(t => t.KitSnapshots.Where(u => u.RemovedAt == null))
                 .ThenInclude(t => t.KitTimeLineEventType)
+            .Include(t => t.PartnerStatusAck)
             .Where(t => t.Plant.Code == plantCode)
             .Where(t => t.RunDate == runDate).FirstOrDefaultAsync();
 
@@ -229,6 +230,8 @@ public class KitSnapshotService {
     private async Task<KitSnapshotRunDTO> BuildKitSnapshotRunDTO(KitSnapshotRun snapshotRun) {
         var partnerStatusBuilder = new PartnerStatusBuilder(context);
 
+        var partnerStatusAck = snapshotRun.PartnerStatusAck;
+
         var dto = new KitSnapshotRunDTO {
             PlantCode = snapshotRun.Plant.Code,
             PartnerPlantCode = snapshotRun.Plant.PartnerPlantCode,
@@ -236,6 +239,18 @@ public class KitSnapshotService {
             PartnerStatusFilename = await partnerStatusBuilder.GenPartnerStatusFilename(snapshotRun.Id),
             RunDate = snapshotRun.RunDate.Date,
             Sequence = snapshotRun.Sequence,
+            PartnerStatusAck = partnerStatusAck != null 
+                ? new PartnerStatusAckDTO {
+                    PlantCode = snapshotRun.Plant.Code,
+                    PartnerPlantCode = snapshotRun.Plant.PartnerPlantCode,
+                    Sequence = snapshotRun.Sequence,
+                    FileDate = partnerStatusAck.FileDate.ToString("yyyy-MM-dd"),
+                    Accepted = partnerStatusAck.Accepted,
+                    TotalProcessed = partnerStatusAck.TotalProcessed,
+                    TotalAccepted = partnerStatusAck.TotalAccepted,
+                    TotalRejected = partnerStatusAck.TotalRejected
+                }
+                : null,
             Entries = new List<KitSnapshotRunDTO.Entry>()
         };
 
@@ -433,5 +448,77 @@ public class KitSnapshotService {
 
         return errors;
     }
+    #endregion
+
+    #region acknowledgment 
+    public async Task<MutationResult<PartnerStatusAck>> ImportPartnerStatusAck(PartnerStatusAckDTO input) {
+        MutationResult<PartnerStatusAck> result = new() {
+            Payload = new PartnerStatusAck()
+        };
+
+        result.Errors = await ValidateImportPartnerStatusAck(input);
+        if (result.Errors.Any()) {
+            return result;
+        }
+
+        var kitSnasphotRun = await context.KitSnapshotRuns
+            .FirstAsync(t => t.Sequence == input.Sequence);
+
+        // new PartnerStatusAck 
+        var partnerStatusAck = new PartnerStatusAck() {
+            Accepted = input.Accepted,
+            TotalAccepted = input.TotalAccepted,
+            TotalProcessed = input.TotalProcessed,
+            TotalRejected = input.TotalRejected,
+            FileDate = DateTime.Parse(input.FileDate),
+            KitSnapshotRun = kitSnasphotRun
+        };
+        context.PartnerStatusAcks.Add(partnerStatusAck);
+        
+        // if rejected the mark kitSnapshotRun.RemovedAt
+        if (!partnerStatusAck.Accepted) {
+            kitSnasphotRun.RemovedAt = DateTime.UtcNow;
+        }    
+        
+        // save
+        await context.SaveChangesAsync();        
+        result.Payload = partnerStatusAck;            
+        return result;
+    }
+
+    public async Task<List<Error>> ValidateImportPartnerStatusAck(PartnerStatusAckDTO input) {
+        var errors = new List<Error>();
+
+        var kitSnasphotRun = await context.KitSnapshotRuns
+            .Include(t => t.PartnerStatusAck)
+            .Include(t => t.KitSnapshots.Where(t => t.RemovedAt == null))
+            .FirstOrDefaultAsync(t => t.Sequence == input.Sequence);
+
+        if (kitSnasphotRun == null) {
+            errors.Add(new Error("", $"Could not find snapshot run seuqnece {input.Sequence}"));
+            return errors;
+        }
+
+        if (kitSnasphotRun.PartnerStatusAck != null) {
+            errors.Add(new Error("", $"Already imported  partner status acknowledgment for {input.PlantCode} - {input.Sequence}"));
+            return errors;
+        }
+
+        // 
+        // var snapshotCount = kitSnasphotRun.KitSnapshots.Count();
+        // if (input.TotalProcessed != snapshotCount) {
+        //     errors.Add(new Error("", $"Total processed {input.TotalProcessed} not equal to snapshots {snapshotCount}"));
+        //     return errors;
+        // }
+
+        // var acceptedPlusRejected = input.TotalAccepted + input.TotalRejected;
+        // if (input.TotalProcessed != acceptedPlusRejected) {
+        //     errors.Add(new Error("", $"Total processed {input.TotalProcessed} not equal to accepted + rejected {acceptedPlusRejected}"));
+        //     return errors;
+        // }
+        
+        return errors;
+    }
+
     #endregion
 }

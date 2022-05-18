@@ -22,8 +22,8 @@ public class Program {
                 webBuilder
                     .UseStartup<Startup>()
                     .ConfigureAppConfiguration(config => {
-                        config.AddJsonFile("appsettings.json", optional: false)
-                        .AddJsonFile("developer.json", optional: true)
+                        config
+                        .AddJsonFile("appsettings.json", optional: false)
                         .AddEnvironmentVariables();
                     });
             });

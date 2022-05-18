@@ -15,5 +15,8 @@ public class KitSnapshotRun_Config : IEntityTypeConfiguration<KitSnapshotRun> {
             .WithOne(t => t.KitSnapshotRun)
             .HasForeignKey(t => t.KitSnapshotRunId);
 
+        builder.HasOne(t => t.PartnerStatusAck)
+            .WithOne(t => t.KitSnapshotRun)
+            .HasForeignKey<PartnerStatusAck>(t => t.KitSnapshotRunId);
     }
 }

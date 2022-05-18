@@ -1,14 +1,11 @@
-using System;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.Extensions.Configuration;
 
 namespace SKD.Model;
 public class DbContextFactory : IDesignTimeDbContextFactory<SkdContext> {
     public SkdContext CreateDbContext(string[] args) {
 
         var Configuration = new ConfigurationBuilder()
-            .AddJsonFile("developer.json", optional: false)
+            .AddJsonFile("appsettings.Development.json", optional: true)
             .AddEnvironmentVariables()
             .Build();
 

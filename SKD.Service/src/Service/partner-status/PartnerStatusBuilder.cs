@@ -185,10 +185,9 @@ public class PartnerStatusBuilder {
             _ => throw new Exception("Unexpected timeline event")
         };
 
-
     private string FormattedDate(DateTime? date, string dateFormat) {
         return date.HasValue
             ? date.Value.ToString(dateFormat)
-            : "";            
+            : "";
     }
 }

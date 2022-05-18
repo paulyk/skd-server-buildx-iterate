@@ -8,6 +8,7 @@ public class KitSnapshotRunDTO {
     public string PartnerPlantCode { get; set; }
     public string PartnerPlantType { get; set; }
     public string PartnerStatusFilename { get; set; }
+    public PartnerStatusAckDTO PartnerStatusAck { get; set; }
     public ICollection<Entry> Entries { get; set; } = new List<Entry>();
     public class Entry {
         public SnapshotChangeStatus TxType { get; set; }

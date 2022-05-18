@@ -139,5 +139,10 @@ namespace SKD.Server {
           TimeLineEventCode toTimelineEventCode
         ) => await service.RollbackKitSnapshots(kitNo, toTimelineEventCode);
 
+        public async Task<MutationResult<PartnerStatusAck>> ImportPartnerStatusAck(
+            [Service] KitSnapshotService service,
+            PartnerStatusAckDTO input
+        ) => await service.ImportPartnerStatusAck(input);
+        
     }
 }

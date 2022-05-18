@@ -398,7 +398,7 @@ public class KitSnapshotServiceTest : TestBase {
         Assert.Equal(TimeLineEventCode.CUSTOM_RECEIVED, kitSnapshot.CurrentTimeLineCode);
         Assert.Equal(SnapshotChangeStatus.Added, kitSnapshot.TxType);
 
-        // 1.  plan build 
+        // 1.  plan build
         await CreateKitTimelineEvent(TimeLineEventCode.PLAN_BUILD, kit.KitNo, "note", "", plan_build_date_trx, plan_build_date);
         snapshotInput.RunDate = plan_build_date_trx;
         result = await service.GenerateSnapshot(snapshotInput);
@@ -425,7 +425,7 @@ public class KitSnapshotServiceTest : TestBase {
 
     [Fact]
     public async Task Can_allow_or_disallow_multiple_snaphot_runs_per_day() {
-        // setup        
+        // setup
 
         var testSets = new List<(DateTime baseDate, bool allowMultiple, List<TestEntry> testEntries)>{
             (
@@ -477,7 +477,7 @@ public class KitSnapshotServiceTest : TestBase {
 
     [Fact]
     public async Task Generate_snapshot_with_same_plant_code_increments_sequence() {
-        // setup 
+        // setup
         var baseDate = DateTime.Now.Date;
 
         var custom_receive_date = baseDate.AddDays(-1);
@@ -534,7 +534,7 @@ public class KitSnapshotServiceTest : TestBase {
     }
 
     [Fact]
-    public async Task Can_get_vehicle_snapshot_dates() {
+    public async Task Can_get_kit_snapshot_dates() {
         // setup
         var plantCode = context.Plants.Select(t => t.Code).First();
         var baseDate = DateTime.Now.Date;
@@ -617,10 +617,96 @@ public class KitSnapshotServiceTest : TestBase {
         expectedErrorCount = 1;
         actualErrorCount = result.Errors.Count();
         Assert.Equal(expectedErrorCount, actualErrorCount);
-        
+
         var expectedErrorMessage = "No changes since last snapshot";
         var actualErrorMessage = result.Errors.Select(t => t.Message).FirstOrDefault();
         Assert.StartsWith(expectedErrorMessage, actualErrorMessage);
+    }
+
+    [Fact]
+    public async Task Can_import_partner_status_ackknowledgement() {
+        // setup
+        var plantCode = context.Plants.Select(t => t.Code).First();
+        var kit = context.Kits.First();
+        var trxDate = DateTime.Now.Date;
+        var eventDate = trxDate.AddDays(-6);
+        var service = new KitSnapshotService(context);
+
+        await CreateKitTimelineEvent(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", "", trxDate, eventDate);
+
+        var snapshotInput = new KitSnapshotInput {
+            RunDate = trxDate,
+            PlantCode = plantCode,
+            AllowMultipleSnapshotsPerDay = true
+        };
+        // cuustom receive, added
+        var result = await service.GenerateSnapshot(snapshotInput);
+
+        var ackInput = new PartnerStatusAckDTO {
+            Sequence = result.Payload.Sequence,
+            Accepted = true,
+            TotalProcessed = result.Payload.SnapshotCount,
+            TotalAccepted = result.Payload.SnapshotCount,
+            TotalRejected = 0,
+            FileDate = DateTime.Now.Date.ToString("yyyy-MM-dd")
+        };
+
+        var importResult = await service.ImportPartnerStatusAck(ackInput);
+
+        Assert.Equal(0, importResult.Errors.Count);
+
+        var snapshot = await context.KitSnapshotRuns
+            .Include(t => t.PartnerStatusAck)
+            .FirstAsync(t => t.Sequence == result.Payload.Sequence);
+
+        Assert.Null(snapshot.RemovedAt);
+        Assert.Equal(ackInput.Accepted, snapshot.PartnerStatusAck.Accepted);
+        Assert.Equal(ackInput.TotalProcessed, snapshot.PartnerStatusAck.TotalProcessed);
+        Assert.Equal(ackInput.TotalAccepted, snapshot.PartnerStatusAck.TotalAccepted);
+        Assert.Equal(ackInput.TotalRejected, snapshot.PartnerStatusAck.TotalRejected);
+    }
+
+    [Fact]
+    public async Task Import_partner_status_ack_with_rejected_status_removes_snapshot_run() {
+        // setup
+        var plantCode = context.Plants.Select(t => t.Code).First();
+        var kit = context.Kits.First();
+        var trxDate = DateTime.Now.Date;
+        var eventDate = trxDate.AddDays(-6);
+        var service = new KitSnapshotService(context);
+
+        await CreateKitTimelineEvent(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", "", trxDate, eventDate);
+
+        var snapshotInput = new KitSnapshotInput {
+            RunDate = trxDate,
+            PlantCode = plantCode,
+            AllowMultipleSnapshotsPerDay = true
+        };
+        // cuustom receive, added
+        var result = await service.GenerateSnapshot(snapshotInput);
+
+        var ackInput = new PartnerStatusAckDTO {
+            Sequence = result.Payload.Sequence,
+            Accepted = false,
+            TotalProcessed = result.Payload.SnapshotCount,
+            TotalAccepted = result.Payload.SnapshotCount,
+            TotalRejected = 0,
+            FileDate = DateTime.Now.Date.ToString("yyyy-MM-dd")
+        };
+
+        var importResult = await service.ImportPartnerStatusAck(ackInput);
+
+        Assert.Equal(0, importResult.Errors.Count);
+
+        var snapshot = await context.KitSnapshotRuns
+            .Include(t => t.PartnerStatusAck)
+            .FirstAsync(t => t.Sequence == result.Payload.Sequence);
+
+        Assert.NotNull(snapshot.RemovedAt);
+        Assert.Equal(ackInput.Accepted, false);
+        Assert.Equal(ackInput.TotalProcessed, snapshot.PartnerStatusAck.TotalProcessed);
+        Assert.Equal(ackInput.TotalAccepted, snapshot.PartnerStatusAck.TotalAccepted);
+        Assert.Equal(ackInput.TotalRejected, snapshot.PartnerStatusAck.TotalRejected);
     }
 
     #region test helper methods
