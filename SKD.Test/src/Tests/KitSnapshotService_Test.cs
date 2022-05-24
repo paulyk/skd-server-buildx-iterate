@@ -644,7 +644,6 @@ public class KitSnapshotServiceTest : TestBase {
 
         var ackInput = new PartnerStatusAckDTO {
             Sequence = result.Payload.Sequence,
-            Accepted = true,
             TotalProcessed = result.Payload.SnapshotCount,
             TotalAccepted = result.Payload.SnapshotCount,
             TotalRejected = 0,
@@ -660,54 +659,12 @@ public class KitSnapshotServiceTest : TestBase {
             .FirstAsync(t => t.Sequence == result.Payload.Sequence);
 
         Assert.Null(snapshot.RemovedAt);
-        Assert.Equal(ackInput.Accepted, snapshot.PartnerStatusAck.Accepted);
         Assert.Equal(ackInput.TotalProcessed, snapshot.PartnerStatusAck.TotalProcessed);
         Assert.Equal(ackInput.TotalAccepted, snapshot.PartnerStatusAck.TotalAccepted);
         Assert.Equal(ackInput.TotalRejected, snapshot.PartnerStatusAck.TotalRejected);
     }
 
-    [Fact]
-    public async Task Import_partner_status_ack_with_rejected_status_removes_snapshot_run() {
-        // setup
-        var plantCode = context.Plants.Select(t => t.Code).First();
-        var kit = context.Kits.First();
-        var trxDate = DateTime.Now.Date;
-        var eventDate = trxDate.AddDays(-6);
-        var service = new KitSnapshotService(context);
 
-        await CreateKitTimelineEvent(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", "", trxDate, eventDate);
-
-        var snapshotInput = new KitSnapshotInput {
-            RunDate = trxDate,
-            PlantCode = plantCode,
-            AllowMultipleSnapshotsPerDay = true
-        };
-        // cuustom receive, added
-        var result = await service.GenerateSnapshot(snapshotInput);
-
-        var ackInput = new PartnerStatusAckDTO {
-            Sequence = result.Payload.Sequence,
-            Accepted = false,
-            TotalProcessed = result.Payload.SnapshotCount,
-            TotalAccepted = result.Payload.SnapshotCount,
-            TotalRejected = 0,
-            FileDate = DateTime.Now.Date.ToString("yyyy-MM-dd")
-        };
-
-        var importResult = await service.ImportPartnerStatusAck(ackInput);
-
-        Assert.True(importResult.Errors.Count == 0);
-
-        var snapshot = await context.KitSnapshotRuns
-            .Include(t => t.PartnerStatusAck)
-            .FirstAsync(t => t.Sequence == result.Payload.Sequence);
-
-        Assert.NotNull(snapshot.RemovedAt);
-        Assert.False(ackInput.Accepted);
-        Assert.Equal(ackInput.TotalProcessed, snapshot.PartnerStatusAck.TotalProcessed);
-        Assert.Equal(ackInput.TotalAccepted, snapshot.PartnerStatusAck.TotalAccepted);
-        Assert.Equal(ackInput.TotalRejected, snapshot.PartnerStatusAck.TotalRejected);
-    }
 
     #region test helper methods
     public async Task<List<KitSnapshotRunDTO.Entry>> GetVehiclePartnerStatusReport(

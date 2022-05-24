@@ -245,7 +245,6 @@ public class KitSnapshotService {
                     PartnerPlantCode = snapshotRun.Plant.PartnerPlantCode,
                     Sequence = snapshotRun.Sequence,
                     FileDate = partnerStatusAck.FileDate.ToString("yyyy-MM-dd"),
-                    Accepted = partnerStatusAck.Accepted,
                     TotalProcessed = partnerStatusAck.TotalProcessed,
                     TotalAccepted = partnerStatusAck.TotalAccepted,
                     TotalRejected = partnerStatusAck.TotalRejected
@@ -466,7 +465,6 @@ public class KitSnapshotService {
 
         // new PartnerStatusAck 
         var partnerStatusAck = new PartnerStatusAck() {
-            Accepted = input.Accepted,
             TotalAccepted = input.TotalAccepted,
             TotalProcessed = input.TotalProcessed,
             TotalRejected = input.TotalRejected,
@@ -474,11 +472,6 @@ public class KitSnapshotService {
             KitSnapshotRun = kitSnasphotRun
         };
         context.PartnerStatusAcks.Add(partnerStatusAck);
-        
-        // if rejected the mark kitSnapshotRun.RemovedAt
-        if (!partnerStatusAck.Accepted) {
-            kitSnasphotRun.RemovedAt = DateTime.UtcNow;
-        }    
         
         // save
         await context.SaveChangesAsync();        

@@ -26,8 +26,6 @@ TLRPARTNER_STATUS_ACK  HPUDAGQQLA0000000003
         var sequence = 207;
         Assert.Equal(sequence, result.Sequence);
 
-        Assert.True(result.Accepted);
-
         var totalProcessed =  319;
         Assert.Equal(totalProcessed, result.TotalProcessed);
 

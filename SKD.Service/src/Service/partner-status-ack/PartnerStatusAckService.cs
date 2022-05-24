@@ -21,7 +21,6 @@ public class PartnerStatusAckService {
 
         var status = detailLineParser.GetFieldValue(detailLine, t => t.PST_ACK_FILE_STATUS);
 
-        result.Accepted = status.Trim() == "ACCEPTED";
         result.TotalProcessed = Int32.Parse(detailLineParser.GetFieldValue(detailLine, t => t.PST_ACK_TOTAL_DTL_RECORD));
 
         result.TotalAccepted = Int32.Parse(detailLineParser.GetFieldValue(detailLine, t => t.PST_ACK_TOTAL_DTL_ACCEPTED));
