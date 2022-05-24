@@ -1,13 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>    
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\SKD.Model\SKD.Model.csproj" />
     <ProjectReference Include="..\SKD.Dcws\SKD.Dcws.csproj" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>    
-  </PropertyGroup>
 
 </Project>

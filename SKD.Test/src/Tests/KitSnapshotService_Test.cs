@@ -653,7 +653,7 @@ public class KitSnapshotServiceTest : TestBase {
 
         var importResult = await service.ImportPartnerStatusAck(ackInput);
 
-        Assert.Equal(0, importResult.Errors.Count);
+        Assert.True(0 == importResult.Errors.Count);
 
         var snapshot = await context.KitSnapshotRuns
             .Include(t => t.PartnerStatusAck)
@@ -696,14 +696,14 @@ public class KitSnapshotServiceTest : TestBase {
 
         var importResult = await service.ImportPartnerStatusAck(ackInput);
 
-        Assert.Equal(0, importResult.Errors.Count);
+        Assert.True(importResult.Errors.Count == 0);
 
         var snapshot = await context.KitSnapshotRuns
             .Include(t => t.PartnerStatusAck)
             .FirstAsync(t => t.Sequence == result.Payload.Sequence);
 
         Assert.NotNull(snapshot.RemovedAt);
-        Assert.Equal(ackInput.Accepted, false);
+        Assert.False(ackInput.Accepted);
         Assert.Equal(ackInput.TotalProcessed, snapshot.PartnerStatusAck.TotalProcessed);
         Assert.Equal(ackInput.TotalAccepted, snapshot.PartnerStatusAck.TotalAccepted);
         Assert.Equal(ackInput.TotalRejected, snapshot.PartnerStatusAck.TotalRejected);

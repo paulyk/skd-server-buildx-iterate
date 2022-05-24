@@ -4,8 +4,6 @@ public class KitServiceTest : TestBase {
     public KitServiceTest() {
         context = GetAppDbContext();
         Gen_Baseline_Test_Seed_Data();
-
-
     }
 
     [Fact]
