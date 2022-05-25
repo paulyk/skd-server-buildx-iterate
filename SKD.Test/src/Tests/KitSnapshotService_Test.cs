@@ -664,7 +664,50 @@ public class KitSnapshotServiceTest : TestBase {
         Assert.Equal(ackInput.TotalRejected, snapshot.PartnerStatusAck.TotalRejected);
     }
 
+    [Fact]
+    public async Task Will_reject_if_prior_snapshot_acknowledgment_required() {
+        // setup
+        var plantCode = context.Plants.Select(t => t.Code).First();
+        var kit = context.Kits.First();
+        var trxDate = DateTime.Now.Date;
+        var eventDate = trxDate.AddDays(-6);
+        var service = new KitSnapshotService(context);
 
+        await CreateKitTimelineEvent(TimeLineEventCode.CUSTOM_RECEIVED, kit.KitNo, "", "", trxDate, eventDate);
+
+        var snapshotInput = new KitSnapshotInput {
+            RunDate = trxDate,
+            PlantCode = plantCode,
+            RejectIfNoChanges = false,
+            RejectIfPriorSnapshotNotAcknowledged = true,
+            AllowMultipleSnapshotsPerDay = true
+        };
+        // generate first snapshot
+        var result1 = await service.GenerateSnapshot(snapshotInput);
+        Assert.False(result1.Errors.Any());
+
+        // try to generate second snapshot before importing acknowledment
+        var result2 = await service.GenerateSnapshot(snapshotInput);
+        Assert.True(result2.Errors.Any());
+
+        // Import acknowledgment
+
+        var ackInput = new PartnerStatusAckDTO {
+            Sequence = result1.Payload.Sequence,
+            TotalProcessed = result1.Payload.SnapshotCount,
+            TotalAccepted = result1.Payload.SnapshotCount,
+            TotalRejected = 0,
+            FileDate = DateTime.Now.Date.ToString("yyyy-MM-dd")
+        };
+
+        var importResult = await service.ImportPartnerStatusAck(ackInput);
+        Assert.False(importResult.Errors.Any());
+
+        // try generating snapshot again.  This time it should succeeed
+        snapshotInput.RunDate = trxDate.AddDays(1);
+        var result3 = await service.GenerateSnapshot(snapshotInput);
+        Assert.False(result3.Errors.Any());
+    }
 
     #region test helper methods
     public async Task<List<KitSnapshotRunDTO.Entry>> GetVehiclePartnerStatusReport(

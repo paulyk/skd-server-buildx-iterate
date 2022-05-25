@@ -19,5 +19,12 @@ public class KitSnapshotInput {
     /// Default: false
     /// </summary>
 
+    public bool RejectIfPriorSnapshotNotAcknowledged { get; set; } 
+    /// <summary>
+    /// Allow more that one snapshot with the same RunDate.Date but different HHMM.
+    /// Default: false
+    /// </summary>
+
+
     public bool AllowMultipleSnapshotsPerDay { get; set; } = false;
 }

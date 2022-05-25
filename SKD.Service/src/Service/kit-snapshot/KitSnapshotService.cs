@@ -81,8 +81,8 @@ public class KitSnapshotService {
             }
         }
 
-        context.KitSnapshotRuns.Add(kitSnapshotRun);
         // save
+        context.KitSnapshotRuns.Add(kitSnapshotRun);
         await context.SaveChangesAsync();
 
         // result payload
@@ -196,7 +196,7 @@ public class KitSnapshotService {
             .Include(t => t.KitSnapshots.Where(u => u.RemovedAt == null))
                 .ThenInclude(t => t.Kit).ThenInclude(t => t.Lot)
             .Include(t => t.KitSnapshots.Where(u => u.RemovedAt == null))
-                .ThenInclude(t => t.KitTimeLineEventType)                
+                .ThenInclude(t => t.KitTimeLineEventType)
             .Include(t => t.PartnerStatusAck)
             .Where(t => t.Plant.Code == plantCode)
             .Where(t => t.Sequence == sequence).FirstOrDefaultAsync();
@@ -239,7 +239,7 @@ public class KitSnapshotService {
             PartnerStatusFilename = await partnerStatusBuilder.GenPartnerStatusFilename(snapshotRun.Id),
             RunDate = snapshotRun.RunDate.Date,
             Sequence = snapshotRun.Sequence,
-            PartnerStatusAck = partnerStatusAck != null 
+            PartnerStatusAck = partnerStatusAck != null
                 ? new PartnerStatusAckDTO {
                     PlantCode = snapshotRun.Plant.Code,
                     PartnerPlantCode = snapshotRun.Plant.PartnerPlantCode,
@@ -314,6 +314,21 @@ public class KitSnapshotService {
 
             if (snapshotForRunDateExists) {
                 errors.Add(new Error("", $"Snapshot already take for this date:  {input.PlantCode} - {DateTime.UtcNow.Date.ToString("yyyy-MM-dd")}"));
+            }
+        }
+
+        // Prior snapshot must first be acknowledged
+        if (input.RejectIfPriorSnapshotNotAcknowledged) {
+            var priorSnasphotRun = await context.KitSnapshotRuns
+                .Include(t => t.PartnerStatusAck)
+                .OrderByDescending(t => t.Sequence)
+                .Where(t => t.Plant.Code == input.PlantCode)
+                .Where(t => t.RemovedAt == null)
+                .FirstOrDefaultAsync();
+
+            if (priorSnasphotRun != null && priorSnasphotRun.PartnerStatusAck == null) {
+                errors.Add(new Error("", $"Cannot generate snapshot because {input.PlantCode} - {priorSnasphotRun.Sequence} not yet acknowledged"));
+                return errors;
             }
         }
 
@@ -406,7 +421,7 @@ public class KitSnapshotService {
             .Where(t => t.KitTimeLineEventType.Sequence > targetSequence)
             .ToListAsync();
 
-        
+
 
         // mark snasphots removed
         snapshots.ForEach(t => {
@@ -420,7 +435,7 @@ public class KitSnapshotService {
         return result;
     }
 
-    public async Task<List<Error>> ValidateRollbackKitSnapshots(string kitNo,  TimeLineEventCode toTimelineEventCode) {
+    public async Task<List<Error>> ValidateRollbackKitSnapshots(string kitNo, TimeLineEventCode toTimelineEventCode) {
         var errors = new List<Error>();
 
         var kit = await context.Kits.FirstOrDefaultAsync(t => t.KitNo == kitNo);
@@ -472,10 +487,11 @@ public class KitSnapshotService {
             KitSnapshotRun = kitSnasphotRun
         };
         context.PartnerStatusAcks.Add(partnerStatusAck);
-        
+
         // save
-        await context.SaveChangesAsync();        
-        result.Payload = partnerStatusAck;            
+        await context.SaveChangesAsync();
+
+        result.Payload = partnerStatusAck;
         return result;
     }
 
@@ -497,19 +513,6 @@ public class KitSnapshotService {
             return errors;
         }
 
-        // 
-        // var snapshotCount = kitSnasphotRun.KitSnapshots.Count();
-        // if (input.TotalProcessed != snapshotCount) {
-        //     errors.Add(new Error("", $"Total processed {input.TotalProcessed} not equal to snapshots {snapshotCount}"));
-        //     return errors;
-        // }
-
-        // var acceptedPlusRejected = input.TotalAccepted + input.TotalRejected;
-        // if (input.TotalProcessed != acceptedPlusRejected) {
-        //     errors.Add(new Error("", $"Total processed {input.TotalProcessed} not equal to accepted + rejected {acceptedPlusRejected}"));
-        //     return errors;
-        // }
-        
         return errors;
     }
 
