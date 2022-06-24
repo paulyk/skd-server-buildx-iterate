@@ -11,14 +11,8 @@ public class Startup {
     public IConfiguration Configuration { get; }
     public IWebHostEnvironment _env { get; }
 
-    private int ExecutionTimeoutSeconds {
-        get {
-            Int32.TryParse(Configuration[ConfigSettingKey.ExecutionTimeoutSeconds], out int executionTimeoutSeconds);
-            return executionTimeoutSeconds;
-        }
-    }
-
-    public void ConfigureServices(IServiceCollection services) {        
+    public void ConfigureServices(IServiceCollection services) {     
+        var appSettings = new AppSettings(Configuration);   
 
         services.AddApplicationInsightsTelemetry();
 
@@ -31,7 +25,7 @@ public class Startup {
         });
 
         services.AddDbContext<SkdContext>(options => {
-            var connectionString = Configuration.GetConnectionString(ConfigSettingKey.DefaultConnectionString);
+            var connectionString = appSettings.DefaultConnectionString;
             options.UseSqlServer(
                 connectionString,
                 sqlOptions => {
@@ -60,13 +54,14 @@ public class Startup {
             .AddScoped<PlantService>()
             .AddScoped<LotPartService>()
             .AddScoped<HandlingUnitService>()
-            .AddScoped<QueryService>().AddSingleton<DcwsService>(sp => new DcwsService(Configuration[ConfigSettingKey.DcwsServiceAddress]))
+            .AddScoped<QueryService>().AddSingleton<DcwsService>(sp => new DcwsService(appSettings.DcwsServiceAddress))
             .AddScoped<PartnerStatusBuilder>()
             .AddScoped<KitVinAckBuilder>()
             .AddScoped<VerifySerialService>()
             .AddScoped<DevMutation>(sp => new DevMutation(_env.IsDevelopment()));
 
         services.AddGraphQLServer()
+            .AllowIntrospection(appSettings.AllowGraphqlIntrospection)
             .AddQueryType<Query>()
                 .AddTypeExtension<ProjectionQueries>()
             .AddMutationType<Mutation>()
@@ -84,13 +79,14 @@ public class Startup {
             .AddProjections()
             .AddFiltering()
             .AddSorting()
-            .AddInMemorySubscriptions()
+            .AddInMemorySubscriptions()            
             .ModifyRequestOptions(opt => {
                 opt.IncludeExceptionDetails = _env.IsDevelopment();
-                if (ExecutionTimeoutSeconds > 0) {
-                    opt.ExecutionTimeout = TimeSpan.FromSeconds(ExecutionTimeoutSeconds);
+                if (appSettings.ExecutionTimeoutSeconds > 0) {
+                    opt.ExecutionTimeout = TimeSpan.FromSeconds(appSettings.ExecutionTimeoutSeconds);
                 }
             });
+            
 
     }
 

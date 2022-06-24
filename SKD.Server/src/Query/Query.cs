@@ -12,7 +12,8 @@ public class Query {
     public ConfigettingDTO GetServerConfigSettings() {
 
         return new ConfigettingDTO {
-            DcwsServiceAddress = Configuration[ConfigSettingKey.DcwsServiceAddress],
+            DcwsServiceAddress = Configuration[AppSettingsKey.DcwsServiceAddress],
+            AllowGraphqlIntrospection = Configuration[AppSettingsKey.AllowGraphqlIntrospection]
         };
     }
 
