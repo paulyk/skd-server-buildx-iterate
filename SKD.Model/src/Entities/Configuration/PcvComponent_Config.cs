@@ -1,6 +1,6 @@
 namespace SKD.Model;
 
-public class VehicleModelComponent_Config : IEntityTypeConfiguration<PcvComponent> {
+public class PcvComponent_Config : IEntityTypeConfiguration<PcvComponent> {
     public void Configure(EntityTypeBuilder<PcvComponent> builder) {
 
         builder.ToTable("pcv_component");
@@ -17,7 +17,7 @@ public class VehicleModelComponent_Config : IEntityTypeConfiguration<PcvComponen
             .HasForeignKey(t => t.PcvId);
 
         builder.HasOne(t => t.Component)
-            .WithMany(t => t.VehicleModelComponents)
+            .WithMany(t => t.PcvComponents)
             .HasForeignKey(t => t.ComponentId);
     }
 }

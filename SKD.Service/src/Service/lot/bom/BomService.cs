@@ -66,11 +66,11 @@ public class BomService {
         foreach (var lotNo in input.LotEntries.Select(t => t.LotNo)) {
             var lot = bom.Lots.FirstOrDefault(t => t.LotNo == lotNo);
             if (lot == null) {
-                var modelCode = lotNo.Substring(0, EntityFieldLen.Pcv_Code);
+                var pcvCode = lotNo.Substring(0, EntityFieldLen.Pcv_Code);
                 lot = new Lot {
                     LotNo = lotNo,
                     Plant = plant,
-                    Pcv = await context.Pcvs.FirstOrDefaultAsync(t => t.Code == modelCode)
+                    Pcv = await context.Pcvs.FirstOrDefaultAsync(t => t.Code == pcvCode)
                 };
                 bom.Lots.Add(lot);
             }
@@ -158,7 +158,7 @@ public class BomService {
 
     private async Task EnsureKits(BomFile input, Bom bom) {
         foreach (var inputLot in input.LotEntries) {
-            var modelCode = inputLot.Kits.Select(t => t.ModelCode).First();
+            var pcvCode = inputLot.Kits.Select(t => t.PcvCode).First();
             var lot = bom.Lots.First(t => t.LotNo == inputLot.LotNo);
             // kits could have been previously imported.
             if (!lot.Kits.Any()) {
@@ -173,16 +173,16 @@ public class BomService {
     private async Task<Kit> CreateKit(BomFile.BomFileLot.BomFileKit input) {
         var kits = new List<Kit>();
 
-        var model = await context.Pcvs
+        var pcv = await context.Pcvs
             .Include(t => t.PcvComponents)
-            .Where(t => t.Code == input.ModelCode)
+            .Where(t => t.Code == input.PcvCode)
             .FirstAsync();
 
         var kit = new Kit {
             KitNo = input.KitNo
         };
 
-        model.PcvComponents.ToList().ForEach(mapping => {
+        pcv.PcvComponents.ToList().ForEach(mapping => {
             kit.KitComponents.Add(new KitComponent() {
                 ComponentId = mapping.ComponentId,
                 ProductionStationId = mapping.ProductionStationId,
@@ -251,22 +251,22 @@ public class BomService {
             return errors;
         }
 
-        // missing model code
-        if (input.LotEntries.Any(t => t.Kits.Any(k => k.ModelCode is null or ""))) {
-            errors.Add(new Error("", "kits with missing model code found"));
+        // missing pcv code
+        if (input.LotEntries.Any(t => t.Kits.Any(k => k.PcvCode is null or ""))) {
+            errors.Add(new Error("", "kits with missing pcv code found"));
             return errors;
         }
 
-        // model codes not found
-        var incommingModelCodes = input.LotEntries.SelectMany(t => t.Kits).Select(k => k.ModelCode).Distinct();
-        var systemModelCodes = await context.Pcvs
+        // pcv codes not found
+        var incommingPcvCodes = input.LotEntries.SelectMany(t => t.Kits).Select(k => k.PcvCode).Distinct();
+        var systemPcvCodes = await context.Pcvs
             .Where(t => t.RemovedAt == null).Select(t => t.Code).ToListAsync();
 
-        var matchingModelCodes = incommingModelCodes.Intersect(systemModelCodes);
-        var missingModelCodes = incommingModelCodes.Except(matchingModelCodes);
+        var matchingModelCodes = incommingPcvCodes.Intersect(systemPcvCodes);
+        var missingModelCodes = incommingPcvCodes.Except(matchingModelCodes);
 
         if (missingModelCodes.Any()) {
-            errors.Add(new Error("", $"model codes not in system or removed: {String.Join(",", missingModelCodes)}"));
+            errors.Add(new Error("", $"pcv codes not in system or removed: {String.Join(",", missingModelCodes)}"));
             return errors;
         }
 

@@ -50,7 +50,7 @@ public class BomFileParser {
                 if (lotKit == null) {
                     lot.Kits.Add(new BomFile.BomFileLot.BomFileKit {
                         KitNo = kitNo,
-                        ModelCode = modelCode
+                        PcvCode = modelCode
                     });
                 }
             }

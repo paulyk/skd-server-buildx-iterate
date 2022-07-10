@@ -48,7 +48,7 @@ public class ProjectionQueries {
     [UseProjection]
     [UseFiltering]
     [UseSorting]
-    public IQueryable<PCV> GetVehicleModels(
+    public IQueryable<PCV> GetPcvs(
         [Service] SkdContext context
     ) => context.Pcvs;
 
@@ -56,7 +56,7 @@ public class ProjectionQueries {
     [UseProjection]
     [UseFiltering]
     [UseSorting]
-    public IQueryable<PcvComponent> GetVehicleModelComponents(
+    public IQueryable<PcvComponent> GetPcvComponents(
         [Service] SkdContext context
     ) => context.PcvComponents;
 

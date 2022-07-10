@@ -14,12 +14,12 @@ namespace SKD.Server {
 
     public class Mutation {
 
-        public async Task<MutationResult<PCV>> SaveVehicleModel(
+        public async Task<MutationResult<PCV>> SavePcv(
             [Service] PcvService service,
             PcvInput input
         ) => await service.Save(input);
 
-        public async Task<MutationResult<PCV>> CreateVehicleModelFromExisting(
+        public async Task<MutationResult<PCV>> CreatePcvFromExisting(
             [Service] PcvService service,
             PcvFromExistingInput input
         ) => await service.CreateFromExisting(input);
@@ -131,7 +131,7 @@ namespace SKD.Server {
         public async Task<MutationResult<Kit>> SyncKfitModelComponents(
           [Service] PcvService service,
           string kitNo
-        ) => await service.SyncKfitModelComponents(kitNo);
+        ) => await service.SyncKfitPcvComponents(kitNo);
 
         public async Task<MutationResult<List<KitSnapshot>>> RollbackKitsnapshots(
           [Service] KitSnapshotService service,

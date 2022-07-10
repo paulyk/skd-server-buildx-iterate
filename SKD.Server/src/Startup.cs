@@ -39,7 +39,6 @@ public class Startup {
         });
 
         services
-            .AddScoped<SearchService>()
             .AddScoped<KitService>(sp =>
                 new KitService(sp.GetRequiredService<SkdContext>(), currentDate: DateTime.Now))
             .AddScoped<KitSnapshotService>()
@@ -72,7 +71,7 @@ public class Startup {
             .AddType<VinFileInputType>()
             .AddType<VinFileType>()
             .AddType<VehicleTimelineDTOType>()
-            .AddType<VehicleModelType>()
+            .AddType<PcvType>()
             .AddType<VehicleComponentType>()
             .AddType<KitListItemDtoType>()
             .AddType<KitVinType>()

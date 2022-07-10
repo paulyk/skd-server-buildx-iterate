@@ -127,8 +127,8 @@ public class HandlingUnitService {
            await (from hu in context.HandlingUnits
                   join lot in context.Lots
                    on hu.ShipmentInvoice.ShipmentLot.Lot.LotNo equals lot.LotNo
-                  join model in context.Pcvs
-                   on lot.ModelId equals model.Id
+                  join pcv in context.Pcvs
+                   on lot.ModelId equals pcv.Id
                   where hu.Code == code
                   select new HandlingUnitInfoPayload {
                       Code = hu.Code,
@@ -137,8 +137,8 @@ public class HandlingUnitService {
                       ShipmentSequence = hu.ShipmentInvoice.ShipmentLot.Shipment.Sequence,
                       InvoiceNo = hu.ShipmentInvoice.InvoiceNo,
                       LotNo = lot.LotNo,
-                      ModelCode = model.Code,
-                      ModelName = model.Description,
+                      ModelCode = pcv.Code,
+                      ModelName = pcv.Description,
                       PartCount = hu.Parts.Count,
                       Parts = hu.Parts.Select(p => new HU_Part {
                           PartNo = p.Part.PartNo,

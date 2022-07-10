@@ -62,9 +62,9 @@ public class SkdContext : DbContext {
         builder.ApplyConfiguration(new LotPart_Config());
         builder.ApplyConfiguration(new LotPartReceived_Config());
 
-        builder.ApplyConfiguration(new VehicleModel_Config());
+        builder.ApplyConfiguration(new Pcv_Config());
         builder.ApplyConfiguration(new KitComponent_Config());
-        builder.ApplyConfiguration(new VehicleModelComponent_Config());
+        builder.ApplyConfiguration(new PcvComponent_Config());
         builder.ApplyConfiguration(new ComponentSerial_Config());
         builder.ApplyConfiguration(new DCWSResponse_Config());
         builder.ApplyConfiguration(new ProductionStation_Config());

@@ -183,7 +183,7 @@ public class Query {
                     .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .ToListAsync();
 
-    public async Task<PCV?> GetVehicleModelById([Service] SkdContext context, Guid id) =>
+    public async Task<PCV?> GetPcvById([Service] SkdContext context, Guid id) =>
             await context.Pcvs.AsNoTracking()
                     .Include(t => t.PcvComponents).ThenInclude(t => t.Component)
                     .Include(t => t.PcvComponents).ThenInclude(t => t.ProductionStation)

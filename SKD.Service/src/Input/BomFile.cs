@@ -16,7 +16,7 @@ public class BomFile {
 
         public class BomFileKit {
             public string KitNo { get; init; } = "";
-            public string ModelCode { get; init; } = ""; 
+            public string PcvCode { get; init; } = ""; 
         }
     }
 

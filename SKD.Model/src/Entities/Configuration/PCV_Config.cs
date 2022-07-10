@@ -1,6 +1,6 @@
 namespace SKD.Model;
 
-public class VehicleModel_Config : IEntityTypeConfiguration<PCV> {
+public class Pcv_Config : IEntityTypeConfiguration<PCV> {
     public void Configure(EntityTypeBuilder<PCV> builder) {
 
         builder.ToTable("pcv");

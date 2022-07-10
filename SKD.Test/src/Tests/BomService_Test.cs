@@ -14,8 +14,8 @@ public class BomService_Test : TestBase {
 
         // setup
         var plant = Gen_Plant();
-        var model = await context.Pcvs.FirstOrDefaultAsync();
-        var lotNo = Gen_LotNo(model.Code, 1);
+        var pcv = await context.Pcvs.FirstOrDefaultAsync();
+        var lotNo = Gen_LotNo(pcv.Code, 1);
 
         var partQuantities = new List<(string partNo, int quantity)>{
                 ("part-1", 6),
@@ -90,9 +90,9 @@ public class BomService_Test : TestBase {
     public async Task Cannot_import_duplicate_bom_lot_parts_in_paylaod() {
         // setup
         var plant = Gen_Plant();
-        var model = await context.Pcvs.FirstOrDefaultAsync();
-        var lotNo1 = Gen_LotNo(model.Code, 1);
-        var lotNo2 = Gen_LotNo(model.Code, 2);
+        var pcv = await context.Pcvs.FirstOrDefaultAsync();
+        var lotNo1 = Gen_LotNo(pcv.Code, 1);
+        var lotNo2 = Gen_LotNo(pcv.Code, 2);
 
         PartQuantities partQuantities = new List<(string partNo, int quantity)>{
                 ("part-1", 6),
@@ -123,8 +123,8 @@ public class BomService_Test : TestBase {
     public async Task Cannot_import_if_no_lot_parts() {
         // setup
         var plant = Gen_Plant();
-        var model = await context.Pcvs.FirstOrDefaultAsync();
-        var lotNo1 = Gen_LotNo(model.Code, 1);
+        var pcv = await context.Pcvs.FirstOrDefaultAsync();
+        var lotNo1 = Gen_LotNo(pcv.Code, 1);
 
         PartQuantities partQuantities = new List<(string partNo, int quantity)>{
                 ("part-1", 6),
@@ -147,11 +147,11 @@ public class BomService_Test : TestBase {
     }
 
     [Fact]
-    public async Task Cannot_import_bom_lot_kits_if_model_missing() {
+    public async Task Cannot_import_bom_lot_kits_if_pcv_missing() {
         // setup
         var plant = Gen_Plant();
-        var modelCode = Gen_Pcv_Code();
-        var lotNo = Gen_LotNo(modelCode, 1);
+        var pcv = Gen_Pcv_Code();
+        var lotNo = Gen_LotNo(pcv, 1);
         var kitCount = 6;
 
         PartQuantities partQuantities = new List<(string partNo, int quantity)>{
@@ -170,7 +170,7 @@ public class BomService_Test : TestBase {
         Assert.Equal(1, errorCount);
 
         var errorMessage = result.Errors.Select(t => t.Message).FirstOrDefault();
-        var expectedErrorMessage = "model codes not in system";
+        var expectedErrorMessage = "pcv codes not in system";
         Assert.StartsWith(expectedErrorMessage, errorMessage);
     }
 
@@ -178,8 +178,8 @@ public class BomService_Test : TestBase {
     public async Task Cannot_import_bom_lot_kits_already_imported() {
         // setup
         var plant = Gen_Plant();
-        var model = await context.Pcvs.FirstOrDefaultAsync();
-        var lotNo = Gen_LotNo(model.Code, 1);
+        var pcv = await context.Pcvs.FirstOrDefaultAsync();
+        var lotNo = Gen_LotNo(pcv.Code, 1);
         var kitCount = 6;
 
         PartQuantities partQuantities = new List<(string partNo, int quantity)>{
@@ -205,10 +205,10 @@ public class BomService_Test : TestBase {
         // setup
         var plant = Gen_Plant();
         Gen_Pcv_From_Existing_Component_And_Stations();
-        var model_1 = await context.Pcvs.FirstOrDefaultAsync();
-        var model_2 = await context.Pcvs.Skip(1).FirstOrDefaultAsync();
-        var lotNo_1 = Gen_LotNo(model_1.Code, 1);
-        var lotNo_2 = Gen_LotNo(model_2.Code, 1);
+        var pcv_1 = await context.Pcvs.FirstOrDefaultAsync();
+        var pcv_2 = await context.Pcvs.Skip(1).FirstOrDefaultAsync();
+        var lotNo_1 = Gen_LotNo(pcv_1.Code, 1);
+        var lotNo_2 = Gen_LotNo(pcv_2.Code, 1);
         var kitCount = 6;
 
         PartQuantities partQuantities = new List<(string partNo, int quantity)>{

@@ -69,13 +69,13 @@ public class ContextTest : TestBase {
     public void Can_add_vehicle_model() {
         using var ctx = GetAppDbContext();
         // setup
-        var vehicleModel = new PCV() {
+        var pcv = new PCV() {
             Code = new String('X', EntityFieldLen.Pcv_Code),
             Description = new String('X', EntityFieldLen.Pcv_Description),
             ModelYear = new String('X', EntityFieldLen.Pcv_Meta),
         };
 
-        ctx.Pcvs.Add(vehicleModel);
+        ctx.Pcvs.Add(pcv);
         // test
         ctx.SaveChanges();
 
@@ -89,19 +89,19 @@ public class ContextTest : TestBase {
         using var ctx = GetAppDbContext();
         // setup
         var modelCode = new String('A', EntityFieldLen.Pcv_Code);
-        var vehicleModel_1 = new PCV() {
+        var pcv_1 = new PCV() {
             Code = modelCode,
             Description = new String('A', EntityFieldLen.Pcv_Description),
             ModelYear = new String('A', EntityFieldLen.Pcv_Meta),
         };
 
-        var vehicleModel_2 = new PCV() {
+        var pcv_2 = new PCV() {
             Code = modelCode,
             Description = new String('B', EntityFieldLen.Pcv_Description),
             ModelYear = new String('B', EntityFieldLen.Pcv_Meta),
         };
 
-        ctx.Pcvs.AddRange(vehicleModel_1, vehicleModel_2);
+        ctx.Pcvs.AddRange(pcv_1, pcv_2);
 
         // test + assert
         Assert.Throws<DbUpdateException>(() => ctx.SaveChanges());
@@ -113,19 +113,19 @@ public class ContextTest : TestBase {
         using var ctx = GetAppDbContext();
         // setup
         var modelName = new String('A', EntityFieldLen.Component_Name);
-        var vehicleModel_1 = new PCV() {
+        var pcv_1 = new PCV() {
             Code = new String('A', EntityFieldLen.Pcv_Code),
             Description = modelName,
             ModelYear = new String('A', EntityFieldLen.Pcv_Meta),
         };
 
-        var vehicleModel_2 = new PCV() {
+        var pcv_2 = new PCV() {
             Code = new String('B', EntityFieldLen.Pcv_Code),
             Description = modelName,
             ModelYear = new String('B', EntityFieldLen.Pcv_Meta),
         };
 
-        ctx.Pcvs.AddRange(vehicleModel_1, vehicleModel_2);
+        ctx.Pcvs.AddRange(pcv_1, pcv_2);
         ctx.SaveChanges();
 
         var count = ctx.Pcvs.Count(t => t.Description == modelName);
@@ -136,12 +136,12 @@ public class ContextTest : TestBase {
     public void Can_add_kit() {
         using var ctx = GetAppDbContext();
         // setup
-        var vehicleModel = new PCV() {
+        var pcv = new PCV() {
             Code = new String('X', EntityFieldLen.Pcv_Code),
             Description = new String('X', EntityFieldLen.Pcv_Description),
             ModelYear = new String('X', EntityFieldLen.Pcv_Meta),
         };
-        ctx.Pcvs.Add(vehicleModel);
+        ctx.Pcvs.Add(pcv);
         ctx.SaveChanges();
 
         // plant
@@ -157,11 +157,11 @@ public class ContextTest : TestBase {
         ctx.Boms.Add(bom);
 
         // lot
-        var model = ctx.Pcvs.First();
+        pcv = ctx.Pcvs.First();
         var lotNo = new String('X', EntityFieldLen.LotNo);
         var lot = new Lot {
-            LotNo = Gen_LotNo(model.Code, 1),
-            Pcv = model,
+            LotNo = Gen_LotNo(pcv.Code, 1),
+            Pcv = pcv,
             Bom = bom,
             Plant = plant
         };
@@ -201,13 +201,13 @@ public class ContextTest : TestBase {
     public void Cannot_add_vehicle_duplicate_vin() {
         using var ctx = GetAppDbContext();
         // setup
-        var vehicleModel = new PCV() {
+        var pcv = new PCV() {
             Code = new String('X', EntityFieldLen.Pcv_Code),
             Description = new String('X', EntityFieldLen.Pcv_Description),
             ModelYear = new String('X', EntityFieldLen.Pcv_Meta),
         };
 
-        ctx.Pcvs.Add(vehicleModel);
+        ctx.Pcvs.Add(pcv);
 
         var vehicle_1 = new Kit() {
             VIN = new String('X', EntityFieldLen.VIN),

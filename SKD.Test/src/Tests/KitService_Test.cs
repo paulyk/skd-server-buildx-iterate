@@ -627,12 +627,12 @@ public class KitServiceTest : TestBase {
     }
 
     [Fact]
-    public async Task Kit_model_component_diff_works() {
+    public async Task Kit_pcv_component_diff_works() {
 
         // setup
         var service = new PcvService(context);
 
-        var model = await context.Pcvs
+        var pcv = await context.Pcvs
             .Include(t => t.PcvComponents).ThenInclude(t => t.Component)
             .Include(t => t.PcvComponents).ThenInclude(t => t.ProductionStation)
             .FirstAsync();
@@ -640,21 +640,21 @@ public class KitServiceTest : TestBase {
         var kit = await context.Kits
             .Include(t => t.KitComponents).ThenInclude(t => t.Component)
             .Include(t => t.KitComponents).ThenInclude(t => t.ProductionStation)
-            .Where(t => t.Lot.Pcv.Code == model.Code).FirstOrDefaultAsync();
+            .Where(t => t.Lot.Pcv.Code == pcv.Code).FirstOrDefaultAsync();
 
-        var diff = await service.GetKitModelComponentDiff(kit.KitNo);
-        Assert.True(0 == diff.InModelButNoKit.Count); // ensure model compoents maatch kit componetns
-        Assert.True(0 == diff.InKitButNoModel.Count); // ensure model compoents maatch kit componetns
+        var diff = await service.GetKitPcvComponentDiff(kit.KitNo);
+        Assert.True(0 == diff.InModelButNoKit.Count); // ensure pcv compoents maatch kit componetns
+        Assert.True(0 == diff.InKitButNoModel.Count); // ensure pcv compoents maatch kit componetns
 
-        var componentToRemove = model.PcvComponents
+        var componentToRemove = pcv.PcvComponents
             .OrderBy(t => t.ProductionStation.Code).ThenBy(t => t.Component.Code)
             .First();
-        // remove model component 
+        // remove pcv component 
         var saveModelInput = new PcvInput {
-            Id = model.Id,
-            Code = model.Code,
-            Description = model.Description,
-            ComponentStationInputs = model.PcvComponents
+            Id = pcv.Id,
+            Code = pcv.Code,
+            Description = pcv.Description,
+            ComponentStationInputs = pcv.PcvComponents
                 .Where(t =>
                     !(
                         t.Component.Code == componentToRemove.Component.Code &&
@@ -668,7 +668,7 @@ public class KitServiceTest : TestBase {
 
         await service.Save(saveModelInput);
 
-        diff = await service.GetKitModelComponentDiff(kit.KitNo);
+        diff = await service.GetKitPcvComponentDiff(kit.KitNo);
         Assert.True(1 == diff.InKitButNoModel.Count);
 
         Assert.Equal(componentToRemove.Component.Code, diff.InKitButNoModel[0].ComponentCode);
@@ -676,28 +676,28 @@ public class KitServiceTest : TestBase {
     }
 
     [Fact]
-    public async Task Can_sync_kit_model_components_if_model_component_removed() {
+    public async Task Can_sync_kit_pcv_components_if_pcv_component_removed() {
         // setup
-        var model = await context.Pcvs.FirstOrDefaultAsync();
-        await RemoveOneComponentFromModel(model);
+        var pcv = await context.Pcvs.FirstOrDefaultAsync();
+        await RemoveOneComponentFromModel(pcv);
 
-        var kit = await context.Kits.Where(t => t.Lot.ModelId == model.Id).FirstOrDefaultAsync();
+        var kit = await context.Kits.Where(t => t.Lot.ModelId == pcv.Id).FirstOrDefaultAsync();
 
         var service = new PcvService(context);
-        var diff = await service.GetKitModelComponentDiff(kit.KitNo);
+        var diff = await service.GetKitPcvComponentDiff(kit.KitNo);
 
         Assert.True(1 == diff.InKitButNoModel.Count);
 
-        // test 1: will remove model from kit
-        await service.SyncKfitModelComponents(kit.KitNo);
+        // test 1: will remove pcv from kit
+        await service.SyncKfitPcvComponents(kit.KitNo);
 
-        diff = await service.GetKitModelComponentDiff(kit.KitNo);
+        diff = await service.GetKitPcvComponentDiff(kit.KitNo);
         Assert.True(0 == diff.InKitButNoModel.Count);
         Assert.True(0 == diff.InModelButNoKit.Count);
     }
 
     [Fact]
-    public async Task Can_sync_kit_model_components_if_kit_component_removed() {
+    public async Task Can_sync_kit_pcv_components_if_kit_component_removed() {
         // setup
         var kit = await context.Kits
             .Include(t => t.KitComponents)
@@ -707,30 +707,30 @@ public class KitServiceTest : TestBase {
         await context.SaveChangesAsync();
 
         var service = new PcvService(context);
-        var diff = await service.GetKitModelComponentDiff(kit.KitNo);
+        var diff = await service.GetKitPcvComponentDiff(kit.KitNo);
 
         Assert.True(1 == diff.InModelButNoKit.Count);
         Assert.True(0 == diff.InKitButNoModel.Count);
 
-        // test 1: will remove model from kit
-        await service.SyncKfitModelComponents(kit.KitNo);
+        // test 1: will remove pcv from kit
+        await service.SyncKfitPcvComponents(kit.KitNo);
 
-        diff = await service.GetKitModelComponentDiff(kit.KitNo);
+        diff = await service.GetKitPcvComponentDiff(kit.KitNo);
         Assert.True(0 == diff.InKitButNoModel.Count);
         Assert.True(0 == diff.InModelButNoKit.Count);
     }
 
-    private async Task RemoveOneComponentFromModel(PCV model) {
+    private async Task RemoveOneComponentFromModel(PCV pcv) {
 
-        var componentToRemove = model.PcvComponents
+        var componentToRemove = pcv.PcvComponents
             .OrderBy(t => t.ProductionStation.Code).ThenBy(t => t.Component.Code)
             .First();
 
         var saveModelInput = new PcvInput {
-            Id = model.Id,
-            Code = model.Code,
-            Description = model.Description,
-            ComponentStationInputs = model.PcvComponents
+            Id = pcv.Id,
+            Code = pcv.Code,
+            Description = pcv.Description,
+            ComponentStationInputs = pcv.PcvComponents
                 .Where(t =>
                     !(
                         t.Component.Code == componentToRemove.Component.Code &&

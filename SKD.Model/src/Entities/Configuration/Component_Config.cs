@@ -27,7 +27,7 @@ namespace SKD.Model {
                 .IsRequired()
                 .HasMaxLength(EntityFieldLen.Component_Name);
 
-            builder.HasMany(t => t.VehicleModelComponents)
+            builder.HasMany(t => t.PcvComponents)
                 .WithOne(t => t.Component)
                 .HasForeignKey(t => t.ComponentId);
 

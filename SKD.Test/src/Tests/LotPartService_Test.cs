@@ -180,7 +180,7 @@ public class LotPartService_Test : TestBase {
                 LotNo = lotNo,
                 Kits = Enumerable.Range(1, 6).Select((n, i) => new BomFile.BomFileLot.BomFileKit {
                     KitNo = lotNo + i.ToString().PadLeft(2, '0'),
-                    ModelCode = lotNo.Substring(0, EntityFieldLen.Pcv_Code)
+                    PcvCode = lotNo.Substring(0, EntityFieldLen.Pcv_Code)
                 }).ToList()
             }).ToList()
 

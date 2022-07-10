@@ -25,7 +25,7 @@ public class TestBase {
     /// Test Seed Data: 
     /// Component, Production Stationes, Timeline events
     /// Plant, Bom, 
-    /// Vehicle Model
+    /// PCV
     /// Vehicle Lot + 6  Vehicles
     ///</summary>
     public void Gen_Baseline_Test_Seed_Data(
@@ -273,7 +273,7 @@ public class TestBase {
         return componentScan;
     }
 
-    public Kit Gen_Kit_From_Model(
+    public Kit Gen_Kit_From_PCV(
         string vin,
         string kitNo,
         string lotNo,
@@ -525,7 +525,7 @@ public class TestBase {
             LotNo = lotNo,
             Kits = Enumerable.Range(1, kitCount).Select(num => new BomFile.BomFileLot.BomFileKit {
                 KitNo = Gen_KitNo(lotNo, num),
-                ModelCode = lotNo.Substring(0, EntityFieldLen.Pcv_Code)
+                PcvCode = lotNo.Substring(0, EntityFieldLen.Pcv_Code)
             }).ToList()
         }).ToList();
     }

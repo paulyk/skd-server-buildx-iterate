@@ -15,37 +15,37 @@ public class PcvService {
             return result;
         }
 
-        var vehicleModel = await context.Pcvs
+        var pcv = await context.Pcvs
             .Include(t => t.PcvComponents).ThenInclude(t => t.Component)
             .Include(t => t.PcvComponents).ThenInclude(t => t.ProductionStation)
             .FirstOrDefaultAsync(t => t.Code == input.Code);
 
-        // Add VehicleModel if null
-        if (vehicleModel == null) {
-            vehicleModel = new PCV {
+        // Add Pcv if null
+        if (pcv == null) {
+            pcv = new PCV {
                 Code = input.Code,
             };
-            context.Pcvs.Add(vehicleModel);
+            context.Pcvs.Add(pcv);
         }
-        vehicleModel.Description = input.Description;
-        vehicleModel.ModelYear = input.ModelYear;
-        vehicleModel.Model = input.Model;
-        vehicleModel.Series = input.Series;
-        vehicleModel.Body = input.Body;
+        pcv.Description = input.Description;
+        pcv.ModelYear = input.ModelYear;
+        pcv.Model = input.Model;
+        pcv.Series = input.Series;
+        pcv.Body = input.Body;
 
         await UpdateComponents();
 
         // save
         await context.SaveChangesAsync();
-        result.Payload = vehicleModel;
+        result.Payload = pcv;
         return result;
 
 
         //
         async Task UpdateComponents() {
             // current_pairs, 
-            var current_pairs = vehicleModel.PcvComponents.Any()
-                ? vehicleModel.PcvComponents.Select(t => new ComponentStationPair(
+            var current_pairs = pcv.PcvComponents.Any()
+                ? pcv.PcvComponents.Select(t => new ComponentStationPair(
                     ComponentCode: t.Component.Code,
                     StationCode: t.ProductionStation.Code
                   )).ToList()
@@ -62,8 +62,8 @@ public class PcvService {
             var to_add = incomming_pairts.Except(current_pairs).ToList();
 
 
-            var vehicle_model_components = vehicleModel.PcvComponents.Any()
-                ? vehicleModel.PcvComponents.ToList()
+            var vehicle_model_components = pcv.PcvComponents.Any()
+                ? pcv.PcvComponents.ToList()
                 : new List<PcvComponent>();
 
             // remove
@@ -86,7 +86,7 @@ public class PcvService {
                         Component = await context.Components.FirstOrDefaultAsync(t => t.Code == ta.ComponentCode),
                         ProductionStation = await context.ProductionStations.FirstOrDefaultAsync(t => t.Code == ta.StationCode)
                     };
-                    vehicleModel.PcvComponents.Add(modelComponent);
+                    pcv.PcvComponents.Add(modelComponent);
                 }
             }
 
@@ -97,11 +97,11 @@ public class PcvService {
     public async Task<List<Error>> ValidateSavePcv<T>(T input) where T : PcvInput {
         var errors = new List<Error>();
 
-        PCV? existingVehicleModel = null;
+        PCV? existingPcv = null;
         if (input.Id.HasValue) {
-            existingVehicleModel = await context.Pcvs.FirstOrDefaultAsync(t => t.Id == input.Id.Value);
-            if (existingVehicleModel == null) {
-                errors.Add(ErrorHelper.Create<T>(t => t.Id, $"model not found: {input.Id}"));
+            existingPcv = await context.Pcvs.FirstOrDefaultAsync(t => t.Id == input.Id.Value);
+            if (existingPcv == null) {
+                errors.Add(ErrorHelper.Create<T>(t => t.Id, $"PCV not found: {input.Id}"));
                 return errors;
             }
         }
@@ -113,7 +113,7 @@ public class PcvService {
             errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityFieldLen.Pcv_Code} characters "));
         }
 
-        // validate model name format
+        // validate pcv name format
         if (input.Description.Trim().Length == 0) {
             errors.Add(ErrorHelper.Create<T>(t => t.Code, "name requred"));
         } else if (input.Description.Length > EntityFieldLen.Pcv_Description) {
@@ -137,8 +137,8 @@ public class PcvService {
         }
 
         // 
-        if (existingVehicleModel != null) {
-            if (await context.Pcvs.AnyAsync(t => t.Code == input.Code && t.Id != existingVehicleModel.Id)) {
+        if (existingPcv != null) {
+            if (await context.Pcvs.AnyAsync(t => t.Code == input.Code && t.Id != existingPcv.Id)) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Code, "duplicate code"));
             }
         } else {
@@ -149,8 +149,8 @@ public class PcvService {
         }
 
         // duplicate name
-        if (existingVehicleModel != null) {
-            if (await context.Pcvs.AnyAsync(t => t.Description == input.Description && t.Id != existingVehicleModel.Id)) {
+        if (existingPcv != null) {
+            if (await context.Pcvs.AnyAsync(t => t.Description == input.Description && t.Id != existingPcv.Id)) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Description, "duplicate name"));
             }
         } else {
@@ -165,7 +165,7 @@ public class PcvService {
             errors.Add(ErrorHelper.Create<T>(t => t.ComponentStationInputs, "components requird"));
         }
 
-        //  duplicate model code in same production stations
+        //  duplicate pcv code in same production stations
         var duplicate_component_station_entries = input.ComponentStationInputs
             .GroupBy(mc => new { mc.ComponentCode, mc.ProductionStationCode })
             .Select(g => new {
@@ -226,7 +226,7 @@ public class PcvService {
 
         var existingModel = await context.Pcvs.FirstOrDefaultAsync(t => t.Code == input.ExistingModelCode);
         if (existingModel == null) {
-            errors.Add(new Error("", $"Existing model PCV not found: {input.ExistingModelCode}"));
+            errors.Add(new Error("", $"Existing PCV not found: {input.ExistingModelCode}"));
             return errors;
         }
 
@@ -237,7 +237,7 @@ public class PcvService {
         return errors;
     }
 
-    public async Task<MutationResult<Kit>> SyncKfitModelComponents(string kitNo) {
+    public async Task<MutationResult<Kit>> SyncKfitPcvComponents(string kitNo) {
         MutationResult<Kit> result = new(null);
         result.Errors = await ValidateSyncKitModelComponents(kitNo);
         if (result.Errors.Any()) {
@@ -250,7 +250,7 @@ public class PcvService {
             .FirstAsync(t => t.KitNo == kitNo);
         result.Payload = kit;
 
-        var diff = await GetKitModelComponentDiff(kitNo);
+        var diff = await GetKitPcvComponentDiff(kitNo);
 
         if (diff.InKitButNoModel.Any()) {
             // remove
@@ -317,13 +317,13 @@ public class PcvService {
     }
 
 
-    #region kit model component diff
+    #region kit pcv component diff
     public record ComponentStationPair(string ComponentCode, string StationCode);
     public record KitModelComponentDiff(
         List<ComponentStationPair> InModelButNoKit,
         List<ComponentStationPair> InKitButNoModel
     );
-    public async Task<KitModelComponentDiff> GetKitModelComponentDiff(string kitNo) {
+    public async Task<KitModelComponentDiff> GetKitPcvComponentDiff(string kitNo) {
 
         var kit = await context.Kits
             .Include(t => t.Lot)

@@ -22,13 +22,13 @@ public class PcvServiceTest : TestBase {
         var model_after_count = await context.Pcvs.CountAsync();
         Assert.Equal(model_before_count + 1, model_after_count);
 
-        var vehicleModel = await context.Pcvs.FirstOrDefaultAsync(t => t.Code == input.Code);
+        var pcv = await context.Pcvs.FirstOrDefaultAsync(t => t.Code == input.Code);
 
-        Assert.Equal(input.Description, vehicleModel.Description);
-        Assert.Equal(input.Model, vehicleModel.Model);
-        Assert.Equal(input.ModelYear, vehicleModel.ModelYear);
-        Assert.Equal(input.Series, vehicleModel.Series);
-        Assert.Equal(input.Body, vehicleModel.Body);
+        Assert.Equal(input.Description, pcv.Description);
+        Assert.Equal(input.Model, pcv.Model);
+        Assert.Equal(input.ModelYear, pcv.ModelYear);
+        Assert.Equal(input.Series, pcv.Series);
+        Assert.Equal(input.Body, pcv.Body);
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class PcvServiceTest : TestBase {
         Assert.True(ducplicateCode);
     }
     [Fact]
-    public async Task Can_modify_model_name() {
+    public async Task Can_modify_pcv_name() {
         // setup
         var input = GenPcvInput();
         var service = new PcvService(context);
@@ -58,28 +58,28 @@ public class PcvServiceTest : TestBase {
         // test        
         await service.Save(input);
 
-        var model = await context.Pcvs
+        var pcv = await context.Pcvs
             .Include(t => t.PcvComponents).ThenInclude(t => t.Component)
             .Include(t => t.PcvComponents).ThenInclude(t => t.ProductionStation)
         .FirstOrDefaultAsync(t => t.Code == input.Code);
 
-        Assert.Equal(input.Description, model.Description);
+        Assert.Equal(input.Description, pcv.Description);
 
         // modify name
         var input_2 = new PcvInput {
-            Id = model.Id,
-            Code = model.Code,
+            Id = pcv.Id,
+            Code = pcv.Code,
             Description = Gen_Pcv_Description(),
-            ComponentStationInputs = model.PcvComponents.Select(t => new ComponentStationInput {
+            ComponentStationInputs = pcv.PcvComponents.Select(t => new ComponentStationInput {
                 ComponentCode = t.Component.Code,
                 ProductionStationCode = t.ProductionStation.Code
             }).ToList()
         };
         await service.Save(input_2);
 
-        model = await context.Pcvs.FirstOrDefaultAsync(t => t.Code == input.Code);
+        pcv = await context.Pcvs.FirstOrDefaultAsync(t => t.Code == input.Code);
 
-        Assert.Equal(input_2.Description, model.Description);
+        Assert.Equal(input_2.Description, pcv.Description);
     }
 
     [Fact]
