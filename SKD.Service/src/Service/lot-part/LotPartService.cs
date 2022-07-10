@@ -122,11 +122,11 @@ public class LotPartService {
     public async Task<LotDTO?> GetLotInfo(string lotNo) {
         var result = await context.Lots.Select(t => new LotDTO {
             LotNo = t.LotNo,
-            Model = t.Model.Model,
-            ModelCode = t.Model.Code,
-            ModelDesc = t.Model.Description,
-            ModelSeries = t.Model.Series,
-            ModelBody = t.Model.Body,
+            Model = t.Pcv.Model,
+            ModelCode = t.Pcv.Code,
+            ModelDesc = t.Pcv.Description,
+            ModelSeries = t.Pcv.Series,
+            ModelBody = t.Pcv.Body,
             CreatedAt = t.CreatedAt,
         }).FirstOrDefaultAsync(t => t.LotNo == lotNo);
 

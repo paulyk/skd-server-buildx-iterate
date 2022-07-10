@@ -1,9 +1,9 @@
 namespace SKD.Model;
 
-public class VehicleModelComponent : EntityBase {
+public class PcvComponent : EntityBase {
 
-    public Guid VehicleModelId { get; set; }
-    public VehicleModel VehicleModel { get; set; }
+    public Guid PcvId { get; set; }
+    public PCV Pcv { get; set; }
 
     public Guid ComponentId { get; set; }
     public Component Component { get; set; }

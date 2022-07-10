@@ -48,17 +48,17 @@ public class ProjectionQueries {
     [UseProjection]
     [UseFiltering]
     [UseSorting]
-    public IQueryable<VehicleModel> GetVehicleModels(
+    public IQueryable<PCV> GetVehicleModels(
         [Service] SkdContext context
-    ) => context.VehicleModels;
+    ) => context.Pcvs;
 
     [UsePaging(MaxPageSize = 10000)]
     [UseProjection]
     [UseFiltering]
     [UseSorting]
-    public IQueryable<VehicleModelComponent> GetVehicleModelComponents(
+    public IQueryable<PcvComponent> GetVehicleModelComponents(
         [Service] SkdContext context
-    ) => context.VehicleModelComponents;
+    ) => context.PcvComponents;
 
 
     [UsePaging(MaxPageSize = 10000)]

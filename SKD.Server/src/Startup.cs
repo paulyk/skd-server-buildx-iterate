@@ -43,7 +43,7 @@ public class Startup {
             .AddScoped<KitService>(sp =>
                 new KitService(sp.GetRequiredService<SkdContext>(), currentDate: DateTime.Now))
             .AddScoped<KitSnapshotService>()
-            .AddScoped<VehicleModelService>()
+            .AddScoped<PcvService>()
             .AddScoped<ComponentService>()
             .AddScoped<DCWSResponseService>()
             .AddScoped<ProductionStationService>()

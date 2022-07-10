@@ -14,11 +14,11 @@ public class Component : EntityBase {
     public ComponentSerialRule ComponentSerialRule { get; set; }
     public bool DcwsRequired { get; set; }
 
-    public ICollection<VehicleModelComponent> VehicleModelComponents { get; set; }
+    public ICollection<PcvComponent> VehicleModelComponents { get; set; }
     public ICollection<KitComponent> KitComponents { get; set; }
 
     public Component() : base() {
-        VehicleModelComponents = new List<VehicleModelComponent>();
+        VehicleModelComponents = new List<PcvComponent>();
         KitComponents = new List<KitComponent>();
     }
 }

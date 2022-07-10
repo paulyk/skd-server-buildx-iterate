@@ -336,8 +336,8 @@ public class ComponentSerialService {
                 KitNo = t.KitNo,
                 VIN = t.VIN,
                 LotNo = t.Lot.LotNo,
-                ModelCode = t.Lot.Model.Code,
-                ModelName = t.Lot.Model.Description
+                ModelCode = t.Lot.Pcv.Code,
+                ModelName = t.Lot.Pcv.Description
             }).FirstOrDefaultAsync();
 
         return result;

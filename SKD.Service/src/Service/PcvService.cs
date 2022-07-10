@@ -1,31 +1,31 @@
 #nullable enable
 
 namespace SKD.Service;
-public class VehicleModelService {
+public class PcvService {
     private readonly SkdContext context;
 
-    public VehicleModelService(SkdContext ctx) {
+    public PcvService(SkdContext ctx) {
         this.context = ctx;
     }
 
-    public async Task<MutationResult<VehicleModel>> Save(VehicleModelInput input) {
-        MutationResult<VehicleModel> result = new();
-        result.Errors = await ValidateSaveVehicleModel(input);
+    public async Task<MutationResult<PCV>> Save(PcvInput input) {
+        MutationResult<PCV> result = new();
+        result.Errors = await ValidateSavePcv(input);
         if (result.Errors.Any()) {
             return result;
         }
 
-        var vehicleModel = await context.VehicleModels
-            .Include(t => t.ModelComponents).ThenInclude(t => t.Component)
-            .Include(t => t.ModelComponents).ThenInclude(t => t.ProductionStation)
+        var vehicleModel = await context.Pcvs
+            .Include(t => t.PcvComponents).ThenInclude(t => t.Component)
+            .Include(t => t.PcvComponents).ThenInclude(t => t.ProductionStation)
             .FirstOrDefaultAsync(t => t.Code == input.Code);
 
         // Add VehicleModel if null
         if (vehicleModel == null) {
-            vehicleModel = new VehicleModel {
+            vehicleModel = new PCV {
                 Code = input.Code,
             };
-            context.VehicleModels.Add(vehicleModel);
+            context.Pcvs.Add(vehicleModel);
         }
         vehicleModel.Description = input.Description;
         vehicleModel.ModelYear = input.ModelYear;
@@ -44,8 +44,8 @@ public class VehicleModelService {
         //
         async Task UpdateComponents() {
             // current_pairs, 
-            var current_pairs = vehicleModel.ModelComponents.Any()
-                ? vehicleModel.ModelComponents.Select(t => new ComponentStationPair(
+            var current_pairs = vehicleModel.PcvComponents.Any()
+                ? vehicleModel.PcvComponents.Select(t => new ComponentStationPair(
                     ComponentCode: t.Component.Code,
                     StationCode: t.ProductionStation.Code
                   )).ToList()
@@ -62,9 +62,9 @@ public class VehicleModelService {
             var to_add = incomming_pairts.Except(current_pairs).ToList();
 
 
-            var vehicle_model_components = vehicleModel.ModelComponents.Any()
-                ? vehicleModel.ModelComponents.ToList()
-                : new List<VehicleModelComponent>();
+            var vehicle_model_components = vehicleModel.PcvComponents.Any()
+                ? vehicleModel.PcvComponents.ToList()
+                : new List<PcvComponent>();
 
             // remove
             foreach (var entry in vehicle_model_components
@@ -82,11 +82,11 @@ public class VehicleModelService {
                 if (existing != null) {
                     existing.RemovedAt = null;
                 } else {
-                    var modelComponent = new VehicleModelComponent {
+                    var modelComponent = new PcvComponent {
                         Component = await context.Components.FirstOrDefaultAsync(t => t.Code == ta.ComponentCode),
                         ProductionStation = await context.ProductionStations.FirstOrDefaultAsync(t => t.Code == ta.StationCode)
                     };
-                    vehicleModel.ModelComponents.Add(modelComponent);
+                    vehicleModel.PcvComponents.Add(modelComponent);
                 }
             }
 
@@ -94,12 +94,12 @@ public class VehicleModelService {
     }
 
 
-    public async Task<List<Error>> ValidateSaveVehicleModel<T>(T input) where T : VehicleModelInput {
+    public async Task<List<Error>> ValidateSavePcv<T>(T input) where T : PcvInput {
         var errors = new List<Error>();
 
-        VehicleModel? existingVehicleModel = null;
+        PCV? existingVehicleModel = null;
         if (input.Id.HasValue) {
-            existingVehicleModel = await context.VehicleModels.FirstOrDefaultAsync(t => t.Id == input.Id.Value);
+            existingVehicleModel = await context.Pcvs.FirstOrDefaultAsync(t => t.Id == input.Id.Value);
             if (existingVehicleModel == null) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Id, $"model not found: {input.Id}"));
                 return errors;
@@ -109,15 +109,15 @@ public class VehicleModelService {
         // validate mddel code format
         if (input.Code.Trim().Length == 0) {
             errors.Add(ErrorHelper.Create<T>(t => t.Code, "code requred"));
-        } else if (input.Code.Length > EntityFieldLen.VehicleModel_Code) {
-            errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityFieldLen.VehicleModel_Code} characters "));
+        } else if (input.Code.Length > EntityFieldLen.Pcv_Code) {
+            errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityFieldLen.Pcv_Code} characters "));
         }
 
         // validate model name format
         if (input.Description.Trim().Length == 0) {
             errors.Add(ErrorHelper.Create<T>(t => t.Code, "name requred"));
-        } else if (input.Description.Length > EntityFieldLen.VehicleModel_Description) {
-            errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityFieldLen.VehicleModel_Description} characters "));
+        } else if (input.Description.Length > EntityFieldLen.Pcv_Description) {
+            errors.Add(ErrorHelper.Create<T>(t => t.Code, $"exceeded code max length of {EntityFieldLen.Pcv_Description} characters "));
         }
 
         // unknown componet codes
@@ -138,24 +138,24 @@ public class VehicleModelService {
 
         // 
         if (existingVehicleModel != null) {
-            if (await context.VehicleModels.AnyAsync(t => t.Code == input.Code && t.Id != existingVehicleModel.Id)) {
+            if (await context.Pcvs.AnyAsync(t => t.Code == input.Code && t.Id != existingVehicleModel.Id)) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Code, "duplicate code"));
             }
         } else {
             // adding a new component, so look for duplicate
-            if (await context.VehicleModels.AnyAsync(t => t.Code == input.Code)) {
+            if (await context.Pcvs.AnyAsync(t => t.Code == input.Code)) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Code, "duplicate code"));
             }
         }
 
         // duplicate name
         if (existingVehicleModel != null) {
-            if (await context.VehicleModels.AnyAsync(t => t.Description == input.Description && t.Id != existingVehicleModel.Id)) {
+            if (await context.Pcvs.AnyAsync(t => t.Description == input.Description && t.Id != existingVehicleModel.Id)) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Description, "duplicate name"));
             }
         } else {
             // adding a new component, so look for duplicate
-            if (await context.VehicleModels.AnyAsync(t => t.Description == input.Description)) {
+            if (await context.Pcvs.AnyAsync(t => t.Description == input.Description)) {
                 errors.Add(ErrorHelper.Create<T>(t => t.Description, "duplicate name"));
             }
         }
@@ -182,31 +182,31 @@ public class VehicleModelService {
     }
 
 
-    public async Task<MutationResult<VehicleModel>> CreateFromExisting(VehicleModelFromExistingInput input) {
-        MutationResult<VehicleModel> result = new();
+    public async Task<MutationResult<PCV>> CreateFromExisting(PcvFromExistingInput input) {
+        MutationResult<PCV> result = new();
         result.Errors = await ValidateCreateFromExisting(input);
         if (result.Errors.Any()) {
             return result;
         }
 
-        var existingModel = await context.VehicleModels
-            .Include(t => t.ModelComponents)
+        var existingModel = await context.Pcvs
+            .Include(t => t.PcvComponents)
             .FirstAsync(t => t.Code == input.ExistingModelCode);
 
-        var newModel = new VehicleModel {
+        var newModel = new PCV {
             Code = input.Code,
             Description = existingModel.Description,
             ModelYear = input.ModelYear,
             Model = existingModel.Model,
             Body = existingModel.Body,
             Series = existingModel.Series,
-            ModelComponents = existingModel.ModelComponents.Select(mc => new VehicleModelComponent {
+            PcvComponents = existingModel.PcvComponents.Select(mc => new PcvComponent {
                 ComponentId = mc.ComponentId,
                 ProductionStationId = mc.ProductionStationId
             }).ToList()
         };
 
-        context.VehicleModels.Add(newModel);
+        context.Pcvs.Add(newModel);
         await context.SaveChangesAsync();
         result.Payload = newModel;
 
@@ -214,17 +214,17 @@ public class VehicleModelService {
 
     }
 
-    public async Task<List<Error>> ValidateCreateFromExisting(VehicleModelFromExistingInput input) {
+    public async Task<List<Error>> ValidateCreateFromExisting(PcvFromExistingInput input) {
         var errors = new List<Error>();
 
 
-        var codeAlreadyTaken = await context.VehicleModels.AnyAsync(t => t.Code == input.Code);
+        var codeAlreadyTaken = await context.Pcvs.AnyAsync(t => t.Code == input.Code);
         if (codeAlreadyTaken) {
             errors.Add(new Error("", $"Model code already exists: {input.Code}"));
             return errors;
         }
 
-        var existingModel = await context.VehicleModels.FirstOrDefaultAsync(t => t.Code == input.ExistingModelCode);
+        var existingModel = await context.Pcvs.FirstOrDefaultAsync(t => t.Code == input.ExistingModelCode);
         if (existingModel == null) {
             errors.Add(new Error("", $"Existing model PCV not found: {input.ExistingModelCode}"));
             return errors;
@@ -337,8 +337,8 @@ public class VehicleModelService {
                 t.ProductionStation.Code
             )).ToListAsync();
 
-        var modelComponents = await context.VehicleModelComponents
-            .Where(t => t.VehicleModelId == kit.Lot.ModelId)
+        var modelComponents = await context.PcvComponents
+            .Where(t => t.PcvId == kit.Lot.ModelId)
             .Where(t => t.RemovedAt == null)
             .Select(t => new ComponentStationPair(
                 t.Component.Code,

@@ -11,7 +11,7 @@ public partial class Lot : EntityBase {
     public virtual Bom Bom { get; set; }
 
     public Guid ModelId { get; set; }
-    public virtual VehicleModel Model { get; set; }
+    public virtual PCV Pcv { get; set; }
 
     public ICollection<Kit> Kits { get; set; } = new List<Kit>();
     public ICollection<LotPart> LotParts { get; set; } = new List<LotPart>();

@@ -14,14 +14,14 @@ namespace SKD.Server {
 
     public class Mutation {
 
-        public async Task<MutationResult<VehicleModel>> SaveVehicleModel(
-            [Service] VehicleModelService service,
-            VehicleModelInput input
+        public async Task<MutationResult<PCV>> SaveVehicleModel(
+            [Service] PcvService service,
+            PcvInput input
         ) => await service.Save(input);
 
-        public async Task<MutationResult<VehicleModel>> CreateVehicleModelFromExisting(
-            [Service] VehicleModelService service,
-            VehicleModelFromExistingInput input
+        public async Task<MutationResult<PCV>> CreateVehicleModelFromExisting(
+            [Service] PcvService service,
+            PcvFromExistingInput input
         ) => await service.CreateFromExisting(input);
 
         public async Task<MutationResult<KitTimelineEvent>> CreateKitTimelineEvent(
@@ -129,7 +129,7 @@ namespace SKD.Server {
         ) => await service.SetLotNote(input);
 
         public async Task<MutationResult<Kit>> SyncKfitModelComponents(
-          [Service] VehicleModelService service,
+          [Service] PcvService service,
           string kitNo
         ) => await service.SyncKfitModelComponents(kitNo);
 

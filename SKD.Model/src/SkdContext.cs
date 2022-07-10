@@ -13,11 +13,11 @@ public class SkdContext : DbContext {
     public DbSet<KitTimelineEventType> KitTimelineEventTypes => Set<KitTimelineEventType>();
     public DbSet<Lot> Lots => Set<Lot>();
     public DbSet<Component> Components => Set<Component>();
-    public DbSet<VehicleModel> VehicleModels => Set<VehicleModel>();
+    public DbSet<PCV> Pcvs => Set<PCV>();
     public DbSet<KitComponent> KitComponents => Set<KitComponent>();
     public DbSet<ComponentSerial> ComponentSerials => Set<ComponentSerial>();
     public DbSet<DcwsResponse> DCWSResponses => Set<DcwsResponse>();
-    public DbSet<VehicleModelComponent> VehicleModelComponents => Set<VehicleModelComponent>();
+    public DbSet<PcvComponent> PcvComponents => Set<PcvComponent>();
     public DbSet<ProductionStation> ProductionStations => Set<ProductionStation>();
     public DbSet<Part> Parts => Set<Part>();
 

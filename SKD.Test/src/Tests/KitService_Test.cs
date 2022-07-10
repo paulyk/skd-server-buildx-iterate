@@ -630,31 +630,31 @@ public class KitServiceTest : TestBase {
     public async Task Kit_model_component_diff_works() {
 
         // setup
-        var service = new VehicleModelService(context);
+        var service = new PcvService(context);
 
-        var model = await context.VehicleModels
-            .Include(t => t.ModelComponents).ThenInclude(t => t.Component)
-            .Include(t => t.ModelComponents).ThenInclude(t => t.ProductionStation)
+        var model = await context.Pcvs
+            .Include(t => t.PcvComponents).ThenInclude(t => t.Component)
+            .Include(t => t.PcvComponents).ThenInclude(t => t.ProductionStation)
             .FirstAsync();
 
         var kit = await context.Kits
             .Include(t => t.KitComponents).ThenInclude(t => t.Component)
             .Include(t => t.KitComponents).ThenInclude(t => t.ProductionStation)
-            .Where(t => t.Lot.Model.Code == model.Code).FirstOrDefaultAsync();
+            .Where(t => t.Lot.Pcv.Code == model.Code).FirstOrDefaultAsync();
 
         var diff = await service.GetKitModelComponentDiff(kit.KitNo);
         Assert.True(0 == diff.InModelButNoKit.Count); // ensure model compoents maatch kit componetns
         Assert.True(0 == diff.InKitButNoModel.Count); // ensure model compoents maatch kit componetns
 
-        var componentToRemove = model.ModelComponents
+        var componentToRemove = model.PcvComponents
             .OrderBy(t => t.ProductionStation.Code).ThenBy(t => t.Component.Code)
             .First();
         // remove model component 
-        var saveModelInput = new VehicleModelInput {
+        var saveModelInput = new PcvInput {
             Id = model.Id,
             Code = model.Code,
             Description = model.Description,
-            ComponentStationInputs = model.ModelComponents
+            ComponentStationInputs = model.PcvComponents
                 .Where(t =>
                     !(
                         t.Component.Code == componentToRemove.Component.Code &&
@@ -678,12 +678,12 @@ public class KitServiceTest : TestBase {
     [Fact]
     public async Task Can_sync_kit_model_components_if_model_component_removed() {
         // setup
-        var model = await context.VehicleModels.FirstOrDefaultAsync();
+        var model = await context.Pcvs.FirstOrDefaultAsync();
         await RemoveOneComponentFromModel(model);
 
         var kit = await context.Kits.Where(t => t.Lot.ModelId == model.Id).FirstOrDefaultAsync();
 
-        var service = new VehicleModelService(context);
+        var service = new PcvService(context);
         var diff = await service.GetKitModelComponentDiff(kit.KitNo);
 
         Assert.True(1 == diff.InKitButNoModel.Count);
@@ -706,7 +706,7 @@ public class KitServiceTest : TestBase {
         kitComponet.RemovedAt = DateTime.UtcNow;
         await context.SaveChangesAsync();
 
-        var service = new VehicleModelService(context);
+        var service = new PcvService(context);
         var diff = await service.GetKitModelComponentDiff(kit.KitNo);
 
         Assert.True(1 == diff.InModelButNoKit.Count);
@@ -720,17 +720,17 @@ public class KitServiceTest : TestBase {
         Assert.True(0 == diff.InModelButNoKit.Count);
     }
 
-    private async Task RemoveOneComponentFromModel(VehicleModel model) {
+    private async Task RemoveOneComponentFromModel(PCV model) {
 
-        var componentToRemove = model.ModelComponents
+        var componentToRemove = model.PcvComponents
             .OrderBy(t => t.ProductionStation.Code).ThenBy(t => t.Component.Code)
             .First();
 
-        var saveModelInput = new VehicleModelInput {
+        var saveModelInput = new PcvInput {
             Id = model.Id,
             Code = model.Code,
             Description = model.Description,
-            ComponentStationInputs = model.ModelComponents
+            ComponentStationInputs = model.PcvComponents
                 .Where(t =>
                     !(
                         t.Component.Code == componentToRemove.Component.Code &&
@@ -741,7 +741,7 @@ public class KitServiceTest : TestBase {
                     ProductionStationCode = t.ProductionStation.Code
                 }).ToList()
         };
-        var service = new VehicleModelService(context);
+        var service = new PcvService(context);
         await service.Save(saveModelInput);
     }
 }

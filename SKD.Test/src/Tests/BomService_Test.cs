@@ -14,7 +14,7 @@ public class BomService_Test : TestBase {
 
         // setup
         var plant = Gen_Plant();
-        var model = await context.VehicleModels.FirstOrDefaultAsync();
+        var model = await context.Pcvs.FirstOrDefaultAsync();
         var lotNo = Gen_LotNo(model.Code, 1);
 
         var partQuantities = new List<(string partNo, int quantity)>{
@@ -90,7 +90,7 @@ public class BomService_Test : TestBase {
     public async Task Cannot_import_duplicate_bom_lot_parts_in_paylaod() {
         // setup
         var plant = Gen_Plant();
-        var model = await context.VehicleModels.FirstOrDefaultAsync();
+        var model = await context.Pcvs.FirstOrDefaultAsync();
         var lotNo1 = Gen_LotNo(model.Code, 1);
         var lotNo2 = Gen_LotNo(model.Code, 2);
 
@@ -123,7 +123,7 @@ public class BomService_Test : TestBase {
     public async Task Cannot_import_if_no_lot_parts() {
         // setup
         var plant = Gen_Plant();
-        var model = await context.VehicleModels.FirstOrDefaultAsync();
+        var model = await context.Pcvs.FirstOrDefaultAsync();
         var lotNo1 = Gen_LotNo(model.Code, 1);
 
         PartQuantities partQuantities = new List<(string partNo, int quantity)>{
@@ -150,7 +150,7 @@ public class BomService_Test : TestBase {
     public async Task Cannot_import_bom_lot_kits_if_model_missing() {
         // setup
         var plant = Gen_Plant();
-        var modelCode = Gen_VehicleModel_Code();
+        var modelCode = Gen_Pcv_Code();
         var lotNo = Gen_LotNo(modelCode, 1);
         var kitCount = 6;
 
@@ -178,7 +178,7 @@ public class BomService_Test : TestBase {
     public async Task Cannot_import_bom_lot_kits_already_imported() {
         // setup
         var plant = Gen_Plant();
-        var model = await context.VehicleModels.FirstOrDefaultAsync();
+        var model = await context.Pcvs.FirstOrDefaultAsync();
         var lotNo = Gen_LotNo(model.Code, 1);
         var kitCount = 6;
 
@@ -204,9 +204,9 @@ public class BomService_Test : TestBase {
     public async Task Can_import_bom_with_previously_imported_lots() {
         // setup
         var plant = Gen_Plant();
-        Gen_Model_From_Existing_Component_And_Stations();
-        var model_1 = await context.VehicleModels.FirstOrDefaultAsync();
-        var model_2 = await context.VehicleModels.Skip(1).FirstOrDefaultAsync();
+        Gen_Pcv_From_Existing_Component_And_Stations();
+        var model_1 = await context.Pcvs.FirstOrDefaultAsync();
+        var model_2 = await context.Pcvs.Skip(1).FirstOrDefaultAsync();
         var lotNo_1 = Gen_LotNo(model_1.Code, 1);
         var lotNo_2 = Gen_LotNo(model_2.Code, 1);
         var kitCount = 6;

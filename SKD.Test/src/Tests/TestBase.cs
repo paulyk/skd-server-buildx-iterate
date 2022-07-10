@@ -42,11 +42,11 @@ public class TestBase {
         } else {
             Gen_Components("component_1", "component_2");
         }
-        Gen_Model_From_Existing_Component_And_Stations();
+        Gen_Pcv_From_Existing_Component_And_Stations();
         var bom = Gen_Plant_Bom();
         if (generateLot) {
-            var model = context.VehicleModels.First();
-            Gen_Lot(bom.Id, model.Id, kitCount: 6, assignVin: assignVin);
+            var pcv = context.Pcvs.First();
+            Gen_Lot(bom.Id, pcv.Id, kitCount: 6, assignVin: assignVin);
         }
         Gen_Dealers();
     }
@@ -80,11 +80,11 @@ public class TestBase {
     }
     public void Gen_Bom_Lot_and_Kits(string plantCode = null, bool assignVin = false) {
         var bom = Gen_Plant_Bom(plantCode);
-        var model = context.VehicleModels.First();
-        Gen_Lot(bom.Id, model.Id, kitCount: 6, assignVin: assignVin);
+        var pcv = context.Pcvs.First();
+        Gen_Lot(bom.Id, pcv.Id, kitCount: 6, assignVin: assignVin);
     }
 
-    public void Gen_Model_From_Existing_Component_And_Stations() {
+    public void Gen_Pcv_From_Existing_Component_And_Stations() {
 
         var components = context.Components.ToList();
         var productionStations = context.ProductionStations.ToList();
@@ -94,9 +94,9 @@ public class TestBase {
                 (component.Code, station.Code)
             )).SelectMany(t => t).ToList();
 
-        var modelCode = Gen_VehicleModel_Code();
-        Gen_VehicleModel(
-            modelCode: modelCode,
+        var pcvCode = Gen_Pcv_Code();
+        Gen_Pcv(
+            pcvCode: pcvCode,
             component_stations_maps: component_station_mappings
           );
     }
@@ -113,34 +113,34 @@ public class TestBase {
         return bom;
     }
 
-    public Lot Gen_Lot(Guid bomId, Guid modelId, int kitCount = 6, bool assignVin = false) {
-        var model = context.VehicleModels
-            .Include(t => t.ModelComponents)
-            .Include(t => t.ModelComponents)
-            .FirstOrDefault(t => t.Id == modelId);
+    public Lot Gen_Lot(Guid bomId, Guid pcvId, int kitCount = 6, bool assignVin = false) {
+        var pcv = context.Pcvs
+            .Include(t => t.PcvComponents)
+            .Include(t => t.PcvComponents)
+            .FirstOrDefault(t => t.Id == pcvId);
 
-        var lotNo = Gen_NewLotNo(model.Code);
+        var lotNo = Gen_NewLotNo(pcv.Code);
 
         var bom = context.Boms.First(t => t.Id == bomId);
 
         var lot = new Lot {
             Bom = bom,
             LotNo = lotNo,
-            Model = model,
+            Pcv = pcv,
             PlantId = bom.Plant.Id,
             Kits = Enumerable.Range(1, kitCount)
-                .Select(kitSeq => VehicleForKitSeq(model, kitSeq))
+                .Select(kitSeq => VehicleForKitSeq(pcv, kitSeq))
                 .ToList()
         };
         context.Lots.Add(lot);
         context.SaveChanges();
         return lot;
 
-        Kit VehicleForKitSeq(VehicleModel model, int kitSeq) {
+        Kit VehicleForKitSeq(PCV pcv, int kitSeq) {
             var vehicle = new Kit {
                 KitNo = Gen_KitNo(lotNo, kitSeq),
                 VIN = assignVin ? Gen_VIN() : "",
-                KitComponents = model.ModelComponents.Select(mc => new KitComponent {
+                KitComponents = pcv.PcvComponents.Select(mc => new KitComponent {
                     ComponentId = mc.ComponentId,
                     ProductionStationId = mc.ProductionStationId
                 }).ToList()
@@ -236,29 +236,29 @@ public class TestBase {
         return context.Components.ToList();
     }
 
-    public VehicleModel Gen_VehicleModel(
-        string modelCode,
+    public PCV Gen_Pcv(
+        string pcvCode,
         List<(string componentCode,
         string stationCode)> component_stations_maps
     ) {
         Gen_Components(component_stations_maps.Select(t => t.componentCode).ToArray());
         Gen_ProductionStations(component_stations_maps.Select(t => t.stationCode).ToArray());
 
-        var modelComponents = component_stations_maps
-        .Select(map => new VehicleModelComponent {
+        var pcvComponents = component_stations_maps
+        .Select(map => new PcvComponent {
             Component = context.Components.First(t => t.Code == map.componentCode),
             ProductionStation = context.ProductionStations.First(t => t.Code == map.stationCode)
         }).ToList();
 
-        var vehicleModel = new VehicleModel {
-            Code = modelCode,
-            Description = $"{modelCode} name",
-            ModelComponents = modelComponents
+        var pcv = new PCV {
+            Code = pcvCode,
+            Description = $"{pcvCode} name",
+            PcvComponents = pcvComponents
         };
 
-        context.VehicleModels.Add(vehicleModel);
+        context.Pcvs.Add(pcv);
         context.SaveChanges();
-        return vehicleModel;
+        return pcv;
     }
 
     public ComponentSerial Gen_ComponentScan(Guid vehicleComponentId) {
@@ -277,7 +277,7 @@ public class TestBase {
         string vin,
         string kitNo,
         string lotNo,
-        string modelCode
+        string pcvCode
         ) {
 
         // plant
@@ -285,12 +285,12 @@ public class TestBase {
         var plant = new Plant { Code = plantCode };
         context.Plants.Add(plant);
 
-        // model
-        var vehicleModel = context.VehicleModels
-            .Include(t => t.ModelComponents)
-            .FirstOrDefault(t => t.Code == modelCode);
+        // pcv
+        var pcv = context.Pcvs
+            .Include(t => t.PcvComponents)
+            .FirstOrDefault(t => t.Code == pcvCode);
 
-        var vehicleComponents = vehicleModel.ModelComponents.Select(mc => new KitComponent {
+        var vehicleComponents = pcv.PcvComponents.Select(mc => new KitComponent {
             ComponentId = mc.ComponentId,
             ProductionStationId = mc.ProductionStationId
         }).ToList();
@@ -311,7 +311,7 @@ public class TestBase {
         return vehicle;
     }
 
-    public Kit Gen_Kit_Amd_Model_From_Components(
+    public Kit Gen_Kit_And_Pcv_From_Components(
         List<(string componentCode, string stationCode)> component_stations_maps,
         bool auto_assign_vin = false
     ) {
@@ -343,16 +343,16 @@ public class TestBase {
             }
         });
 
-        var modelCode = Gen_VehicleModel_Code();
-        var model = Gen_VehicleModel(
-            modelCode: modelCode,
+        var pcvCode = Gen_Pcv_Code();
+        var pcv = Gen_Pcv(
+            pcvCode: pcvCode,
             component_stations_maps: component_stations_maps
           );
 
-        // cretre vehicle based on that model
+        // create kit based on that pcv
         var bom = context.Boms.Include(t => t.Plant).First();
         var plant = bom.Plant;
-        var lot = Gen_Lot(bom.Id, model.Id, assignVin: auto_assign_vin);
+        var lot = Gen_Lot(bom.Id, pcv.Id, assignVin: auto_assign_vin);
 
         var kit = context.Kits
             .Include(t => t.Lot)
@@ -425,8 +425,8 @@ public class TestBase {
     public string Get_Code(int len) {
         return Util.RandomString(len).ToUpper();
     }
-    public string Gen_LotNo(string modelCode, int sequence) {
-        return modelCode + sequence.ToString().PadLeft(EntityFieldLen.LotNo - EntityFieldLen.VehicleModel_Code, '0');
+    public string Gen_LotNo(string pcvCode, int sequence) {
+        return pcvCode + sequence.ToString().PadLeft(EntityFieldLen.LotNo - EntityFieldLen.Pcv_Code, '0');
     }
 
     public string Gen_PartnerPLantCode() {
@@ -434,17 +434,17 @@ public class TestBase {
     }
 
     public string Gen_LotNo(int sequence) {
-        var modelCode = context.VehicleModels.Select(t => t.Code).First();
-        return modelCode + sequence.ToString().PadLeft(EntityFieldLen.LotNo - EntityFieldLen.VehicleModel_Code, '0');
+        var pcvCode = context.Pcvs.Select(t => t.Code).First();
+        return pcvCode + sequence.ToString().PadLeft(EntityFieldLen.LotNo - EntityFieldLen.Pcv_Code, '0');
     }
 
-    public string Gen_NewLotNo(string modelCode) {
+    public string Gen_NewLotNo(string pcvCode) {
         var sequence = 1;
-        var lotNo = modelCode + sequence.ToString().PadLeft(EntityFieldLen.LotNo - EntityFieldLen.VehicleModel_Code, '0');
+        var lotNo = pcvCode + sequence.ToString().PadLeft(EntityFieldLen.LotNo - EntityFieldLen.Pcv_Code, '0');
         var lotExists = context.Lots.Any(t => t.LotNo == lotNo);
         while (lotExists) {
             sequence++;
-            lotNo = modelCode + sequence.ToString().PadLeft(EntityFieldLen.LotNo - EntityFieldLen.VehicleModel_Code, '0');
+            lotNo = pcvCode + sequence.ToString().PadLeft(EntityFieldLen.LotNo - EntityFieldLen.Pcv_Code, '0');
             lotExists = context.Lots.Any(t => t.LotNo == lotNo);
         }
         return lotNo;
@@ -461,15 +461,15 @@ public class TestBase {
             Util.RandomString(EntityFieldLen.KitNo - (prefix.Length + suffix.Length)).ToUpper() +
             suffix;
     }
-    public string Gen_VehicleModel_Code() {
-        return Util.RandomString(EntityFieldLen.VehicleModel_Code).ToUpper();
+    public string Gen_Pcv_Code() {
+        return Util.RandomString(EntityFieldLen.Pcv_Code).ToUpper();
     }
 
-    public string Gen_VehicleModel_Description() {
-        return Util.RandomString(EntityFieldLen.VehicleModel_Description).ToUpper();
+    public string Gen_Pcv_Description() {
+        return Util.RandomString(EntityFieldLen.Pcv_Description).ToUpper();
     }
-    public string Gen_VehilceModel_Meta() {
-        return Util.RandomString(EntityFieldLen.VehicleModel_Meta).ToUpper();
+    public string Gen_Pcv_Meta() {
+        return Util.RandomString(EntityFieldLen.Pcv_Meta).ToUpper();
     }
     public string Gen_VIN() {
         return Util.RandomString(EntityFieldLen.VIN).ToUpper();
@@ -525,7 +525,7 @@ public class TestBase {
             LotNo = lotNo,
             Kits = Enumerable.Range(1, kitCount).Select(num => new BomFile.BomFileLot.BomFileKit {
                 KitNo = Gen_KitNo(lotNo, num),
-                ModelCode = lotNo.Substring(0, EntityFieldLen.VehicleModel_Code)
+                ModelCode = lotNo.Substring(0, EntityFieldLen.Pcv_Code)
             }).ToList()
         }).ToList();
     }

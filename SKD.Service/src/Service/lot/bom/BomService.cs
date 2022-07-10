@@ -66,11 +66,11 @@ public class BomService {
         foreach (var lotNo in input.LotEntries.Select(t => t.LotNo)) {
             var lot = bom.Lots.FirstOrDefault(t => t.LotNo == lotNo);
             if (lot == null) {
-                var modelCode = lotNo.Substring(0, EntityFieldLen.VehicleModel_Code);
+                var modelCode = lotNo.Substring(0, EntityFieldLen.Pcv_Code);
                 lot = new Lot {
                     LotNo = lotNo,
                     Plant = plant,
-                    Model = await context.VehicleModels.FirstOrDefaultAsync(t => t.Code == modelCode)
+                    Pcv = await context.Pcvs.FirstOrDefaultAsync(t => t.Code == modelCode)
                 };
                 bom.Lots.Add(lot);
             }
@@ -173,8 +173,8 @@ public class BomService {
     private async Task<Kit> CreateKit(BomFile.BomFileLot.BomFileKit input) {
         var kits = new List<Kit>();
 
-        var model = await context.VehicleModels
-            .Include(t => t.ModelComponents)
+        var model = await context.Pcvs
+            .Include(t => t.PcvComponents)
             .Where(t => t.Code == input.ModelCode)
             .FirstAsync();
 
@@ -182,7 +182,7 @@ public class BomService {
             KitNo = input.KitNo
         };
 
-        model.ModelComponents.ToList().ForEach(mapping => {
+        model.PcvComponents.ToList().ForEach(mapping => {
             kit.KitComponents.Add(new KitComponent() {
                 ComponentId = mapping.ComponentId,
                 ProductionStationId = mapping.ProductionStationId,
@@ -259,7 +259,7 @@ public class BomService {
 
         // model codes not found
         var incommingModelCodes = input.LotEntries.SelectMany(t => t.Kits).Select(k => k.ModelCode).Distinct();
-        var systemModelCodes = await context.VehicleModels
+        var systemModelCodes = await context.Pcvs
             .Where(t => t.RemovedAt == null).Select(t => t.Code).ToListAsync();
 
         var matchingModelCodes = incommingModelCodes.Intersect(systemModelCodes);

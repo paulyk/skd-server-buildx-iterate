@@ -13,8 +13,10 @@ public class Lot_Config : IEntityTypeConfiguration<Lot> {
 
         builder.Property(t => t.Note).HasMaxLength(EntityFieldLen.LotNote);
 
+        builder.Property(t => t.ModelId).HasColumnName("PcvId");
+
         // relationships            
-        builder.HasOne(t => t.Model)
+        builder.HasOne(t => t.Pcv)
             .WithMany(t => t.Lots)
             .HasForeignKey(t => t.ModelId)
             .OnDelete(DeleteBehavior.Restrict);

@@ -127,7 +127,7 @@ public class HandlingUnitService {
            await (from hu in context.HandlingUnits
                   join lot in context.Lots
                    on hu.ShipmentInvoice.ShipmentLot.Lot.LotNo equals lot.LotNo
-                  join model in context.VehicleModels
+                  join model in context.Pcvs
                    on lot.ModelId equals model.Id
                   where hu.Code == code
                   select new HandlingUnitInfoPayload {

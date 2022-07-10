@@ -37,7 +37,7 @@ public class Query {
     public async Task<Kit?> GetKitById([Service] SkdContext context, Guid id) {
         var result = await context.Kits.AsNoTracking()
                 .Include(t => t.Lot)
-                .Include(t => t.Lot).ThenInclude(t => t.Model)
+                .Include(t => t.Lot).ThenInclude(t => t.Pcv)
                 .Include(t => t.KitComponents).ThenInclude(t => t.Component)
                 .Include(t => t.KitComponents).ThenInclude(t => t.ProductionStation)
                 .Include(t => t.KitComponents).ThenInclude(t => t.ComponentSerials)
@@ -51,13 +51,13 @@ public class Query {
     public async Task<Kit?> GetKitByKitNo([Service] SkdContext context, string kitNo) {
         var result = await context.Kits.AsNoTracking()
                 .Include(t => t.Dealer)
-                .Include(t => t.Lot).ThenInclude(t => t.Model).ThenInclude(t => t.ModelComponents).ThenInclude(t => t.Component)
+                .Include(t => t.Lot).ThenInclude(t => t.Pcv).ThenInclude(t => t.PcvComponents).ThenInclude(t => t.Component)
                 .Include(t => t.KitComponents).ThenInclude(t => t.Component)
                 .Include(t => t.KitComponents).ThenInclude(t => t.ProductionStation)
                 .Include(t => t.KitComponents)
                     .ThenInclude(t => t.ComponentSerials)
                     .ThenInclude(t => t.DcwsResponses)
-                .Include(t => t.Lot).ThenInclude(t => t.Model)
+                .Include(t => t.Lot).ThenInclude(t => t.Pcv)
                 .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .Include(t => t.KitVins)
                 .FirstOrDefaultAsync(t => t.KitNo == kitNo);
@@ -111,7 +111,7 @@ public class Query {
 
     public async Task<Lot?> GetLotByLotNo([Service] SkdContext context, string lotNo) =>
             await context.Lots.AsNoTracking()
-                    .Include(t => t.Model)
+                    .Include(t => t.Pcv)
                     .Include(t => t.Kits)
                             .ThenInclude(t => t.TimelineEvents)
                             .ThenInclude(t => t.EventType)
@@ -122,7 +122,7 @@ public class Query {
             .Include(t => t.Kits)
                 .ThenInclude(t => t.TimelineEvents)
                 .ThenInclude(t => t.EventType)
-            .Include(t => t.Model)
+            .Include(t => t.Pcv)
             .Include(t => t.Plant)
             .Include(t => t.Bom)
             .Include(t => t.ShipmentLots)
@@ -153,8 +153,8 @@ public class Query {
             ShipmentId = lot.ShipmentLots.Select(x => x.Shipment.Id).FirstOrDefault(),
             ShipmentSequence = lot.ShipmentLots.Select(x => x.Shipment.Sequence).FirstOrDefault(),
             PlantCode = lot.Plant.Code,
-            ModelCode = lot.Model.Code,
-            ModelName = lot.Model.Description,
+            ModelCode = lot.Pcv.Code,
+            ModelName = lot.Pcv.Description,
             CreatedAt = lot.CreatedAt,
             CustomReceived = customReceivedEvent != null
                 ? new TimelineEventDTO {
@@ -179,14 +179,14 @@ public class Query {
     public async Task<List<Kit>> GetKitsByLot([Service] SkdContext context, string lotNo) =>
              await context.Kits.OrderBy(t => t.Lot).AsNoTracking()
                 .Where(t => t.Lot.LotNo == lotNo)
-                    .Include(t => t.Lot).ThenInclude(t => t.Model)
+                    .Include(t => t.Lot).ThenInclude(t => t.Pcv)
                     .Include(t => t.TimelineEvents).ThenInclude(t => t.EventType)
                 .ToListAsync();
 
-    public async Task<VehicleModel?> GetVehicleModelById([Service] SkdContext context, Guid id) =>
-            await context.VehicleModels.AsNoTracking()
-                    .Include(t => t.ModelComponents).ThenInclude(t => t.Component)
-                    .Include(t => t.ModelComponents).ThenInclude(t => t.ProductionStation)
+    public async Task<PCV?> GetVehicleModelById([Service] SkdContext context, Guid id) =>
+            await context.Pcvs.AsNoTracking()
+                    .Include(t => t.PcvComponents).ThenInclude(t => t.Component)
+                    .Include(t => t.PcvComponents).ThenInclude(t => t.ProductionStation)
                 .FirstOrDefaultAsync(t => t.Id == id);
 
     public async Task<Component?> GetComponentById([Service] SkdContext context, Guid id) =>
@@ -226,8 +226,8 @@ public class Query {
                 LotNo = t.Lot.LotNo,
                 KitNo = t.KitNo,
                 VIN = t.VIN,
-                ModelCode = t.Lot.Model.Code,
-                ModelName = t.Lot.Model.Description,
+                ModelCode = t.Lot.Pcv.Code,
+                ModelName = t.Lot.Pcv.Description,
                 LastTimelineEvent = t.TimelineEvents
                     .OrderByDescending(t => t.CreatedAt)
                     .Select(t => t.EventType.Description)
@@ -415,7 +415,7 @@ public class Query {
 
         return await query
             .Include(t => t.Kit).ThenInclude(t => t.Lot).ThenInclude(t => t.Plant)
-            .Include(t => t.Kit).ThenInclude(t => t.Lot).ThenInclude(t => t.Model)
+            .Include(t => t.Kit).ThenInclude(t => t.Lot).ThenInclude(t => t.Pcv)
             .Include(t => t.Kit).ThenInclude(t => t.Dealer)
             .Include(t => t.EventType)
             .ToListAsync();
