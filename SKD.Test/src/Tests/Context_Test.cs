@@ -259,4 +259,76 @@ public class ContextTest : TestBase {
         Assert.Equal(dealers.Count, after_count);
     }
 
+    [Fact]
+    public void Can_add_PcvModel_Submodel_SubmodelComponents() {
+        using var ctx = GetAppDbContext();
+        var components = new List<Component>() {
+            new Component { Code= "DA", Name = "Driver Airbag"},
+            new Component { Code= "PA", Name = "Passenger Airbag"},
+        };
+
+        ctx.Components.AddRange(components);
+        ctx.SaveChanges();
+        //
+        var pcvModel = new PcvModel {
+            Code = "Ranger",
+            Name = "Ranger",
+            Submodels = new List<PcvSubmodel> {
+                new PcvSubmodel {
+                    Code = "P703",
+                    Name = "P703",                    
+                },
+                new PcvSubmodel {
+                    Code = "P702",
+                    Name = "P702",
+                }
+            }
+        };
+
+        pcvModel.Submodels.ToList().ForEach(subModel => {
+            components.ForEach(component => {
+                subModel.SubmodelComponents.Add(new PcvSubmodelComponent {
+                    Component = component,
+                    Submodel = subModel
+                });
+            });
+        });
+
+        ctx.PcvModels.Add(pcvModel);
+        ctx.SaveChanges();
+
+        // add pcv
+        ctx.Pcvs.Add(new PCV {
+            Code = "BPA0A11",
+            Body = "DBL CAB",
+            Series = "WILDTRAK",
+            ModelYear = "2024",
+            Description = "Description",
+            SubModel = ctx.PcvSubmodels.First(t => t.Code == "P703")
+        });
+        ctx.SaveChanges();
+
+
+
+        // assert
+        var models = ctx.PcvModels
+            .Include(t => t.Submodels)
+            .ThenInclude(t => t.Pcvs)
+            .ToList();
+
+        var modelCount = models.Count();
+        var subModelCount = models.SelectMany(t => t.Submodels).Count();
+        var subModelComponentCount = models.SelectMany(t => t.Submodels).SelectMany(t => t.SubmodelComponents).Count();
+
+        var pcv = models
+            .SelectMany(t => t.Submodels)
+            .Where(t => t.Pcvs.Any())
+            .Select(t => t.Pcvs)
+            .First().First();
+                 
+        Assert.Equal(1, modelCount);
+        Assert.Equal(2, subModelCount);
+        Assert.Equal(4, subModelComponentCount);       
+        Assert.Equal("BPA0A11", pcv.Code); 
+    }
 }

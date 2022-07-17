@@ -9,6 +9,10 @@ public partial class PCV : EntityBase {
     public string Model { get; set; } = "";
     public string Series { get; set; } = "";
     public string Body { get; set; } = "";
+
+    public PcvSubmodel? SubModel { get; set; } 
+    public Guid? SubModelId { get; set; }
+
     public ICollection<Lot> Lots { get; set; } = new List<Lot>();
     public ICollection<PcvComponent> PcvComponents { get; set; } = new List<PcvComponent>();
 }

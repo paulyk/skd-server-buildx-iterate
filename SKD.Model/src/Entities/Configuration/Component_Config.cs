@@ -34,7 +34,11 @@ namespace SKD.Model {
             builder.HasMany(t => t.KitComponents)
                 .WithOne(t => t.Component)
                 .HasForeignKey(t => t.ComponentId);
-                         
+
+            builder.HasMany(t => t.SubmodelComponents)
+                .WithOne(t => t.Component)
+                .HasForeignKey(t => t.ComponentId);  
+                                               
         }
     }
 }

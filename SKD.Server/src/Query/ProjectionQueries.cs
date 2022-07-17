@@ -48,6 +48,7 @@ public class ProjectionQueries {
     [UseProjection]
     [UseFiltering]
     [UseSorting]
+
     public IQueryable<PCV> GetPcvs(
         [Service] SkdContext context
     ) => context.Pcvs;
@@ -56,10 +57,27 @@ public class ProjectionQueries {
     [UseProjection]
     [UseFiltering]
     [UseSorting]
+
     public IQueryable<PcvComponent> GetPcvComponents(
         [Service] SkdContext context
     ) => context.PcvComponents;
 
+
+    [UsePaging(MaxPageSize = 10000)]
+    [UseProjection]
+    [UseFiltering]
+    [UseSorting]
+    public IQueryable<PcvModel> GetPcvModels(
+        [Service] SkdContext contenxt
+    ) => contenxt.PcvModels;
+
+    [UsePaging(MaxPageSize = 10000)]
+    [UseProjection]
+    [UseFiltering]
+    [UseSorting]
+    public IQueryable<PcvSubmodel> GetPcvSubmodels(
+        [Service] SkdContext context
+    ) => context.PcvSubmodels;
 
     [UsePaging(MaxPageSize = 10000)]
     [UseProjection]

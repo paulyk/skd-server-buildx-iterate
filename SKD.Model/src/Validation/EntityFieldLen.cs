@@ -54,4 +54,7 @@ public static class EntityFieldLen {
     public readonly static int Event_Code = 30;
     public readonly static int Event_Description = 200;
     public readonly static int Event_Note = 200;
+
+    public readonly static int RefData_Code = 30;
+    public readonly static int RefData_Name = 150;
 }

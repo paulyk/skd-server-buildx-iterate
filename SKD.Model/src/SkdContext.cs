@@ -13,7 +13,12 @@ public class SkdContext : DbContext {
     public DbSet<KitTimelineEventType> KitTimelineEventTypes => Set<KitTimelineEventType>();
     public DbSet<Lot> Lots => Set<Lot>();
     public DbSet<Component> Components => Set<Component>();
+
     public DbSet<PCV> Pcvs => Set<PCV>();
+    public DbSet<PcvModel> PcvModels => Set<PcvModel>();
+    public DbSet<PcvSubmodel> PcvSubmodels => Set<PcvSubmodel>();
+    public DbSet<PcvSubmodelComponent> PcvSubmodelComponents => Set<PcvSubmodelComponent>();
+
     public DbSet<KitComponent> KitComponents => Set<KitComponent>();
     public DbSet<ComponentSerial> ComponentSerials => Set<ComponentSerial>();
     public DbSet<DcwsResponse> DCWSResponses => Set<DcwsResponse>();
@@ -63,6 +68,10 @@ public class SkdContext : DbContext {
         builder.ApplyConfiguration(new LotPartReceived_Config());
 
         builder.ApplyConfiguration(new Pcv_Config());
+        builder.ApplyConfiguration(new PcvModel_Config());
+        builder.ApplyConfiguration(new PcvSubmodel_Config());
+        builder.ApplyConfiguration(new PcvSubmodelComponent_Config());
+
         builder.ApplyConfiguration(new KitComponent_Config());
         builder.ApplyConfiguration(new PcvComponent_Config());
         builder.ApplyConfiguration(new ComponentSerial_Config());

@@ -16,7 +16,11 @@ public class ProductionStation_Config : IEntityTypeConfiguration<ProductionStati
             .WithOne(t => t.ProductionStation)
             .HasForeignKey(t => t.ProductionStationId);
 
-        builder.HasMany(t => t.VehicleComponents)
+        builder.HasMany(t => t.KitComponents)
+            .WithOne(t => t.ProductionStation)
+            .HasForeignKey(t => t.ProductionStationId);
+
+        builder.HasMany(t => t.DefaultStationComponents)
             .WithOne(t => t.ProductionStation)
             .HasForeignKey(t => t.ProductionStationId);
     }
